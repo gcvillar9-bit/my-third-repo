@@ -4,7 +4,7 @@ Fly through a realistic universe in your browser: from standing on planet surfac
 
 **Live:** https://gcvillar9-bit.github.io/my-third-repo/ (needs WebGL2)
 
-## What works so far (Phases 1 and 2)
+## What works so far (Phases 1 to 3)
 
 - A camera that travels seamlessly from metres to light-years (64-bit frame tree, camera-relative rendering, log depth).
 - Physically exposed rendering: real luminances, auto exposure, bloom and filmic tone mapping.
@@ -18,8 +18,13 @@ Fly through a realistic universe in your browser: from standing on planet surfac
   and jumping, physically based atmospheres (Earth, Mars, Venus, Titan: blue Earth sky, blue Martian sunset) and a
   hero Earth with ocean glint, city lights, clouds and cloud shadows. Optional streamed HD Earth terrain.
 
+- Phase 3: gas giants with drifting cloud bands, the Great Red Spot and moon-shadow transits; Saturn's and Uranus's
+  rings at true radii with backlit glow and shadows both ways; a granulated, limb-darkened Sun with a corona; the
+  asteroid and Kuiper belts (up to 400k bodies on GPU Kepler orbits, Kirkwood gaps, Hildas, Trojans, plutinos);
+  and a solar/lunar eclipse finder that puts you on the ground at totality.
+
 Demo links and what to look for: [docs/demos/phase-1.md](docs/demos/phase-1.md),
-[docs/demos/phase-2.md](docs/demos/phase-2.md).
+[docs/demos/phase-2.md](docs/demos/phase-2.md), [docs/demos/phase-3.md](docs/demos/phase-3.md).
 
 ## Controls
 

@@ -1,0 +1,232 @@
+{
+  "comment": "Ring systems at true radii (km from the planet centre, equatorial plane). tau = typical normal optical depth; albedo = effective single-scattering albedo (single-scattering model, tuned so the lit B ring is about as bright as the globe); dust = fraction of forward-scattering dust in the phase function; map = take fine structure from the Celestia radial profile (mean optical depth stays tau). Later rows override earlier ones (gaps). Values marked approximate are representative, not measured at a single radius.",
+  "systems": [
+    {
+      "body": "saturn",
+      "inner": 66900,
+      "outer": 140400,
+      "tint": [1.0, 0.93, 0.8],
+      "profile": {
+        "path": "textures/solar-system/saturn_rings_profile.png",
+        "inner": 74510,
+        "outer": 140245
+      },
+      "source": "NASA NSSDCA Saturnian Rings Fact Sheet (nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html); Cassini Division bounds 117,580-122,170 km per DESIGN P3; profile radii from Celestia solarsys.ssc",
+      "regions": [
+        {
+          "name": "D ring",
+          "inner": 66900,
+          "outer": 74510,
+          "tau": 0.001,
+          "albedo": 0.6,
+          "dust": 1.0,
+          "map": false,
+          "approximate": true,
+          "source": "NSSDCA fact sheet radii; tau ~1e-3 (Hedman et al. 2007)"
+        },
+        {
+          "name": "C ring",
+          "inner": 74658,
+          "outer": 92000,
+          "tau": 0.1,
+          "albedo": 0.35,
+          "dust": 0.1,
+          "map": true,
+          "source": "NSSDCA fact sheet; tau 0.05-0.2 (Cuzzi et al. 2009)"
+        },
+        {
+          "name": "B ring",
+          "inner": 92000,
+          "outer": 117580,
+          "tau": 2.0,
+          "albedo": 0.95,
+          "dust": 0.0,
+          "map": true,
+          "source": "NSSDCA fact sheet; tau 1-5 (Cuzzi et al. 2009)"
+        },
+        {
+          "name": "Cassini Division",
+          "inner": 117580,
+          "outer": 122170,
+          "tau": 0.1,
+          "albedo": 0.4,
+          "dust": 0.3,
+          "map": true,
+          "source": "DESIGN P3 bounds; tau ~0.1 (Cuzzi et al. 2009)"
+        },
+        {
+          "name": "A ring",
+          "inner": 122170,
+          "outer": 136775,
+          "tau": 0.6,
+          "albedo": 0.85,
+          "dust": 0.05,
+          "map": true,
+          "source": "NSSDCA fact sheet; tau 0.4-1 (Cuzzi et al. 2009)"
+        },
+        {
+          "name": "Encke Gap",
+          "inner": 133423,
+          "outer": 133745,
+          "tau": 0.0,
+          "albedo": 0.0,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: centre 133,589 km, width 325 km"
+        },
+        {
+          "name": "Keeler Gap",
+          "inner": 136509,
+          "outer": 136551,
+          "tau": 0.0,
+          "albedo": 0.0,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: centre 136,530 km, width 42 km"
+        },
+        {
+          "name": "Roche Division",
+          "inner": 136775,
+          "outer": 139380,
+          "tau": 0.0005,
+          "albedo": 0.6,
+          "dust": 1.0,
+          "map": false,
+          "approximate": true,
+          "source": "Roche Division dust, tau ~1e-4..1e-3 (Hedman et al. 2007)"
+        },
+        {
+          "name": "F ring",
+          "inner": 140155,
+          "outer": 140205,
+          "tau": 0.5,
+          "albedo": 0.6,
+          "dust": 0.9,
+          "map": false,
+          "approximate": true,
+          "source": "NSSDCA fact sheet: centre 140,180 km, core width ~50 km, tau 0.1-0.5"
+        }
+      ]
+    },
+    {
+      "body": "uranus",
+      "inner": 37800,
+      "outer": 51300,
+      "tint": [0.95, 0.97, 1.0],
+      "source": "NASA NSSDCA Uranian Rings Fact Sheet (nssdc.gsfc.nasa.gov/planetary/factsheet/uranringfact.html); particle albedo ~0.03 (Karkoschka 2001)",
+      "regions": [
+        {
+          "name": "zeta (1986U2R)",
+          "inner": 37850,
+          "outer": 41350,
+          "tau": 0.0001,
+          "albedo": 0.05,
+          "dust": 1.0,
+          "map": false,
+          "approximate": true,
+          "source": "NSSDCA fact sheet; dusty, tau < 1e-3"
+        },
+        {
+          "name": "6",
+          "inner": 41836,
+          "outer": 41838,
+          "tau": 0.3,
+          "albedo": 0.04,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: 41,837 km, width 1-3 km, tau 0.2-0.3"
+        },
+        {
+          "name": "5",
+          "inner": 42233,
+          "outer": 42235,
+          "tau": 0.5,
+          "albedo": 0.04,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: 42,234 km, width 2-3 km, tau 0.5-0.6"
+        },
+        {
+          "name": "4",
+          "inner": 42570,
+          "outer": 42572,
+          "tau": 0.3,
+          "albedo": 0.04,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: 42,571 km, width 2-3 km, tau 0.3"
+        },
+        {
+          "name": "alpha",
+          "inner": 44715,
+          "outer": 44722,
+          "tau": 0.4,
+          "albedo": 0.04,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: 44,718 km, width 7-12 km, tau 0.3-0.4"
+        },
+        {
+          "name": "beta",
+          "inner": 45657,
+          "outer": 45665,
+          "tau": 0.3,
+          "albedo": 0.04,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: 45,661 km, width 7-12 km, tau 0.2"
+        },
+        {
+          "name": "eta",
+          "inner": 47175,
+          "outer": 47177,
+          "tau": 0.4,
+          "albedo": 0.04,
+          "dust": 0.1,
+          "map": false,
+          "source": "NSSDCA fact sheet: 47,176 km, width 0-2 km, tau 0.1-0.4"
+        },
+        {
+          "name": "gamma",
+          "inner": 47625,
+          "outer": 47629,
+          "tau": 1.5,
+          "albedo": 0.04,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: 47,627 km, width 1-4 km, tau 1.3-2.3"
+        },
+        {
+          "name": "delta",
+          "inner": 48297,
+          "outer": 48303,
+          "tau": 0.5,
+          "albedo": 0.04,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: 48,300 km, width 3-9 km, tau 0.3-0.6"
+        },
+        {
+          "name": "lambda (1986U1R)",
+          "inner": 50023,
+          "outer": 50025,
+          "tau": 0.15,
+          "albedo": 0.04,
+          "dust": 0.5,
+          "map": false,
+          "source": "NSSDCA fact sheet: 50,024 km, width 1-2 km, tau 0.1-0.2"
+        },
+        {
+          "name": "epsilon",
+          "inner": 51120,
+          "outer": 51178,
+          "tau": 0.9,
+          "albedo": 0.05,
+          "dust": 0.0,
+          "map": false,
+          "source": "NSSDCA fact sheet: 51,149 km, width 20-96 km (mean 58), tau 0.5-2.3"
+        }
+      ]
+    }
+  ]
+}

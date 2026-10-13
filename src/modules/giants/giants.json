@@ -1,0 +1,70 @@
+{
+  "comment": "Gas-giant shading parameters. jets: zonal wind profile as a sum of Gaussians in planetocentric latitude (deg), speed (m/s, System III / IAU rotation, prograde positive) and half-width (deg); all approximate, digitised by eye from the cited profiles. minnaertK: Minnaert limb-darkening exponent (1 = Lambert). turbulence: curl-noise eddy speed, m/s. grs: Great Red Spot search band and vortex shape.",
+  "flowCycleSeconds": 7200,
+  "bodies": [
+    {
+      "id": "jupiter",
+      "minnaertK": 1.1,
+      "turbulence": 25,
+      "jets": [
+        [23.7, 150, 2.5],
+        [7, 110, 4],
+        [-7, 130, 4],
+        [17, -30, 3],
+        [-17, -60, 3],
+        [-26.5, 50, 2.5],
+        [35.5, 40, 2],
+        [-32, 40, 2]
+      ],
+      "grs": {
+        "latDeg": -22,
+        "searchHalfWidthDeg": 7,
+        "semiMajorKm": 7000,
+        "semiMinorKm": 5000,
+        "periodDays": 4.5
+      },
+      "approximate": true,
+      "source": "Zonal winds: Porco et al. 2003 (Science 299, 1541) Cassini profile; GRS size and rotation: Simon et al. 2018 (AJ 155, 151); Minnaert k: approximate"
+    },
+    {
+      "id": "saturn",
+      "minnaertK": 1.05,
+      "turbulence": 15,
+      "jets": [
+        [0, 420, 17],
+        [41, 110, 4],
+        [-41, 110, 4],
+        [60, 80, 4],
+        [-60, 80, 4],
+        [31, -30, 3],
+        [-31, -30, 3]
+      ],
+      "approximate": true,
+      "source": "Zonal winds: Garcia-Melendo et al. 2011 (Icarus 215, 62); Minnaert k: approximate"
+    },
+    {
+      "id": "uranus",
+      "minnaertK": 0.9,
+      "turbulence": 5,
+      "jets": [
+        [0, -80, 15],
+        [60, 240, 15],
+        [-60, 240, 15]
+      ],
+      "approximate": true,
+      "source": "Zonal winds: Sromovsky et al. 2015 (Icarus 258, 192); Minnaert k: approximate"
+    },
+    {
+      "id": "neptune",
+      "minnaertK": 0.9,
+      "turbulence": 15,
+      "jets": [
+        [0, -400, 25],
+        [70, 250, 10],
+        [-70, 250, 10]
+      ],
+      "approximate": true,
+      "source": "Zonal winds: Sromovsky et al. 1993 (Icarus 105, 140) Voyager profile; Minnaert k: approximate"
+    }
+  ]
+}
