@@ -1,8 +1,8 @@
 /**
  * Camera controller (CameraApi): Float64 state {frame, local, quat, fovY}, free/orbit modes,
  * van Wijk-Nuij goto, distance-scaled speed, ground providers, collision and re-anchoring with
- * 10% hysteresis (DESIGN 3.2 Camera). Walk mode is a P2 feature: here it flies like free mode
- * with a 1.7 m eye-height floor.
+ * 10% hysteresis (DESIGN 3.2 Camera). Walk mode (P2, ./walk.ts) anchors to the nearest body's
+ * `.fixed` frame and walks on the GroundProvider surface; G toggles it within WALK_RANGE.
  */
 import {
   FIXED_SUFFIX,
@@ -42,6 +42,7 @@ import { Flight } from './autopilot';
 import { clampAboveGround, EYE_HEIGHT, GroundProviders, MIN_ALTITUDE } from './collision-hook';
 import { applyFree, emptyInput, type FlightInput } from './free';
 import { applyOrbit } from './orbit';
+import { surfaceGravity, Walker, WALK_RANGE, type WalkPose } from './walk';
 import { clampK, K_DEFAULT, SpeedController, targetSpeed } from './speed';
 
 export const DEFAULT_FOV = (60 * Math.PI) / 180;
@@ -93,6 +94,8 @@ export class CameraController implements CameraApi {
   private keys = new Set<string>();
   private look = { yaw: 0, pitch: 0, zoom: 1 };
   private viewportHeight = 270;
+  private walker: Walker | null = null;
+  private walkBody: Body | null = null;
 
   constructor(private readonly deps: CameraDeps) {
     if (!deps.frames.has(this.st.frame)) this.st.frame = deps.frames.rootId;
@@ -104,8 +107,66 @@ export class CameraController implements CameraApi {
   }
   setMode(mode: CameraMode): void {
     if (mode === this._mode) return;
+    if (mode === 'walk' && !this.enterWalk()) return;
+    if (mode !== 'walk') this.leaveWalk();
     this._mode = mode;
+    this.reanchor();
     this.emit();
+  }
+
+  /** Starts walking on the nearest solid body within WALK_RANGE (false when none qualifies). */
+  private enterWalk(): boolean {
+    const { frames, registry } = this.deps;
+    const n = this.computeNearest();
+    const b = n ? registry.body(n.bodyId) : undefined;
+    if (!n || !b || !SOLID.has(b.kind) || n.altitude > WALK_RANGE) return false;
+    const fixed = b.fixedFrame && frames.has(b.fixedFrame) ? b.fixedFrame : b.frame;
+    const jd = this.deps.jd();
+    const pose: WalkPose = {
+      local: frames.convertPoint(this.st.frame, this.st.local, fixed, jd, vec3()),
+      quat: this.quatIn(fixed, jd),
+    };
+    this.walker = new Walker(surfaceGravity(b));
+    this.walkBody = b;
+    this.walker.enter(pose, (dir) => b.radius + this.ground.heightAt(b.id, dir));
+    this.st.frame = fixed;
+    this.st.local = pose.local;
+    this.st.quat = pose.quat;
+    this._mode = 'walk';
+    this.computeNearest();
+    return true;
+  }
+
+  private leaveWalk(): void {
+    this.walker = null;
+    this.walkBody = null;
+  }
+
+  private walkStep(dt: number): void {
+    const b = this.walkBody!;
+    const { frames } = this.deps;
+    const fixed = b.fixedFrame && frames.has(b.fixedFrame) ? b.fixedFrame : b.frame;
+    const jd = this.deps.jd();
+    if (this.st.frame !== fixed) {
+      this.st.local = frames.convertPoint(this.st.frame, this.st.local, fixed, jd, vec3());
+      this.st.quat = this.quatIn(fixed, jd);
+      this.st.frame = fixed;
+    }
+    const input = this.readInput(dt);
+    const k = this.keys;
+    this.walker!.step(
+      this.st,
+      {
+        forward: input.forward,
+        right: input.right,
+        yaw: input.yaw,
+        pitch: input.pitch,
+        run: k.has('ShiftLeft') || k.has('ShiftRight'),
+        jump: k.has('Space'),
+      },
+      dt,
+      (dir) => b.radius + this.ground.heightAt(b.id, dir),
+    );
   }
   get target(): string | null {
     return this._target;
@@ -182,6 +243,10 @@ export class CameraController implements CameraApi {
       return Promise.resolve(false);
     }
     this.cancelGoto();
+    if (this._mode === 'walk') {
+      this.leaveWalk();
+      this._mode = 'free';
+    }
     if (bm) this.deps.onBookmark?.(bm);
     const jdNow = this.deps.jd();
     const frame = bm ? bm.frame : body!.frame;
@@ -226,8 +291,9 @@ export class CameraController implements CameraApi {
     const w0 = Math.max(1, this.nearest?.altitude ?? v3len(v3sub(vec3(), look, p0)));
     const finish = () => {
       if (bm?.fovY) this.st.fovY = bm.fovY;
-      if (bm?.mode) this._mode = bm.mode;
       this._target = newTarget;
+      if (bm?.mode === 'walk') this.enterWalk();
+      else if (bm?.mode) this._mode = bm.mode;
       this.computeNearest();
       this.speedCtl.reset(targetSpeed(this._k, this.nearestDistance()));
     };
@@ -265,6 +331,8 @@ export class CameraController implements CameraApi {
         a.resolve(true);
         this.emit();
       }
+    } else if (this._mode === 'walk' && this.walker) {
+      this.walkStep(dt);
     } else {
       const input = this.readInput(dt);
       const tgt = this._target ? this.deps.registry.body(this._target) : undefined;
@@ -399,6 +467,19 @@ export class CameraController implements CameraApi {
         if (this.active && /^Key[WASDRFCQE]$|^Space$/.test(e.code)) this.cancelGoto();
       }
     };
+    // G toggles walk mode near a surface; capture phase so it wins over the UI's G (fly to selection).
+    const onWalkKey = (e: KeyboardEvent) => {
+      if (e.code !== 'KeyG' || e.repeat || typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (this._mode === 'walk') this.setMode('free');
+      else {
+        const n = this.computeNearest();
+        if (!n || n.altitude > WALK_RANGE || this.active) return;
+        this.setMode('walk');
+        if (!this.walker) return;
+      }
+      e.stopPropagation();
+      e.preventDefault();
+    };
     const onKeyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
     const onBlur = () => this.keys.clear();
     let drag: { id: number; x: number; y: number } | null = null;
@@ -423,6 +504,7 @@ export class CameraController implements CameraApi {
       if (this._mode === 'orbit') this.look.zoom *= Math.exp(e.deltaY * 0.001);
       else this.speedFactor = this._k * Math.exp(-e.deltaY * 0.0015);
     };
+    window.addEventListener('keydown', onWalkKey, true);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('blur', onBlur);
@@ -432,6 +514,7 @@ export class CameraController implements CameraApi {
     el.addEventListener('pointercancel', onUp);
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => {
+      window.removeEventListener('keydown', onWalkKey, true);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);
