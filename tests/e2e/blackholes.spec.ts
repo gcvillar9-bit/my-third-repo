@@ -11,17 +11,17 @@ const probe = (page: Page, x: number, y: number, w: number, h: number) =>
   page.evaluate(([a, b, c, d]) => window.__universe!.probe(a, b, c, d), [x, y, w, h] as const);
 const lum = ([r, g, b]: Rgb) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-async function open(page: Page, bookmark: string): Promise<string[]> {
+async function open(page: Page, bookmark: string, extra = ''): Promise<string[]> {
   const problems: string[] = [];
   page.on('console', (msg) => {
     if (msg.type() === 'error') problems.push(`console: ${msg.text()}`);
   });
   page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
-  await page.goto(`?test=1&q=potato&b=${bookmark}`);
+  await page.goto(`?test=1&q=potato&b=${bookmark}${extra}`);
   await page.waitForFunction(() => window.__universe !== undefined);
   await page.evaluate(() => window.__universe!.ready());
   await page.evaluate(() => window.__universe!.renderFrames(4));
-  await page.screenshot({ path: `artifacts/blackholes/${bookmark}.png` });
+  if (!extra) await page.screenshot({ path: `artifacts/blackholes/${bookmark}.png` });
   return problems;
 }
 
@@ -93,7 +93,23 @@ test('blackholes: gaia-bh3-dormant lenses the star field around a black shadow',
   expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);
   // Shadow radius about 3.7 deg, 16 px at this field of view.
   expect(lum(await probe(page, W / 2 - 4, H / 2 - 4, 8, 8))).toBeLessThan(0.002);
-  const best = await gridMax(page, 20);
-  expect(best.l).toBeGreaterThan(0.002);
+  const inner = async () => {
+    const v: number[] = [];
+    for (let y = H / 2 - 60; y < H / 2 + 60; y += 10)
+      for (let x = W / 2 - 60; x < W / 2 + 60; x += 10) v.push(lum(await probe(page, x, y, 10, 10)));
+    return v;
+  };
+  const lensed = await inner();
+  // Same view with lensing switched off (URL override): the stars near the hole move.
+  await open(page, 'gaia-bh3-dormant', '&blackholes.lensing=0');
+  const straight = await inner();
+  let diff = 0;
+  let total = 0;
+  for (let i = 0; i < lensed.length; i++) {
+    diff += Math.abs(lensed[i] - straight[i]);
+    total += lensed[i] + straight[i];
+  }
+  expect(total).toBeGreaterThan(0.002);
+  expect(diff / total).toBeGreaterThan(0.3);
   expect(problems).toEqual([]);
 });

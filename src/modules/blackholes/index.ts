@@ -72,6 +72,13 @@ const blackholes: UniverseModule = {
     const cat = await ctx.assets.json<Catalogue>(CATALOGUE_PATH);
     const state = defaultState();
     addSettings(ctx, state);
+    // URL overrides (?blackholes.lensing=0, ?blackholes.mode=realistic): deep links and e2e,
+    // where persisted settings are disabled.
+    for (const key of ['lensing', 'beaming', 'redshift', 'disk', 'orbits', 'mode']) {
+      const v = ctx.env.params.get(`blackholes.${key}`);
+      if (v === null) continue;
+      ctx.ui.settings.set(`blackholes.${key}`, key === 'mode' ? v : v !== '0' && v !== 'false');
+    }
     const jd0 = ctx.clock.jd;
     const holes: Hole[] = cat.holes.map(buildHole);
     for (const h of holes) {
