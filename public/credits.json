@@ -28,6 +28,20 @@
   },
   "entries": [
     {
+      "module": "milkyway",
+      "id": "celestia_globulars",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/globulars.dsc",
+      "license": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "attribution": "Celestia Development Team (CelestiaContent data/globulars.dsc by F. Schrempp, pirogronian, E. O. Mendes, A. Tribick), from Baumgardt et al. 2023, MNRAS, Fundamental parameters of Galactic globular clusters",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/milkyway/globulars.json"],
+      "licenseText": null
+    },
+    {
       "module": "solar-system",
       "id": "earth_day_4096",
       "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_day_4096.jpg",
