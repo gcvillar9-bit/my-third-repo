@@ -1,0 +1,1487 @@
+{
+ "version": 1,
+ "units": {
+  "radius": "km",
+  "gm": "km^3/s^2",
+  "angles": "deg",
+  "raRate": "deg per Julian century from J2000 TDB",
+  "decRate": "deg per Julian century from J2000 TDB",
+  "wdot": "deg per day from J2000 TDB",
+  "periodHours": "hours (negative = retrograde)",
+  "elements.a": "km",
+  "elements.period": "days",
+  "elements.epoch": "JD (TDB ~ TT)"
+ },
+ "frames": {
+  "ecliptic-j2000": "mean ecliptic and equinox of J2000, centred on elements.center",
+  "equator-j2000": "ICRF/J2000 Earth equator and equinox, centred on elements.center",
+  "icrf-axes": "explicit orthonormal axes elements.axes.{x,y,z} given as ICRF unit vectors (Celestia TwoVector frame)",
+  "parent-equator": "the parent's IAU equator at J2000 (pole from its rotation.ra0/dec0); x axis = ascending node of that equator on the ICRF equator (RA = ra0 + 90 deg). Celestia's default frame for satellites."
+ },
+ "bodies": [
+  {
+   "id": "sun",
+   "name": "Sun",
+   "kind": "star",
+   "parent": null,
+   "ephemeris": "astronomy-engine",
+   "radius": 695700,
+   "gm": 132712440041.279,
+   "teff": 5772,
+   "absMag": 4.83,
+   "rotation": {
+    "ra0": 286.13,
+    "dec0": 63.87,
+    "w0": 84.176,
+    "wdot": 14.1844,
+    "periodHours": 609.119878
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/sun_2k.webp",
+     "4k": "textures/solar-system/sun_4k.webp"
+    }
+   },
+   "source": "radius IAU 2015 nominal (Resolution B3); GM jpl; rotation iau2015 (Carrington); Teff/absMag IAU 2015 B3 / Willmer 2018"
+  },
+  {
+   "id": "mercury",
+   "name": "Mercury",
+   "kind": "planet",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 2439.4,
+   "radiusEquatorial": 2440.53,
+   "radiusPolar": 2438.26,
+   "oblateness": 0.00093,
+   "gm": 22031.868551,
+   "albedoGeometric": 0.142,
+   "albedoBond": 0.088,
+   "rotation": {
+    "ra0": 281.0103,
+    "raRate": -0.0328,
+    "dec0": 61.4155,
+    "decRate": -0.0049,
+    "w0": 329.5988,
+    "wdot": 6.1385108,
+    "periodHours": 1407.507502
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/mercury_2k.webp",
+     "4k": "textures/solar-system/mercury_4k.webp"
+    }
+   },
+   "source": "radii/rotation iau2015 (librations omitted); GM jpl; albedo nssdc"
+  },
+  {
+   "id": "venus",
+   "name": "Venus",
+   "kind": "planet",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 6051.8,
+   "gm": 324858.592,
+   "albedoGeometric": 0.689,
+   "albedoBond": 0.76,
+   "rotation": {
+    "ra0": 272.76,
+    "dec0": 67.16,
+    "w0": 160.2,
+    "wdot": -1.4813688,
+    "periodHours": -5832.443616
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/venus_2k.webp",
+     "4k": "textures/solar-system/venus_4k.webp"
+    },
+    "surface": {
+     "2k": "textures/solar-system/venus_surface_2k.webp",
+     "4k": "textures/solar-system/venus_surface_4k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015; GM jpl; albedo nssdc"
+  },
+  {
+   "id": "earth",
+   "name": "Earth",
+   "kind": "planet",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 6371.0084,
+   "radiusEquatorial": 6378.1366,
+   "radiusPolar": 6356.7519,
+   "oblateness": 0.003353,
+   "gm": 398600.435507,
+   "albedoGeometric": 0.434,
+   "albedoBond": 0.306,
+   "rotation": {
+    "ra0": 0,
+    "raRate": -0.641,
+    "dec0": 90,
+    "decRate": -0.557,
+    "w0": 190.147,
+    "wdot": 360.9856235,
+    "periodHours": 23.934471
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/earth_day_2k.webp",
+     "4k": "textures/solar-system/earth_day_4k.webp"
+    },
+    "night": {
+     "2k": "textures/solar-system/earth_night_2k.webp",
+     "4k": "textures/solar-system/earth_night_4k.webp"
+    },
+    "brc": {
+     "2k": "textures/solar-system/earth_brc_2k.webp",
+     "4k": "textures/solar-system/earth_brc_4k.webp"
+    },
+    "normal": {
+     "2k": "textures/solar-system/earth_normal_2k.webp"
+    },
+    "specular": {
+     "2k": "textures/solar-system/earth_spec_2k.webp"
+    }
+   },
+   "source": "radii/rotation iau2015 (precession only; use astronomy-engine for sidereal time); GM jpl; albedo nssdc"
+  },
+  {
+   "id": "moon",
+   "name": "Moon",
+   "kind": "moon",
+   "parent": "earth",
+   "ephemeris": "astronomy-engine",
+   "radius": 1737.4,
+   "radiusEquatorial": 1738.1,
+   "radiusPolar": 1736,
+   "oblateness": 0.001208,
+   "gm": 4902.800118,
+   "albedoGeometric": 0.12,
+   "albedoBond": 0.11,
+   "rotation": {
+    "ra0": 269.9949,
+    "raRate": 0.0031,
+    "dec0": 66.5392,
+    "decRate": 0.013,
+    "w0": 38.3213,
+    "wdot": 13.17635815,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": 655.719881
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/moon_2k.webp",
+     "4k": "textures/solar-system/moon_4k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms up to ~3.5 deg omitted; astronomy-engine RotationAxis covers them); GM jpl; albedo nssdc"
+  },
+  {
+   "id": "mars",
+   "name": "Mars",
+   "kind": "planet",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 3389.5,
+   "radiusEquatorial": 3396.19,
+   "radiusPolar": 3376.2,
+   "oblateness": 0.005886,
+   "gm": 42828.375816,
+   "albedoGeometric": 0.17,
+   "albedoBond": 0.25,
+   "rotation": {
+    "ra0": 317.68143,
+    "raRate": -0.1061,
+    "dec0": 52.8865,
+    "decRate": -0.0609,
+    "w0": 176.63,
+    "wdot": 350.89198226,
+    "periodHours": 24.622962
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/mars_2k.webp",
+     "4k": "textures/solar-system/mars_4k.webp"
+    }
+   },
+   "source": "radii iau2015; rotation iau2009; GM jpl; albedo nssdc"
+  },
+  {
+   "id": "phobos",
+   "name": "Phobos",
+   "kind": "moon",
+   "parent": "mars",
+   "ephemeris": "kepler",
+   "radius": 11.08,
+   "gm": 0.0007087,
+   "albedoGeometric": 0.0683,
+   "albedoBond": 0.0157,
+   "rotation": {
+    "ra0": 317.68,
+    "raRate": -0.108,
+    "dec0": 52.9,
+    "decRate": -0.061,
+    "w0": 35.06,
+    "wdot": 1128.845585,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": 7.653837
+   },
+   "elements": {
+    "epoch": 2460000,
+    "frame": "parent-equator",
+    "center": "mars",
+    "a": 9378.938,
+    "e": 0.01468,
+    "i": 2.097806,
+    "node": 38.701507,
+    "argPeri": 66.811489,
+    "meanAnomaly": 173.124729,
+    "period": 0.31891023,
+    "source": "Celestia solarsys.ssc EllipticalOrbit"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/phobos_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2009 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "deimos",
+   "name": "Deimos",
+   "kind": "moon",
+   "parent": "mars",
+   "ephemeris": "kepler",
+   "radius": 6.2,
+   "gm": 0.0000962,
+   "albedoGeometric": 0.068,
+   "albedoBond": 0.027,
+   "rotation": {
+    "ra0": 316.65,
+    "raRate": -0.108,
+    "dec0": 53.52,
+    "decRate": -0.061,
+    "w0": 79.41,
+    "wdot": 285.161897,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": 30.298578
+   },
+   "elements": {
+    "epoch": 2460000,
+    "frame": "parent-equator",
+    "center": "mars",
+    "a": 23459.739,
+    "e": 0.000283,
+    "i": 2.217941,
+    "node": 286.210554,
+    "argPeri": 125.429446,
+    "meanAnomaly": 331.164065,
+    "period": 1.2624407,
+    "source": "Celestia solarsys.ssc EllipticalOrbit"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/deimos_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2009 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "jupiter",
+   "name": "Jupiter",
+   "kind": "planet",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 69911,
+   "radiusEquatorial": 71492,
+   "radiusPolar": 66854,
+   "oblateness": 0.064874,
+   "gm": 126686531.9,
+   "albedoGeometric": 0.538,
+   "albedoBond": 0.343,
+   "rotation": {
+    "ra0": 268.056595,
+    "raRate": -0.006499,
+    "dec0": 64.495303,
+    "decRate": 0.002413,
+    "w0": 284.95,
+    "wdot": 870.536,
+    "periodHours": 9.92492
+   },
+   "rings": {
+    "inner": 122500,
+    "outer": 129360,
+    "source": "Celestia solarsys.ssc Rings"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/jupiter_2k.webp",
+     "4k": "textures/solar-system/jupiter_4k.webp"
+    }
+   },
+   "source": "radii/rotation iau2015 (System III); GM jpl (planet only); albedo nssdc"
+  },
+  {
+   "id": "io",
+   "name": "Io",
+   "kind": "moon",
+   "parent": "jupiter",
+   "ephemeris": "astronomy-engine",
+   "radius": 1821.49,
+   "gm": 5959.9155,
+   "albedoGeometric": 0.63,
+   "albedoBond": 0.56,
+   "rotation": {
+    "ra0": 268.05,
+    "raRate": -0.009,
+    "dec0": 64.5,
+    "decRate": 0.003,
+    "w0": 200.39,
+    "wdot": 203.4889538,
+    "synchronous": true,
+    "periodHours": 42.459307
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/io_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "europa",
+   "name": "Europa",
+   "kind": "moon",
+   "parent": "jupiter",
+   "ephemeris": "astronomy-engine",
+   "radius": 1560.8,
+   "gm": 3202.7121,
+   "albedoGeometric": 0.67,
+   "albedoBond": 0.68,
+   "rotation": {
+    "ra0": 268.08,
+    "raRate": -0.009,
+    "dec0": 64.51,
+    "decRate": 0.003,
+    "w0": 36.022,
+    "wdot": 101.3747235,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": 85.228346
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/europa_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms ~1 deg omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "ganymede",
+   "name": "Ganymede",
+   "kind": "moon",
+   "parent": "jupiter",
+   "ephemeris": "astronomy-engine",
+   "radius": 2631.2,
+   "gm": 9887.8328,
+   "albedoGeometric": 0.43,
+   "albedoBond": 0.35,
+   "rotation": {
+    "ra0": 268.2,
+    "raRate": -0.009,
+    "dec0": 64.57,
+    "decRate": 0.003,
+    "w0": 44.064,
+    "wdot": 50.3176081,
+    "synchronous": true,
+    "periodHours": 171.709275
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/ganymede_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "callisto",
+   "name": "Callisto",
+   "kind": "moon",
+   "parent": "jupiter",
+   "ephemeris": "astronomy-engine",
+   "radius": 2410.3,
+   "gm": 7179.2834,
+   "albedoGeometric": 0.22,
+   "albedoBond": 0.11,
+   "rotation": {
+    "ra0": 268.72,
+    "raRate": -0.009,
+    "dec0": 64.83,
+    "decRate": 0.003,
+    "w0": 259.51,
+    "wdot": 21.5710715,
+    "synchronous": true,
+    "periodHours": 400.536431
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/callisto_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "amalthea",
+   "name": "Amalthea",
+   "kind": "moon",
+   "parent": "jupiter",
+   "ephemeris": "kepler",
+   "radius": 83.5,
+   "gm": 0.13883,
+   "albedoGeometric": 0.09,
+   "albedoBond": 0.032,
+   "rotation": {
+    "ra0": 268.05,
+    "raRate": -0.009,
+    "dec0": 64.49,
+    "decRate": 0.003,
+    "w0": 231.67,
+    "wdot": 722.631456,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": 11.956302
+   },
+   "elements": {
+    "epoch": 2452583.7639,
+    "frame": "icrf-axes",
+    "axes": {
+     "x": [
+      0.999424673,
+      -0.033916412,
+      5e-9
+     ],
+     "y": [
+      0.030611421,
+      0.902035588,
+      0.430574893
+     ],
+     "z": [
+      -0.01460356,
+      -0.430327171,
+      0.902554852
+     ]
+    },
+    "center": "jupiter",
+    "a": 181994.604,
+    "e": 0.004478,
+    "i": 0.376247,
+    "node": 200.908738,
+    "argPeri": 302.804202,
+    "meanAnomaly": 313.601978,
+    "period": 0.4981794,
+    "source": "Celestia minormoons.ssc EllipticalOrbit"
+   },
+   "source": "radius jpl; rotation iau2015 (periodic terms omitted); GM from Celestia minormoons.ssc mass; albedo Celestia minormoons.ssc"
+  },
+  {
+   "id": "himalia",
+   "name": "Himalia",
+   "kind": "moon",
+   "parent": "jupiter",
+   "ephemeris": "kepler",
+   "radius": 90.741,
+   "radiusEquatorial": 102.8,
+   "radiusPolar": 70.7,
+   "oblateness": 0.312257,
+   "gm": 0.28032,
+   "albedoGeometric": 0.04,
+   "elements": {
+    "epoch": 2451897.5,
+    "frame": "ecliptic-j2000",
+    "center": "jupiter",
+    "a": 11528068.498,
+    "e": 0.141416,
+    "i": 30.50514,
+    "node": 63.928151,
+    "argPeri": 330.084672,
+    "meanAnomaly": 215.283717,
+    "period": 252.892366,
+    "source": "Celestia minormoons.ssc EllipticalOrbit"
+   },
+   "source": "physical data from Celestia minormoons.ssc; radius Celestia minormoons.ssc; GM from Celestia minormoons.ssc mass; albedo Celestia minormoons.ssc"
+  },
+  {
+   "id": "saturn",
+   "name": "Saturn",
+   "kind": "planet",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 58232,
+   "radiusEquatorial": 60268,
+   "radiusPolar": 54364,
+   "oblateness": 0.097962,
+   "gm": 37931206.234,
+   "albedoGeometric": 0.499,
+   "albedoBond": 0.342,
+   "rotation": {
+    "ra0": 40.589,
+    "raRate": -0.036,
+    "dec0": 83.537,
+    "decRate": -0.004,
+    "w0": 38.9,
+    "wdot": 810.7939024,
+    "periodHours": 10.656222
+   },
+   "rings": {
+    "inner": 74510,
+    "outer": 140245,
+    "source": "Celestia solarsys.ssc Rings"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/saturn_2k.webp",
+     "4k": "textures/solar-system/saturn_4k.webp"
+    },
+    "ring": "textures/solar-system/saturn_ring_sss.png",
+    "ringProfile": "textures/solar-system/saturn_rings_profile.png"
+   },
+   "source": "radii/rotation iau2015 (System III); GM jpl (planet only); albedo nssdc"
+  },
+  {
+   "id": "mimas",
+   "name": "Mimas",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 198.2,
+   "gm": 2.5035,
+   "albedoGeometric": 0.962,
+   "albedoBond": 0.67,
+   "rotation": {
+    "ra0": 40.66,
+    "raRate": -0.036,
+    "dec0": 83.52,
+    "decRate": -0.004,
+    "w0": 333.46,
+    "wdot": 381.994555,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": 22.618123
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 185539,
+    "e": 0.0196,
+    "i": 27.001876,
+    "node": 172.056861,
+    "argPeri": 108.64337,
+    "meanAnomaly": 37.479867,
+    "period": 0.9424218,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/mimas_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "enceladus",
+   "name": "Enceladus",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 252.1,
+   "gm": 7.2105,
+   "albedoGeometric": 1.375,
+   "albedoBond": 0.81,
+   "rotation": {
+    "ra0": 40.66,
+    "raRate": -0.036,
+    "dec0": 83.52,
+    "decRate": -0.004,
+    "w0": 6.32,
+    "wdot": 262.7318996,
+    "synchronous": true,
+    "periodHours": 32.885234
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 238037,
+    "e": 0.0047,
+    "i": 28.052057,
+    "node": 169.506562,
+    "argPeri": 135.483282,
+    "meanAnomaly": 6.952993,
+    "period": 1.370218,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/enceladus_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015; GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "tethys",
+   "name": "Tethys",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 531.1,
+   "gm": 41.2165,
+   "albedoGeometric": 1.229,
+   "albedoBond": 0.61,
+   "rotation": {
+    "ra0": 40.66,
+    "raRate": -0.036,
+    "dec0": 83.52,
+    "decRate": -0.004,
+    "w0": 8.95,
+    "wdot": 190.6979085,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": 45.307261
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 294672,
+    "e": 0.0001,
+    "i": 27.221003,
+    "node": 167.998171,
+    "argPeri": 157.575335,
+    "meanAnomaly": 350.864392,
+    "period": 1.887802,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/tethys_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "dione",
+   "name": "Dione",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 561.4,
+   "gm": 73.1164,
+   "albedoGeometric": 0.998,
+   "albedoBond": 0.52,
+   "rotation": {
+    "ra0": 40.66,
+    "raRate": -0.036,
+    "dec0": 83.52,
+    "decRate": -0.004,
+    "w0": 357.6,
+    "wdot": 131.5349316,
+    "synchronous": true,
+    "periodHours": 65.685973
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 377415,
+    "e": 0.0022,
+    "i": 28.041482,
+    "node": 169.47009,
+    "argPeri": 164.934721,
+    "meanAnomaly": 332.057584,
+    "period": 2.736915,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/dione_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015; GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "rhea",
+   "name": "Rhea",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 763.5,
+   "gm": 153.9413,
+   "albedoGeometric": 0.949,
+   "albedoBond": 0.48,
+   "rotation": {
+    "ra0": 40.38,
+    "raRate": -0.036,
+    "dec0": 83.55,
+    "decRate": -0.004,
+    "w0": 235.16,
+    "wdot": 79.6900478,
+    "synchronous": true,
+    "periodHours": 108.420063
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 527068,
+    "e": 0.0012583,
+    "i": 28.241393,
+    "node": 168.984156,
+    "argPeri": 165.781086,
+    "meanAnomaly": 206.903127,
+    "period": 4.518212,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/rhea_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "titan",
+   "name": "Titan",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 2574.73,
+   "gm": 8978.1383,
+   "albedoGeometric": 0.21,
+   "albedoBond": 0.265,
+   "rotation": {
+    "ra0": 39.4827,
+    "dec0": 83.4279,
+    "w0": 186.5855,
+    "wdot": 22.5769768,
+    "synchronous": true,
+    "periodHours": 382.690742
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 1221865,
+    "e": 0.0288,
+    "i": 27.71834,
+    "node": 169.239155,
+    "argPeri": 164.4091,
+    "meanAnomaly": 163.436236,
+    "period": 15.945421,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/titan_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015; GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "hyperion",
+   "name": "Hyperion",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 135,
+   "gm": 0.3712,
+   "albedoGeometric": 0.44,
+   "albedoBond": 0.33,
+   "rotation": {
+    "chaotic": true
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 1500934,
+    "e": 0.0274,
+    "i": 27.209154,
+    "node": 168.304747,
+    "argPeri": 188.693292,
+    "meanAnomaly": 70.603755,
+    "period": 21.276609,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "source": "radius/GM jpl; rotation chaotic (no IAU model); albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "iapetus",
+   "name": "Iapetus",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 734.3,
+   "radiusEquatorial": 745.7,
+   "radiusPolar": 712.1,
+   "oblateness": 0.045058,
+   "gm": 120.5152,
+   "albedoGeometric": 0.27,
+   "albedoBond": 0.26,
+   "rotation": {
+    "ra0": 318.16,
+    "raRate": -3.949,
+    "dec0": 75.03,
+    "decRate": -1.143,
+    "w0": 355.2,
+    "wdot": 4.5379572,
+    "synchronous": true,
+    "periodHours": 1903.94039
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 3560851,
+    "e": 0.0276812,
+    "i": 17.238222,
+    "node": 139.691756,
+    "argPeri": 229.658481,
+    "meanAnomaly": 208.017516,
+    "period": 79.330183,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/iapetus_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015; GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "phoebe",
+   "name": "Phoebe",
+   "kind": "moon",
+   "parent": "saturn",
+   "ephemeris": "kepler",
+   "radius": 106.5,
+   "gm": 0.5534,
+   "albedoGeometric": 0.081,
+   "albedoBond": 0.026,
+   "rotation": {
+    "ra0": 356.9,
+    "dec0": 77.8,
+    "w0": 178.58,
+    "wdot": 931.639,
+    "periodHours": 9.273978
+   },
+   "elements": {
+    "epoch": 2453167.5,
+    "frame": "ecliptic-j2000",
+    "center": "saturn",
+    "a": 12917060.944,
+    "e": 0.152921,
+    "i": 173.212514,
+    "node": 263.558611,
+    "argPeri": 2.526169,
+    "meanAnomaly": 31.167678,
+    "period": 548.167596,
+    "source": "Celestia solarsys.ssc EllipticalOrbit"
+   },
+   "source": "radius/rotation iau2015; GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "uranus",
+   "name": "Uranus",
+   "kind": "planet",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 25362,
+   "radiusEquatorial": 25559,
+   "radiusPolar": 24973,
+   "oblateness": 0.022927,
+   "gm": 5793951.256,
+   "albedoGeometric": 0.488,
+   "albedoBond": 0.3,
+   "rotation": {
+    "ra0": 257.311,
+    "dec0": -15.175,
+    "w0": 203.81,
+    "wdot": -501.1600928,
+    "periodHours": -17.24
+   },
+   "rings": {
+    "inner": 37812,
+    "outer": 52392,
+    "source": "Celestia solarsys.ssc Rings"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/uranus_2k.webp"
+    },
+    "ringProfile": "textures/solar-system/uranus_rings_profile.png"
+   },
+   "source": "radii/rotation iau2015; GM jpl (planet only); albedo nssdc"
+  },
+  {
+   "id": "miranda",
+   "name": "Miranda",
+   "kind": "moon",
+   "parent": "uranus",
+   "ephemeris": "kepler",
+   "radius": 235.8,
+   "gm": 4.319,
+   "albedoGeometric": 0.32,
+   "albedoBond": 0.28,
+   "rotation": {
+    "ra0": 257.43,
+    "dec0": -15.08,
+    "w0": 30.7,
+    "wdot": -254.6906892,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": -33.923502
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "uranus",
+    "a": 129390,
+    "e": 0.0013,
+    "i": 97.267986,
+    "node": 172.065967,
+    "argPeri": 261.81676,
+    "meanAnomaly": 61.247779,
+    "period": 1.413479,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/miranda_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "ariel",
+   "name": "Ariel",
+   "kind": "moon",
+   "parent": "uranus",
+   "ephemeris": "kepler",
+   "radius": 578.9,
+   "gm": 83.463,
+   "albedoGeometric": 0.53,
+   "albedoBond": 0.23,
+   "rotation": {
+    "ra0": 257.43,
+    "dec0": -15.1,
+    "w0": 156.22,
+    "wdot": -142.8356681,
+    "synchronous": true,
+    "periodHours": -60.489093
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "uranus",
+    "a": 191020,
+    "e": 0.0012,
+    "i": 97.721321,
+    "node": 167.616776,
+    "argPeri": 43.284123,
+    "meanAnomaly": 154.841923,
+    "period": 2.520379,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/ariel_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "umbriel",
+   "name": "Umbriel",
+   "kind": "moon",
+   "parent": "uranus",
+   "ephemeris": "kepler",
+   "radius": 584.7,
+   "gm": 85.09,
+   "albedoGeometric": 0.26,
+   "albedoBond": 0.1,
+   "rotation": {
+    "ra0": 257.43,
+    "dec0": -15.1,
+    "w0": 108.05,
+    "wdot": -86.8688923,
+    "synchronous": true,
+    "periodHours": -99.46023
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "uranus",
+    "a": 266000,
+    "e": 0.0039,
+    "i": 97.679326,
+    "node": 167.637075,
+    "argPeri": 334.489611,
+    "meanAnomaly": 271.690065,
+    "period": 4.1441772,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "titania",
+   "name": "Titania",
+   "kind": "moon",
+   "parent": "uranus",
+   "ephemeris": "kepler",
+   "radius": 788.9,
+   "gm": 226.943,
+   "albedoGeometric": 0.35,
+   "albedoBond": 0.17,
+   "rotation": {
+    "ra0": 257.43,
+    "dec0": -15.1,
+    "w0": 77.74,
+    "wdot": -41.3514316,
+    "synchronous": true,
+    "periodHours": -208.940771
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "uranus",
+    "a": 435910,
+    "e": 0.0011,
+    "i": 97.821207,
+    "node": 167.613219,
+    "argPeri": 203.953805,
+    "meanAnomaly": 72.597842,
+    "period": 8.706234,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "oberon",
+   "name": "Oberon",
+   "kind": "moon",
+   "parent": "uranus",
+   "ephemeris": "kepler",
+   "radius": 761.4,
+   "gm": 205.323,
+   "albedoGeometric": 0.31,
+   "albedoBond": 0.14,
+   "rotation": {
+    "ra0": 257.43,
+    "dec0": -15.1,
+    "w0": 6.77,
+    "wdot": -26.7394932,
+    "synchronous": true,
+    "periodHours": -323.117568
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "uranus",
+    "a": 583520,
+    "e": 0.0014,
+    "i": 97.877864,
+    "node": 167.756308,
+    "argPeri": 252.847153,
+    "meanAnomaly": 94.662801,
+    "period": 13.463234,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "source": "radius/rotation iau2015 (periodic terms omitted); GM jpl; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "neptune",
+   "name": "Neptune",
+   "kind": "planet",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 24622,
+   "radiusEquatorial": 24764,
+   "radiusPolar": 24341,
+   "oblateness": 0.017081,
+   "gm": 6835099.97,
+   "albedoGeometric": 0.442,
+   "albedoBond": 0.29,
+   "rotation": {
+    "ra0": 299.36,
+    "dec0": 43.46,
+    "w0": 249.978,
+    "wdot": 541.1397757,
+    "approximate": true,
+    "periodHours": 15.9663
+   },
+   "rings": {
+    "inner": 40900,
+    "outer": 62947,
+    "source": "Celestia solarsys.ssc Rings"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/neptune_2k.webp"
+    }
+   },
+   "source": "radii/rotation iau2015 (0.7 deg sin N terms omitted); GM jpl (planet only); albedo nssdc"
+  },
+  {
+   "id": "proteus",
+   "name": "Proteus",
+   "kind": "moon",
+   "parent": "neptune",
+   "ephemeris": "kepler",
+   "radius": 210,
+   "gm": 2.58,
+   "albedoGeometric": 0.096,
+   "approximate": true,
+   "rotation": {
+    "ra0": 299.27,
+    "dec0": 42.91,
+    "w0": 93.38,
+    "wdot": 320.7654228,
+    "synchronous": true,
+    "approximate": true,
+    "periodHours": 26.935572
+   },
+   "elements": {
+    "epoch": 2447763.5,
+    "frame": "ecliptic-j2000",
+    "center": "neptune",
+    "a": 117647,
+    "e": 0.00053,
+    "i": 28.908433,
+    "node": 48.083589,
+    "argPeri": 81.195458,
+    "meanAnomaly": 34.162384,
+    "period": 1.12231477,
+    "source": "Celestia solarsys.ssc EllipticalOrbit"
+   },
+   "source": "radius jpl (irregular); GM jpl estimate from assumed density (approximate); rotation iau2015 (sin N terms omitted); albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "triton",
+   "name": "Triton",
+   "kind": "moon",
+   "parent": "neptune",
+   "ephemeris": "kepler",
+   "radius": 1352.6,
+   "gm": 1428.495,
+   "albedoGeometric": 0.719,
+   "albedoBond": 0.65,
+   "rotation": {
+    "synchronous": true,
+    "approximate": true
+   },
+   "elements": {
+    "epoch": 2447763.5,
+    "frame": "ecliptic-j2000",
+    "center": "neptune",
+    "a": 354759,
+    "e": 0.000016,
+    "i": 130.909204,
+    "node": 213.174202,
+    "argPeri": 278.113474,
+    "meanAnomaly": 349.996104,
+    "period": 5.8768541,
+    "source": "Celestia solarsys.ssc EllipticalOrbit (commented fallback of CustomOrbit)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/triton_2k.webp"
+    }
+   },
+   "source": "radius iau2015; GM jpl; IAU pole has large N7 periodic terms, so orientation follows the (retrograde) orbit; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "nereid",
+   "name": "Nereid",
+   "kind": "moon",
+   "parent": "neptune",
+   "ephemeris": "kepler",
+   "radius": 170,
+   "gm": 2.06,
+   "albedoGeometric": 0.25,
+   "approximate": true,
+   "elements": {
+    "epoch": 2447763.5,
+    "frame": "ecliptic-j2000",
+    "center": "neptune",
+    "a": 5506217.008,
+    "e": 0.753882,
+    "i": 5.055101,
+    "node": 319.892917,
+    "argPeri": 296.451886,
+    "meanAnomaly": 36.05586,
+    "period": 359.396374,
+    "source": "Celestia solarsys.ssc EllipticalOrbit"
+   },
+   "source": "radius jpl (approximate); GM jpl estimate from assumed density (approximate); no IAU rotation model; albedo Celestia solarsys.ssc"
+  },
+  {
+   "id": "pluto",
+   "name": "Pluto",
+   "kind": "dwarf",
+   "parent": "sun",
+   "ephemeris": "astronomy-engine",
+   "radius": 1188.3,
+   "gm": 869.326,
+   "albedoGeometric": 0.506,
+   "albedoBond": 0.402,
+   "rotation": {
+    "ra0": 132.993,
+    "dec0": -6.163,
+    "w0": 302.695,
+    "wdot": 56.3625225,
+    "synchronous": true,
+    "periodHours": 153.293352
+   },
+   "elements": {
+    "epoch": 2457218,
+    "frame": "ecliptic-j2000",
+    "center": "sun",
+    "a": 5905893999.269,
+    "e": 0.2501751659981197,
+    "i": 17.16199308367073,
+    "node": 110.287824,
+    "argPeri": 113.369202,
+    "meanAnomaly": 37.598697,
+    "period": 90602.20743842,
+    "source": "Celestia dwarfplanets.ssc ReferencePoint Pluto-Charon (system barycentre, heliocentric)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/pluto_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015; GM jpl (PLU058); elements = Pluto-Charon barycentre (Celestia dwarfplanets.ssc); albedo Celestia dwarfplanets.ssc"
+  },
+  {
+   "id": "charon",
+   "name": "Charon",
+   "kind": "moon",
+   "parent": "pluto",
+   "ephemeris": "kepler",
+   "radius": 606,
+   "gm": 105.88,
+   "albedoGeometric": 0.408,
+   "albedoBond": 0.228,
+   "rotation": {
+    "ra0": 132.993,
+    "dec0": -6.163,
+    "w0": 122.695,
+    "wdot": 56.3625225,
+    "synchronous": true,
+    "periodHours": 153.293352
+   },
+   "elements": {
+    "epoch": 2457218,
+    "frame": "ecliptic-j2000",
+    "center": "pluto",
+    "a": 19595.764,
+    "e": 0.000161,
+    "i": 112.888628,
+    "node": 227.392167,
+    "argPeri": 172.410172,
+    "meanAnomaly": 213.475686,
+    "period": 6.387221,
+    "source": "Celestia dwarfplanets.ssc EllipticalOrbit converted to Pluto-relative (a = aPluto + aCharon about the barycentre)"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/charon_2k.webp"
+    }
+   },
+   "source": "radius/rotation iau2015; GM jpl (PLU058); elements Pluto-relative, from Celestia barycentric pair; albedo Celestia dwarfplanets.ssc"
+  },
+  {
+   "id": "ceres",
+   "name": "Ceres",
+   "kind": "dwarf",
+   "parent": "sun",
+   "ephemeris": "kepler",
+   "radius": 469.7,
+   "radiusEquatorial": 482.1,
+   "radiusPolar": 445.9,
+   "oblateness": 0.075088,
+   "gm": 62.6284,
+   "albedoGeometric": 0.096,
+   "albedoBond": 0.037,
+   "rotation": {
+    "ra0": 291.418,
+    "dec0": 66.764,
+    "w0": 170.65,
+    "wdot": 952.1532,
+    "periodHours": 9.07417
+   },
+   "elements": {
+    "epoch": 2457087.5,
+    "frame": "ecliptic-j2000",
+    "center": "sun",
+    "a": 414038719.431,
+    "e": 0.075823549018329,
+    "i": 10.59298957835918,
+    "node": 80.32902,
+    "argPeri": 72.572447,
+    "meanAnomaly": 114.560077,
+    "period": 1681.78991493,
+    "source": "Celestia dwarfplanets.ssc EllipticalOrbit"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/ceres_2k.webp"
+    }
+   },
+   "source": "radius Park et al. (2019) / Celestia; rotation iau2015; GM jpl (Dawn); albedo Celestia dwarfplanets.ssc"
+  },
+  {
+   "id": "vesta",
+   "name": "Vesta",
+   "kind": "minor",
+   "parent": "sun",
+   "ephemeris": "kepler",
+   "radius": 262.7,
+   "radiusEquatorial": 286.3,
+   "radiusPolar": 223.2,
+   "oblateness": 0.220398,
+   "gm": 17.288,
+   "albedoGeometric": 0.38,
+   "albedoBond": 0.18,
+   "rotation": {
+    "ra0": 309.031,
+    "dec0": 42.235,
+    "w0": 285.39,
+    "wdot": 1617.3329428,
+    "periodHours": 5.342128
+   },
+   "elements": {
+    "epoch": 2455758.5,
+    "frame": "ecliptic-j2000",
+    "center": "sun",
+    "a": 353232127.505,
+    "e": 0.08832828997246957,
+    "i": 7.134622054675508,
+    "node": 103.904309,
+    "argPeri": 149.871748,
+    "meanAnomaly": 45.001366,
+    "period": 1325.25851822,
+    "source": "Celestia asteroids.ssc EllipticalOrbit"
+   },
+   "textures": {
+    "diffuse": {
+     "2k": "textures/solar-system/vesta_2k.webp"
+    }
+   },
+   "source": "radii iau2015 (Dawn); rotation iau2015; GM jpl (Dawn); albedo Celestia asteroids.ssc"
+  },
+  {
+   "id": "eris",
+   "name": "Eris",
+   "kind": "dwarf",
+   "parent": "sun",
+   "ephemeris": "kepler",
+   "radius": 1163,
+   "gm": 1093.3,
+   "albedoGeometric": 0.94,
+   "albedoBond": 0.9,
+   "rotation": {
+    "periodHours": 378.9,
+    "synchronous": true,
+    "approximate": true
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "ssb",
+    "a": 10148161137.367,
+    "e": 0.4384168372720811,
+    "i": 43.99289883118324,
+    "node": 35.976498,
+    "argPeri": 151.220364,
+    "meanAnomaly": 193.844577,
+    "period": 203938.94325267,
+    "source": "Celestia dwarfplanets.ssc EllipticalOrbit"
+   },
+   "source": "radius Sicardy et al. (2011); rotation ~15.79 d synchronous with Dysnomia (Bernstein et al. 2023); other values Celestia; GM from Celestia dwarfplanets.ssc mass; albedo Celestia dwarfplanets.ssc"
+  },
+  {
+   "id": "haumea",
+   "name": "Haumea",
+   "kind": "dwarf",
+   "parent": "sun",
+   "ephemeris": "kepler",
+   "radius": 798,
+   "gm": 263.8,
+   "albedoGeometric": 0.51,
+   "albedoBond": 0.23,
+   "approximate": true,
+   "rotation": {
+    "periodHours": 3.9155
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "ssb",
+    "a": 6448307810,
+    "e": 0.1949599020093612,
+    "i": 28.20394234125633,
+    "node": 121.942781,
+    "argPeri": 239.967558,
+    "meanAnomaly": 190.40083,
+    "period": 103297.01438678,
+    "source": "Celestia dwarfplanets.ssc EllipticalOrbit"
+   },
+   "rings": {
+    "inner": 2252,
+    "outer": 2322,
+    "source": "Celestia dwarfplanets.ssc Rings"
+   },
+   "source": "volumetric mean of Ortiz et al. (2017) triaxial 1161x852x513 km; rotation Lellouch et al. (2010); other values Celestia; GM from Celestia dwarfplanets.ssc mass; albedo Celestia dwarfplanets.ssc"
+  },
+  {
+   "id": "makemake",
+   "name": "Makemake",
+   "kind": "dwarf",
+   "parent": "sun",
+   "ephemeris": "kepler",
+   "radius": 715,
+   "radiusEquatorial": 717,
+   "radiusPolar": 710,
+   "oblateness": 0.009763,
+   "gm": 179.54,
+   "albedoGeometric": 0.82,
+   "albedoBond": 0.62,
+   "approximate": true,
+   "rotation": {
+    "periodHours": 22.83,
+    "approximate": true
+   },
+   "elements": {
+    "epoch": 2451545,
+    "frame": "ecliptic-j2000",
+    "center": "ssb",
+    "a": 6806537175.186,
+    "e": 0.1603866059337173,
+    "i": 29.001993091243,
+    "node": 79.442791,
+    "argPeri": 296.068762,
+    "meanAnomaly": 140.104301,
+    "period": 112023.3249235,
+    "source": "Celestia dwarfplanets.ssc EllipticalOrbit"
+   },
+   "source": "radius Ortiz et al. (2012); rotation Hromakina et al. (2019); other values Celestia; GM from Celestia dwarfplanets.ssc mass; albedo Celestia dwarfplanets.ssc"
+  }
+ ]
+}
