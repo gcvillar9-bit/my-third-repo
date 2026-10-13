@@ -8,6 +8,7 @@ import type { HeightFunction } from '../../core/contracts';
 import { craterBound, craterHeight, type CraterParams } from './craters';
 import { band, cellAt, fbm, fbmBound, gnoise, smoothstep, worley } from './noise';
 import { dirToUv, type Raster } from './raster';
+import { lonLatToTile, TERRARIUM_TILE } from './terrarium';
 
 export interface RasterRef {
   path: string;
@@ -31,6 +32,8 @@ export interface SurfaceHeightParams {
   raster?: RasterRef;
   /** Earth: ocean mask (8-bit, 255 = water). `floor` keeps the bathymetry proxy instead of sea level. */
   ocean?: { path: string; floor: boolean };
+  /** Optional Earth HD layer: an n x n block of Terrarium tiles at zoom z (urls null = unavailable). */
+  hd?: HdBlock;
   craters?: CraterParams;
   fbm?: FbmParams;
   /** Ridged fBm on land (Earth): amplitude a0 + perMetre * elevation. */
@@ -42,9 +45,19 @@ export interface SurfaceHeightParams {
   maxAbs: number;
 }
 
+export interface HdBlock {
+  z: number;
+  x0: number;
+  y0: number;
+  n: number;
+  urls: (string | null)[];
+}
+
 export interface SurfaceRasters {
   height?: Raster;
   ocean?: Raster;
+  /** Decoded Terrarium tiles of params.hd (row-major n x n, null = missing). */
+  hd?: (Float32Array | null)[];
 }
 
 /** Analytic bound on |height| for a parameter set (culling bounds, collision margin). */
@@ -57,6 +70,7 @@ export function heightBound(p: Omit<SurfaceHeightParams, 'maxAbs'>): number {
     const top = p.raster ? Math.max(0, p.raster.maxM) : 0;
     b += 0.55 * fbmBound(p.ridged.a0 + p.ridged.perMetre * top, p.ridged.hurst, p.ridged.lambda0, 0.05);
   }
+  if (p.hd) b += 3000; // Terrarium peaks above the smoothed 2k raster (Everest 8.8 km vs ~5.7 km)
   if (p.dunes) b += p.dunes.amp * 1.1;
   if (p.ridges) for (const r of p.ridges) b += r.amp;
   return Math.ceil(b + 10);
@@ -72,8 +86,52 @@ export function duneProfile(t: number): number {
 // Fixed prevailing-wind axis for dunes (body-fixed, unit).
 const WIND = [0.36, 0.8, 0.48];
 
+/**
+ * Bilinear Terrarium height at equirectangular (u, v) from an HD block: out[0] = metres, out[1] = blend
+ * weight (0 outside the block or over missing tiles, fading in over the outer quarter tile). Returns out[1].
+ */
+export function hdSample(
+  b: HdBlock,
+  tiles: (Float32Array | null)[],
+  u: number,
+  v: number,
+  out: Float64Array,
+): number {
+  out[0] = 0;
+  out[1] = 0;
+  const t = lonLatToTile(u * 360 - 180, 90 - v * 180, b.z);
+  const fx = t.x - b.x0;
+  const fy = t.y - b.y0;
+  const edge = Math.min(fx, b.n - fx, fy, b.n - fy);
+  if (edge <= 0) return 0;
+  const N = TERRARIUM_TILE;
+  const px = fx * N - 0.5;
+  const py = fy * N - 0.5;
+  const ix = Math.floor(px);
+  const iy = Math.floor(py);
+  const ax = px - ix;
+  const ay = py - iy;
+  let sum = 0;
+  let wsum = 0;
+  for (let j = 0; j < 2; j++)
+    for (let i = 0; i < 2; i++) {
+      const gx = Math.min(b.n * N - 1, Math.max(0, ix + i));
+      const gy = Math.min(b.n * N - 1, Math.max(0, iy + j));
+      const tile = tiles[Math.floor(gy / N) * b.n + Math.floor(gx / N)];
+      if (!tile) continue;
+      const w = (i ? ax : 1 - ax) * (j ? ay : 1 - ay);
+      sum += w * tile[(gy % N) * N + (gx % N)];
+      wsum += w;
+    }
+  if (wsum < 1e-6) return 0;
+  out[0] = sum / wsum;
+  out[1] = smoothstep(0, 0.25, edge) * Math.min(1, wsum);
+  return out[1];
+}
+
 export function createSurfaceHeight(p: SurfaceHeightParams, rasters: SurfaceRasters): HeightFunction {
   const R = p.radius;
+  const hdOut = new Float64Array(2);
   const uv = new Float64Array(2);
   const wv = new Float64Array(2);
   const seed = p.seed | 0;
@@ -94,6 +152,12 @@ export function createSurfaceHeight(p: SurfaceHeightParams, rasters: SurfaceRast
           0,
           land + fbm(x, y, z, cell, p.ridged.lambda0, a, p.ridged.hurst, seed ^ 0x51ed27, true),
         );
+      }
+      if (p.hd && rasters.hd && s < 1 && hdSample(p.hd, rasters.hd, uv[0], uv[1], hdOut) > 0) {
+        // Streamed Terrarium heights replace the baked land relief; ridged detail only below the tile pixel.
+        const pix = (2 * Math.PI * R) / (256 * 2 ** p.hd.z);
+        const fine = fbm(x, y, z, cell, 2 * pix, 0.06 * pix, 0.8, seed ^ 0x51ed27, true);
+        land += hdOut[1] * (Math.max(hdOut[0], 0) + fine - land);
       }
       h = (1 - s) * land + s * (p.ocean?.floor ? Math.min(h, 0) : 0);
     }

@@ -285,7 +285,35 @@ async function buildEarth(topoFile, waterFile) {
   };
 }
 
+/** Terrarium RGB of a height (m): v = (h + 32768) * 256, R = v >> 16, G = (v >> 8) & 255, B = v & 255. */
+export function terrariumRgb(h) {
+  const v = Math.round((Math.max(-32768, Math.min(32767, h)) + 32768) * 256);
+  return [Math.floor(v / 65536) & 255, Math.floor(v / 256) & 255, v & 255];
+}
+
+/** Synthetic height (integer metres) of the Terrarium e2e/unit fixture tile at pixel (x, y). */
+export function fixtureHeight(x, y) {
+  const cone = 1800 * Math.exp(-((x - 128) ** 2 + (y - 128) ** 2) / (2 * 50 ** 2));
+  return Math.round(4500 + cone + 300 * Math.sin(x / 9) * Math.cos(y / 13));
+}
+
+/** tests/fixtures/surfaces/terrarium-fixture.png: one 256x256 RGB Terrarium tile served for every request. */
+function writeTerrariumFixture() {
+  const N = 256;
+  const data = new Uint8Array(N * N * 3);
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) data.set(terrariumRgb(fixtureHeight(x, y)), (y * N + x) * 3);
+  const dir = join(ROOT, 'tests', 'fixtures', 'surfaces');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    join(dir, 'terrarium-fixture.png'),
+    encode({ width: N, height: N, data, depth: 8, channels: 3 }),
+  );
+  console.log('  tests/fixtures/surfaces/terrarium-fixture.png');
+}
+
 async function main() {
+  writeTerrariumFixture();
   const paths = await ensureModuleAssets(MODULE);
   const rasters = {};
   console.log('> moon');

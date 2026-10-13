@@ -10,20 +10,22 @@ import { decode } from 'fast-png';
 type RGB = [number, number, number];
 const lum = ([r, g, b]: RGB) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-async function open(page: Page, bookmark: string, problems: string[]) {
+async function open(page: Page, bookmark: string, problems: string[], query = '', name = bookmark) {
   page.on('console', (msg) => {
     if (msg.type() === 'error') problems.push(`console: ${msg.text()}`);
   });
   page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
-  await page.goto(`?test=1&q=potato&b=${bookmark}`);
+  await page.goto(`?test=1&q=potato&b=${bookmark}${query}`);
   await page.waitForFunction(() => window.__universe !== undefined);
   await page.evaluate(async () => {
     await window.__universe!.ready();
     await window.__universe!.renderFrames(1);
     await window.__universe!.ready();
+    await window.__universe!.renderFrames(1);
+    await window.__universe!.ready();
     await window.__universe!.renderFrames(4);
   });
-  const png = decode(await page.screenshot({ path: `artifacts/surfaces/${bookmark}.png` }));
+  const png = decode(await page.screenshot({ path: `artifacts/surfaces/${name}.png` }));
   const probe = (x: number, y: number, w: number, h: number) =>
     page.evaluate(([a, b, c, d]) => window.__universe!.probe(a, b, c, d), [
       x,
@@ -155,4 +157,56 @@ test('earth-himalaya: ridged mountains under a blue sky', async ({ page }) => {
   expect(roughness(sky)).toBeGreaterThan(0.6);
   expect(texture(png, 40, 180, 400, 80)).toBeGreaterThan(0.01);
   budgets(stats);
+});
+
+const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/**';
+
+test('HD Earth terrain: Terrarium tiles stream from the fixture into the Earth terrain', async ({ page }) => {
+  const tiles: string[] = [];
+  await page.route(TERRARIUM, (route) => {
+    tiles.push(new URL(route.request().url()).pathname);
+    return route.fulfill({
+      path: 'tests/fixtures/surfaces/terrarium-fixture.png',
+      contentType: 'image/png',
+      headers: { 'access-control-allow-origin': '*' },
+    });
+  });
+  const problems: string[] = [];
+  const { png, stats, errors } = await open(
+    page,
+    'earth-himalaya',
+    problems,
+    '&hdterrain=1',
+    'earth-himalaya-hd',
+  );
+  expect(errors).toEqual([]);
+  expect(problems).toEqual([]);
+  // The 3x3 block around the camera's sub-point (32.3 N 81.3 E) at z9 (7.5 km altitude).
+  expect(tiles.length).toBeGreaterThanOrEqual(9);
+  expect(tiles).toContain('/elevation-tiles-prod/terrarium/9/371/207.png');
+  // The fixture's 6.3 km cones replace the plateau relief: the skyline is still rough terrain.
+  expect(roughness(skyline(png, 20, 260))).toBeGreaterThan(0.6);
+  budgets(stats);
+});
+
+test('HD Earth terrain: unreachable tiles fall back to the baked relief', async ({ page }) => {
+  let requests = 0;
+  await page.route(TERRARIUM, (route) => {
+    requests++;
+    return route.abort('connectionrefused');
+  });
+  const problems: string[] = [];
+  const { probe, errors } = await open(
+    page,
+    'earth-himalaya',
+    problems,
+    '&hdterrain=1',
+    'earth-himalaya-hd-fail',
+  );
+  expect(requests).toBeGreaterThanOrEqual(9);
+  expect(errors).toEqual([]);
+  // The browser logs each refused request; nothing else may be reported.
+  expect(problems.filter((p) => !/Failed to load resource|ERR_CONNECTION_REFUSED/.test(p))).toEqual([]);
+  const ground = await probe(140, 220, 200, 40);
+  expect(lum(ground)).toBeGreaterThan(0.02);
 });

@@ -10,6 +10,7 @@ import { requestAtmosphereLuts } from '../atmosphere/public';
 import { ATMOSPHERE_BODIES } from '../solar-system/public';
 import { buildHimalayaBookmark } from './bookmarks';
 import { createDetailTexture } from './detail';
+import { HD_SETTING_ID, HD_URL_PARAM, HdEarthTerrain } from './hd';
 import { SURFACES_MODULE_ID } from './public';
 import { createSurfaceShading } from './shading';
 import { SURFACE_BODIES, surfaceHeightSpec } from './specs';
@@ -27,6 +28,34 @@ const surfaces: UniverseModule = {
       const b = registry.body(id);
       const spec = b && surfaceHeightSpec(b);
       if (spec) registry.addHeightSource(spec);
+    }
+
+    // Optional HD Earth terrain (Terrarium tiles), off by default.
+    const earthBody = registry.body('earth');
+    const earthSpec = earthBody && surfaceHeightSpec(earthBody);
+    let offFrame: (() => void) | null = null;
+    if (earthBody && earthSpec) {
+      const hd = new HdEarthTerrain({
+        registry,
+        assets: ctx.assets,
+        ui: ctx.ui,
+        body: earthBody,
+        base: earthSpec,
+      });
+      const forced = ctx.env.params.get(HD_URL_PARAM) === '1';
+      registry.addSetting({
+        id: HD_SETTING_ID,
+        label: 'HD Earth terrain (streamed)',
+        group: 'Graphics',
+        type: 'boolean',
+        default: false,
+        persist: true,
+        description:
+          'Streams AWS Terrarium elevation tiles near the camera below 300 km (falls back to the built-in relief).',
+        onChange: (v) => hd.setEnabled(forced || v === true),
+      });
+      hd.setEnabled(forced || ctx.ui.settings.get<boolean>(HD_SETTING_ID) === true);
+      offFrame = ctx.render.onBeforeFrame((view) => hd.onFrame(view));
     }
 
     const detail = createDetailTexture();
@@ -47,7 +76,10 @@ const surfaces: UniverseModule = {
       registry.addBookmarks([
         buildHimalayaBookmark(earth.radius, earth.radius * (1 - (earth.oblateness ?? 0))),
       ]);
-    release = () => detail.dispose();
+    release = () => {
+      detail.dispose();
+      offFrame?.();
+    };
   },
   dispose() {
     release?.();

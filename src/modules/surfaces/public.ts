@@ -6,5 +6,6 @@ export const SURFACES_MODULE_ID = 'surfaces';
 export { SURFACE_HEIGHT_MODULE, SURFACE_HEIGHT_PRIORITY, SURFACE_BODIES, ICY_BODIES } from './specs';
 export { SURFACE_SHADING_PRIORITY } from './shading';
 export { HIMALAYA_ID } from './bookmarks';
+export { HD_SETTING_ID, HD_URL_PARAM, HD_PRIORITY, hdZoom } from './hd';
 export { decodeTerrarium, terrariumTileUrl } from './terrarium';
 export type { SurfaceHeightParams } from './heightfield';
