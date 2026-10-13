@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import type { Body, HeightFunction } from '../../../src/core/contracts';
 import { craterProfile, cratersNear, type CraterParams } from '../../../src/modules/surfaces/craters';
 import { createSurfaceHeight, type SurfaceHeightParams } from '../../../src/modules/surfaces/heightfield';
-import { Raster, rasterFromPng } from '../../../src/modules/surfaces/raster';
+import { rasterFromPng } from '../../../src/modules/surfaces/png';
+import { Raster } from '../../../src/modules/surfaces/raster';
 import { SURFACE_BODIES, surfaceHeightSpec, transitionDiameter } from '../../../src/modules/surfaces/specs';
 import rasters from '../../../src/modules/surfaces/rasters.json';
 

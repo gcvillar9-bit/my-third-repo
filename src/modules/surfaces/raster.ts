@@ -4,8 +4,6 @@
  * opposite meridian (lon + 180 deg), columns wrap, so sampling is continuous across the date line
  * and the poles.
  */
-import { decode } from 'fast-png';
-
 export class Raster {
   /** levels[m] is (w >> m) x (h >> m), metres (or mask fraction). */
   readonly levels: { w: number; h: number; data: Float32Array }[] = [];
@@ -109,15 +107,4 @@ function weights(t: number): [number, number, number, number] {
 export function dirToUv(x: number, y: number, z: number, out: Float64Array): void {
   out[0] = Math.atan2(y, x) / (2 * Math.PI) + 0.5;
   out[1] = 0.5 - Math.asin(Math.max(-1, Math.min(1, z))) / Math.PI;
-}
-
-/** Decodes a grey PNG (8 or 16 bit) into a Raster of `offset + value * step`. */
-export function rasterFromPng(buf: ArrayBuffer | Uint8Array, offset: number, step: number): Raster {
-  const img = decode(buf instanceof Uint8Array ? buf : new Uint8Array(buf));
-  const n = img.width * img.height;
-  const c = img.channels;
-  const data = new Float32Array(n);
-  const src = img.data as ArrayLike<number>;
-  for (let i = 0; i < n; i++) data[i] = offset + src[i * c] * step;
-  return new Raster(img.width, img.height, data);
 }

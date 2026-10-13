@@ -5,7 +5,8 @@
  */
 import type { HeightFunction, HeightModule, HeightWorkerContext } from '../../../core/contracts';
 import { createSurfaceHeight, type SurfaceHeightParams } from '../heightfield';
-import { rasterFromPng, type Raster } from '../raster';
+import { rasterFromPng } from '../png';
+import type { Raster } from '../raster';
 import { decodeTerrarium } from '../terrarium';
 import { decode } from 'fast-png';
 

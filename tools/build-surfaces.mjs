@@ -206,7 +206,7 @@ async function buildFromNormals(id, file) {
   let mean = 0;
   let wsum = 0;
   for (let y = 0; y < H; y++) {
-    const c = Math.cos((((y + 0.5) / H - 0.5) * Math.PI) % Math.PI);
+    const c = Math.cos(((y + 0.5) / H - 0.5) * Math.PI);
     for (let x = 0; x < W; x++) {
       mean += c * z[y * W + x];
       wsum += c;
