@@ -31,7 +31,7 @@ export function defaultParams(radius: number, craters: boolean, seed: number): F
     amplitude: 0.0035 * lambda0,
     hurst: 0.9,
     craterLayers: craters ? 9 : 0,
-    craterDensity: 0.55,
+    craterDensity: 0.9,
     seed: seed >>> 0,
   };
 }

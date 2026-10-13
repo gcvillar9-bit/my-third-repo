@@ -32,14 +32,17 @@ void main() {
   s.pixelSize = length(vViewPos) * uPixelAngle;
   s.localPos = transpose(uBodyToWorld) * vViewPos;
   for (int k = 0; k < SURFACE_DETAIL_BANDS; k++) s.detailOrigin[k] = uDetailOrigin[k];
+  s.up = normalize(uBodyToWorld * upB);
 
   // Band-limited detail: bands whose wavelength spans more than ~4 pixels.
   float albedoMod = 0.0;
   vec3 g = vec3(0.0);
   vec3 P = vec3(SURFACE_NOISE_PERIOD);
   float lambda = 10000.0;
+  // Footprint along the view direction grows at grazing angles: filter by the long axis.
+  float footprint = s.pixelSize / max(abs(dot(s.viewDir, s.up)), 0.05);
   for (int k = 0; k < SURFACE_DETAIL_BANDS; k++) {
-    float w = smoothstep(2.0, 4.0, lambda / max(s.pixelSize, 1e-6)) * uMorph * uDetailStrength;
+    float w = smoothstep(2.0, 4.0, lambda / max(footprint, 1e-6)) * uMorph * uDetailStrength;
     if (w > 0.001) {
       vec3 q = s.detailOrigin[k] + s.localPos / lambda;
       float n0 = pnoise(q, P);
@@ -53,7 +56,6 @@ void main() {
   nB = normalize(nB - (g - dot(g, nB) * nB));
   s.normalBody = nB;
   s.normal = normalize(uBodyToWorld * nB);
-  s.up = normalize(uBodyToWorld * upB);
   s.slope = 1.0 - dot(s.normal, s.up);
   vec3 L = shadeSurface(s) * (1.0 + albedoMod);
   gl_FragColor = vec4(min(max(L, 0.0) * uExposure, vec3(60000.0)), 1.0);
