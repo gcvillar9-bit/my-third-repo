@@ -145,9 +145,9 @@ export function buildBookmarks(eph: SolarEphemeris, jd: number): Bookmark[] {
       pos,
       quat: lookAtOrigin(pos),
       lookAt: 'jupiter',
-      ev: 9,
+      ev: 7,
       lookTarget:
-        'A small bright Jupiter disk at the centre, the four Galilean moons as faint points on their grey orbit ellipses around it.',
+        'Jupiter as a small overexposed disk at the centre (exposed for the moons), the Galilean moons as faint points on grey orbit ellipses (Amalthea innermost, Callisto outermost).',
     });
   }
 
