@@ -28,6 +28,8 @@ export const SATURN_BACKLIT_UTC = '2013-07-19T21:27:00Z';
  */
 export const IO_SHADOW_UTC = '2026-01-29T02:35:00Z';
 export const URANUS_RINGS_UTC = '2026-01-01T00:00:00Z';
+/** Radius at the centre of the uranus-rings view, km (between ring 6 and epsilon). */
+export const URANUS_ANSA_KM = 47_500;
 
 const unit = (v: Vec3d): Vec3d => v3normalize(vec3(), v);
 const pole = (frames: FrameTree, body: string, jd: number): Vec3d =>
@@ -96,25 +98,28 @@ export function buildGiantBookmarks(frames: FrameTree, radius: (id: string) => n
     });
   }
 
-  // Uranus: lit ring face from 30 deg off the Sun direction, pole up, exposed for the dark rings.
+  // Uranus: lit ring face 30 deg off the Sun direction, aimed at the east ansa so the bright
+  // globe stays just off-screen (its bloom would swamp the dark rings), pole up.
   const jdU = parseInstant(URANUS_RINGS_UTC)!;
   const sU = unit(frames.relative('uranus', 'sun', jdU, vec3()));
   const nU = pole(frames, 'uranus', jdU);
   const side = v3cross(vec3(), nU, sU);
   const axis = v3len(side) > 1e-6 ? unit(side) : vec3(0, 0, 1);
   const cU = qrotate(vec3(), qfromAxisAngle(quat(), axis, 30 * DEG), sU);
+  const camU = v3scale(vec3(), cU, 8 * radius('uranus'));
+  const ansa = v3scale(vec3(), unit(v3cross(vec3(), nU, cU)), URANUS_ANSA_KM * 1e3);
   out.push({
     id: 'uranus-rings',
     title: "Uranus's rings",
     frame: 'uranus',
-    pos: v3scale(vec3(), cU, 8 * radius('uranus')),
-    quat: qlookRotation(quat(), v3scale(vec3(), cU, -1), nU),
+    pos: camU,
+    quat: qlookRotation(quat(), v3sub(vec3(), ansa, camU), nU),
     lookAt: 'uranus',
     jd: jdU,
-    ev: 2,
-    fovY: 40 * DEG,
+    ev: 0,
+    fovY: 6 * DEG,
     lookTarget:
-      'Uranus overexposed at the centre with its thin dark rings around it at the true radii; the epsilon ring (outermost) is the brightest.',
+      "The east ansa of Uranus's rings as near-vertical arcs, the globe just off-screen to the left: the epsilon ring (outermost, right of centre) is the brightest, the inner rings 6, 5, 4, alpha, beta, eta, gamma, delta are faint hairlines.",
   });
   return out;
 }

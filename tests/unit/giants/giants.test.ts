@@ -90,10 +90,16 @@ describe('saturn-backlit-2013-07-19 bookmark', () => {
     expect(v3dot(b.pos, pole) * v3dot(toSun, pole)).toBeLessThan(0); // camera below the lit face
   });
 
-  it('builds the uranus-rings bookmark looking at Uranus', () => {
+  it('aims uranus-rings at the ring ansa with the bright globe just off-screen', () => {
     const b = bm('uranus-rings');
     const fwd = qrotate(vec3(), b.quat!, vec3(0, 0, -1));
-    expect(v3dot(fwd, unit(v3scaleNeg(b.pos)))).toBeGreaterThan(0.9999);
+    const toPlanet = unit(v3scaleNeg(b.pos));
+    const off = Math.acos(v3dot(fwd, toPlanet));
+    const halfH = Math.atan(Math.tan(b.fovY! / 2) * (480 / 270));
+    const limb = Math.asin(radius('uranus') / v3len(b.pos));
+    expect(off - limb).toBeGreaterThan(halfH); // globe outside a 16:9 view
+    const eps = Math.atan(51_149e3 / v3len(b.pos));
+    expect(eps - off).toBeLessThan(halfH); // epsilon ansa inside it
   });
 });
 
