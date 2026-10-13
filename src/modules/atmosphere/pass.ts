@@ -311,7 +311,8 @@ export class AtmosphereGpu implements ScreenPass {
     this.skyTarget?.dispose();
     this.apTarget?.dispose();
     this.skyTarget = this.apTarget = null;
-    for (const mat of [this.transMat, this.msMat, this.skyMat, this.aerialMat, this.compositeMat]) mat.dispose();
+    for (const mat of [this.transMat, this.msMat, this.skyMat, this.aerialMat, this.compositeMat])
+      mat.dispose();
     this.draw.dispose();
     for (const s of this.shading.values()) {
       s.uAtmoTransmittance.value = null;

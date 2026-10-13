@@ -1,4 +1,15 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import type { Body } from '../../../src/core/contracts';
+import { FrameTreeImpl, addStandardFrames } from '../../../src/core/frames';
+import { qfromAxisAngle, qrotate, quat, v3dot, v3len, v3normalize, vec3 } from '../../../src/core/math64';
+import { parseInstant } from '../../../src/core/time';
+import { buildMarsGaleSunset, sunElevation } from '../../../src/modules/atmosphere/bookmarks';
+import { atmosphereFrame, selectAtmosphere, stepCounts } from '../../../src/modules/atmosphere/space';
+import { SUNVIEW_BODIES } from '../../../src/modules/solar-system/bookmarks';
+import type { BodiesFile } from '../../../src/modules/solar-system/data';
+import { SolarEphemeris } from '../../../src/modules/solar-system/ephemeris';
+import { buildFrameDefs } from '../../../src/modules/solar-system/frames';
 import { SUN_RGB } from '../../../src/core/photometry';
 import { StaticLutCache } from '../../../src/modules/atmosphere/lut-cache';
 import {
@@ -22,9 +33,13 @@ import {
 } from '../../../src/modules/atmosphere/params';
 import { findSunCrossing } from '../../../src/modules/atmosphere/sun-search';
 
+const DEG = Math.PI / 180;
 const R: Record<string, number> = { earth: 6378137, mars: 3396190, venus: 6051800, titan: 2574730 };
 const params = (id: string): AtmosphereParams =>
-  paramsFromRow(ATMOSPHERE_ROWS.find((r) => r.id === id)!, R[id]);
+  paramsFromRow(
+    ATMOSPHERE_ROWS.find((r) => r.id === id)!,
+    R[id],
+  );
 
 const lutCache = new Map<string, Luts>();
 const luts = (id: string): Luts => {
@@ -172,5 +187,73 @@ describe('sun search', () => {
     expect(rise).toBeGreaterThan(jd);
     expect(el(rise + 0.001)).toBeGreaterThan(target);
     expect(findSunCrossing(() => -1, 0, { target, setting: true, maxDays: 1 })).toBeNull();
+  });
+});
+
+describe('atmosphere frame and selection', () => {
+  it('maps the camera into atmosphere space (km, ellipsoid scaled to a sphere)', () => {
+    const q = qfromAxisAngle(quat(), v3normalize(vec3(), vec3(1, 2, 3)), 0.7);
+    // camera 400 km above the north pole: body centre is -z (body axes) from the camera
+    const camWorld = qrotate(vec3(), q, vec3(0, 0, 6356752 + 400e3));
+    const rel = vec3(-camWorld.x, -camWorld.y, -camWorld.z);
+    const sunW = qrotate(vec3(), q, vec3(1.5e11, 0, 0));
+    const sunRel = vec3(sunW.x + rel.x, sunW.y + rel.y, sunW.z + rel.z);
+    const f = atmosphereFrame(rel, q, 0.003353, sunRel);
+    expect(f.cam[0]).toBeCloseTo(0, 6);
+    expect(f.cam[1]).toBeCloseTo(0, 6);
+    expect(f.cam[2]).toBeCloseTo((6356.752 + 400) / (1 - 0.003353), 6);
+    expect(f.sun[0]).toBeCloseTo(1, 9);
+    expect(f.sunDist).toBeCloseTo(1.5e11, 0);
+    expect(f.camR).toBeCloseTo(Math.hypot(...f.cam), 9);
+  });
+
+  it('prefers the atmosphere the camera is in, else the largest on screen above 4 px', () => {
+    const pa = 1e-3;
+    const earth = { id: 'earth', dist: 6.8e6, topM: 6.478e6 };
+    const marsFar = { id: 'mars', dist: 1e11, topM: 3.5e6 };
+    expect(selectAtmosphere([marsFar, { ...earth, dist: 6.4e6 }], pa)).toBe('earth');
+    expect(selectAtmosphere([marsFar, earth], pa)).toBe('earth');
+    expect(selectAtmosphere([marsFar], pa)).toBeNull();
+    expect(selectAtmosphere([{ ...earth, dist: 6.478e6 / (2e-3 * 0.5) }], pa)).toBeNull(); // 2 px
+  });
+
+  it('scales raymarch steps with the quality knob', () => {
+    expect(stepCounts(8)).toEqual({ sky: 24, aerial: 8, march: 24 });
+    expect(stepCounts(64)).toEqual({ sky: 64, aerial: 32, march: 48 });
+  });
+});
+
+describe('mars-gale-sunset bookmark', () => {
+  it('stands at Gale crater with the Sun setting through 3 deg, looking at it', () => {
+    const rows = (JSON.parse(readFileSync('public/data/solar-system/bodies.json', 'utf8')) as BodiesFile)
+      .bodies;
+    const eph = new SolarEphemeris(rows);
+    const frames = new FrameTreeImpl();
+    addStandardFrames(frames);
+    for (const f of buildFrameDefs(eph, SUNVIEW_BODIES)) frames.addFrame(f);
+    const mars = {
+      id: 'mars',
+      name: 'Mars',
+      kind: 'planet',
+      frame: 'mars',
+      fixedFrame: 'mars.fixed',
+      radius: 3396190,
+      influenceRadius: 1e9,
+    } as Body;
+    const jd0 = parseInstant('2026-01-01T00:00:00Z')!;
+    const bm = buildMarsGaleSunset(frames, mars, jd0)!;
+    expect(bm.id).toBe('mars-gale-sunset');
+    const jd = bm.jd as number;
+    expect(jd).toBeGreaterThan(jd0);
+    expect(jd - jd0).toBeLessThan(1.1);
+    expect(sunElevation(frames, 'mars.fixed', bm.pos, jd) / DEG).toBeCloseTo(3, 4);
+    expect(sunElevation(frames, 'mars.fixed', bm.pos, jd + 0.01)).toBeLessThan(3 * DEG);
+    expect(v3len(bm.pos) - mars.radius).toBeCloseTo(2, 6);
+    const up = v3normalize(vec3(), bm.pos);
+    expect(Math.asin(up.z) / DEG).toBeCloseTo(-5.4, 6);
+    const fwd = qrotate(vec3(), bm.quat!, vec3(0, 0, -1));
+    const sunW = frames.delta('mars.fixed', bm.pos, 'sun', vec3(), jd, vec3());
+    const sun = v3normalize(vec3(), frames.fromWorldDir('mars.fixed', sunW, jd, vec3()));
+    expect(Math.acos(Math.min(1, v3dot(fwd, sun))) / DEG).toBeCloseTo(5, 0); // Sun 5 deg below centre
   });
 });

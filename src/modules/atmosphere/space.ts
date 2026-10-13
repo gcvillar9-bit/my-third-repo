@@ -46,7 +46,12 @@ const apply = (m: number[], v: [number, number, number]): [number, number, numbe
  * @param flattening (a - c) / a
  * @param sunRel camera -> Sun centre, world axes, m
  */
-export function atmosphereFrame(rel: Vec3d, fixedToWorld: Quatd, flattening: number, sunRel: Vec3d): AtmosphereFrame {
+export function atmosphereFrame(
+  rel: Vec3d,
+  fixedToWorld: Quatd,
+  flattening: number,
+  sunRel: Vec3d,
+): AtmosphereFrame {
   const R = quatToMat(fixedToWorld);
   const s = 1 / (1 - flattening);
   // w2a = diag(1, 1, a/c) * R^T

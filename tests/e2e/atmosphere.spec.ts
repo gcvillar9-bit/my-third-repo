@@ -22,26 +22,33 @@ async function open(page: Page, bookmark: string, problems: string[]) {
   });
   await page.screenshot({ path: `artifacts/atmosphere/${bookmark}.png` });
   const probe = (x: number, y: number, w: number, h: number) =>
-    page.evaluate(([a, b, c, d]) => window.__universe!.probe(a, b, c, d), [x, y, w, h] as const) as Promise<RGB>;
+    page.evaluate(([a, b, c, d]) => window.__universe!.probe(a, b, c, d), [
+      x,
+      y,
+      w,
+      h,
+    ] as const) as Promise<RGB>;
   const stats = await page.evaluate(() => window.__universe!.stats());
   const errors = await page.evaluate(() => window.__universe!.errors());
   return { probe, stats, errors };
 }
 
-test('mars-gale-sunset: blue sky around the low Sun, butterscotch away from it', { tag: '@smoke' }, async ({
-  page,
-}) => {
-  const problems: string[] = [];
-  const { probe, stats, errors } = await open(page, 'mars-gale-sunset', problems);
-  expect(errors).toEqual([]);
-  expect(problems).toEqual([]);
-  const nearSun: RGB = await probe(225, 115, 30, 25);
-  const away: RGB = await probe(10, 10, 60, 30);
-  const ground: RGB = await probe(200, 240, 80, 20);
-  expect(lum(nearSun)).toBeGreaterThan(0.02);
-  expect(nearSun[2]).toBeGreaterThan(1.08 * nearSun[0]); // blue aureole 15-40 px above the Sun
-  expect(away[0]).toBeGreaterThan(away[2]); // butterscotch away from it
-  expect(lum(nearSun)).toBeGreaterThan(lum(away));
-  expect(lum(ground)).toBeLessThan(lum(away)); // dim ground at sunset
-  expect(stats.calls).toBeLessThanOrEqual(150);
-});
+test(
+  'mars-gale-sunset: blue sky around the low Sun, butterscotch away from it',
+  { tag: '@smoke' },
+  async ({ page }) => {
+    const problems: string[] = [];
+    const { probe, stats, errors } = await open(page, 'mars-gale-sunset', problems);
+    expect(errors).toEqual([]);
+    expect(problems).toEqual([]);
+    const nearSun: RGB = await probe(225, 115, 30, 25);
+    const away: RGB = await probe(10, 10, 60, 30);
+    const ground: RGB = await probe(200, 240, 80, 20);
+    expect(lum(nearSun)).toBeGreaterThan(0.02);
+    expect(nearSun[2]).toBeGreaterThan(1.08 * nearSun[0]); // blue aureole 15-40 px above the Sun
+    expect(away[0]).toBeGreaterThan(away[2]); // butterscotch away from it
+    expect(lum(nearSun)).toBeGreaterThan(lum(away));
+    expect(lum(ground)).toBeLessThan(lum(away)); // dim ground at sunset
+    expect(stats.calls).toBeLessThanOrEqual(150);
+  },
+);

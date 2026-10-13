@@ -126,7 +126,13 @@ function horizon(p: AtmosphereParams, r: number, h: number): { beta: number; zha
 }
 
 /** Sky-view LUT uv -> (view zenith cosine, light-view azimuth cosine). */
-export function skyViewParams(p: AtmosphereParams, r: number, h: number, su: number, sv: number): [number, number] {
+export function skyViewParams(
+  p: AtmosphereParams,
+  r: number,
+  h: number,
+  su: number,
+  sv: number,
+): [number, number] {
   const u = fromSubUv(su, SKYVIEW_SIZE[0]);
   const v = fromSubUv(sv, SKYVIEW_SIZE[1]);
   const { beta, zha } = horizon(p, r, h);
@@ -348,7 +354,10 @@ export function buildMultiScatterLut(p: AtmosphereParams, trans: Lut2D, n = MULT
   for (let j = 0; j < n; j++) {
     for (let i = 0; i < n; i++) {
       const muS = fromSubUv((i + 0.5) / n, n) * 2 - 1;
-      const r = Math.max(p.bottomKm + 1e-4, p.bottomKm + fromSubUv((j + 0.5) / n, n) * (p.topKm - p.bottomKm));
+      const r = Math.max(
+        p.bottomKm + 1e-4,
+        p.bottomKm + fromSubUv((j + 0.5) / n, n) * (p.topKm - p.bottomKm),
+      );
       lut.set(i, j, multiScatterAt(p, trans, r, clamp(muS, -1, 1)));
     }
   }
