@@ -200,7 +200,10 @@ function buildSphere(body: Body, shading: SurfaceShading, deps: SphereDeps): Ren
     const sunDist = v3len(v3sub(toSun, sunRel, rel));
     if (sunDist <= 0) return;
     v3scale(toSun, toSun, 1 / sunDist);
+    const seen = new Set<string>(); // a moon named by an OccluderProvider and a candidate counts once
     const consider = (frame: string, radius: number) => {
+      if (seen.has(frame)) return;
+      seen.add(frame);
       const center = view.toCamera(frame, zero, vec3());
       const d = v3sub(vec3(), center, rel);
       const t = v3dot(d, toSun);
