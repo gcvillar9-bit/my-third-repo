@@ -20,6 +20,7 @@
     "assets:build": "for f in tools/build-*.mjs; do [ -e \"$f\" ] || continue; [ \"$f\" = tools/build-credits.mjs ] && continue; echo \"> node $f\"; node \"$f\" || exit 1; done",
     "credits": "node tools/build-credits.mjs",
     "size-guard": "node tools/size-guard.mjs",
+    "contact-sheet": "node tools/contact-sheet.mjs",
     "verify": "pnpm typecheck && pnpm test && pnpm build && pnpm size-guard",
     "format": "prettier --write ."
   },

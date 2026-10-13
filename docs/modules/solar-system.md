@@ -55,7 +55,9 @@ The Sun, 8 planets, the Moon, 25 other moons, Pluto/Charon, Ceres, Vesta, Eris, 
   body. 256 vertices are evaluated in float64 relative to the camera every frame. Opacity = apparent size
   (smoothstep 3 → 15 px) × edge-on fade (camera height over the orbit plane / a: 0.03 → 0.12) × visited-body fade
   (30 → 150 R) × local-scale fade (hidden when a > 100 × the distance to the nearest body), with per-vertex fade near
-  the camera. Colours are display-referred (not pre-exposed), like a HUD drawn in the scene.
+  the camera, and a 4 → 10 px gap around the body's own position (R1 review: the faint photometric moon points were
+  buried under their lines in `jupiter-moons`). Colours are display-referred (not pre-exposed), like a HUD drawn in
+  the scene.
 - **Saturn's rings v1** (`render/extras.ts`): an annulus at the Celestia radii textured with `saturn_ring_sss.png`
   (sRGB colour, alpha = opacity). Lit face `E·c·|μs|/(|μs|+|μv|)/π`, unlit face 0.3·(1−α) of that, with Saturn's
   shadow from `shadows.glsl`.

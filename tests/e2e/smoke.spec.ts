@@ -25,8 +25,11 @@ test('boot renders a WebGL2 frame without errors', { tag: '@smoke' }, async ({ p
   const stats = await page.evaluate(() => window.__universe!.stats());
   expect(stats.frame).toBeGreaterThanOrEqual(2);
 
+  // Default start is earth-now (sunlit Earth at EV 15): the frame must be finite and not blown out.
   const [r, g, b] = await page.evaluate(() => window.__universe!.probe(0, 0, 480, 270));
-  expect(r + g + b).toBeLessThan(0.03);
+  expect(Number.isFinite(r + g + b)).toBe(true);
+  expect(r + g + b).toBeGreaterThan(0);
+  expect(r + g + b).toBeLessThan(1.5);
 
   await page.screenshot({ path: 'artifacts/smoke/boot.png' });
   expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);

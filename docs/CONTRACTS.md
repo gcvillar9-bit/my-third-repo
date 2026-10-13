@@ -1,5 +1,9 @@
 # Cosmos contracts
 
+> **Frozen after Phase 1 — only optional fields may be added.** Frozen by the R1 integrator at the end of Phase 1
+> (no contract changes were requested by any Phase-1 package). Existing members keep their names, types and
+> semantics. Requests go to `docs/requests/<pkg>.md`; see "Open requests for Phase 2" at the end of this file.
+
 `src/core/contracts.ts` is the plug-in contract (DESIGN 3.4). It is **frozen at the end of Phase 1**: afterwards only optional members may be added. If you need a change, write `docs/requests/<pkg>.md`, shim inside your own module, and the integrator lands it.
 
 ## Conventions
@@ -107,3 +111,12 @@ It exists only with `?test=1` (or in dev). In test mode rAF is disabled, time is
 | `errors()`          | Shader errors, uncaught exceptions and console errors since boot.                                       |
 
 URL contract: `?test=1&q=potato&b=<bookmark>&t=<ISO>&ev=<EV>&seed=1` at 480×270. In specs, use `page.goto('?test=1&...')` without a leading slash so the URL resolves under `/my-third-repo/`.
+
+## Open requests for Phase 2
+
+Phase 1 closed with no contract-change requests. Integration notes carried forward (not contract changes):
+
+- `RenderApi.captureCube` (optional) is not implemented yet; the P4 Sgr A* lensing background and sky-cube re-bake need it.
+- Walk mode: `setMode('walk')` currently flies like free mode with a 1.7 m floor (P2 scope).
+- Stars are not `Body`s in Phase 1 (star promotion is P4); palette picks fly to a computed `Bookmark`.
+- P4-C constellation lines need a HIP to star-index map for all stars (only named stars carry HIP in `names.json`).

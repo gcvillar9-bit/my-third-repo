@@ -25,7 +25,17 @@ const LIMITS = {
  * TODO(R1 integrator): fill in once P1-B lands assets, e.g.
  *   'textures/solar-system/earth-2k.webp', 'data/stars/stars.bin', 'textures/stars/milkyway-2k.webp'.
  */
-const BOOT_PATH = [];
+const BOOT_PATH = [
+  'textures/solar-system/earth_day_2k.webp',
+  'textures/solar-system/earth_night_2k.webp',
+  'textures/solar-system/earth_brc_2k.webp',
+  'textures/solar-system/earth_normal_2k.webp',
+  'textures/solar-system/earth_spec_2k.webp',
+  'data/stars/stars.bin',
+  'data/stars/names.json',
+  'textures/stars/milkyway_diffuse_2k.webp',
+  'data/solar-system/bodies.json',
+];
 
 const fmt = (b) => (b >= MB ? `${(b / MB).toFixed(2)} MB` : `${(b / 1024).toFixed(1)} KB`);
 

@@ -1,7 +1,8 @@
 /**
- * Cosmos plug-in contract (DESIGN.md section 3.4).
+ * Frozen after Phase 1 — only optional fields may be added.
  *
- * FROZEN at the end of Phase 1: afterwards only OPTIONAL members may be added.
+ * Cosmos plug-in contract (DESIGN.md section 3.4). Frozen by the R1 integrator at the end of Phase 1:
+ * existing members keep their names, types and semantics; new members must be optional.
  * Need a change? Write docs/requests/<pkg>.md and shim inside your own module.
  *
  * Conventions used throughout:

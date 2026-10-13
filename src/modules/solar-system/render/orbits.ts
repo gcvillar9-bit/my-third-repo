@@ -155,6 +155,9 @@ export function createOrbits(eph: SolarEphemeris, scene: SceneState): Renderable
         }
         const near0 = 0.003 * c.a;
         const near1 = 0.03 * c.a;
+        // Gap of 4-10 px around the body's own position so its (much fainter) photometric point
+        // is not buried under the line (R1 review: Galilean moons were invisible in jupiter-moons).
+        const gapPx = bv ? 1 / view.pixelAngle : 0;
         for (let k = 0; k < ORBIT_SEGMENTS; k++) {
           conicPoint(c, (2 * Math.PI * k) / ORBIT_SEGMENTS, p);
           const x = p.x + cRel.x;
@@ -163,7 +166,13 @@ export function createOrbits(eph: SolarEphemeris, scene: SceneState): Renderable
           o.pos[3 * k] = x;
           o.pos[3 * k + 1] = y;
           o.pos[3 * k + 2] = z;
-          o.alpha[k] = smooth(near0, near1, Math.hypot(x, y, z));
+          const dCam = Math.hypot(x, y, z);
+          let a = smooth(near0, near1, dCam);
+          if (bv && dCam > 0) {
+            const sep = Math.hypot(x - bv.rel.x, y - bv.rel.y, z - bv.rel.z) / dCam;
+            a *= smooth(4, 10, sep * gapPx);
+          }
+          o.alpha[k] = a;
         }
         o.posAttr.needsUpdate = true;
         o.alphaAttr.needsUpdate = true;

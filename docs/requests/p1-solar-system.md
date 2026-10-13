@@ -6,3 +6,6 @@
    EV 15 gives about 0.034. Suggested replacement: assert a finite, not blown-out frame (for example
    `r + g + b > 0` and `< 1.5`), or boot the smoke test with `&b=debug-sphere`. The engine and solar-system specs pass
    together on this branch; only this assertion fails.
+
+**Resolved (R1 integrator, end of Phase 1):** the smoke probe now asserts a finite, not blown-out frame
+(0 < r + g + b < 1.5), and `tests/e2e/integration.spec.ts` checks that boot without `b=` opens `earth-now`.

@@ -18,7 +18,7 @@ import { FullscreenPass, fullscreenMaterial } from './passes';
 export const EV_MIN = -6;
 export const EV_MAX = 24;
 /** EV used when (almost) nothing on screen is brighter than LIT_FLOOR (deep space, stars only). */
-export const EV_NIGHT = -2;
+export const EV_NIGHT = -5; // dark-adapted night sky (R1: was -2, which hid most naked-eye stars)
 /** Default fixed EV in test mode when neither the bookmark nor ?ev= sets one. */
 export const DEFAULT_TEST_EV = 12;
 /** Pixels dimmer than this (cd/m²) are ignored by the meter (sky background, faint nebulae). */
