@@ -1,0 +1,12 @@
+node_modules
+dist
+.cache
+artifacts
+test-results
+playwright-report
+*.log
+*.tsbuildinfo
+.DS_Store
+
+# local agent worktrees
+.claude/

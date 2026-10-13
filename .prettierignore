@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+dist
+artifacts
+.cache
+public/data
+public/textures
+docs/DESIGN.md

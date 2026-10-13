@@ -1,0 +1,515 @@
+{
+  "module": "solar-system",
+  "assets": [
+    {
+      "id": "earth_day_4096",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_day_4096.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js); imagery NASA Blue Marble / Black Marble (public domain)",
+      "outputs": ["textures/solar-system/earth_day_2k.webp", "textures/solar-system/earth_day_4k.webp"],
+      "sha256": "cd7712d3e891425d9948ea5ac18d3bb1e7e834ea038188587897e689a7b35d0f",
+      "bytes": 473093
+    },
+    {
+      "id": "earth_night_4096",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_night_4096.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js); imagery NASA Blue Marble / Black Marble (public domain)",
+      "outputs": ["textures/solar-system/earth_night_2k.webp", "textures/solar-system/earth_night_4k.webp"],
+      "sha256": "17a868f79c7be40fa1f557e6114d7889d907f18f7a3fce51f33b0b830ef50242",
+      "bytes": 267061
+    },
+    {
+      "id": "earth_brc_4096",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_roughness_clouds_4096.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js); imagery NASA Blue Marble / Black Marble (public domain)",
+      "outputs": ["textures/solar-system/earth_brc_2k.webp", "textures/solar-system/earth_brc_4k.webp"],
+      "sha256": "0796f4211c209d1afe9e26a06a283cdc21434430a780a25457b2417568a8591e",
+      "bytes": 1508389
+    },
+    {
+      "id": "earth_normal_2048",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_normal_2048.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js); imagery NASA Blue Marble / Black Marble (public domain)",
+      "outputs": ["textures/solar-system/earth_normal_2k.webp"],
+      "sha256": "3fc43e9639c34e8223c4a871e3bdf5b2d52ee79f7e89ce3f28cba45d4cac031a",
+      "bytes": 336774
+    },
+    {
+      "id": "earth_specular_2048",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_specular_2048.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js); imagery NASA Blue Marble / Black Marble (public domain)",
+      "outputs": ["textures/solar-system/earth_spec_2k.webp"],
+      "sha256": "2df48906732d7a458b2d0a7cdec51a829262307c6bdee4cfdf079a4dd7c71c69",
+      "bytes": 223421
+    },
+    {
+      "id": "sss_sun",
+      "url": "https://media.githubusercontent.com/media/computationalcore/worldline-kinematics/main/apps/web/public/textures/8k_sun.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in computationalcore/worldline-kinematics",
+      "outputs": ["textures/solar-system/sun_2k.webp", "textures/solar-system/sun_4k.webp"],
+      "sha256": "f22b1cfb306ddce72a7e3b628668a0175b745038ce6268557cb2f7f1bdf98b9d",
+      "bytes": 3696361
+    },
+    {
+      "id": "sss_mercury",
+      "url": "https://media.githubusercontent.com/media/computationalcore/worldline-kinematics/main/apps/web/public/textures/8k_mercury.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in computationalcore/worldline-kinematics",
+      "outputs": ["textures/solar-system/mercury_2k.webp", "textures/solar-system/mercury_4k.webp"],
+      "sha256": "5c8bd885ae3571c6ba2cd34b3446b9c6d767e314bf0ee8c1d5c147cadd388fc3",
+      "bytes": 15035740
+    },
+    {
+      "id": "sss_moon",
+      "url": "https://media.githubusercontent.com/media/computationalcore/worldline-kinematics/main/apps/web/public/textures/8k_moon.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in computationalcore/worldline-kinematics",
+      "outputs": ["textures/solar-system/moon_2k.webp", "textures/solar-system/moon_4k.webp"],
+      "sha256": "d1875bcec83588ca25e4802e576f6bb9f88b39e1e403cb41ff55867419c54796",
+      "bytes": 15030356
+    },
+    {
+      "id": "sss_mars",
+      "url": "https://media.githubusercontent.com/media/computationalcore/worldline-kinematics/main/apps/web/public/textures/8k_mars.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in computationalcore/worldline-kinematics",
+      "outputs": ["textures/solar-system/mars_2k.webp", "textures/solar-system/mars_4k.webp"],
+      "sha256": "4cc52149924abc6ae507d63032f994e1d42a55cb82c09e002d1a567ff66c23ee",
+      "bytes": 8396951
+    },
+    {
+      "id": "sss_jupiter",
+      "url": "https://media.githubusercontent.com/media/computationalcore/worldline-kinematics/main/apps/web/public/textures/8k_jupiter.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in computationalcore/worldline-kinematics",
+      "outputs": ["textures/solar-system/jupiter_2k.webp", "textures/solar-system/jupiter_4k.webp"],
+      "sha256": "0bd844bf20822c4e3e80882b077859833c0dac44c7e4e1e0cd63d1b1b6d43085",
+      "bytes": 3080980
+    },
+    {
+      "id": "sss_saturn",
+      "url": "https://media.githubusercontent.com/media/computationalcore/worldline-kinematics/main/apps/web/public/textures/8k_saturn.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in computationalcore/worldline-kinematics",
+      "outputs": ["textures/solar-system/saturn_2k.webp", "textures/solar-system/saturn_4k.webp"],
+      "sha256": "0d39a4a490c87c3edabe00a3881a29bb3418364178c79c534fe0986e97e09853",
+      "bytes": 1098204
+    },
+    {
+      "id": "sss_venus_surface",
+      "url": "https://media.githubusercontent.com/media/computationalcore/worldline-kinematics/main/apps/web/public/textures/8k_venus_surface.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in computationalcore/worldline-kinematics",
+      "outputs": [
+        "textures/solar-system/venus_surface_2k.webp",
+        "textures/solar-system/venus_surface_4k.webp"
+      ],
+      "sha256": "9bc21a50577ed8ac734cda91058724c7a741c19427aa276224ce349351432c5b",
+      "bytes": 12523129
+    },
+    {
+      "id": "sss_saturn_ring_alpha",
+      "url": "https://media.githubusercontent.com/media/computationalcore/worldline-kinematics/main/apps/web/public/textures/8k_saturn_ring_alpha.png",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in computationalcore/worldline-kinematics",
+      "outputs": ["textures/solar-system/saturn_ring_sss.png"],
+      "sha256": "f1f826933c9ff87d64ecf0518d6256b8ed990b003722794f67e96e3d2b876ae4",
+      "bytes": 64790
+    },
+    {
+      "id": "celestia_io",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/io.png",
+      "license": "CC-BY-4.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/io_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/io.png.license",
+        "sha256": "4089b075c4836c63105b2bb00b98d7cf5c97b71f72fb3dfd5259fbafb2126ef5",
+        "text": "SPDX-FileCopyrightText: 2024-2025 ItzImcool\nSPDX-FileCopyrightText: NASA/JPL-Caltech/ASI/USGS\nSPDX-FileCopyrightText: NASA / JPL / SwRI / MSSS / Gerald Eichstädt / Jason Perry / John Rogers\nSPDX-FileCopyrightText: 2026 AstroChara\n\nSPDX-License-Identifier: CC-BY-4.0"
+      },
+      "sha256": "7c06333e3a738cb0921877c7d8be51a0ec42a6a72c9199d9b56377889cb132c4",
+      "bytes": 11589437,
+      "copyright": [
+        "2024-2025 ItzImcool",
+        "NASA/JPL-Caltech/ASI/USGS",
+        "NASA / JPL / SwRI / MSSS / Gerald Eichstädt / Jason Perry / John Rogers",
+        "2026 AstroChara"
+      ]
+    },
+    {
+      "id": "celestia_europa",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/europa.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/europa_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "3dccd0cc9909a03acc80efceb5bdc699d8aec9298a900920ae616fdcd29edc55",
+      "bytes": 1440001
+    },
+    {
+      "id": "celestia_ganymede",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/ganymede.jpg",
+      "license": "CC-BY-3.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/ganymede_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/ganymede.jpg.license",
+        "sha256": "982f5939e5d88364e3494226f105d73f62801c979da39e960ae44068c3579a18",
+        "text": "SPDX-FileCopyrightText: 2019 Askaniy Anpilogov\nSPDX-FileCopyrightText: NASA/JPL-Caltech/ASI/USGS\nSPDX-FileCopyrightText: NASA/JPL-Caltech/Björn Jónsson\nSPDX-FileCopyrightText: NASA/JPL-Caltech/SwRI/MSSS/Brian Swift\n\nSPDX-License-Identifier: CC-BY-3.0"
+      },
+      "sha256": "0f2aee3be112d66d5d7d814b75e7ed3305db3c719aa427b5a112884a36a360cd",
+      "bytes": 1460470,
+      "copyright": [
+        "2019 Askaniy Anpilogov",
+        "NASA/JPL-Caltech/ASI/USGS",
+        "NASA/JPL-Caltech/Björn Jónsson",
+        "NASA/JPL-Caltech/SwRI/MSSS/Brian Swift"
+      ]
+    },
+    {
+      "id": "celestia_callisto",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/callisto.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/callisto_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "ab97bf4917448b1f1574580dc07c3526ca582d5f95d71217518d590951c1ee7a",
+      "bytes": 1931997
+    },
+    {
+      "id": "celestia_titan",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/titan.png",
+      "license": "CC-BY-3.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/titan_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/titan.png.license",
+        "sha256": "d0f645c8e99bb9f9e9493a4e91a4e64ddfe6a85a8e53cfa219cac23c8976a161",
+        "text": "SPDX-FileCopyrightText: 2026 Askaniy Anpilogov, Pedro Garcia, AstroChara\nSPDX-FileCopyrightText: Martonchik & Orton (1994)\nSPDX-FileCopyrightText: Karkoschka et al. (2016)\nSPDX-FileCopyrightText: Seignovert et al. (2019)\nSPDX-FileCopyrightText: NASA/JPL-Caltech/ASI/USGS\nSPDX-FileCopyrightText: Caltech-JPL/Univ. of Arizona/LPG-Univ. of Nantes-CNRS\n\nSPDX-License-Identifier: CC-BY-3.0"
+      },
+      "sha256": "fe440ed822243633369ebb9ee28d320e2ef63ac1a899dc98d76d5fffb1053225",
+      "bytes": 2478053,
+      "copyright": [
+        "2026 Askaniy Anpilogov, Pedro Garcia, AstroChara",
+        "Martonchik & Orton (1994)",
+        "Karkoschka et al. (2016)",
+        "Seignovert et al. (2019)",
+        "NASA/JPL-Caltech/ASI/USGS",
+        "Caltech-JPL/Univ. of Arizona/LPG-Univ. of Nantes-CNRS"
+      ]
+    },
+    {
+      "id": "celestia_enceladus",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/enceladus.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/enceladus_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "25f002668e20860917b0bf594d7fc32b516bdde96dfeaf30513ecea69826f26e",
+      "bytes": 1891393
+    },
+    {
+      "id": "celestia_mimas",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/mimas.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/mimas_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "efcefc4037f0acfd53a81c476c0da07523d386c09ef190929be4137b32e43b10",
+      "bytes": 1122405
+    },
+    {
+      "id": "celestia_tethys",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/tethys.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/tethys_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "9d2c3ee40571b47dc7b1868f137a313fa34f5b8c4b1b42f5aa0a8420c54987ad",
+      "bytes": 1756540
+    },
+    {
+      "id": "celestia_dione",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/dione.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/dione_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "5a9c05c403acd9af808aced83135a380c721a695af3ba46c58b88ef775a21b21",
+      "bytes": 1825426
+    },
+    {
+      "id": "celestia_rhea",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/rhea.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/rhea_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "f75ebe525954d7682de41af2228f48a138b1dcbe034cb0fbe8ccc456eeea8fdd",
+      "bytes": 2092203
+    },
+    {
+      "id": "celestia_iapetus",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/iapetus.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/iapetus_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "d37c7fedc1747081bfbb84d2847c6e82f662a503e9fbdd75ac2faf66ede531b6",
+      "bytes": 1369992
+    },
+    {
+      "id": "celestia_miranda",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/miranda.jpg",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/miranda_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/miranda.jpg.license",
+        "sha256": "6491ec374653a8cead107f244b35a85de89ee256ca3a765506630e893923aaa0",
+        "text": "SPDX-FileCopyrightText: 2025-2026 ItzImcool\nSPDX-FileCopyrightText: 2020 Paul Schenk\nSPDX-FileCopyrightText: NASA / JPL / Ted Stryk\n\nSPDX-License-Identifier: CC-BY-SA-4.0"
+      },
+      "sha256": "c2da0d081edfaccee9e61511b7d96d0802233a0d24850116db8ea2ca2e3f94eb",
+      "bytes": 378333,
+      "copyright": ["2025-2026 ItzImcool", "2020 Paul Schenk", "NASA / JPL / Ted Stryk"]
+    },
+    {
+      "id": "celestia_ariel",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/ariel.jpg",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/ariel_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/ariel.jpg.license",
+        "sha256": "65d0a0faeb7bff1fede2bbd9aa54c6abbc454e38322b5d66823a10e751fbc5d4",
+        "text": "SPDX-FileCopyrightText: 2024-2026 ItzImcool\nSPDX-FileCopyrightText: 2020 Paul Schenk\nSPDX-FileCopyrightText: NASA / JPL / Ted Stryk\n\nSPDX-License-Identifier: CC-BY-SA-4.0"
+      },
+      "sha256": "17899b8198fb44907327c0f063cbabbd415a890914f1ff103bdffe8718cd7c9c",
+      "bytes": 427212,
+      "copyright": ["2024-2026 ItzImcool", "2020 Paul Schenk", "NASA / JPL / Ted Stryk"]
+    },
+    {
+      "id": "celestia_triton",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/triton.jpg",
+      "license": "CC-BY-3.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/triton_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/triton.jpg.license",
+        "sha256": "f58c24db5d92f3c1b5683241afed6e23f74b2ccfc4ea0c31267c34dbf808dd73",
+        "text": "SPDX-FileCopyrightText: 2018 Askaniy Anpilogov\nSPDX-FileCopyrightText: NASA/JPL-Caltech/ASI/USGS\n\nSPDX-License-Identifier: CC-BY-3.0"
+      },
+      "sha256": "0b1a0fbbd14a0f06fb4593f73abff9f3516397aef95895211b1926090854e4d8",
+      "bytes": 662510,
+      "copyright": ["2018 Askaniy Anpilogov", "NASA/JPL-Caltech/ASI/USGS"]
+    },
+    {
+      "id": "celestia_phobos",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/phobos.jpg",
+      "license": "CC-BY-3.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/phobos_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/phobos.jpg.license",
+        "sha256": "50547e25dd22cbf0903c95a948d680c2fee388312a48257a7aecfb1d1e691a37",
+        "text": "SPDX-FileCopyrightText: 2019 Askaniy Anpilogov\nSPDX-FileCopyrightText: Stooke. P., Stooke Small Bodies Maps V3.0. MULTI-SA-MULTI-6-STOOKEMAPS-V3.0. NASA Planetary Data System, 2015\n\nSPDX-License-Identifier: CC-BY-3.0"
+      },
+      "sha256": "0284e6131d5ec15e601a17eb02132cfd81ade307de88193928212106450f27de",
+      "bytes": 590288,
+      "copyright": [
+        "2019 Askaniy Anpilogov",
+        "Stooke. P., Stooke Small Bodies Maps V3.0. MULTI-SA-MULTI-6-STOOKEMAPS-V3.0. NASA Planetary Data System, 2015"
+      ]
+    },
+    {
+      "id": "celestia_deimos",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/deimos.jpg",
+      "license": "CC0-1.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/deimos_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/deimos.jpg.license",
+        "sha256": "23ab14ba6d303aa72d0a2437c81dcb1fdef3cffe7124263ce8754f44f0485cb8",
+        "text": "SPDX-FileCopyrightText: Stooke. P., Stooke Small Bodies Maps V3.0. MULTI-SA-MULTI-6-STOOKEMAPS-V3.0. NASA Planetary Data System, 2015.\n\nSPDX-License-Identifier: CC0-1.0"
+      },
+      "sha256": "3454e8aeafabf878f82ed3db464bf8d63eda09c92a0aeb9a56cd3d36d0732b72",
+      "bytes": 230043,
+      "copyright": [
+        "Stooke. P., Stooke Small Bodies Maps V3.0. MULTI-SA-MULTI-6-STOOKEMAPS-V3.0. NASA Planetary Data System, 2015."
+      ]
+    },
+    {
+      "id": "celestia_ceres",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/ceres.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/ceres_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "7745a88da5fe7e54f64a45e2b84ef566c1a15bb18dc0121bc784e5e5f130c7c5",
+      "bytes": 1021305
+    },
+    {
+      "id": "celestia_vesta",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/vesta.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/vesta_2k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "2f202cc10b4f609cfcc7fa680d9ea308a5157b1ca83a07ca5359d381ba0d1278",
+      "bytes": 968192
+    },
+    {
+      "id": "celestia_pluto",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/pluto.jpg",
+      "license": "CC-BY-NC-SA-3.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/pluto_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/pluto.jpg.license",
+        "sha256": "8d4649b1ba2335ca549f9a9ad4d0bb424ec79e4265abeb9144d3469c704843bc",
+        "text": "SPDX-FileCopyrightText: 2018 Askaniy Anpilogov\n\nSPDX-License-Identifier: CC-BY-NC-SA-3.0"
+      },
+      "flags": ["non-commercial"],
+      "sha256": "0a7f51a08e1c60085967f0a89d0ad03fd06cbf8a3b731c482833a0ab72f9f8ae",
+      "bytes": 3104651,
+      "copyright": ["2018 Askaniy Anpilogov"]
+    },
+    {
+      "id": "celestia_charon",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/charon.jpg",
+      "license": "CC-BY-NC-SA-3.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/charon_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/charon.jpg.license",
+        "sha256": "8d4649b1ba2335ca549f9a9ad4d0bb424ec79e4265abeb9144d3469c704843bc",
+        "text": "SPDX-FileCopyrightText: 2018 Askaniy Anpilogov\n\nSPDX-License-Identifier: CC-BY-NC-SA-3.0"
+      },
+      "sha256": "57a21ff9b53a32b14df52e2d7b122fd1e9a8f49dfabddaa3b7d39b95ae818550",
+      "bytes": 753376,
+      "copyright": ["2018 Askaniy Anpilogov"]
+    },
+    {
+      "id": "celestia_venus",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/venus.jpg",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/venus_2k.webp", "textures/solar-system/venus_4k.webp"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "ab063c60b065dfd0f14978f339081a109b13080a455f0daab4ee40c6f04f509e",
+      "bytes": 1435766
+    },
+    {
+      "id": "celestia_uranus",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/uranus.jpg",
+      "license": "CC-BY-NC-SA-3.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/uranus_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/uranus.jpg.license",
+        "sha256": "07136d1e79e0aaff31fe0bcb3348863ed122043e78ecf528751e520a9f75af23",
+        "text": "SPDX-FileCopyrightText: 2018 Askaniy Anpilogov\nSPDX-FileCopyrightText: NASA/JPL-Caltech/Björn Jónsson\nSPDX-FileCopyrightText: Simon et al. 2015\n\nSPDX-License-Identifier: CC-BY-NC-SA-3.0"
+      },
+      "sha256": "2b7745628ffeb64120dcc16a8dd817ee32bcf8de46b8d62fbf0b0f358bbdae2f",
+      "bytes": 176205,
+      "copyright": ["2018 Askaniy Anpilogov", "NASA/JPL-Caltech/Björn Jónsson", "Simon et al. 2015"]
+    },
+    {
+      "id": "celestia_neptune",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/neptune.jpg",
+      "license": "CC-BY-3.0",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/neptune_2k.webp"],
+      "licenseSidecar": {
+        "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/neptune.jpg.license",
+        "sha256": "0bb3809c7fce1d6c633877d1b0066d144af51a18126aa6f44683a5c8896f258a",
+        "text": "SPDX-FileCopyrightText: 2018 Askaniy Anpilogov\nSPDX-FileCopyrightText: NASA/JPL-Caltech/Björn Jónsson\nSPDX-FileCopyrightText: Karkoschka, E. 1994\n\nSPDX-License-Identifier: CC-BY-3.0"
+      },
+      "sha256": "4de5541a2bfc5a90a86228483811c5d1653f3f5ecb1c29b7713b7f9015f68032",
+      "bytes": 462716,
+      "copyright": ["2018 Askaniy Anpilogov", "NASA/JPL-Caltech/Björn Jónsson", "Karkoschka, E. 1994"]
+    },
+    {
+      "id": "celestia_saturn-rings",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/saturn-rings.png",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/saturn_rings_profile.png"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "7ff9b1c526cd6e297704162ab39348107e1e87ebdc1b546a3b3e235a6456d33f",
+      "bytes": 7738
+    },
+    {
+      "id": "celestia_uranus-rings",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/uranus-rings.png",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires)",
+      "outputs": ["textures/solar-system/uranus_rings_profile.png"],
+      "note": "No per-file .license sidecar upstream; CelestiaContent default licence GPL-2.0-or-later applies.",
+      "sha256": "e6a22494aa759f63eb945693b35bdb65f8876f9d473cd6446e25f8eb4f874468",
+      "bytes": 2781
+    },
+    {
+      "id": "celestia_solarsys_ssc",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/solarsys.ssc",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team and contributors (CelestiaContent data/solarsys.ssc)",
+      "outputs": ["data/solar-system/bodies.json"],
+      "sha256": "285baa733bfbf3b961bd8619de5e62d39b4a61d74fc9ff7f5cb67d342efb4f64",
+      "bytes": 49730
+    },
+    {
+      "id": "celestia_minormoons_ssc",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/minormoons.ssc",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team and contributors (CelestiaContent data/minormoons.ssc)",
+      "outputs": ["data/solar-system/bodies.json"],
+      "sha256": "16bad40c407925a1ea17ff2d742f2970a574d80577692271a2a55603b4b21fb6",
+      "bytes": 107560
+    },
+    {
+      "id": "celestia_outersys_ssc",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/outersys.ssc",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team and contributors (CelestiaContent data/outersys.ssc)",
+      "outputs": ["data/solar-system/bodies.json"],
+      "sha256": "1002a4173c453865ed0430acadd548bd5368e36f58f6ca7e43b52bb205b9fb46",
+      "bytes": 37711
+    },
+    {
+      "id": "celestia_dwarfplanets_ssc",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/dwarfplanets.ssc",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team and contributors (CelestiaContent data/dwarfplanets.ssc)",
+      "outputs": ["data/solar-system/bodies.json"],
+      "sha256": "bac1fc58d355867e2a1d87ce27fd80bb5b028679798b8e0131a079eca9b4e347",
+      "bytes": 28973
+    },
+    {
+      "id": "celestia_asteroids_ssc",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/asteroids.ssc",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team and contributors (CelestiaContent data/asteroids.ssc)",
+      "outputs": ["data/solar-system/bodies.json"],
+      "sha256": "b6be35c9bb605623047c90ee072d0a6f9e603faa9eedf9620fab4c57810f4b7d",
+      "bytes": 76244
+    },
+    {
+      "id": "ref_iau_wgccre",
+      "license": "reference",
+      "attribution": "IAU WGCCRE: Archinal et al. (2011) Celest Mech Dyn Astr 109:101 and (2018) 130:22 - rotation poles, prime meridians, radii",
+      "outputs": ["data/solar-system/bodies.json"]
+    },
+    {
+      "id": "ref_jpl_ssd",
+      "license": "reference",
+      "attribution": "JPL Solar System Dynamics: planetary and satellite physical parameters (GM, radii, albedos), ssd.jpl.nasa.gov",
+      "outputs": ["data/solar-system/bodies.json"]
+    }
+  ]
+}

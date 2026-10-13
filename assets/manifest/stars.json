@@ -1,0 +1,77 @@
+{
+  "module": "stars",
+  "assets": [
+    {
+      "id": "hyg_v41",
+      "url": "https://raw.githubusercontent.com/astronexus/HYG-Database/main/hyg/CURRENT/hygdata_v41.csv",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "HYG Database v4.1, David Nash (astronexus), www.astronexus.com",
+      "outputs": ["data/stars/stars.bin", "data/stars/names.json"],
+      "sha256": "d9f69fd86bbf90a4e4d52b4c5c53eacfa6dfc0bfdef85bfd94f095e0bebe4ebd",
+      "bytes": 33932548
+    },
+    {
+      "id": "sss_milky_way",
+      "url": "https://media.githubusercontent.com/media/ebiederstadt/solar-system/master/assets/textures/8k_stars_milky_way.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "Solar System Scope (INOVE), solarsystemscope.com/textures; mirrored in ebiederstadt/solar-system",
+      "outputs": ["textures/stars/milkyway_diffuse_2k.webp", "textures/stars/milkyway_diffuse_4k.webp"],
+      "sha256": "1fd005ddd6d53364cc5106e0121b83fd3bca236b1503f6b51f5501d9d51eafaf",
+      "bytes": 1905513
+    },
+    {
+      "id": "three_milkyway_px",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_px.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)",
+      "outputs": ["textures/stars/fallback_px.webp"],
+      "sha256": "4fc919173e1a913c8a105ff9aad6658d223c397befc18411f54ecbf79c1f4307",
+      "bytes": 266566
+    },
+    {
+      "id": "three_milkyway_nx",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nx.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)",
+      "outputs": ["textures/stars/fallback_nx.webp"],
+      "sha256": "de81e2d2ccb09d3d7ed4da87798cbee822bed3924815ff9f5ef763358376927d",
+      "bytes": 259233
+    },
+    {
+      "id": "three_milkyway_py",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_py.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)",
+      "outputs": ["textures/stars/fallback_py.webp"],
+      "sha256": "1e22430a2ae93f49b3bc0fffea84d200fa62fbef5a7bc87ac788295007b88e89",
+      "bytes": 394125
+    },
+    {
+      "id": "three_milkyway_ny",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_ny.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)",
+      "outputs": ["textures/stars/fallback_ny.webp"],
+      "sha256": "60e5367a89a993aec88698062561fe5899f27027381962ff07b25daa70a8146e",
+      "bytes": 348867
+    },
+    {
+      "id": "three_milkyway_pz",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_pz.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)",
+      "outputs": ["textures/stars/fallback_pz.webp"],
+      "sha256": "f948bb2192d0a1ee47a96965419bc12e3f804c4b9104df16edbf3911a4a85553",
+      "bytes": 415877
+    },
+    {
+      "id": "three_milkyway_nz",
+      "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nz.jpg",
+      "license": "MIT",
+      "attribution": "three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)",
+      "outputs": ["textures/stars/fallback_nz.webp"],
+      "sha256": "b8b9ffd16dbeb067454f95e85ed4723036e59296192898db1ea96f063c37e5ad",
+      "bytes": 372622
+    }
+  ]
+}
