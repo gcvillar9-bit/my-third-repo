@@ -85,3 +85,63 @@ export function fft2d(re, im, width, height, inverse = false) {
     }
   }
 }
+
+/**
+ * Frankot-Chellappa surface recovery (FFT Poisson, P2 build-surfaces): the height z whose gradient
+ * best matches (p, q) = (dz/dx, dz/dy) in the least-squares sense on a row-major w x h grid
+ * (x = column, y = row). x is periodic (equirectangular longitude). With `mirrorY` (default) the grid
+ * is extended by its reflection in y (q negated) so a non-periodic y axis (pole to pole) has no
+ * wrap-around jump; then 2h must be a power of two. The kernel matches central differences
+ * (i sin omega, default) or the continuous derivative (kernel 'omega'). `lambda` > 0 adds Tikhonov
+ * regularisation (denominator + lambda): wavelengths longer than 2 pi / sqrt(lambda) pixels, where
+ * quantised normals carry almost no signal but FC amplifies their noise as 1/omega, are attenuated.
+ * Returns a zero-mean Float64Array(w * h).
+ */
+export function frankotChellappa(p, q, w, h, { mirrorY = true, kernel = 'central', lambda = 0 } = {}) {
+  const H = mirrorY ? 2 * h : h;
+  if (!isPowerOfTwo(w) || !isPowerOfTwo(H))
+    throw new Error(`frankotChellappa: ${w}x${H} must be powers of two`);
+  const n = w * H;
+  const pr = new Float64Array(n);
+  const pi = new Float64Array(n);
+  const qr = new Float64Array(n);
+  const qi = new Float64Array(n);
+  for (let y = 0; y < H; y++) {
+    const src = y < h ? y : 2 * h - 1 - y;
+    const sgn = y < h ? 1 : -1;
+    for (let x = 0; x < w; x++) {
+      pr[y * w + x] = p[src * w + x];
+      qr[y * w + x] = sgn * q[src * w + x];
+    }
+  }
+  fft2d(pr, pi, w, H);
+  fft2d(qr, qi, w, H);
+  const freq = (i, N) => (2 * Math.PI * (i <= N / 2 ? i : i - N)) / N;
+  const sx = new Float64Array(w);
+  const sy = new Float64Array(H);
+  for (let i = 0; i < w; i++) sx[i] = kernel === 'omega' ? freq(i, w) : Math.sin(freq(i, w));
+  for (let j = 0; j < H; j++) sy[j] = kernel === 'omega' ? freq(j, H) : Math.sin(freq(j, H));
+  // Central difference of e^{i w x} is i sin(w): Z = (-i sx P - i sy Q) / (sx^2 + sy^2).
+  for (let j = 0; j < H; j++) {
+    for (let i = 0; i < w; i++) {
+      const o = j * w + i;
+      const d = sx[i] * sx[i] + sy[j] * sy[j] + lambda;
+      if (i === 0 && j === 0) {
+        pr[o] = 0;
+        pi[o] = 0;
+        continue;
+      }
+      const re = sx[i] * pi[o] + sy[j] * qi[o];
+      const im = -(sx[i] * pr[o] + sy[j] * qr[o]);
+      pr[o] = re / d;
+      pi[o] = im / d;
+    }
+  }
+  fft2d(pr, pi, w, H, true);
+  const z = new Float64Array(w * h);
+  let mean = 0;
+  for (let i = 0; i < w * h; i++) mean += pr[i];
+  mean /= w * h;
+  for (let i = 0; i < w * h; i++) z[i] = pr[i] - mean;
+  return z;
+}

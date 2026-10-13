@@ -70,6 +70,15 @@ commercial use.
 | [three_milkyway_pz](https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_pz.jpg)           | [MIT](https://spdx.org/licenses/MIT.html)                       | three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)                             | textures/stars/fallback_pz.webp                                                  |
 | [three_milkyway_nz](https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nz.jpg)           | [MIT](https://spdx.org/licenses/MIT.html)                       | three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)                             | textures/stars/fallback_nz.webp                                                  |
 
+## surfaces
+
+| Source                                                                                                                          | Licence                                                             | Attribution                                                                                  | Used for                          |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------- |
+| [celestia_moon-normal](https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/moon-normal.png) | [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) | Celestia Development Team (CelestiaContent textures/hires), derived from LRO LOLA topography | data/surfaces/moon_height_2k.png  |
+| [celestia_mars-normal](https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/mars-normal.png) | [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) | Celestia Development Team (CelestiaContent textures/hires), derived from MGS MOLA topography | data/surfaces/mars_height_2k.png  |
+| [three-globe_earth-topology](https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-topology.png)    | [MIT](https://spdx.org/licenses/MIT.html)                           | three-globe examples (vasturiano/three-globe); NASA/NOAA ETOPO relief (public domain)        | data/surfaces/earth_height_2k.png |
+| [three-globe_earth-water](https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-water.png)          | [MIT](https://spdx.org/licenses/MIT.html)                           | three-globe examples (vasturiano/three-globe); NASA water mask (public domain)               | data/surfaces/earth_ocean_2k.png  |
+
 ## Upstream licence files
 
 Verbatim copies of the `.license` sidecars shipped next to the source files.

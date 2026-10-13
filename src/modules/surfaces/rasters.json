@@ -1,0 +1,36 @@
+{
+  "moon": {
+    "path": "data/surfaces/moon_height_2k.png",
+    "width": 2048,
+    "height": 1024,
+    "offsetM": -14043,
+    "stepM": 0.3994,
+    "minM": -14042,
+    "maxM": 12132,
+    "approximate": true,
+    "source": "Frankot-Chellappa from Celestia moon-normal.png; scale: LRO LOLA: Selenean summit +10.78 km, Antoniadi crater -9.13 km (Smith et al. 2010)"
+  },
+  "mars": {
+    "path": "data/surfaces/mars_height_2k.png",
+    "width": 2048,
+    "height": 1024,
+    "offsetM": -16746,
+    "stepM": 0.6185,
+    "minM": -16745,
+    "maxM": 23784,
+    "approximate": true,
+    "source": "Frankot-Chellappa from Celestia mars-normal.png; scale: MGS MOLA: Olympus Mons +21.23 km, Hellas floor -8.20 km (Smith et al. 2001)"
+  },
+  "earth": {
+    "path": "data/surfaces/earth_height_2k.png",
+    "oceanPath": "data/surfaces/earth_ocean_2k.png",
+    "width": 2048,
+    "height": 1024,
+    "offsetM": -4501,
+    "stepM": 0.1559,
+    "minM": -4500,
+    "maxM": 5711,
+    "approximate": true,
+    "source": "three-globe earth-topology.png (NASA/NOAA ETOPO) mapped as 6000 m * (v/250)^1.1 (fit to Kansas, Denver, Mexico City, Greenland, Altiplano, Dome A, Tibet); ocean depth is a smooth proxy (100 m at the coast to 4.5 km) from the earth-water.png mask, not bathymetry"
+  }
+}

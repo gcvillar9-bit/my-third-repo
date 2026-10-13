@@ -793,6 +793,62 @@
       "note": null,
       "outputs": ["textures/stars/fallback_nz.webp"],
       "licenseText": null
+    },
+    {
+      "module": "surfaces",
+      "id": "celestia_moon-normal",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/moon-normal.png",
+      "license": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires), derived from LRO LOLA topography",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/surfaces/moon_height_2k.png"],
+      "licenseText": null
+    },
+    {
+      "module": "surfaces",
+      "id": "celestia_mars-normal",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/mars-normal.png",
+      "license": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires), derived from MGS MOLA topography",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/surfaces/mars_height_2k.png"],
+      "licenseText": null
+    },
+    {
+      "module": "surfaces",
+      "id": "three-globe_earth-topology",
+      "url": "https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-topology.png",
+      "license": "MIT",
+      "licenseName": "MIT License",
+      "licenseUrl": "https://spdx.org/licenses/MIT.html",
+      "attribution": "three-globe examples (vasturiano/three-globe); NASA/NOAA ETOPO relief (public domain)",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/surfaces/earth_height_2k.png"],
+      "licenseText": null
+    },
+    {
+      "module": "surfaces",
+      "id": "three-globe_earth-water",
+      "url": "https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-water.png",
+      "license": "MIT",
+      "licenseName": "MIT License",
+      "licenseUrl": "https://spdx.org/licenses/MIT.html",
+      "attribution": "three-globe examples (vasturiano/three-globe); NASA water mask (public domain)",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/surfaces/earth_ocean_2k.png"],
+      "licenseText": null
     }
   ]
 }
