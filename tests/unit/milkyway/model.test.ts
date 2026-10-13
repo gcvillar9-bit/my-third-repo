@@ -286,9 +286,14 @@ describe('rendering knobs and bookmarks', () => {
     ).toEqual([16, 24, 48, 96, 160]);
   });
 
-  it('defines the three Milky Way bookmarks', () => {
+  it('defines the Milky Way bookmarks', () => {
     const b = milkyWayBookmarks();
-    expect(b.map((x) => x.id)).toEqual(['mw-outside-100kpc', 'mw-edge-on', 'mw-band-from-earth']);
+    expect(b.map((x) => x.id)).toEqual([
+      'mw-outside-100kpc',
+      'mw-edge-on',
+      'mw-above-sun-1kpc',
+      'mw-band-from-earth',
+    ]);
     expect(Math.hypot(b[0].pos.x, b[0].pos.y, b[0].pos.z) / PC / 1000).toBeCloseTo(100, 6);
     const ngp = galacticToIcrs(galacticDir(0, 90));
     expect(Math.atan2(ngp.y, ngp.x) / DEG + 360).toBeCloseTo(192.86, 1);

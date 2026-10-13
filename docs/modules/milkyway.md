@@ -70,6 +70,8 @@ Search entries (`gc:<name>`, kind `cluster`) fly to 6 tidal radii; info cards li
 - Settings: `milkyway.galaxy` (model on/off), `milkyway.globulars`, `milkyway.gain` (debug, stops).
 - `mw-outside-100kpc` (EV -10.5, fovY 30 deg): face-on-ish from above the north pole, Sun-centre line up.
 - `mw-edge-on` (EV -9.5): 60 kpc out towards l = 90 deg, 1 kpc above the plane; dust lane across the bulge.
+- `mw-above-sun-1kpc` (EV -9, fovY 60 deg): 1 kpc above the Sun looking towards the centre; exercises the
+  re-baked sky cube (the inside view), disc and bulge below a dark sky.
 - `mw-band-from-earth` (EV -8.5, fovY 80 deg): Earth's sky towards (l, b) = (8, -2) deg, Galactic north up, seen
   from 0.2 pc on the Sagittarius side. From 1 AU the smallbodies module's boosted asteroid-belt points (far fade
   3000-30000 AU) streak along the ecliptic, right through Sagittarius. The panorama band is ~10x fainter than
@@ -83,4 +85,5 @@ Search entries (`gc:<name>`, kind `cluster`) fly to 6 tidal radii; info cards li
   heights and lengths, the 12% normalisation, dust, sky brightness, band centre against `mw.json`, twin constants,
   crossfade and steps; globular catalogue, King sampling, flux conservation, search and info.
 - E2E (`tests/e2e/milkyway.spec.ts`): bright centre vs outskirts, bar elongation along vs across 27 deg, the cyan
-  marker, dust lane edge-on, band vs off-band, zero errors, <= 400 draws.
+  marker, dust lane edge-on, disc below a dark sky from 1 kpc up (sky cube), band vs off-band, zero errors,
+  <= 400 draws.

@@ -5,7 +5,7 @@
  * streaking along the ecliptic across it.
  */
 import { MW_FRAME, SSB_FRAME, type Bookmark, type Vec3d } from '../../core/contracts';
-import { ICRS_TO_GALACTIC } from '../../core/frames';
+import { ICRS_TO_GALACTIC, SSB_IN_MW } from '../../core/frames';
 import { qlookRotation, quat, vec3 } from '../../core/math64';
 import { KPC, PC } from '../../core/units';
 import { galacticDir } from './model';
@@ -28,6 +28,7 @@ export const OUTSIDE_DIST = 100 * KPC;
 export const BAND_LOOK = { l: 8, b: -2 };
 export const OUTSIDE_EV = -10.5;
 export const EDGE_EV = -9.5;
+export const ABOVE_EV = -9;
 export const BAND_EV = -8.5;
 /** Distance of the band viewpoint from the Sun (beyond the asteroid-belt far fade at 30000 AU). */
 export const BAND_DIST = 0.2 * PC;
@@ -40,6 +41,7 @@ export function milkyWayBookmarks(): Bookmark[] {
     return vec3(-p.x / d, -p.y / d, -p.z / d);
   };
   const edge = vec3(0, 60 * KPC, 1.0 * KPC);
+  const above = vec3(SSB_IN_MW.x, SSB_IN_MW.y, SSB_IN_MW.z + 1 * KPC);
   const look = galacticToIcrs(galacticDir(BAND_LOOK.l, BAND_LOOK.b));
   const ngp = galacticToIcrs(vec3(0, 0, 1));
   return [
@@ -64,6 +66,17 @@ export function milkyWayBookmarks(): Bookmark[] {
       ev: EDGE_EV,
       lookTarget:
         'The disc seen edge-on from 60 kpc, 1 deg above the plane: a thin bright disc with a boxy yellow bulge at the centre, split along its length by a dark, reddened dust lane.',
+    },
+    {
+      id: 'mw-above-sun-1kpc',
+      title: 'The Galactic disc from 1 kpc above the Sun',
+      frame: MW_FRAME,
+      pos: above,
+      quat: qlookRotation(quat(), toCentre(above), vec3(0, 0, 1)),
+      fovY: 60 * DEG,
+      ev: ABOVE_EV,
+      lookTarget:
+        'Inside view (re-baked sky cube): from 1 kpc above the Sun looking towards the Galactic centre, the bright disc and bulge fill the lower half below a dark sky; dust lanes cross the glowing inner Galaxy.',
     },
     {
       id: 'mw-band-from-earth',

@@ -77,6 +77,16 @@ test('milkyway: mw-edge-on shows the dust lane', async ({ page }) => {
   await budgets(page, problems);
 });
 
+test('milkyway: mw-above-sun-1kpc shows the disc below a dark sky (sky cube)', async ({ page }) => {
+  const problems = await open(page, 'mw-above-sun-1kpc');
+  const lower = lum(await probe(page, 40, 150, 400, 40));
+  const upper = lum(await probe(page, 40, 10, 400, 40));
+  console.log('above', { lower, upper });
+  expect(lower).toBeGreaterThan(0.02);
+  expect(lower).toBeGreaterThan(3 * upper);
+  await budgets(page, problems);
+});
+
 test('milkyway: mw-band-from-earth shows the band brighter than off-band sky', async ({ page }) => {
   const problems = await open(page, 'mw-band-from-earth');
   const band = lum(await probe(page, 40, 122, 400, 20));
