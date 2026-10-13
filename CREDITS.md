@@ -7,6 +7,12 @@ upstream licences: derived binaries of CC BY-SA data stay CC BY-SA, and Celestia
 aggregate. Entries flagged **non-commercial** must be replaced (for example by a procedural texture) before any
 commercial use.
 
+## milkyway
+
+| Source                                                                                                            | Licence                                                             | Attribution                                                                                                                                                                                                   | Used for                     |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| [celestia_globulars](https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/globulars.dsc) | [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) | Celestia Development Team (CelestiaContent data/globulars.dsc by F. Schrempp, pirogronian, E. O. Mendes, A. Tribick), from Baumgardt et al. 2023, MNRAS, Fundamental parameters of Galactic globular clusters | data/milkyway/globulars.json |
+
 ## solar-system
 
 | Source                                                                                                                                                           | Licence                                                                                  | Attribution                                                                                                                                                                                                                                                                                           | Used for                                                                                 |
