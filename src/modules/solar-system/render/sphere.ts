@@ -194,13 +194,14 @@ function buildSphere(body: Body, shading: SurfaceShading, deps: SphereDeps): Ren
   const sunRel = vec3();
   const occ: Occ[] = [];
   const zero = vec3();
+  const seen = new Set<string>(); // a moon named by an OccluderProvider and a candidate counts once
 
   const updateOccluders = (view: ViewState) => {
     occ.length = 0;
+    seen.clear();
     const sunDist = v3len(v3sub(toSun, sunRel, rel));
     if (sunDist <= 0) return;
     v3scale(toSun, toSun, 1 / sunDist);
-    const seen = new Set<string>(); // a moon named by an OccluderProvider and a candidate counts once
     const consider = (frame: string, radius: number) => {
       if (seen.has(frame)) return;
       seen.add(frame);

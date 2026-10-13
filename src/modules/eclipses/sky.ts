@@ -74,12 +74,17 @@ export interface EclipseSkyBodies {
   sunRadius: number;
 }
 
-/** Sky factor at the camera (1 = uneclipsed or far from Earth). */
+const ZERO = vec3();
+const e = vec3();
+const s = vec3();
+const m = vec3();
+
+/** Sky factor at the camera (1 = uneclipsed or far from Earth). Allocation-free (runs every frame). */
 export function cameraSkyFactor(view: ViewState, b: EclipseSkyBodies): number {
-  const e = view.toCamera('earth', vec3(), vec3());
+  view.toCamera('earth', ZERO, e);
   if (v3len(e) - b.earthRadius > 150e3) return 1;
-  const s = view.sunToCamera(vec3());
-  const m = view.toCamera('moon', vec3(), vec3());
+  view.sunToCamera(s);
+  view.toCamera('moon', ZERO, m);
   const ds = v3len(s);
   const dm = v3len(m);
   const sep = Math.acos(Math.max(-1, Math.min(1, v3dot(s, m) / (ds * dm))));
