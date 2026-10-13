@@ -6,7 +6,7 @@ import type { UiController } from './controller';
 import { LOG_SCALE_TICKS, logScaleFraction } from './format';
 
 export const HELP_TEXT =
-  '/ search · drag look · WASD fly · R/F up/down · Q/E roll · [ ] speed · , . time warp · P pause · N now · I info · G go to · O orbit · H hide UI · L copy link';
+  '/ search · drag look · WASD fly · R/F up/down · Q/E roll · [ ] speed · , . time warp · P pause · N now · I info · G go to (walk when within 10 km of the ground: WASD walk, Shift run, Space jump) · O orbit · H hide UI · L copy link';
 
 function Palette({ ui }: { ui: UiController }) {
   const [text, setText] = useState('');

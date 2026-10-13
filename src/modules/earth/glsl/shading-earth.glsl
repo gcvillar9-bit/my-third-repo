@@ -11,10 +11,11 @@ uniform float uEarthCityLuminance; // cd/m2 of a white night-map texel
 uniform float uEarthTime;          // s
 
 // Water normal in body axes: two scrolling layers of the tileable wave map on the band-3 (10 m)
-// detail domain, triplanar on the body-fixed normal. Tiles of 32 and 64 band units divide the
+// detail domain, triplanar on the body-fixed ellipsoid normal. Tiles of 32 and 64 band units divide the
 // SURFACE_NOISE_PERIOD of 256, so the float64-anchored origins stay seamless.
 vec3 earthWaterNormal(SurfaceInput s, float strength) {
-  vec3 nB = s.normalBody;
+  // Sea water is level: start from the ellipsoid normal, never the terrain/relief normal.
+  vec3 nB = normalize(uEarthWorldToBody * s.up);
   vec3 p = s.detailOrigin[3] + s.localPos / 10.0;
   vec3 w = nB * nB;
   w /= (w.x + w.y + w.z);
@@ -27,6 +28,12 @@ vec3 earthWaterNormal(SurfaceInput s, float strength) {
   vec3 g = w.x * vec3(0.0, tx.x, tx.y) + w.y * vec3(ty.y, 0.0, ty.x) + w.z * vec3(tz.x, tz.y, 0.0);
   g -= nB * dot(nB, g);
   return normalize(nB + strength * g);
+}
+
+// Terrain detail bands (albedo noise and normal perturbation) apply on land only: the sea is level.
+#define SURFACE_DETAIL_MASK 1
+float surfaceDetailMask(SurfaceInput s) {
+  return uEarthHasMaps > 0.5 ? 1.0 - step(0.5, earthEquirect(uEarthSpec, s.uv).r) : 1.0;
 }
 
 vec3 shadeSurface(SurfaceInput s) {

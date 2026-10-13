@@ -25,7 +25,12 @@ export const INFLIGHT_RESERVE = 8;
 /** Draw-call cap of one body's terrain. */
 export const MAX_LEAVES = 300;
 /** Bound on remembered node bounds (≈100 B each). */
-const KNOWN_BOUNDS_MAX = 50_000;
+export const KNOWN_BOUNDS_MAX = 50_000;
+/** Retry delay after a failed tile build: doubles per failure of that key, ms. */
+export const RETRY_MIN_MS = 1000;
+export const RETRY_MAX_MS = 30_000;
+/** Consecutive failed builds (no success in between) after which the spec is reported as failed. */
+export const SPEC_FAILURE_LIMIT = 24;
 /** Ground level used before any tile is resident. */
 export const DEFAULT_GROUND_LEVEL = 16;
 
@@ -52,6 +57,10 @@ export interface ManagerOptions {
   test: boolean;
   budget?: ResourceBudget;
   onError?: (e: unknown) => void;
+  /** Called once when SPEC_FAILURE_LIMIT builds in a row have failed for the current spec. */
+  onSpecFailed?: (spec: HeightSourceSpec) => void;
+  /** Clock for retry back-off, ms (default performance.now). */
+  now?: () => number;
 }
 
 export interface ObservedView {
@@ -77,8 +86,14 @@ export class TerrainManager {
   private tick = 0;
   private epoch = 0;
   private failures = 0;
+  /** Consecutive failed builds of the current spec. */
+  private streak = 0;
+  /** Per-key retry back-off after failed builds. */
+  private readonly retry = new Map<number, { until: number; delay: number }>();
   private entry: BudgetEntry | null = null;
   private observedFrame = -1;
+  /** Set when the tile set changes, so the next observe re-selects even for an unchanged view. */
+  private dirty = true;
 
   constructor(readonly opts: ManagerOptions) {}
 
@@ -110,6 +125,8 @@ export class TerrainManager {
   }
 
   observeRaw(v: ObservedView): void {
+    // Nothing moved and no tile arrived or left: the previous selection still holds.
+    if (!this.dirty && !this.retry.size && this.last && sameView(this.last, v)) return;
     this.last = v;
     this.select();
   }
@@ -123,6 +140,7 @@ export class TerrainManager {
   select(): void {
     const v = this.last;
     if (!v) return;
+    this.dirty = false;
     this.tick++;
     const { a, c } = this.opts;
     const maxAbs = this.opts.spec.maxAbsHeight;
@@ -139,7 +157,7 @@ export class TerrainManager {
     };
     const sel = selectTree(
       p,
-      (k) => this.known.get(k),
+      (k) => this.known.get(k) ?? this.tiles.get(k)?.bounds,
       this.split,
       (k) => this.tiles.has(k),
     );
@@ -154,9 +172,12 @@ export class TerrainManager {
     const budget = this.opts.test ? Infinity : SPLIT_BUDGET;
     const maxInflight = this.opts.test ? 2 * MAX_INFLIGHT : MAX_INFLIGHT;
     let n = 0;
+    const now = this.retry.size ? this.now() : 0;
     for (const r of reqs) {
       if (n >= budget || this.inflight.size >= maxInflight) break;
       if (this.inflight.has(r.key) || this.tiles.has(r.key)) continue;
+      const wait = this.retry.get(r.key);
+      if (wait && wait.until > now) continue;
       if (!this.makeRoom(cap)) break;
       this.request(r.key);
       n++;
@@ -182,6 +203,7 @@ export class TerrainManager {
     t.gpu?.dispose();
     t.gpu = null;
     this.tiles.delete(t.key);
+    this.dirty = true;
     this.account();
   }
 
@@ -204,18 +226,34 @@ export class TerrainManager {
         (data) => {
           this.inflight.delete(key);
           if (epoch !== this.epoch) return;
+          this.streak = 0;
+          this.retry.delete(key);
           const bounds = tileBounds(data);
-          if (this.known.size > KNOWN_BOUNDS_MAX) this.known.clear();
+          if (this.known.size > KNOWN_BOUNDS_MAX) {
+            // Forget evicted nodes only; resident tiles (roots included) keep their bounds.
+            this.known.clear();
+            for (const t of this.tiles.values()) this.known.set(t.key, t.bounds);
+          }
           this.known.set(key, bounds);
           this.tiles.set(key, { ...data, bounds, lastUsed: this.tick, gpu: null });
+          this.dirty = true;
           this.account();
           if (this.opts.test) this.select();
         },
         (e: unknown) => {
           this.inflight.delete(key);
+          if (epoch !== this.epoch) return;
+          const prev = this.retry.get(key);
+          const delay = prev ? Math.min(RETRY_MAX_MS, prev.delay * 2) : RETRY_MIN_MS;
+          this.retry.set(key, { until: this.now() + delay, delay });
           this.fail(e);
+          if (++this.streak === SPEC_FAILURE_LIMIT) this.opts.onSpecFailed?.(this.opts.spec);
         },
       );
+  }
+
+  private now(): number {
+    return this.opts.now ? this.opts.now() : performance.now();
   }
 
   private fail(e: unknown): void {
@@ -237,16 +275,20 @@ export class TerrainManager {
     this.split = new Set();
     this.used = new Set();
     this.leaves = [];
+    this.dirty = true;
   }
 
   /** Drops everything (spec change, shutdown). In-flight results are discarded. */
   reset(spec?: HeightSourceSpec): void {
     this.epoch++;
     this.known.clear();
+    this.retry.clear();
+    this.streak = 0;
     for (const t of [...this.tiles.values()]) this.drop(t);
     this.split = new Set();
     this.used = new Set();
     this.leaves = [];
+    this.dirty = true;
     if (spec) {
       this.opts.spec = spec;
       this.fn = null;
@@ -276,6 +318,25 @@ export class TerrainManager {
   ellipsoidRadius(dir: Vec3d): number {
     return ellipsoidRadius(this.opts.a, this.opts.c, dir.x, dir.y, dir.z);
   }
+}
+
+function sameView(a: ObservedView, b: ObservedView): boolean {
+  if (
+    a.cam.x !== b.cam.x ||
+    a.cam.y !== b.cam.y ||
+    a.cam.z !== b.cam.z ||
+    a.pixelAngle !== b.pixelAngle ||
+    a.target !== b.target ||
+    a.cap !== b.cap ||
+    a.planes.length !== b.planes.length
+  )
+    return false;
+  for (let i = 0; i < a.planes.length; i++) {
+    const p = a.planes[i];
+    const q = b.planes[i];
+    if (p.x !== q.x || p.y !== q.y || p.z !== q.z) return false;
+  }
+  return true;
 }
 
 export function tileBounds(d: PatchData): NodeBounds {

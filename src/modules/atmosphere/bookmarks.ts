@@ -58,7 +58,9 @@ export function buildMarsGaleSunset(frames: FrameTree, mars: Body, jd0: number):
     quat: qlookRotation(quat(), fwd, up),
     jd,
     ev: SUNSET_EV,
-    mode: 'free',
+    // Walk mode seats the eye 1.7 m above the drawn ground (the Gale floor is ~4.5 km below the
+    // reference radius) and keeps the 8 deg pitch.
+    mode: 'walk',
     lookTarget:
       'Standing at Gale crater: the small Sun about 3 deg above the horizon, slightly below the image centre, ' +
       'inside a blue glow; the sky turns butterscotch away from the Sun; dim reddish ground in the lower third.',

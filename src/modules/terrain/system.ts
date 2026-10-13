@@ -19,7 +19,7 @@ import type {
 } from '../../core/contracts';
 import type { IUniform } from 'three';
 import { v3len, vec3 } from '../../core/math64';
-import { defaultHeightSpec, terrainEligible } from './defaults';
+import { DEFAULT_HEIGHT_MODULE, defaultHeightSpec, NO_DEFAULT_RELIEF, terrainEligible } from './defaults';
 import { groundNormal } from './ground';
 import { loadHeightFunction, peekHeightFunction } from './height-modules';
 import { TerrainManager, type Generator } from './manager';
@@ -65,9 +65,25 @@ export class TerrainSystem {
     this.fnCtx = { seed: deps.seed, fetchBinary: (p) => deps.assets.binary(p) };
   }
 
-  /** Height spec of a body: the registered one, else the default 'fbm-craters-lite'. */
-  specFor(b: Body): HeightSourceSpec {
-    return this.deps.registry.heightSource(b.id) ?? defaultHeightSpec(b, this.deps.seed);
+  /** Bodies whose registered spec failed to build; they fall back to the default (or lose terrain). */
+  private readonly failedSpecs = new Map<string, HeightSourceSpec>();
+
+  /**
+   * Height spec of a body: the registered one, else the default 'fbm-craters-lite', or null for
+   * bodies in NO_DEFAULT_RELIEF without a working registered spec.
+   */
+  specFor(b: Body): HeightSourceSpec | null {
+    const reg = this.deps.registry.heightSource(b.id);
+    if (reg && this.failedSpecs.get(b.id) !== reg) return reg;
+    return NO_DEFAULT_RELIEF.has(b.id) ? null : defaultHeightSpec(b, this.deps.seed);
+  }
+
+  /** A spec failed SPEC_FAILURE_LIMIT builds in a row: fall back once, report once. */
+  private specFailed(b: Body, spec: HeightSourceSpec): void {
+    if (spec.workerModule === DEFAULT_HEIGHT_MODULE && !this.deps.registry.heightSource(b.id)) return;
+    this.failedSpecs.set(b.id, this.deps.registry.heightSource(b.id) ?? spec);
+    this.deps.onError?.(`terrain ${b.id}: height source '${spec.workerModule}' keeps failing; falling back`);
+    this.refreshSpecs();
   }
 
   /** Loads the CPU height function of a body (collision, bookmarks). */
@@ -100,18 +116,21 @@ export class TerrainSystem {
     let m = this.managers.get(b.id);
     if (m) return m;
     if (!terrainEligible(b)) return undefined;
+    const spec = this.specFor(b);
+    if (!spec) return undefined;
     const a = b.radius;
     m = new TerrainManager({
       bodyId: b.id,
       a,
       c: a * (1 - (b.oblateness ?? 0)),
-      spec: this.specFor(b),
+      spec,
       generator: () => this.generator(),
       base: this.deps.baseUrl,
       seed: this.deps.seed,
       test: this.deps.test,
       budget: this.deps.budget,
       onError: (e) => this.deps.onError?.(`terrain ${b.id}: ${e instanceof Error ? e.message : String(e)}`),
+      onSpecFailed: (s) => this.specFailed(b, s),
     });
     this.managers.set(b.id, m);
     void this.loadFn(m);
@@ -124,6 +143,11 @@ export class TerrainSystem {
       const b = this.deps.registry.body(m.opts.bodyId);
       if (!b) continue;
       const spec = this.specFor(b);
+      if (!spec) {
+        m.dispose();
+        this.managers.delete(m.opts.bodyId);
+        continue;
+      }
       if (
         spec === m.spec ||
         (spec.workerModule === m.spec.workerModule &&

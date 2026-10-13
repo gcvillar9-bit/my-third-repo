@@ -41,8 +41,15 @@ void main() {
   float lambda = 10000.0;
   // Footprint along the view direction grows at grazing angles: filter by the long axis.
   float footprint = s.pixelSize / max(abs(dot(s.viewDir, s.up)), 0.05);
+  // A shading may mask the detail per pixel (Earth: none over the sea) by defining
+  // SURFACE_DETAIL_MASK and `float surfaceDetailMask(SurfaceInput s)`.
+#ifdef SURFACE_DETAIL_MASK
+  float detailMask = surfaceDetailMask(s);
+#else
+  float detailMask = 1.0;
+#endif
   for (int k = 0; k < SURFACE_DETAIL_BANDS; k++) {
-    float w = smoothstep(2.0, 4.0, lambda / max(footprint, 1e-6)) * uMorph * uDetailStrength;
+    float w = smoothstep(2.0, 4.0, lambda / max(footprint, 1e-6)) * uMorph * uDetailStrength * detailMask;
     if (w > 0.001) {
       vec3 q = s.detailOrigin[k] + s.localPos / lambda;
       float n0 = pnoise(q, P);

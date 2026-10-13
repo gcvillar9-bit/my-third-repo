@@ -100,23 +100,28 @@ Within a stage, passes run by ascending `order`. The host ping-pongs HalfFloat t
 
 It exists only with `?test=1` (or in dev). In test mode rAF is disabled, time is deterministic, temporal accumulation is off and the per-frame budgets are lifted.
 
-| Method              | Purpose                                                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------------- |
-| `ready()`           | Resolves when assets, tracked work, workers and tile queues are idle.                                   |
-| `renderFrames(n)`   | Renders exactly `n` frames.                                                                             |
-| `goto(bookmarkId)`  | Instant teleport, applying the bookmark's `jd`/`ev`.                                                    |
-| `setTime(iso)`      | Sets the UTC instant.                                                                                   |
-| `stats()`           | `RenderStats`: calls, triangles, points, lines, programs, textures, geometries, tiles, gpuBytes, frame. |
-| `probe(x, y, w, h)` | Mean linear RGB over a CSS-pixel rectangle (origin top-left).                                           |
-| `errors()`          | Shader errors, uncaught exceptions and console errors since boot.                                       |
+| Method              | Purpose                                                                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ready()`           | Resolves when assets, tracked work, workers and tile queues are idle.                                                                                                          |
+| `renderFrames(n)`   | Renders exactly `n` frames.                                                                                                                                                    |
+| `goto(bookmarkId)`  | Instant teleport, applying the bookmark's `jd`/`ev`.                                                                                                                           |
+| `setTime(iso)`      | Sets the UTC instant.                                                                                                                                                          |
+| `stats()`           | `RenderStats`: calls, triangles, points, lines, programs, textures, geometries, tiles, gpuBytes, frame.                                                                        |
+| `probe(x, y, w, h)` | Mean linear RGB over a CSS-pixel rectangle (origin top-left).                                                                                                                  |
+| `errors()`          | Shader errors, uncaught exceptions and console errors since boot.                                                                                                              |
+| `compileAll()`      | Test-only extra (Phase 2, not in `UniverseTestApi`; type `UniverseTestApiExtras` in `src/app/test-api.ts`): `renderer.compileAsync` on every scene, returns the program count. |
+
+`stats().tiles` counts resident terrain tiles (`terrainStats().tiles`, wired by the app since Phase 2).
 
 URL contract: `?test=1&q=potato&b=<bookmark>&t=<ISO>&ev=<EV>&seed=1` at 480×270. In specs, use `page.goto('?test=1&...')` without a leading slash so the URL resolves under `/my-third-repo/`.
 
-## Open requests for Phase 2
+## Open requests (Phases 2 and later)
+
+Phase 2 closed with no contract changes. Optional future fields noted by packages: a `ScreenPass` able to composite more than one atmosphere per frame (a moon in front of its planet).
 
 Phase 1 closed with no contract-change requests. Integration notes carried forward (not contract changes):
 
 - `RenderApi.captureCube` (optional) is not implemented yet; the P4 Sgr A* lensing background and sky-cube re-bake need it.
-- Walk mode: `setMode('walk')` currently flies like free mode with a 1.7 m floor (P2 scope).
+- Walk mode: done in Phase 2 (`src/camera/walk.ts`): `setMode('walk')` seats the eye 1.7 m above the drawn ground within 10 km of a solid surface, and `Bookmark.mode: 'walk'` is honoured on arrival.
 - Stars are not `Body`s in Phase 1 (star promotion is P4); palette picks fly to a computed `Bookmark`.
 - P4-C constellation lines need a HIP to star-index map for all stars (only named stars carry HIP in `names.json`).

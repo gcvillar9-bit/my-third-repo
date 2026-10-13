@@ -48,8 +48,14 @@ vec4 aerialLookup(vec2 uv, float t) {
   return mix(aerialSlice(uv, i0), aerialSlice(uv, i1), clamp(s - i0, 0.0, 1.0));
 }
 
+// NaN/Inf guard: one bad pixel would otherwise spread over the whole frame through the bloom mip chain.
+vec3 finiteOrZero(vec3 c) {
+  bvec3 bad = bvec3(isnan(c.r) || isinf(c.r), isnan(c.g) || isinf(c.g), isnan(c.b) || isinf(c.b));
+  return vec3(bad.r ? 0.0 : c.r, bad.g ? 0.0 : c.g, bad.b ? 0.0 : c.b);
+}
+
 void main() {
-  vec3 col = texture(uInput, vUv).rgb;
+  vec3 col = finiteOrZero(texture(uInput, vUv).rgb);
   vec3 dirV = viewDirFromUv(vUv);
   vec4 ray = atmoRay(dirV);
   vec3 rd = ray.xyz;
@@ -93,6 +99,12 @@ void main() {
     // Split at the closest approach to the centre so limb rays get fine steps where the air is densest.
     float tc = clamp(-dot(ro, rd), tStart, tEnd);
     int n = uSteps;
+    if (uInside < 0.5) {
+      // Outside view: steps follow the path length through the shell, so the short path in front of
+      // the disc takes few steps while limb rays keep the full count.
+      float seg = (uAtmoTop - uAtmoBottom) / 8.0;
+      n = clamp(int(ceil((tEnd - tStart) / seg)), 8, uSteps);
+    }
     if (tc > tStart + 1e-3 && tc < tEnd - 1e-3) {
       atmoMarch(ro, rd, uSunDir, tStart, tc, n / 2, true, false, L, T, f);
       atmoMarch(ro, rd, uSunDir, tc, tEnd, n - n / 2, false, false, L, T, f);
@@ -103,11 +115,12 @@ void main() {
   if (uSunTPost > 0.5 && geomIn) {
     vec3 P = ro + rd * tGeom;
     float rp = length(P);
-    if (rp < uAtmoBottom + 0.02 * (uAtmoTop - uAtmoBottom)) {
+    // Any ground inside the shell (terrain reaches tens of km on Mars) is lit through the air above it.
+    if (rp < uAtmoTop) {
       float rs = max(rp, uAtmoBottom + 1e-4);
       col *= texture(uTransLut, transmittanceUv(rs, dot(P, uSunDir) / rp)).rgb;
     }
   }
   vec3 outc = col * T + L * uSunE * uExposure;
-  gl_FragColor = vec4(min(max(outc, 0.0), vec3(60000.0)), 1.0);
+  gl_FragColor = vec4(min(max(finiteOrZero(outc), 0.0), vec3(60000.0)), 1.0);
 }

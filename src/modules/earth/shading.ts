@@ -79,7 +79,8 @@ export function createEarthShading(deps: EarthShadingDeps): SurfaceShading {
     uniforms,
     update(view: ViewState) {
       const d = v3len(view.toCamera(body.frame, vec3(), rel));
-      if (apparentPx(body.radius, d, view.pixelAngle) > POINT_MAX_PX) textures.ensure();
+      const px = apparentPx(body.radius, d, view.pixelAngle);
+      if (px > POINT_MAX_PX) textures.ensure(px);
       view.frameQuat(body.fixedFrame ?? body.frame, q);
       setWorldToBody(shared.uEarthWorldToBody.value as Matrix3, q);
       uniforms.uEarthTime.value = view.timeReal;

@@ -12,8 +12,8 @@ void main() {
   float r = length(ro);
   float tSlice = uApMax * pow((slice + 0.5) / 32.0, 2.0);
   float tMax = min(tSlice, max(raySphere(ro, rd, uAtmoTop).y, 0.0));
-  float tG = groundDistance(r, uCamH, dot(ro, rd) / r);
-  if (tG > 0.0) tMax = min(tMax, tG);
+  // No clip at the bottom sphere: terrain below it (crater floors) still gets haze; the geometry
+  // depth bounds the lookup and atmoMedium clamps h < 0.
   int n = min(max(2 * (int(slice) + 1), 2), uSteps);
   vec3 L = vec3(0.0);
   vec3 T = vec3(1.0);

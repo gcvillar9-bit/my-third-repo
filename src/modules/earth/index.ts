@@ -6,7 +6,7 @@
 import type { ModuleContext, UniverseModule } from '../../core/contracts';
 import { parseInstant } from '../../core/time';
 import { atmosphereShadingUniforms, requestAtmosphereLuts } from '../atmosphere/public';
-import { buildEarthBookmarks } from './bookmarks';
+import { buildEarthBookmarks, buildEarthSunrise } from './bookmarks';
 import { createCloudShell } from './clouds';
 import { createEarthShading, createEarthUniforms } from './shading';
 import { EARTH_MODULE_ID, EarthTextures } from './textures';
@@ -14,6 +14,8 @@ import { createWaterNormalTexture } from './waves';
 
 /** Fixed instant of the night-lights view (Europe around 01:00 local time). */
 export const NIGHT_JD = parseInstant('2026-01-01T00:00:00Z')!;
+/** The sunrise demo searches from this instant (near the March equinox, so the Sun rises due east). */
+export const SUNRISE_FROM_JD = parseInstant('2026-03-20T00:00:00Z')!;
 
 let release: (() => void) | null = null;
 
@@ -29,7 +31,6 @@ const earth: UniverseModule = {
     requestAtmosphereLuts('earth');
     const waves = createWaterNormalTexture();
     ctx.registry.setSurfaceShading(createEarthShading({ body, textures, shared, atmosphere, waves }));
-    const low = ctx.quality.preset === 'potato' || ctx.quality.preset === 'low';
     ctx.registry.addRenderable(
       createCloudShell({
         body,
@@ -37,10 +38,13 @@ const earth: UniverseModule = {
         textures: textures.uniforms,
         atmosphere,
         exposure: ctx.render.uniforms.uExposure,
-        segments: low ? 32 : 64,
+        // 64 on every preset: at 32 the chord sag (~1.9 km) is a visible fraction of the 6 km layer.
+        segments: 64,
       }),
     );
     ctx.registry.addBookmarks(buildEarthBookmarks(body.radius, NIGHT_JD));
+    const sunrise = buildEarthSunrise(ctx.frames, body.radius, SUNRISE_FROM_JD);
+    if (sunrise) ctx.registry.addBookmarks([sunrise]);
     release = () => {
       textures.dispose();
       waves.dispose();

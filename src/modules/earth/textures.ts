@@ -23,13 +23,39 @@ export const EARTH_MAPS: readonly EarthMapSpec[] = [
   { uniform: 'uEarthSpec', base: 'earth_spec', linear: true, has4k: false },
 ];
 
-/** Public path of a map for the preset's largest texture edge. */
-export function earthMapPath(spec: EarthMapSpec, maxTextureSize: number): string {
-  const tier = maxTextureSize >= 4096 && spec.has4k ? '4k' : '2k';
-  return `${DIR}/${spec.base}_${tier}.webp`;
+/** Earth's apparent diameter (px) above which the 4k maps load, and below which they are released. */
+export const HI_RES_PX = 1200;
+export const LO_RES_PX = 600;
+
+export type EarthTier = '2k' | '4k';
+/** GPU budget (MB) a preset needs before the 4k Earth maps may load. */
+export const HI_RES_MIN_BUDGET_MB = 512;
+
+/** Public path of a map at a tier (maps without a 4k version stay at 2k). */
+export function earthMapPath(spec: EarthMapSpec, maxTextureSize: number, tier: EarthTier = '4k'): string {
+  const t = tier === '4k' && maxTextureSize >= 4096 && spec.has4k ? '4k' : '2k';
+  return `${DIR}/${spec.base}_${t}.webp`;
+}
+
+/**
+ * Tier wanted for an apparent diameter, with hysteresis: 2k first, 4k only when Earth is large on
+ * screen (and the preset allows 4096 px textures), back to 2k once it is small again.
+ */
+export function earthTierFor(px: number, current: EarthTier, maxTextureSize: number): EarthTier {
+  if (maxTextureSize < 4096) return '2k';
+  if (px > HI_RES_PX) return '4k';
+  if (px < LO_RES_PX) return '2k';
+  return current;
 }
 
 const ONE_PIXEL = new Texture();
+
+interface TierState {
+  state: 'idle' | 'loading' | 'done';
+  maps: Map<EarthMapSpec['uniform'], Texture>;
+  /** Bumped on release so a load finishing after it is discarded. */
+  gen: number;
+}
 
 export class EarthTextures {
   readonly uniforms: Record<string, IUniform> = {
@@ -39,46 +65,91 @@ export class EarthTextures {
     uEarthSpec: { value: ONE_PIXEL },
     uEarthHasMaps: { value: 0 },
   };
-  private state: 'idle' | 'loading' | 'done' = 'idle';
-  private loaded: Texture[] = [];
+  private readonly tiers: Record<EarthTier, TierState> = {
+    '2k': { state: 'idle', maps: new Map(), gen: 0 },
+    '4k': { state: 'idle', maps: new Map(), gen: 0 },
+  };
+  /** Tier currently wanted (hysteresis state). */
+  tier: EarthTier = '2k';
 
   constructor(
     private readonly assets: AssetLoader,
     private readonly quality: QualityState,
   ) {}
 
-  /** Starts loading (once). */
-  ensure(): void {
-    if (this.state !== 'idle') return;
-    this.state = 'loading';
-    const max = this.quality.knobs.maxTextureSize;
+  /**
+   * Called every frame while Earth is larger than a point: loads the 2k maps (once), and the 4k
+   * maps only while Earth's apparent diameter exceeds HI_RES_PX (released below LO_RES_PX).
+   */
+  ensure(px = 0): void {
+    const k = this.quality.knobs;
+    const max = k.maxTextureSize;
+    this.load('2k', max);
+    // The 4k set adds ~134 MB of GPU memory: only presets with a 512 MB budget (high, ultra) use it.
+    this.tier = earthTierFor(px, this.tier, k.gpuBudgetMB >= HI_RES_MIN_BUDGET_MB ? max : 2048);
+    if (this.tier === '4k') this.load('4k', max);
+    else if (this.tiers['4k'].state !== 'idle') this.release4k();
+  }
+
+  private load(tier: EarthTier, max: number): void {
+    const ts = this.tiers[tier];
+    if (ts.state !== 'idle') return;
+    ts.state = 'loading';
+    const gen = ts.gen;
+    const specs = tier === '2k' ? EARTH_MAPS : EARTH_MAPS.filter((m) => m.has4k);
     const work = Promise.all(
-      EARTH_MAPS.map((m) => {
+      specs.map((m) => {
         const opts: TextureOptions = {
           colorSpace: m.linear ? 'linear' : 'srgb',
           wrap: 'repeat',
           owner: EARTH_MODULE_ID,
         };
-        return this.assets.texture(earthMapPath(m, max), opts).then((t) => ({ m, t }));
+        return this.assets.texture(earthMapPath(m, max, tier), opts).then((t) => ({ m, t }));
       }),
     ).then(
       (list) => {
-        for (const { m, t } of list) {
-          this.uniforms[m.uniform].value = t;
-          this.loaded.push(t);
+        if (gen !== ts.gen) {
+          for (const { t } of list) t.dispose();
+          return;
         }
-        this.uniforms.uEarthHasMaps.value = 1;
-        this.state = 'done';
+        for (const { m, t } of list) ts.maps.set(m.uniform, t);
+        ts.state = 'done';
+        this.apply();
       },
       () => {
-        this.state = 'done'; // keep the untextured fallback; the loader reported the error
+        ts.state = 'done'; // keep the untextured (or 2k) fallback; the loader reported the error
       },
     );
-    void this.assets.track(work, 'earth:maps');
+    void this.assets.track(work, `earth:maps-${tier}`);
+  }
+
+  /** Points the uniforms at the best loaded tier. */
+  private apply(): void {
+    const lo = this.tiers['2k'].maps;
+    const hi = this.tier === '4k' ? this.tiers['4k'].maps : undefined;
+    for (const m of EARTH_MAPS) {
+      const t = hi?.get(m.uniform) ?? lo.get(m.uniform);
+      if (t) this.uniforms[m.uniform].value = t;
+    }
+    if (lo.size) this.uniforms.uEarthHasMaps.value = 1;
+  }
+
+  private release4k(): void {
+    const ts = this.tiers['4k'];
+    ts.gen++;
+    ts.state = 'idle';
+    const old = [...ts.maps.values()];
+    ts.maps.clear();
+    this.apply();
+    for (const t of old) t.dispose(); // frees GPU memory and the budget entries
   }
 
   dispose(): void {
-    for (const t of this.loaded) t.dispose();
-    this.loaded = [];
+    for (const ts of Object.values(this.tiers)) {
+      ts.gen++;
+      ts.state = 'idle';
+      for (const t of ts.maps.values()) t.dispose();
+      ts.maps.clear();
+    }
   }
 }

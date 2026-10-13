@@ -80,3 +80,13 @@ ground used by collision, and walk mode. Code: `src/modules/terrain/**`, `src/ca
 - The tree under a walker at 2 m converges to level ≈ 10 on potato (64-tile cap: every split keeps its visible
   siblings and the split node resident) versus level 21 on medium (384 tiles), so potato ground looks smooth; the
   fragment detail bands add the small-scale texture.
+
+## R2b integration changes
+
+- Remembered bounds: on overflow of `KNOWN_BOUNDS_MAX` only evicted nodes are forgotten (resident tiles are re-seeded), and `select()` falls back to a resident tile's own bounds, so a body can no longer vanish after long flights.
+- Failed builds back off per key (1 s doubling to 30 s); after `SPEC_FAILURE_LIMIT` consecutive failures the system reports once and falls back to the default spec (or drops terrain for bodies in `NO_DEFAULT_RELIEF`). A failed height-module load stays cached for 30 s.
+- `NO_DEFAULT_RELIEF` (earth, venus, titan): these bodies get terrain only from a registered `HeightSourceSpec`, never the fbm default.
+- A shading may scale the fragment detail bands with `uniforms.uDetailStrength`, or mask them per pixel by defining `SURFACE_DETAIL_MASK` and `float surfaceDetailMask(SurfaceInput s)` in its GLSL (Earth: land only).
+- One shared index buffer for all tiles; `select()` is skipped when the view and the tile set are unchanged.
+- `moon-low-orbit` now has the Sun 9° up so the terminator lies inside the horizon.
+- Medium preset: `terrainSse` 2 px, `terrainTileCap` 512 (1280×720: ≤ 325 calls, ≤ 0.8M triangles, ≤ 216 MB GPU on the Phase 2 bookmarks).

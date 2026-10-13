@@ -1,10 +1,32 @@
 import { Matrix3, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { qfromAxisAngle, qrotate, quat, v3dot, v3len, v3normalize, vec3 } from '../../../src/core/math64';
-import { buildEarthBookmarks, horizonDipDeg } from '../../../src/modules/earth/bookmarks';
+import { readFileSync } from 'node:fs';
+import { FrameTreeImpl, addStandardFrames } from '../../../src/core/frames';
+import { parseInstant } from '../../../src/core/time';
+import { sunElevation } from '../../../src/modules/atmosphere/public';
+import {
+  buildEarthBookmarks,
+  buildEarthSunrise,
+  horizonDipDeg,
+  ORBIT_ALTITUDE_M,
+  SUNRISE_ID,
+  SUNRISE_LIMB_ABOVE_DEG,
+  SUNRISE_NADIR_SUN_DEG,
+} from '../../../src/modules/earth/bookmarks';
+import { SUNVIEW_BODIES } from '../../../src/modules/solar-system/bookmarks';
+import type { BodiesFile } from '../../../src/modules/solar-system/data';
+import { SolarEphemeris } from '../../../src/modules/solar-system/ephemeris';
+import { buildFrameDefs } from '../../../src/modules/solar-system/frames';
 import { cubeSphere, sphereWeight } from '../../../src/modules/earth/clouds';
 import { EARTH_PRELUDE, setWorldToBody } from '../../../src/modules/earth/shading';
-import { EARTH_MAPS, earthMapPath } from '../../../src/modules/earth/textures';
+import {
+  EARTH_MAPS,
+  earthMapPath,
+  earthTierFor,
+  HI_RES_PX,
+  LO_RES_PX,
+} from '../../../src/modules/earth/textures';
 import { waterNormalPixels, waterWaves, waveSlopeAt } from '../../../src/modules/earth/waves';
 import shadingGlsl from '../../../src/modules/earth/glsl/shading-earth.glsl?raw';
 import cloudFrag from '../../../src/modules/earth/glsl/cloud.frag.glsl?raw';
@@ -129,6 +151,16 @@ describe('earth shading and clouds', () => {
     ]);
     expect(earthMapPath(EARTH_MAPS[0], 4096)).toBe('textures/solar-system/earth_day_4k.webp');
     expect(earthMapPath(EARTH_MAPS[3], 8192)).toBe('textures/solar-system/earth_spec_2k.webp');
+    expect(earthMapPath(EARTH_MAPS[0], 8192, '2k')).toBe('textures/solar-system/earth_day_2k.webp');
+  });
+
+  it('loads the 4k maps only while Earth is large on screen, with hysteresis', () => {
+    expect(earthTierFor(50, '2k', 8192)).toBe('2k');
+    expect(earthTierFor(HI_RES_PX + 1, '2k', 8192)).toBe('4k');
+    expect(earthTierFor(HI_RES_PX + 1, '2k', 2048)).toBe('2k');
+    expect(earthTierFor((HI_RES_PX + LO_RES_PX) / 2, '4k', 8192)).toBe('4k');
+    expect(earthTierFor((HI_RES_PX + LO_RES_PX) / 2, '2k', 8192)).toBe('2k');
+    expect(earthTierFor(LO_RES_PX - 1, '4k', 8192)).toBe('2k');
   });
 
   it('builds a unit cube-sphere and fades it like the planet sphere', () => {
@@ -150,5 +182,42 @@ describe('earth shading and clouds', () => {
     expect(back.x).toBeCloseTo(v.x, 9);
     expect(back.y).toBeCloseTo(v.y, 9);
     expect(back.z).toBeCloseTo(v.z, 9);
+  });
+});
+
+describe('earth-sunrise-400km bookmark', () => {
+  it('faces the rising Sun ~8 deg above the limb from 400 km at a fixed instant', () => {
+    const rows = (JSON.parse(readFileSync('public/data/solar-system/bodies.json', 'utf8')) as BodiesFile)
+      .bodies;
+    const eph = new SolarEphemeris(rows);
+    const frames = new FrameTreeImpl();
+    addStandardFrames(frames);
+    for (const f of buildFrameDefs(eph, SUNVIEW_BODIES)) frames.addFrame(f);
+    const jd0 = parseInstant('2026-03-20T00:00:00Z')!;
+    const bm = buildEarthSunrise(frames, R, jd0)!;
+    expect(bm.id).toBe(SUNRISE_ID);
+    const jd = bm.jd as number;
+    expect(jd - jd0).toBeGreaterThan(0);
+    expect(jd - jd0).toBeLessThan(1.1);
+    expect(sunElevation(frames, 'earth.fixed', bm.pos, jd) / DEG).toBeCloseTo(SUNRISE_NADIR_SUN_DEG, 3);
+    expect(sunElevation(frames, 'earth.fixed', bm.pos, jd + 0.01)).toBeGreaterThan(
+      SUNRISE_NADIR_SUN_DEG * DEG,
+    );
+    const up = v3normalize(vec3(), bm.pos);
+    const fwd = qrotate(vec3(), bm.quat!, vec3(0, 0, -1));
+    const camUp = qrotate(vec3(), bm.quat!, vec3(0, 1, 0));
+    const sunW = frames.delta('earth.fixed', bm.pos, 'sun', vec3(), jd, vec3());
+    const sun = v3normalize(vec3(), frames.fromWorldDir('earth.fixed', sunW, jd, vec3()));
+    const dip = horizonDipDeg(R, ORBIT_ALTITUDE_M);
+    // Looking down below the horizon towards the Sun's azimuth; the Sun sits above the centre, in frame.
+    expect(Math.asin(v3dot(fwd, up)) / DEG).toBeCloseTo(-(dip + SUNRISE_LIMB_ABOVE_DEG), 6);
+    expect(v3dot(camUp, up)).toBeGreaterThan(0);
+    const sunAbove = Math.asin(v3dot(sun, camUp)) / DEG;
+    expect(sunAbove).toBeGreaterThan(15);
+    expect(sunAbove).toBeLessThan(bm.fovY! / 2 / DEG);
+    // Sun 7.8 deg above the limb, looking roughly east (equinox sunrise).
+    expect(Math.asin(v3dot(sun, up)) / DEG + dip).toBeCloseTo(dip + SUNRISE_NADIR_SUN_DEG, 3);
+    const east = v3normalize(vec3(), vec3(-up.y, up.x, 0));
+    expect(v3dot(fwd, east)).toBeGreaterThan(0.7);
   });
 });

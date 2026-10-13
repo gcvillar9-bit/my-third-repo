@@ -265,8 +265,12 @@ export class AtmosphereGpu implements ScreenPass {
     v.uCamToWorld.value.setFromMatrix4(cam.matrixWorld);
     const m = f.w2a;
     v.uWorldToAtmo.value.set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]);
-    v.uCamPos.value.set(...f.cam);
-    v.uCamH.value = f.camR - p.bottomKm;
+    // A camera below the bottom sphere (Gale floor, Hellas) is lifted radially just above it, as
+    // Hillaire's PLANET_RADIUS_OFFSET does: the LUT parameterisations assume r >= bottom.
+    const camR = Math.max(f.camR, p.bottomKm + 0.001);
+    const lift = camR / f.camR;
+    v.uCamPos.value.set(f.cam[0] * lift, f.cam[1] * lift, f.cam[2] * lift);
+    v.uCamH.value = camR - p.bottomKm;
     v.uSunDir.value.set(...f.sun);
     v.uApMax.value = p.apMaxKm;
     const steps = stepCounts(view.knobs.atmosphereSteps);
@@ -275,8 +279,8 @@ export class AtmosphereGpu implements ScreenPass {
       this.skyTarget ??= lutTarget(SKYVIEW_SIZE[0], SKYVIEW_SIZE[1]);
       this.apTarget ??= lutTarget(AP_SIZE * AP_SLICES, AP_SIZE);
       const su = this.skyMat.uniforms;
-      su.uCamR.value = f.camR;
-      su.uCamH.value = f.camR - p.bottomKm;
+      su.uCamR.value = camR;
+      su.uCamH.value = camR - p.bottomKm;
       su.uSunMu.value = (f.cam[0] * f.sun[0] + f.cam[1] * f.sun[1] + f.cam[2] * f.sun[2]) / f.camR;
       su.uSteps.value = steps.sky;
       this.draw.render(gl, this.skyMat, this.skyTarget);

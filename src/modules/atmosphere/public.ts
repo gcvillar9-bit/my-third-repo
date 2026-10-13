@@ -18,6 +18,9 @@ export const ATMOSPHERE_BODY_IDS: readonly string[] = ATMOSPHERE_ROWS.map((r) =>
 export const MARS_GALE_SUNSET_ID = 'mars-gale-sunset';
 
 export type { AtmosphereParams } from './params';
+/** Sun-elevation helpers (three-free), shared with bookmarks of other modules. */
+export { findSunCrossing, type SunCrossingOptions } from './sun-search';
+export { siteDirection, sunElevation } from './bookmarks';
 export type { ShadingAtmosphereUniforms } from './pass';
 
 /** Uniforms (uAtmoTransmittance, uAtmoRadii, uAtmoReady) for ATMOSPHERE_TRANSMITTANCE_GLSL. */

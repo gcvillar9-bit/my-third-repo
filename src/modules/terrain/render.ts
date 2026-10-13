@@ -74,12 +74,16 @@ export interface TerrainRenderDeps {
   fixedFrame: string;
 }
 
+/** One index attribute shared by every tile (one GL index buffer instead of one per tile). */
+let sharedIndex: BufferAttribute | null = null;
+
 function tileGeometry(t: Tile): BufferGeometry {
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(t.positions, 3));
   g.setAttribute('normal', new BufferAttribute(t.normals, 3));
   g.setAttribute('aUpH', new BufferAttribute(t.upH, 4));
-  g.setIndex(new BufferAttribute(patchIndex(), 1));
+  sharedIndex ??= new BufferAttribute(patchIndex(), 1);
+  g.setIndex(sharedIndex);
   return g;
 }
 
@@ -98,7 +102,8 @@ export function buildTerrain(body: Body, shading: SurfaceShading, deps: TerrainR
     uSunPos: { value: new Vector3() },
     uSunIlluminance: { value: new Vector3() },
     uDetailOrigin: { value: Array.from({ length: SURFACE_DETAIL_BANDS }, () => new Vector3()) },
-    uDetailStrength: { value: 1 },
+    // A shading may opt out of the fragment detail bands (Earth: oceans must stay smooth).
+    uDetailStrength: shading.uniforms.uDetailStrength ?? { value: 1 },
   };
   const material = new ShaderMaterial({
     vertexShader: terrainVertexShader(),
@@ -193,7 +198,8 @@ export function buildTerrain(body: Body, shading: SurfaceShading, deps: TerrainR
         }
         if (!t.gpu) {
           const g = tileGeometry(t);
-          t.gpu = { geometry: g, dispose: () => g.dispose() };
+          // Detach the shared index first so disposing one tile never frees the shared GL buffer.
+          t.gpu = { geometry: g, dispose: () => (g.setIndex(null), g.dispose()) };
         }
         m.geometry = t.gpu.geometry as BufferGeometry;
         m.visible = true;

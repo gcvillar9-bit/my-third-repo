@@ -82,3 +82,12 @@ sets through +3° (`sun-search.ts`, computed at init from the frame tree), looki
   the ground height.
 - No sun disk is added by the pass: the Sun sphere from solar-system is reddened and dimmed by `T`.
 - Modules may not import `src/render/passes.ts`; `gpu/fullscreen.ts` is a private full-screen helper.
+
+## R2b integration changes
+
+- Sun transmittance in post applies to every surface pixel inside the shell (terrain reaches tens of km on Mars).
+- A camera below the bottom sphere is lifted radially to bottom + 1 m for the LUT, sky-view and composite uniforms; aerial-perspective rays are no longer clipped at the bottom sphere.
+- Outside views march `clamp(ceil(path / (thickness / 8)), 8, uSteps)` steps per pixel (the disc takes ~8, limb rays the full count).
+- The composite replaces NaN/Inf input and output pixels with 0: one bad pixel near the Sun used to black out the whole frame through the bloom mip chain.
+- `mars-gale-sunset` uses walk mode, so the eye stands 1.7 m above the drawn crater floor.
+- `public.ts` also exports `findSunCrossing`, `sunElevation` and `siteDirection`.

@@ -12,7 +12,7 @@ import { WorkerPoolImpl, type WrapFn } from '../../../src/core/workers';
 describe('quality presets', () => {
   it('defines every preset with the DESIGN knobs', () => {
     expect(Object.keys(PRESET_KNOBS)).toEqual([...QUALITY_PRESETS]);
-    expect(QUALITY_PRESETS.map((p) => PRESET_KNOBS[p].terrainTileCap)).toEqual([64, 192, 384, 768, 1024]);
+    expect(QUALITY_PRESETS.map((p) => PRESET_KNOBS[p].terrainTileCap)).toEqual([64, 192, 512, 768, 1024]);
     expect(QUALITY_PRESETS.map((p) => PRESET_KNOBS[p].gpuBudgetMB)).toEqual([128, 128, 256, 512, 512]);
     expect(PRESET_KNOBS.potato.smaa).toBe(false);
     expect(PRESET_KNOBS.potato.renderScale).toBe(1);

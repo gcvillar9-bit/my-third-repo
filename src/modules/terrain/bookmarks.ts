@@ -77,6 +77,9 @@ export function apolloView(
   return { pos, quat: lookPitched(h, up, pitch), earthElevation, pitch };
 }
 
+/** Sun elevation over the moon-low-orbit nadir, degrees. */
+export const MOON_ORBIT_SUN_DEG = 9;
+
 export function terrainBookmarks(
   frames: Pick<FrameTree, 'convertPoint' | 'has'>,
   moon: Body,
@@ -86,10 +89,11 @@ export function terrainBookmarks(
   const out: Bookmark[] = [];
   const R = moon.radius;
   if (frames.has('moon.sunview')) {
-    // Sun-view axes: +x to the Sun. The camera is above a point 16° from the terminator (Sun 16° up)
-    // and looks along the surface towards the terminator, pitched down 20°.
-    const up = vec3(Math.sin(16 * DEG), Math.cos(16 * DEG), 0);
-    const toTerminator = vec3(-Math.cos(16 * DEG), Math.sin(16 * DEG), 0);
+    // Sun-view axes: +x to the Sun. The camera is above a point 9° from the terminator (Sun 9° up, so
+    // the terminator, ~270 km away, lies inside the 417 km horizon) and looks along the surface
+    // towards it, pitched down 20°.
+    const up = vec3(Math.sin(MOON_ORBIT_SUN_DEG * DEG), Math.cos(MOON_ORBIT_SUN_DEG * DEG), 0);
+    const toTerminator = vec3(-Math.cos(MOON_ORBIT_SUN_DEG * DEG), Math.sin(MOON_ORBIT_SUN_DEG * DEG), 0);
     out.push({
       id: 'moon-low-orbit',
       title: 'Moon: low orbit over the terminator',
@@ -100,7 +104,9 @@ export function terrainBookmarks(
       ev: 14,
       fovY: 60 * DEG,
       lookTarget:
-        'Cratered lunar terrain 50 km below, lit by a low Sun from behind the camera, with long shadows growing towards the terminator near the curved horizon; black sky above the horizon.',
+        'Cratered lunar terrain 50 km below, lit by a low Sun from behind the camera; slopes facing away from the ' +
+        'Sun go dark and the ground darkens towards the terminator line before the curved horizon (shading only, ' +
+        'no cast shadows yet); black sky above the horizon.',
     });
   }
   const fixed = moon.fixedFrame ?? 'moon.fixed';

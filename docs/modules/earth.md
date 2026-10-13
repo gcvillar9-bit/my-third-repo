@@ -59,3 +59,11 @@ above and day right brighter than night left; warm city lights over Europe; limb
 - Cloud shell has no volumetric thickness or self-shadowing; no specular on clouds.
 - Ground receives no skylight (only direct sun), so the terminator is a little harsh.
 - The 2k/4k brc cloud map is static (no cloud animation).
+
+## R2b integration changes
+
+- Maps load in tiers: 2k first; the 4k day/night/brc maps only on presets with a 512 MB GPU budget (high, ultra) while Earth is wider than 1200 px, released below 600 px (`earthTierFor`).
+- Sea water normals start from the ellipsoid normal (`s.up`), so terrain relief never tilts the glint; the shading defines `SURFACE_DETAIL_MASK` / `surfaceDetailMask()` so the terrain detail bands apply on land only, never on the sea.
+- Cloud shell: 64 segments on every preset.
+- New fixed-instant bookmark `earth-sunrise-400km` (orbital sunrise over the Atlantic from 40N 80W, 2026-03-20, Sun 7.8° above the limb, EV 11). City lights are too faint for that exposure; see `earth-night-lights`.
+- `earth-dawn-400km` is the default start (`src/app/boot.ts`); the 400 km views set `lookAt: 'earth'` so Earth is the HUD target.

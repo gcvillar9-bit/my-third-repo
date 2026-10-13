@@ -13,6 +13,12 @@ const NO_TERRAIN: ReadonlySet<string> = new Set(['jupiter', 'saturn', 'uranus', 
 /** Bodies whose surfaces are not dominated by impact craters. */
 const NO_CRATERS: ReadonlySet<string> = new Set(['earth', 'venus', 'titan', 'io', 'europa']);
 
+/**
+ * Bodies whose visible surface is ocean or a cloud deck: they get terrain only from a registered
+ * HeightSourceSpec, never the default fbm relief (which would wrinkle oceans and cloud tops).
+ */
+export const NO_DEFAULT_RELIEF: ReadonlySet<string> = new Set(['earth', 'venus', 'titan']);
+
 export function terrainEligible(b: Body): boolean {
   return TERRAIN_KINDS.has(b.kind) && !NO_TERRAIN.has(b.id) && b.radius > 0;
 }

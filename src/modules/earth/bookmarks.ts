@@ -3,8 +3,9 @@
  * Earth turns towards +y so dawn is on the -y side), so their lighting does not depend on the
  * date; the night-lights view sits over Europe in 'earth.fixed' at a fixed instant.
  */
-import type { Bookmark, Quatd, Vec3d } from '../../core/contracts';
-import { qlookRotation, quat, v3normalize, v3scale, vec3 } from '../../core/math64';
+import type { Bookmark, FrameTree, Quatd, Vec3d } from '../../core/contracts';
+import { qlookRotation, quat, v3dot, v3normalize, v3scale, vec3 } from '../../core/math64';
+import { findSunCrossing, siteDirection, sunElevation } from '../atmosphere/public';
 
 const DEG = Math.PI / 180;
 export const ORBIT_ALTITUDE_M = 400e3;
@@ -56,6 +57,7 @@ export function buildEarthBookmarks(radius: number, nightJd: number): Bookmark[]
       title: 'Earth: dawn from 400 km',
       frame: 'earth.sunview',
       ...dawn,
+      lookAt: 'earth',
       jd: 'now',
       ev: 13.5,
       lookTarget:
@@ -68,6 +70,7 @@ export function buildEarthBookmarks(radius: number, nightJd: number): Bookmark[]
       title: 'Earth: limb from 400 km',
       frame: 'earth.sunview',
       ...limb,
+      lookAt: 'earth',
       jd: 'now',
       ev: 15.5,
       lookTarget:
@@ -86,4 +89,57 @@ export function buildEarthBookmarks(radius: number, nightJd: number): Bookmark[]
         'Europe at night from 2000 km, looking straight down: warm orange city lights, dark land and sea, north up.',
     },
   ];
+}
+
+/** Orbital sunrise demo: over Pennsylvania (40 N 80 W), looking east across the US east coast to the Atlantic. */
+export const SUNRISE_SITE = { latDeg: 40, lonDeg: -80 };
+export const SUNRISE_ID = 'earth-sunrise-400km';
+/** Sun elevation at the nadir point (the Sun is then ~7.8 deg above the limb as seen from 400 km). */
+export const SUNRISE_NADIR_SUN_DEG = -12;
+/** The limb sits this far above the image centre. */
+export const SUNRISE_LIMB_ABOVE_DEG = 12;
+export const SUNRISE_EV = 11;
+
+/**
+ * Fixed-instant orbital sunrise: the first time after `jd0` that the Sun rises through
+ * SUNRISE_NADIR_SUN_DEG at the nadir of a camera 400 km over SUNRISE_SITE. Looks towards the Sun's
+ * azimuth with the limb in the upper part of the frame: the night side with the east-coast cities
+ * below, the dawn terminator over the Atlantic and the ocean glint at the limb under the Sun.
+ */
+export function buildEarthSunrise(frames: FrameTree, radius: number, jd0: number): Bookmark | null {
+  const fixed = 'earth.fixed';
+  if (!frames.has(fixed) || !frames.has('sun')) return null;
+  const up = siteDirection(SUNRISE_SITE.latDeg, SUNRISE_SITE.lonDeg);
+  const pos = v3scale(vec3(), up, radius + ORBIT_ALTITUDE_M);
+  const jd = findSunCrossing((t) => sunElevation(frames, fixed, pos, t), jd0, {
+    target: SUNRISE_NADIR_SUN_DEG * DEG,
+    setting: false,
+    maxDays: 2,
+  });
+  if (jd === null) return null;
+  const sunW = frames.delta(fixed, pos, 'sun', vec3(), jd, vec3());
+  const sun = v3normalize(vec3(), frames.fromWorldDir(fixed, sunW, jd, vec3()));
+  const k = v3dot(sun, up);
+  const h = v3normalize(vec3(), vec3(sun.x - up.x * k, sun.y - up.y * k, sun.z - up.z * k));
+  const p = (horizonDipDeg(radius, ORBIT_ALTITUDE_M) + SUNRISE_LIMB_ABOVE_DEG) * DEG;
+  const fwd = vec3(
+    Math.cos(p) * h.x - Math.sin(p) * up.x,
+    Math.cos(p) * h.y - Math.sin(p) * up.y,
+    Math.cos(p) * h.z - Math.sin(p) * up.z,
+  );
+  return {
+    id: SUNRISE_ID,
+    title: 'Earth: orbital sunrise over the Atlantic',
+    frame: fixed,
+    pos,
+    quat: qlookRotation(quat(), fwd, up),
+    lookAt: 'earth',
+    jd,
+    ev: SUNRISE_EV,
+    fovY: 50 * DEG,
+    lookTarget:
+      'Orbital sunrise from 400 km over Pennsylvania, looking east: the Sun about 8 deg above the curved limb ' +
+      'near the top, a thin red-orange-blue atmosphere band, a bright glint on the Atlantic at the limb under ' +
+      'the Sun, the dawn terminator across the ocean and the dark night side below.',
+  };
 }

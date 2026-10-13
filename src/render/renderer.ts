@@ -40,6 +40,8 @@ import { PostChain } from './post';
 import { ScreenPassHost } from './screenpass-host';
 
 export interface EngineRendererOptions {
+  /** Resident terrain tiles for stats().tiles (wired by the app; 0 when absent). */
+  tileCount?: () => number;
   canvas: HTMLCanvasElement;
   test: boolean;
   quality: QualityState;
@@ -277,7 +279,7 @@ export class EngineRenderer implements RenderApi {
       programs: programs?.length ?? 0,
       textures: memory.textures,
       geometries: memory.geometries,
-      tiles: 0,
+      tiles: this.opts.tileCount?.() ?? 0,
       gpuBytes: this.opts.budget.used(),
       frame: this.frames,
     };

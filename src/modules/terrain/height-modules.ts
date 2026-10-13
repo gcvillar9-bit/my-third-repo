@@ -22,6 +22,8 @@ export type HeightSpecLike = Pick<HeightSourceSpec, 'workerModule' | 'params'>;
 export const specKey = (s: HeightSpecLike): string => `${s.workerModule}|${JSON.stringify(s.params)}`;
 
 const cache = new Map<string, Promise<HeightFunction>>();
+/** How long a failed height-module load stays cached (rejected) before it may be retried, ms. */
+export const FAILED_SPEC_COOLDOWN_MS = 30_000;
 const ready = new Map<string, HeightFunction>();
 
 /** Creates (once per module + params) the height function for a spec. */
@@ -31,15 +33,19 @@ export function loadHeightFunction(spec: HeightSpecLike, ctx: HeightWorkerContex
   if (!p) {
     const load = MODULES[spec.workerModule];
     if (!load) return Promise.reject(new Error(`terrain: unknown height module '${spec.workerModule}'`));
-    p = load().then(async (m) => {
+    const loading = load().then(async (m) => {
       const create = m.default?.create ?? m.create;
       if (!create) throw new Error(`terrain: '${spec.workerModule}' exports no create()`);
       const fn = await create(spec.params, ctx);
       ready.set(key, fn);
       return fn;
     });
-    p.catch(() => cache.delete(key));
-    cache.set(key, p);
+    // Keep a failed load cached for a cool-down so retries do not re-import and re-fetch every frame.
+    loading.catch(() =>
+      setTimeout(() => cache.get(key) === loading && cache.delete(key), FAILED_SPEC_COOLDOWN_MS),
+    );
+    cache.set(key, loading);
+    p = loading;
   }
   return p;
 }
