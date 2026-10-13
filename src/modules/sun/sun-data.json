@@ -1,0 +1,34 @@
+{
+  "limbDarkening": {
+    "source": "Neckel H. (2005), Sol. Phys. 229, 13: analytical limb-darkening reference functions for 422-1100 nm, I(mu)/I(1) = sum_k A_k mu^k with A_k = c + l1/lambda + l5/lambda^5 (lambda in micrometres)",
+    "approximate": true,
+    "wavelengthsUm": [0.65, 0.55, 0.45],
+    "rows": [
+      { "k": 0, "c": 0.75267, "l1": -0.265577, "l5": 0 },
+      { "k": 1, "c": 0.93874, "l1": 0.265577, "l5": -0.004095 },
+      { "k": 2, "c": -1.89287, "l1": 0, "l5": 0.012582 },
+      { "k": 3, "c": 2.42234, "l1": 0, "l5": -0.017117 },
+      { "k": 4, "c": -1.7115, "l1": 0, "l5": 0.011977 },
+      { "k": 5, "c": 0.49062, "l1": 0, "l5": -0.003347 }
+    ]
+  },
+  "corona": {
+    "source": "Baumbach (1937) K+F corona, B(r)/B_sun = scale * sum a_i r^-p_i (r in solar radii, B_sun = mean disk brightness)",
+    "approximate": true,
+    "scale": 1e-6,
+    "terms": [
+      { "a": 0.0532, "p": 2.5 },
+      { "a": 1.425, "p": 7 },
+      { "a": 2.565, "p": 17 }
+    ],
+    "shellRadii": 8
+  },
+  "granulation": {
+    "source": "Typical solar values: granules ~1,000 km, lifetime ~10 min, white-light rms contrast ~14%; supergranules ~30,000 km (Nordlund, Stein & Asplund 2009, Living Rev. Sol. Phys. 6, 2)",
+    "approximate": true,
+    "granuleKm": 1000,
+    "supergranuleKm": 30000,
+    "contrast": 0.14,
+    "networkContrast": 0.03
+  }
+}
