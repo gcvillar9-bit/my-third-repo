@@ -1,65 +1,238 @@
 /**
- * Application boot. SCAFFOLD STUB: P1-A replaces it (engine, module discovery, loop,
- * URL state). It currently creates a WebGL2 renderer with log depth, renders a black
- * frame, mounts the UI stub and installs window.__universe under ?test=1.
+ * Application boot (P1-A): environment, renderer, frame tree, clock, registry, services, UI,
+ * module discovery and init, initial view from the URL, then the rAF loop (or, under ?test=1,
+ * window.__universe with manual frame stepping).
  */
-import { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
-import { CAMERA_FAR, CAMERA_NEAR } from '../core/contracts';
+import { NearestFilter } from 'three';
+import { SSB_FRAME, type Bookmark, type ModuleContext, type UiContext } from '../core/contracts';
+import { AssetLoaderImpl } from '../core/assets';
+import { ResourceBudgetImpl } from '../core/budget';
+import { addStandardFrames, FrameTreeImpl } from '../core/frames';
+import { qlookRotation, quat, vec3 } from '../core/math64';
+import { parseQuality, QualityStateImpl } from '../core/quality';
+import { RegistryImpl } from '../core/registry';
+import { SimClockImpl, STANDARD_VALIDITY } from '../core/time';
+import { AU } from '../core/units';
+import { WorkerPoolImpl } from '../core/workers';
+import { CameraController } from '../camera/controller';
+import { DEFAULT_TEST_EV } from '../render/exposure';
+import { EngineRenderer } from '../render/renderer';
 import { mountUi } from '../ui/index';
+import { discoverModules, initModules } from './discover';
+import { parseEnv } from './env';
+import { Loop, TEST_DT } from './loop';
+import { startOnboarding } from './onboarding';
 import { captureErrors, installTestApi, recordError } from './test-api';
+import { instantOf, parseHash, stateFromCamera, UrlSync, type UrlState } from './url-state';
 
-export async function boot(): Promise<void> {
-  const params = new URLSearchParams(window.location.search);
-  const test = params.get('test') === '1' || import.meta.env.DEV;
-  if (test) captureErrors();
+/** Sim instant used in test mode when no ?t= is given (deterministic screenshots). */
+export const TEST_DEFAULT_TIME = '2026-01-01T00:00:00Z';
+/** Bookmark shown at boot when the URL names no view (registered by solar-system). */
+export const DEFAULT_BOOKMARK = 'earth-now';
+
+export interface Engine {
+  ctx: ModuleContext;
+  loop: Loop;
+  render: EngineRenderer;
+  camera: CameraController;
+  frames: FrameTreeImpl;
+  registry: RegistryImpl;
+}
+
+export async function boot(): Promise<Engine | undefined> {
+  const env = parseEnv(window.location.search, import.meta.env.BASE_URL, import.meta.env.DEV);
+  const test = env.test;
+  if (test || import.meta.env.DEV) captureErrors();
+  const report = (msg: string) => {
+    recordError(msg);
+    if (!test) console.warn('[cosmos]', msg);
+  };
 
   const container = document.getElementById('app') ?? document.body;
   const canvas = document.createElement('canvas');
   container.appendChild(canvas);
 
-  const gl = canvas.getContext('webgl2', {
-    antialias: false,
-    alpha: false,
-    depth: true,
-    stencil: false,
-    powerPreference: 'high-performance',
-    preserveDrawingBuffer: test,
-  });
-  if (!gl) {
+  const quality = new QualityStateImpl(parseQuality(env.params.get('q')), test);
+  const budget = new ResourceBudgetImpl(() => ResourceBudgetImpl.mb(quality.knobs.gpuBudgetMB));
+  const frames = new FrameTreeImpl();
+  addStandardFrames(frames);
+
+  // ?ev=<EV100> fixes the exposure in tests; ?ev=auto keeps eye adaptation on under ?test=1.
+  const autoEv = env.params.get('ev') === 'auto';
+  const evRaw = env.params.has('ev') && !autoEv ? Number(env.params.get('ev')) : NaN;
+  const evParam = Number.isFinite(evRaw) ? evRaw : null;
+  const fixedEv = test && !autoEv;
+  let render: EngineRenderer;
+  try {
+    render = new EngineRenderer({
+      canvas,
+      test,
+      quality,
+      budget,
+      onError: report,
+      fixedExposure: fixedEv,
+      initialEv: evParam ?? DEFAULT_TEST_EV,
+    });
+  } catch (e) {
     container.textContent = 'Cosmos needs WebGL2, which this browser does not provide.';
-    throw new Error('WebGL2 unavailable');
+    throw e;
   }
 
-  const renderer = new WebGLRenderer({ canvas, context: gl, antialias: false, logarithmicDepthBuffer: true });
-  renderer.debug.onShaderError = (_gl, _program, vs, fs) => {
-    recordError(`shader error: ${gl.getShaderInfoLog(vs) ?? ''} ${gl.getShaderInfoLog(fs) ?? ''}`.trim());
-  };
-  renderer.setClearColor(0x000000, 1);
-  renderer.setPixelRatio(test ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+  const registry = new RegistryImpl(frames, {
+    renderableAdded: (r) => render.addRenderable(r),
+    renderableRemoved: (r) => render.removeRenderable(r),
+    screenPassAdded: (p) => render.addScreenPass(p),
+    screenPassRemoved: (p) => render.removeScreenPass(p),
+  });
+  for (const v of STANDARD_VALIDITY) registry.addValidity(v);
 
-  const scene = new Scene();
-  const camera = new PerspectiveCamera(60, 1, CAMERA_NEAR, CAMERA_FAR);
-  let frames = 0;
-  const renderFrame = () => {
-    renderer.render(scene, camera);
-    frames++;
+  const hash = parseHash(window.location.hash);
+  const explicitTime = test ? instantOf(env.params.get('t') ?? undefined) : instantOf(hash.t);
+  const clock = new SimClockImpl({
+    jd: explicitTime ?? (test ? instantOf(TEST_DEFAULT_TIME)! : undefined),
+    ranges: () => registry.validityRanges(),
+  });
+  let lockTime = explicitTime !== null;
+  const onBookmark = (bm: Bookmark) => {
+    if (bm.jd !== undefined && !lockTime) {
+      if (bm.jd === 'now') {
+        if (!test) clock.setNow();
+      } else clock.setTime(bm.jd);
+    }
+    if (bm.rate !== undefined) clock.setRate(bm.rate);
+    if (fixedEv) render.exposure.setFixedEV(evParam ?? bm.ev ?? DEFAULT_TEST_EV);
   };
+
+  const assets = new AssetLoaderImpl(env.baseUrl, budget);
+  const workers = new WorkerPoolImpl();
+  const camera = new CameraController({ frames, registry, jd: () => clock.jd, onBookmark });
+  const uiCtx: UiContext = { frames, clock, registry, render, assets, workers, quality, camera, budget, env };
+  const ui = mountUi(document.getElementById('ui') ?? document.body, uiCtx);
+  const ctx: ModuleContext = { ...uiCtx, registry, ui };
+
+  // Engine-owned GPU memory.
+  const engineEntry = budget.alloc('engine', 'targets', 0);
   const resize = () => {
-    const w = Math.max(1, container.clientWidth || window.innerWidth);
-    const h = Math.max(1, container.clientHeight || window.innerHeight);
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    if (!test) renderFrame();
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || window.innerHeight;
+    render.resize(w, h);
+    camera.setViewportHeight(h);
+    engineEntry.resize(render.engineBytes());
+  };
+  resize();
+  window.addEventListener('resize', resize);
+
+  assets
+    .texture('data/render/bluenoise64.png', {
+      colorSpace: 'linear',
+      wrap: 'repeat',
+      mipmaps: false,
+      owner: 'engine',
+    })
+    .then((tex) => {
+      tex.minFilter = tex.magFilter = NearestFilter;
+      tex.needsUpdate = true;
+      render.uniforms.uBlueNoise.value = tex;
+    })
+    .catch((e: unknown) => report(`blue noise: ${e instanceof Error ? e.message : String(e)}`));
+
+  try {
+    const mods = discoverModules();
+    await initModules(mods, ctx, (id, e) =>
+      report(`module ${id}: ${e instanceof Error ? (e.stack ?? e.message) : String(e)}`),
+    );
+  } catch (e) {
+    report(`discovery: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  const applyUrlState = async (s: UrlState): Promise<boolean> => {
+    if (s.t && !test) {
+      const jd = instantOf(s.t);
+      if (jd !== null) clock.setTime(jd);
+    }
+    const bm = s.b ? registry.bookmark(s.b) : undefined;
+    if (bm) return camera.goto(bm, { instant: true });
+    if (s.f && s.p && frames.has(s.f)) {
+      camera.setState({ frame: s.f, local: s.p, quat: s.q ?? quat() });
+      return true;
+    }
+    return false;
   };
 
-  let markBooted!: () => void;
-  const booted = new Promise<void>((resolve) => (markBooted = resolve));
-  if (test) installTestApi({ renderer, renderFrame, booted, frameCount: () => frames });
+  // Initial view: ?b= (tests) > #b= / #f=&p=&q= > default bookmark > overview of the ssb.
+  const initial: UrlState = test ? { b: env.params.get('b') ?? undefined } : hash;
+  if (!(await applyUrlState(initial))) {
+    const def = registry.bookmark(DEFAULT_BOOKMARK);
+    if (def) await camera.goto(def, { instant: true });
+    else {
+      const p = vec3(0, -3 * AU, 1 * AU);
+      camera.setState({
+        frame: SSB_FRAME,
+        local: p,
+        quat: qlookRotation(quat(), vec3(0, 3, -1), vec3(0, 0, 1)),
+      });
+    }
+  }
+  lockTime = false;
+  if (fixedEv) render.exposure.setFixedEV(render.exposure.ev);
 
-  window.addEventListener('resize', resize);
-  resize();
-  renderFrame();
-  mountUi(document.getElementById('ui') ?? document.body);
-  markBooted();
+  const urlSync = test
+    ? null
+    : new UrlSync(
+        () => stateFromCamera(camera.getState(), clock.jd),
+        (s) => void applyUrlState(s),
+      );
+  let perfUpdate: (() => void) | null = null;
+  const loop = new Loop({
+    frames,
+    clock,
+    registry,
+    camera,
+    render,
+    quality,
+    test,
+    onError: report,
+    afterFrame: (ms) => {
+      urlSync?.tick(ms);
+      perfUpdate?.();
+    },
+  });
+
+  if (test || import.meta.env.DEV) {
+    installTestApi({
+      renderer: render.renderer,
+      renderFrame: () => loop.frame(TEST_DT),
+      ready: async () => {
+        await assets.whenIdle();
+        for (let i = 0; i < 600 && workers.pending() > 0; i++) await new Promise((r) => setTimeout(r, 50));
+        await assets.whenIdle();
+      },
+      goto: async (id) => {
+        const bm = registry.bookmark(id);
+        if (!bm) throw new Error(`unknown bookmark '${id}'`);
+        await camera.goto(bm, { instant: true });
+      },
+      setTime: (iso) => clock.setTime(iso),
+      stats: () => render.stats(),
+    });
+  }
+
+  if (test) {
+    loop.frame(TEST_DT);
+  } else {
+    camera.attach(canvas);
+    loop.start();
+    startOnboarding(ui, env);
+    if (env.perf) {
+      import('stats-gl')
+        .then(({ default: Stats }) => {
+          const s = new Stats({ trackGPU: false });
+          s.init(render.renderer);
+          document.body.appendChild(s.dom);
+          perfUpdate = () => s.update();
+        })
+        .catch((e: unknown) => report(`perf overlay: ${String(e)}`));
+    }
+  }
+  return { ctx, loop, render, camera, frames, registry };
 }

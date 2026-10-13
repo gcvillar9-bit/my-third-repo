@@ -47,6 +47,8 @@ export interface EngineRendererOptions {
   onError?: (message: string) => void;
   /** Initial (or fixed, in test mode) EV100. */
   initialEv?: number;
+  /** Fix the exposure at initialEv (default: in test mode). */
+  fixedExposure?: boolean;
 }
 
 export function createBlackbodyLutTexture(): DataTexture {
@@ -132,7 +134,7 @@ export class EngineRenderer implements RenderApi {
       uBlueNoise: { value: null },
     };
     this.exposure = new ExposureController(opts.initialEv ?? 12);
-    if (opts.test) this.exposure.setFixedEV(opts.initialEv ?? 12);
+    if (opts.fixedExposure ?? opts.test) this.exposure.setFixedEV(opts.initialEv ?? 12);
     this.meter = new LuminanceMeter((meanLog2, coverage) =>
       this.exposure.setTarget(targetEv(meanLog2, coverage)),
     );
