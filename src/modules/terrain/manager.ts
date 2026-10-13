@@ -1,0 +1,300 @@
+/**
+ * Per-body terrain state (no three.js): height spec, CPU height function, tile cache (LRU with a
+ * per-preset cap), worker requests and the current quadtree selection.
+ */
+import type {
+  BudgetEntry,
+  HeightFunction,
+  HeightSourceSpec,
+  ResourceBudget,
+  Vec3d,
+  ViewState,
+} from '../../core/contracts';
+import { qrotate, qrotateInv, quat, vec3 } from '../../core/math64';
+import { dirToFace, ellipsoidRadius, ROOT_KEYS, unpackKey } from './cube';
+import { groundRadius } from './ground';
+import { PATCH_BYTES, type PatchData } from './patch';
+import { leafLevelAt, selectTree, type NodeBounds, type SelectParams } from './select';
+import type { TerrainBuildRequest } from './terrain.worker';
+
+/** Requests issued per frame (lifted in test mode). */
+export const SPLIT_BUDGET = 8;
+export const MAX_INFLIGHT = 16;
+/** Cache slots kept free for in-flight requests. */
+export const INFLIGHT_RESERVE = 8;
+/** Draw-call cap of one body's terrain. */
+export const MAX_LEAVES = 300;
+/** Bound on remembered node bounds (≈100 B each). */
+const KNOWN_BOUNDS_MAX = 50_000;
+/** Ground level used before any tile is resident. */
+export const DEFAULT_GROUND_LEVEL = 16;
+
+export interface Generator {
+  build(req: TerrainBuildRequest): Promise<PatchData>;
+}
+
+export interface Tile extends PatchData {
+  bounds: NodeBounds;
+  lastUsed: number;
+  /** GPU resources created by the renderer (disposed on eviction). */
+  gpu: { geometry: unknown; dispose(): void } | null;
+}
+
+export interface ManagerOptions {
+  bodyId: string;
+  a: number;
+  c: number;
+  spec: HeightSourceSpec;
+  /** Patch generator (worker pool or in-process). */
+  generator: () => Generator;
+  base: string;
+  seed: number;
+  test: boolean;
+  budget?: ResourceBudget;
+  onError?: (e: unknown) => void;
+}
+
+export interface ObservedView {
+  cam: Vec3d;
+  planes: Vec3d[];
+  pixelAngle: number;
+  target: number;
+  cap: number;
+}
+
+export class TerrainManager {
+  readonly tiles = new Map<number, Tile>();
+  readonly inflight = new Set<number>();
+  /** Exact bounds of every node built so far (kept after eviction; bounded). */
+  private readonly known = new Map<number, NodeBounds>();
+  fn: HeightFunction | null = null;
+  /** True while the terrain geometry is the active surface provider. */
+  active = false;
+  leaves: Tile[] = [];
+  split: ReadonlySet<number> = new Set();
+  private used: ReadonlySet<number> = new Set();
+  private last: ObservedView | null = null;
+  private tick = 0;
+  private epoch = 0;
+  private failures = 0;
+  private entry: BudgetEntry | null = null;
+  private observedFrame = -1;
+
+  constructor(readonly opts: ManagerOptions) {}
+
+  get spec(): HeightSourceSpec {
+    return this.opts.spec;
+  }
+
+  rootsResident(): boolean {
+    return ROOT_KEYS.every((k) => this.tiles.has(k));
+  }
+
+  /** Records the camera of this frame and refreshes the selection (once per frame). */
+  observe(view: ViewState, fixedFrame: string): void {
+    if (view.frameIndex === this.observedFrame) return;
+    this.observedFrame = view.frameIndex;
+    const o = view.toCamera(fixedFrame, vec3(), vec3());
+    const qf = view.frameQuat(fixedFrame, quat());
+    const cam = qrotateInv(vec3(), qf, vec3(-o.x, -o.y, -o.z));
+    const planes = frustumPlanes(view.fovY, view.viewport[0] / Math.max(1, view.viewport[1])).map((n) =>
+      qrotateInv(vec3(), qf, qrotate(vec3(), view.worldQuat, n)),
+    );
+    this.observeRaw({
+      cam,
+      planes,
+      pixelAngle: view.pixelAngle,
+      target: view.knobs.terrainSse,
+      cap: view.knobs.terrainTileCap,
+    });
+  }
+
+  observeRaw(v: ObservedView): void {
+    this.last = v;
+    this.select();
+  }
+
+  /** Altitude of the last observed camera above the equatorial radius, m. */
+  altitude(): number {
+    const c = this.last?.cam;
+    return c ? Math.hypot(c.x, c.y, c.z) - this.opts.a : Infinity;
+  }
+
+  select(): void {
+    const v = this.last;
+    if (!v) return;
+    this.tick++;
+    const { a, c } = this.opts;
+    const maxAbs = this.opts.spec.maxAbsHeight;
+    const p: SelectParams = {
+      cam: v.cam,
+      planes: v.planes,
+      pixelAngle: v.pixelAngle,
+      target: v.target,
+      maxLeaves: Math.min(MAX_LEAVES, Math.floor(0.75 * v.cap)),
+      maxTiles: Math.max(6, v.cap - INFLIGHT_RESERVE),
+      a,
+      c,
+      rOcc: Math.min(a, c) - maxAbs,
+    };
+    const sel = selectTree(
+      p,
+      (k) => this.known.get(k),
+      this.split,
+      (k) => this.tiles.has(k),
+    );
+    this.split = sel.split;
+    this.used = sel.used;
+    this.leaves = sel.leaves.map((k) => this.tiles.get(k)!);
+    for (const k of sel.used) this.tiles.get(k)!.lastUsed = this.tick;
+    this.issue(sel.requests, v.cap);
+  }
+
+  private issue(reqs: readonly { key: number }[], cap: number): void {
+    const budget = this.opts.test ? Infinity : SPLIT_BUDGET;
+    const maxInflight = this.opts.test ? 2 * MAX_INFLIGHT : MAX_INFLIGHT;
+    let n = 0;
+    for (const r of reqs) {
+      if (n >= budget || this.inflight.size >= maxInflight) break;
+      if (this.inflight.has(r.key) || this.tiles.has(r.key)) continue;
+      if (!this.makeRoom(cap)) break;
+      this.request(r.key);
+      n++;
+    }
+  }
+
+  /** Evicts least-recently-used unpinned tiles until one more fits under `cap`. */
+  private makeRoom(cap: number): boolean {
+    const isRoot = (k: number) => unpackKey(k).level === 0;
+    while (this.tiles.size + this.inflight.size >= cap) {
+      let victim: Tile | null = null;
+      for (const t of this.tiles.values()) {
+        if (this.used.has(t.key) || isRoot(t.key)) continue;
+        if (!victim || t.lastUsed < victim.lastUsed) victim = t;
+      }
+      if (!victim) return false;
+      this.drop(victim);
+    }
+    return true;
+  }
+
+  private drop(t: Tile): void {
+    t.gpu?.dispose();
+    t.gpu = null;
+    this.tiles.delete(t.key);
+    this.account();
+  }
+
+  private request(key: number): void {
+    const id = unpackKey(key);
+    const { a, c, spec, base, seed } = this.opts;
+    this.inflight.add(key);
+    const epoch = this.epoch;
+    let gen: Generator;
+    try {
+      gen = this.opts.generator();
+    } catch (e) {
+      this.inflight.delete(key);
+      this.fail(e);
+      return;
+    }
+    gen
+      .build({ ...id, key, a, c, spec: { workerModule: spec.workerModule, params: spec.params }, base, seed })
+      .then(
+        (data) => {
+          this.inflight.delete(key);
+          if (epoch !== this.epoch) return;
+          const bounds = tileBounds(data);
+          if (this.known.size > KNOWN_BOUNDS_MAX) this.known.clear();
+          this.known.set(key, bounds);
+          this.tiles.set(key, { ...data, bounds, lastUsed: this.tick, gpu: null });
+          this.account();
+          if (this.opts.test) this.select();
+        },
+        (e: unknown) => {
+          this.inflight.delete(key);
+          this.fail(e);
+        },
+      );
+  }
+
+  private fail(e: unknown): void {
+    if (this.failures++ < 3) this.opts.onError?.(e);
+  }
+
+  private account(): void {
+    const b = this.opts.budget;
+    if (!b) return;
+    const bytes = this.tiles.size * PATCH_BYTES;
+    if (!this.entry) this.entry = b.alloc('terrain', this.opts.bodyId, bytes);
+    else this.entry.resize(bytes);
+  }
+
+  /** Drops every tile except the roots (camera far away). */
+  trim(): void {
+    this.active = false;
+    for (const t of [...this.tiles.values()]) if (unpackKey(t.key).level > 0) this.drop(t);
+    this.split = new Set();
+    this.used = new Set();
+    this.leaves = [];
+  }
+
+  /** Drops everything (spec change, shutdown). In-flight results are discarded. */
+  reset(spec?: HeightSourceSpec): void {
+    this.epoch++;
+    this.known.clear();
+    for (const t of [...this.tiles.values()]) this.drop(t);
+    this.split = new Set();
+    this.used = new Set();
+    this.leaves = [];
+    if (spec) {
+      this.opts.spec = spec;
+      this.fn = null;
+    }
+  }
+
+  dispose(): void {
+    this.reset();
+    this.entry?.free();
+    this.entry = null;
+  }
+
+  /** Mesh level under a body-fixed direction (the level the GPU draws there). */
+  levelAt(dir: Vec3d): number {
+    if (!this.tiles.size) return DEFAULT_GROUND_LEVEL;
+    const { face, s, t } = dirToFace(dir);
+    return leafLevelAt(this.split, face, s, t);
+  }
+
+  /** Mesh height above the equatorial radius under unit body-fixed `dir`, m (null before the CPU function loads). */
+  heightAt(dir: Vec3d): number | null {
+    if (!this.fn) return null;
+    return groundRadius(this.fn, this.opts.a, this.opts.c, dir, this.levelAt(dir)) - this.opts.a;
+  }
+
+  /** Reference-ellipsoid radius along a unit direction, m. */
+  ellipsoidRadius(dir: Vec3d): number {
+    return ellipsoidRadius(this.opts.a, this.opts.c, dir.x, dir.y, dir.z);
+  }
+}
+
+export function tileBounds(d: PatchData): NodeBounds {
+  return {
+    centre: { x: d.centre[0], y: d.centre[1], z: d.centre[2] },
+    radius: d.radius,
+    rMax: d.rMax,
+    hMin: d.hMin,
+    hMax: d.hMax,
+  };
+}
+
+/** Inward unit normals of the 4 side planes of a camera frustum, camera axes (looking down −Z). */
+export function frustumPlanes(fovY: number, aspect: number): Vec3d[] {
+  const ty = Math.tan(fovY / 2) * 1.05;
+  const tx = ty * aspect;
+  const n = (x: number, y: number, z: number) => {
+    const l = Math.hypot(x, y, z);
+    return vec3(x / l, y / l, z / l);
+  };
+  return [n(1, 0, -tx), n(-1, 0, -tx), n(0, 1, -ty), n(0, -1, -ty)];
+}
