@@ -91,7 +91,11 @@ export function createFbmCraters(p: FbmCratersParams): HeightFunction {
   const maxAbs = maxAbsHeight(p);
   const seed = p.seed | 0;
   const octaves: { lambda: number; amp: number; off: number }[] = [];
-  for (let i = 0, l = p.lambda0, a = p.amplitude; l >= LAMBDA_MIN; i++, l /= LACUNARITY, a *= LACUNARITY ** -p.hurst) {
+  for (
+    let i = 0, l = p.lambda0, a = p.amplitude;
+    l >= LAMBDA_MIN;
+    i++, l /= LACUNARITY, a *= LACUNARITY ** -p.hurst
+  ) {
     octaves.push({ lambda: l, amp: a, off: 17.17 * i + 0.31 });
   }
   const layers: { S: number; seed: number }[] = [];

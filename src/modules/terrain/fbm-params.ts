@@ -54,7 +54,8 @@ export function craterDepth(D: number): number {
 /** Analytic bound on |height| (heights are clamped to it). */
 export function maxAbsHeight(p: FbmCratersParams): number {
   let fbm = 0;
-  for (let l = p.lambda0, a = p.amplitude; l >= LAMBDA_MIN; l /= LACUNARITY, a *= LACUNARITY ** -p.hurst) fbm += a;
+  for (let l = p.lambda0, a = p.amplitude; l >= LAMBDA_MIN; l /= LACUNARITY, a *= LACUNARITY ** -p.hurst)
+    fbm += a;
   let cr = 0;
   let S = p.lambda0 / 2;
   for (let k = 0; k < p.craterLayers; k++, S *= CRATER_RATIO) {
@@ -63,4 +64,3 @@ export function maxAbsHeight(p: FbmCratersParams): number {
   }
   return fbm + cr;
 }
-

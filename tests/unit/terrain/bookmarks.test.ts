@@ -16,7 +16,10 @@ import {
 import { MAX_LEVEL } from '../../../src/modules/terrain/cube';
 import { defaultHeightSpec } from '../../../src/modules/terrain/defaults';
 import { groundRadius } from '../../../src/modules/terrain/ground';
-import { createFbmCraters, type FbmCratersParams } from '../../../src/modules/terrain/height/fbm-craters-lite';
+import {
+  createFbmCraters,
+  type FbmCratersParams,
+} from '../../../src/modules/terrain/height/fbm-craters-lite';
 
 const rows = (JSON.parse(readFileSync('public/data/solar-system/bodies.json', 'utf8')) as BodiesFile).bodies;
 const byId = new Map(rows.map((r) => [r.id, r]));
@@ -45,7 +48,10 @@ describe('terrain bookmarks', () => {
     expect(sunEl).toBeGreaterThan(5);
     expect(sunEl).toBeLessThan(20);
     // Earth inside the frame: elevation below the top edge, and roughly in the view direction.
-    const earth = v3normalize(vec3(), v3sub(vec3(), frames.convertPoint('earth', vec3(), 'moon.fixed', APOLLO11_JD, vec3()), b.pos));
+    const earth = v3normalize(
+      vec3(),
+      v3sub(vec3(), frames.convertPoint('earth', vec3(), 'moon.fixed', APOLLO11_JD, vec3()), b.pos),
+    );
     const fwd = qrotate(vec3(), b.quat!, vec3(0, 0, -1));
     const pitch = Math.asin(v3dot(fwd, up));
     const earthEl = Math.asin(v3dot(earth, up));
@@ -78,6 +84,9 @@ describe('terrain bookmarks', () => {
     const b = bm('terrain-jitter-b');
     expect(v3len(v3sub(vec3(), a.pos, b.pos))).toBeCloseTo(1e-3, 9);
     expect(a.rate).toBe(0);
-    expect(terrainBookmarks(frames, moon, ground, false).map((x) => x.id)).toEqual(['moon-low-orbit', 'apollo11-2m']);
+    expect(terrainBookmarks(frames, moon, ground, false).map((x) => x.id)).toEqual([
+      'moon-low-orbit',
+      'apollo11-2m',
+    ]);
   });
 });

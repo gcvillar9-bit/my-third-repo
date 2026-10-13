@@ -88,7 +88,11 @@ export function groundNormal(
     z: dir.x * tx.y - dir.y * tx.x,
   };
   const pt = (u: number, v: number) => {
-    const q = { x: dir.x + u * tx.x + v * ty.x, y: dir.y + u * tx.y + v * ty.y, z: dir.z + u * tx.z + v * ty.z };
+    const q = {
+      x: dir.x + u * tx.x + v * ty.x,
+      y: dir.y + u * tx.y + v * ty.y,
+      z: dir.z + u * tx.z + v * ty.z,
+    };
     const l = Math.hypot(q.x, q.y, q.z);
     q.x /= l;
     q.y /= l;

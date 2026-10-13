@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { SSB_FRAME } from '../../../src/core/contracts';
 import { addStandardFrames, FrameTreeImpl } from '../../../src/core/frames';
-import { qfromAxisAngle, qrotate, quat, v3dot, v3len, v3normalize, v3set, vec3 } from '../../../src/core/math64';
+import {
+  qfromAxisAngle,
+  qrotate,
+  quat,
+  v3dot,
+  v3len,
+  v3normalize,
+  v3set,
+  vec3,
+} from '../../../src/core/math64';
 import { RegistryImpl } from '../../../src/core/registry';
 import { CameraController } from '../../../src/camera/controller';
 import {
@@ -69,7 +78,8 @@ describe('walk physics', () => {
 
   it('follows a slope with the eye 1.7 m above the ground and stays level', () => {
     // Ground rising 20 cm per metre along +y.
-    const slope = (d: { x: number; y: number; z: number }) => MOON.radius + 0.2 * MOON.radius * Math.atan2(d.y, d.x);
+    const slope = (d: { x: number; y: number; z: number }) =>
+      MOON.radius + 0.2 * MOON.radius * Math.atan2(d.y, d.x);
     const { w, pose } = standing(slope);
     // Face +y (the default camera looks down -Z; turn it to look along +y with up +x).
     pose.quat = qfromAxisAngle(quat(), vec3(0, 0, 1), -Math.PI / 2);
@@ -97,7 +107,12 @@ describe('controller walk mode', () => {
     const frames = new FrameTreeImpl();
     addStandardFrames(frames);
     const registry = new RegistryImpl(frames);
-    registry.addFrame({ id: 'moon', parent: SSB_FRAME, influenceRadius: 6e7, positionAt: (_j, o) => v3set(o, 1e11, 0, 0) });
+    registry.addFrame({
+      id: 'moon',
+      parent: SSB_FRAME,
+      influenceRadius: 6e7,
+      positionAt: (_j, o) => v3set(o, 1e11, 0, 0),
+    });
     registry.addFrame({
       id: 'moon.fixed',
       parent: 'moon',

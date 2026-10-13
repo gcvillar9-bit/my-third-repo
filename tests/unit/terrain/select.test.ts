@@ -4,10 +4,23 @@ import { PRESET_KNOBS } from '../../../src/core/quality';
 import { qlookRotation, qrotate, quat, vec3 } from '../../../src/core/math64';
 import { faceDir, nodeKey, ROOT_KEYS, unpackKey } from '../../../src/modules/terrain/cube';
 import { defaultHeightSpec } from '../../../src/modules/terrain/defaults';
-import { createFbmCraters, type FbmCratersParams } from '../../../src/modules/terrain/height/fbm-craters-lite';
-import { frustumPlanes, TerrainManager, tileBounds, type Generator } from '../../../src/modules/terrain/manager';
+import {
+  createFbmCraters,
+  type FbmCratersParams,
+} from '../../../src/modules/terrain/height/fbm-craters-lite';
+import {
+  frustumPlanes,
+  TerrainManager,
+  tileBounds,
+  type Generator,
+} from '../../../src/modules/terrain/manager';
 import { buildPatch } from '../../../src/modules/terrain/patch';
-import { morphAt, detailOrigins, terrainFragmentShader, terrainVertexShader } from '../../../src/modules/terrain/render';
+import {
+  morphAt,
+  detailOrigins,
+  terrainFragmentShader,
+  terrainVertexShader,
+} from '../../../src/modules/terrain/render';
 import {
   culled,
   estimateBounds,
@@ -19,14 +32,27 @@ import { TerrainSystem } from '../../../src/modules/terrain/system';
 
 const A = 1738.1e3;
 const C = 1736.0e3;
-const moon: Body = { id: 'moon', name: 'Moon', kind: 'moon', frame: 'moon', fixedFrame: 'moon.fixed', radius: A, oblateness: 1 - C / A, gm: 4.9028e12, influenceRadius: 6e7 };
+const moon: Body = {
+  id: 'moon',
+  name: 'Moon',
+  kind: 'moon',
+  frame: 'moon',
+  fixedFrame: 'moon.fixed',
+  radius: A,
+  oblateness: 1 - C / A,
+  gm: 4.9028e12,
+  influenceRadius: 6e7,
+};
 const spec = defaultHeightSpec(moon);
 const fn = createFbmCraters(spec.params as FbmCratersParams);
 const localGen: Generator = { build: async (req) => buildPatch(fn, req, req.key) };
 const flush = async (m: TerrainManager) => {
   for (let i = 0; i < 2000 && m.inflight.size; i++) await new Promise((r) => setTimeout(r, 0));
 };
-const params = (cam: { x: number; y: number; z: number }, over: Partial<SelectParams> = {}): SelectParams => ({
+const params = (
+  cam: { x: number; y: number; z: number },
+  over: Partial<SelectParams> = {},
+): SelectParams => ({
   cam,
   planes: [],
   pixelAngle: (60 * Math.PI) / 180 / 1080,
@@ -45,7 +71,11 @@ describe('screen-space error and culling', () => {
   it('SSE decreases monotonically with distance and with level', () => {
     let prev = Infinity;
     for (const d of [10, 1e3, 1e4, 1e5, 1e6, 1e7]) {
-      const s = screenSpaceError(params(vec3(b.centre.x * (1 + d / A), b.centre.y * (1 + d / A), b.centre.z * (1 + d / A))), 5, b);
+      const s = screenSpaceError(
+        params(vec3(b.centre.x * (1 + d / A), b.centre.y * (1 + d / A), b.centre.z * (1 + d / A))),
+        5,
+        b,
+      );
       expect(s).toBeLessThanOrEqual(prev);
       prev = s;
     }
@@ -99,7 +129,16 @@ describe('screen-space error and culling', () => {
 
 describe('terrain manager', () => {
   it('converges to level >= 19 under a camera 2 m above the ground (medium preset)', async () => {
-    const m = new TerrainManager({ bodyId: 'moon', a: A, c: C, spec, generator: () => localGen, base: '/', seed: 1, test: true });
+    const m = new TerrainManager({
+      bodyId: 'moon',
+      a: A,
+      c: C,
+      spec,
+      generator: () => localGen,
+      base: '/',
+      seed: 1,
+      test: true,
+    });
     m.fn = fn;
     const d = vec3(0.6, 0.7, 0.3);
     const l = Math.hypot(d.x, d.y, d.z);
@@ -112,7 +151,13 @@ describe('terrain manager', () => {
     // Looking horizontally (16:9, 60° vertical field of view, 1080 px).
     const q = qlookRotation(quat(), vec3(-d.y, d.x, 0), d);
     const planes = frustumPlanes(Math.PI / 3, 16 / 9).map((n) => qrotate(vec3(), q, n));
-    m.observeRaw({ cam, planes, pixelAngle: Math.PI / 3 / 1080, target: knobs.terrainSse, cap: knobs.terrainTileCap });
+    m.observeRaw({
+      cam,
+      planes,
+      pixelAngle: Math.PI / 3 / 1080,
+      target: knobs.terrainSse,
+      cap: knobs.terrainTileCap,
+    });
     await flush(m);
     expect(m.inflight.size).toBe(0);
     expect(m.levelAt(d)).toBeGreaterThanOrEqual(19);
@@ -132,11 +177,26 @@ describe('terrain manager', () => {
   }, 60_000);
 
   it('caps resident tiles on potato and evicts least-recently-used tiles', async () => {
-    const m = new TerrainManager({ bodyId: 'moon', a: A, c: C, spec, generator: () => localGen, base: '/', seed: 1, test: true });
+    const m = new TerrainManager({
+      bodyId: 'moon',
+      a: A,
+      c: C,
+      spec,
+      generator: () => localGen,
+      base: '/',
+      seed: 1,
+      test: true,
+    });
     const cap = PRESET_KNOBS.potato.terrainTileCap;
     const view = (x: number, y: number, z: number) => {
       const l = Math.hypot(x, y, z);
-      return { cam: vec3((x / l) * (A + 50), (y / l) * (A + 50), (z / l) * (A + 50)), planes: [], pixelAngle: 0.004, target: 8, cap };
+      return {
+        cam: vec3((x / l) * (A + 50), (y / l) * (A + 50), (z / l) * (A + 50)),
+        planes: [],
+        pixelAngle: 0.004,
+        target: 8,
+        cap,
+      };
     };
     m.observeRaw(view(1, 0.1, 0.1));
     await flush(m);
@@ -158,7 +218,11 @@ describe('provider hand-off', () => {
       worldQuat: quat(),
       knobs: PRESET_KNOBS.potato,
       test: true,
-      toCamera: (_f: string, local: { x: number; y: number; z: number }, out: { x: number; y: number; z: number }) => {
+      toCamera: (
+        _f: string,
+        local: { x: number; y: number; z: number },
+        out: { x: number; y: number; z: number },
+      ) => {
         out.x = local.x;
         out.y = local.y;
         out.z = local.z - (A + alt);
@@ -214,7 +278,12 @@ describe('provider hand-off', () => {
   });
 
   it('builds shaders from the depth chunk, SurfaceInput and the body shading', () => {
-    const frag = terrainFragmentShader({ bodyId: 'moon', priority: 0, glsl: 'vec3 shadeSurface(SurfaceInput s) { return vec3(1.0); }', uniforms: {} });
+    const frag = terrainFragmentShader({
+      bodyId: 'moon',
+      priority: 0,
+      glsl: 'vec3 shadeSurface(SurfaceInput s) { return vec3(1.0); }',
+      uniforms: {},
+    });
     expect(frag).toContain('LOG_DEPTH_FRAGMENT');
     expect(frag).toContain('struct SurfaceInput');
     expect(frag).toContain('vec3 shadeSurface(SurfaceInput s)');

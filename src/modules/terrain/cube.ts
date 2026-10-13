@@ -124,14 +124,19 @@ export function childKeys(n: NodeId): number[] {
   const l = n.level + 1;
   const x = n.x * 2;
   const y = n.y * 2;
-  return [nodeKey(n.face, l, x, y), nodeKey(n.face, l, x + 1, y), nodeKey(n.face, l, x, y + 1), nodeKey(n.face, l, x + 1, y + 1)];
+  return [
+    nodeKey(n.face, l, x, y),
+    nodeKey(n.face, l, x + 1, y),
+    nodeKey(n.face, l, x, y + 1),
+    nodeKey(n.face, l, x + 1, y + 1),
+  ];
 }
 
 export const ROOT_KEYS: readonly number[] = [0, 1, 2, 3, 4, 5].map((f) => nodeKey(f, 0, 0, 0));
 
 /** Approximate vertex spacing at `level` for equatorial radius a, m. */
 export function cellSize(a: number, level: number): number {
-  return (Math.PI / 2) * a / (PATCH_CELLS * 2 ** level);
+  return ((Math.PI / 2) * a) / (PATCH_CELLS * 2 ** level);
 }
 
 /** Geometric error attributed to a level (drives the screen-space error), m. */

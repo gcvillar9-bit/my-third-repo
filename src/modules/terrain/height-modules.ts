@@ -3,7 +3,12 @@
  * the files matched by import.meta.glob('/src/modules/*\/height/*.ts'), keyed by
  * HeightSourceSpec.workerModule; each default-exports a HeightModule or exports `create`.
  */
-import type { HeightFunction, HeightModule, HeightSourceSpec, HeightWorkerContext } from '../../core/contracts';
+import type {
+  HeightFunction,
+  HeightModule,
+  HeightSourceSpec,
+  HeightWorkerContext,
+} from '../../core/contracts';
 
 type HeightFile = { default?: HeightModule; create?: HeightModule['create'] };
 
@@ -40,4 +45,5 @@ export function loadHeightFunction(spec: HeightSpecLike, ctx: HeightWorkerContex
 }
 
 /** The height function if it has already loaded (synchronous). */
-export const peekHeightFunction = (spec: HeightSpecLike): HeightFunction | undefined => ready.get(specKey(spec));
+export const peekHeightFunction = (spec: HeightSpecLike): HeightFunction | undefined =>
+  ready.get(specKey(spec));

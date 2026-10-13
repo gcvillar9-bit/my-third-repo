@@ -10,7 +10,11 @@ import {
   unpackKey,
   warp,
 } from '../../../src/modules/terrain/cube';
-import { DEFAULT_HEIGHT_MODULE, defaultHeightSpec, terrainEligible } from '../../../src/modules/terrain/defaults';
+import {
+  DEFAULT_HEIGHT_MODULE,
+  defaultHeightSpec,
+  terrainEligible,
+} from '../../../src/modules/terrain/defaults';
 import { groundRadius } from '../../../src/modules/terrain/ground';
 import {
   createFbmCraters,
@@ -18,7 +22,13 @@ import {
   maxAbsHeight,
 } from '../../../src/modules/terrain/height/fbm-craters-lite';
 import { heightModuleKeys, loadHeightFunction } from '../../../src/modules/terrain/height-modules';
-import { buildPatch, patchDirs, patchIndex, VERTEX_COUNT, type PatchRequest } from '../../../src/modules/terrain/patch';
+import {
+  buildPatch,
+  patchDirs,
+  patchIndex,
+  VERTEX_COUNT,
+  type PatchRequest,
+} from '../../../src/modules/terrain/patch';
 
 const MOON_A = 1738.1e3;
 const MOON_C = 1736.0e3;
@@ -131,7 +141,9 @@ describe('patches', () => {
         // GPU: float32(centre − camera) + float32 offset, summed in float32.
         for (let ax = 0; ax < 3; ax++) {
           const ref = dirs[3 * k + ax] * re - (ax === 0 ? cam.x : ax === 1 ? cam.y : cam.z);
-          const gpu = f(f(p.centre[ax] - (ax === 0 ? cam.x : ax === 1 ? cam.y : cam.z)) + p.positions[3 * v + ax]);
+          const gpu = f(
+            f(p.centre[ax] - (ax === 0 ? cam.x : ax === 1 ? cam.y : cam.z)) + p.positions[3 * v + ax],
+          );
           worst = Math.max(worst, Math.abs(gpu - ref));
         }
       }
@@ -142,11 +154,18 @@ describe('patches', () => {
   it('normals point outward and skirts hang below the edges', () => {
     const p = buildPatch(fn, { ...base, face: 1, x: 3, y: 400 });
     for (let v = 0; v < VERTEX_COUNT; v++) {
-      const d = p.upH[4 * v] * p.normals[3 * v] + p.upH[4 * v + 1] * p.normals[3 * v + 1] + p.upH[4 * v + 2] * p.normals[3 * v + 2];
+      const d =
+        p.upH[4 * v] * p.normals[3 * v] +
+        p.upH[4 * v + 1] * p.normals[3 * v + 1] +
+        p.upH[4 * v + 2] * p.normals[3 * v + 2];
       expect(d).toBeGreaterThan(0.2);
     }
     const r = (v: number) =>
-      Math.hypot(p.centre[0] + p.positions[3 * v], p.centre[1] + p.positions[3 * v + 1], p.centre[2] + p.positions[3 * v + 2]);
+      Math.hypot(
+        p.centre[0] + p.positions[3 * v],
+        p.centre[1] + p.positions[3 * v + 1],
+        p.centre[2] + p.positions[3 * v + 2],
+      );
     const skirt = PATCH_N * PATCH_N;
     expect(r(skirt)).toBeLessThan(r(0) - 1);
     expect(Math.max(...patchIndex())).toBe(VERTEX_COUNT - 1);
@@ -196,9 +215,19 @@ describe('fbm-craters-lite', () => {
 
   it('the default spec resolves through the height-module glob', async () => {
     expect(heightModuleKeys()).toContain(DEFAULT_HEIGHT_MODULE);
-    const body = { id: 'moon', name: 'Moon', kind: 'moon' as const, frame: 'moon', radius: MOON_A, influenceRadius: 1e8 };
+    const body = {
+      id: 'moon',
+      name: 'Moon',
+      kind: 'moon' as const,
+      frame: 'moon',
+      radius: MOON_A,
+      influenceRadius: 1e8,
+    };
     const spec = defaultHeightSpec(body);
-    const loaded = await loadHeightFunction(spec, { seed: 1, fetchBinary: () => Promise.reject(new Error('none')) });
+    const loaded = await loadHeightFunction(spec, {
+      seed: 1,
+      fetchBinary: () => Promise.reject(new Error('none')),
+    });
     const direct = createFbmCraters(spec.params as ReturnType<typeof defaultParams>);
     const x = new Float64Array(5);
     const y = new Float64Array(5);
@@ -226,7 +255,11 @@ describe('ground query', () => {
     const vtx = (i: number, j: number) => {
       const v = j * PATCH_N + i;
       // Float32 GPU vertex relative to the tile centre (as drawn), back in float64 body space.
-      return [p.centre[0] + p.positions[3 * v], p.centre[1] + p.positions[3 * v + 1], p.centre[2] + p.positions[3 * v + 2]];
+      return [
+        p.centre[0] + p.positions[3 * v],
+        p.centre[1] + p.positions[3 * v + 1],
+        p.centre[2] + p.positions[3 * v + 2],
+      ];
     };
     const i = ci - 32 * x;
     const j = cj - 32 * y;
@@ -234,7 +267,11 @@ describe('ground query', () => {
     const p10 = vtx(i + 1, j);
     const p11 = vtx(i + 1, j + 1);
     const p01 = vtx(i, j + 1);
-    const cross = (a: number[], b: number[]) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    const cross = (a: number[], b: number[]) => [
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0],
+    ];
     const dot = (a: number[], b: number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     const d = [dir.x, dir.y, dir.z];
     const nrm = cross(p00, p11);

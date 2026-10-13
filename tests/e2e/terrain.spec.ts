@@ -24,7 +24,12 @@ async function open(page: Page, bookmark: string, problems: string[], shot = tru
   });
   const png = await page.screenshot(shot ? { path: `artifacts/terrain/${bookmark}.png` } : {});
   const probe = (x: number, y: number, w: number, h: number) =>
-    page.evaluate(([a, b, c, d]) => window.__universe!.probe(a, b, c, d), [x, y, w, h] as const) as Promise<RGB>;
+    page.evaluate(([a, b, c, d]) => window.__universe!.probe(a, b, c, d), [
+      x,
+      y,
+      w,
+      h,
+    ] as const) as Promise<RGB>;
   const stats = await page.evaluate(() => window.__universe!.stats());
   const errors = await page.evaluate(() => window.__universe!.errors());
   return { probe, stats, errors, png };

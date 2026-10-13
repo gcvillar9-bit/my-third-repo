@@ -3,7 +3,17 @@
  * the eye sits a known height above the actual mesh.
  */
 import type { Body, Bookmark, FrameTree, Quatd, Vec3d } from '../../core/contracts';
-import { qlookRotation, quat, v3addScaled, v3cross, v3dot, v3normalize, v3scale, v3sub, vec3 } from '../../core/math64';
+import {
+  qlookRotation,
+  quat,
+  v3addScaled,
+  v3cross,
+  v3dot,
+  v3normalize,
+  v3scale,
+  v3sub,
+  vec3,
+} from '../../core/math64';
 
 const DEG = Math.PI / 180;
 
@@ -23,7 +33,11 @@ export const SURFACE_FOV = 80 * DEG;
 export const MOON_ORBIT_ALT = 50_000;
 
 export const unitFromLatLon = (latDeg: number, lonDeg: number): Vec3d =>
-  vec3(Math.cos(latDeg * DEG) * Math.cos(lonDeg * DEG), Math.cos(latDeg * DEG) * Math.sin(lonDeg * DEG), Math.sin(latDeg * DEG));
+  vec3(
+    Math.cos(latDeg * DEG) * Math.cos(lonDeg * DEG),
+    Math.cos(latDeg * DEG) * Math.sin(lonDeg * DEG),
+    Math.sin(latDeg * DEG),
+  );
 
 /** Camera quaternion looking along azimuth `forwardH` (horizontal unit) pitched by `pitch` rad. */
 function lookPitched(forwardH: Vec3d, up: Vec3d, pitch: number): Quatd {
@@ -56,7 +70,10 @@ export function apolloView(
   if (Math.hypot(h.x, h.y, h.z) < 1e-6) h = v3cross(vec3(), up, vec3(0, 0, 1));
   v3normalize(h, h);
   // Earth ~6° below the top edge, horizon in the lower part of the frame.
-  const pitch = Math.max(5 * DEG, Math.min(SURFACE_FOV / 2 - 6 * DEG, earthElevation - SURFACE_FOV / 2 + 6 * DEG));
+  const pitch = Math.max(
+    5 * DEG,
+    Math.min(SURFACE_FOV / 2 - 6 * DEG, earthElevation - SURFACE_FOV / 2 + 6 * DEG),
+  );
   return { pos, quat: lookPitched(h, up, pitch), earthElevation, pitch };
 }
 
@@ -108,7 +125,15 @@ export function terrainBookmarks(
       // Jitter pair: same site, free mode, time frozen, b = a + 1 mm east.
       const a = apolloView(frames, fixed, groundRadius);
       const east = v3normalize(vec3(), v3cross(vec3(), vec3(0, 0, 1), a.pos));
-      const common = { frame: fixed, quat: a.quat, jd: APOLLO11_JD, rate: 0, ev: 14, fovY: SURFACE_FOV, mode: 'free' as const };
+      const common = {
+        frame: fixed,
+        quat: a.quat,
+        jd: APOLLO11_JD,
+        rate: 0,
+        ev: 14,
+        fovY: SURFACE_FOV,
+        mode: 'free' as const,
+      };
       out.push({ id: 'terrain-jitter-a', title: 'Terrain jitter A (test)', pos: a.pos, ...common });
       out.push({
         id: 'terrain-jitter-b',

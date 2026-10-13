@@ -124,7 +124,12 @@ export class TerrainSystem {
       const b = this.deps.registry.body(m.opts.bodyId);
       if (!b) continue;
       const spec = this.specFor(b);
-      if (spec === m.spec || (spec.workerModule === m.spec.workerModule && JSON.stringify(spec.params) === JSON.stringify(m.spec.params))) continue;
+      if (
+        spec === m.spec ||
+        (spec.workerModule === m.spec.workerModule &&
+          JSON.stringify(spec.params) === JSON.stringify(m.spec.params))
+      )
+        continue;
       m.reset(spec);
       void this.loadFn(m);
     }
@@ -134,7 +139,9 @@ export class TerrainSystem {
     if (this.gen) return this.gen;
     const local: Generator = {
       build: (req) =>
-        this.deps.assets.track(loadHeightFunction(req.spec, this.fnCtx).then((fn) => buildPatch(fn, req, req.key))),
+        this.deps.assets.track(
+          loadHeightFunction(req.spec, this.fnCtx).then((fn) => buildPatch(fn, req, req.key)),
+        ),
     };
     const pool = this.deps.workers;
     if (!pool || typeof Worker === 'undefined') {
@@ -153,7 +160,8 @@ export class TerrainSystem {
           broken
             ? local.build(req)
             : h.call('build', req).catch((e: unknown) => {
-                if (!broken) this.deps.onError?.(`terrain: worker failed, generating on the main thread (${String(e)})`);
+                if (!broken)
+                  this.deps.onError?.(`terrain: worker failed, generating on the main thread (${String(e)})`);
                 broken = true;
                 return local.build(req);
               }),

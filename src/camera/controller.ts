@@ -119,7 +119,7 @@ export class CameraController implements CameraApi {
     const { frames, registry } = this.deps;
     const n = this.computeNearest();
     const b = n ? registry.body(n.bodyId) : undefined;
-    if (!n || !b || !SOLID.has(b.kind) || n.altitude > WALK_RANGE) return false;
+    if (!n || !b || !SOLID.has(b.kind) || b.kind === 'star' || n.altitude > WALK_RANGE) return false;
     const fixed = b.fixedFrame && frames.has(b.fixedFrame) ? b.fixedFrame : b.frame;
     const jd = this.deps.jd();
     const pose: WalkPose = {

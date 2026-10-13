@@ -51,7 +51,8 @@ const terrain: UniverseModule = {
       camera.subscribe(() => {
         const m = camera.mode;
         if (m === last) return;
-        if (m === 'walk') ctx.ui.toast('Walking: W A S D to move, Shift to run, Space to jump, G to fly again');
+        if (m === 'walk')
+          ctx.ui.toast('Walking: W A S D to move, Shift to run, Space to jump, G to fly again');
         else if (last === 'walk') ctx.ui.toast('Flying');
         last = m;
       }),

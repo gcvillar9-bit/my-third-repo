@@ -207,7 +207,8 @@ export function buildTerrain(body: Body, shading: SurfaceShading, deps: TerrainR
     memoryBytes() {
       const mgr = deps.manager();
       let n = 0;
-      if (mgr) for (const t of mgr.tiles.values()) if (t.gpu) n += t.positions.byteLength * 2 + t.upH.byteLength;
+      if (mgr)
+        for (const t of mgr.tiles.values()) if (t.gpu) n += t.positions.byteLength * 2 + t.upH.byteLength;
       return n;
     },
     dispose() {
