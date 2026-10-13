@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "notes": "Hillaire (2020) atmosphere parameters per body. SI units (m, 1/m); RGB channels are 680, 550 and 440 nm. The bottom radius is the body's equatorial radius; the ellipsoid is rendered in a space where it is a sphere.",
+  "bodies": [
+    {
+      "id": "earth",
+      "thicknessM": 100000,
+      "rayleigh": {
+        "scattering": [5.802e-6, 13.558e-6, 33.1e-6],
+        "scaleHeightM": 8000,
+        "source": "Hillaire 2020 / Bruneton & Neyret 2008 (sea-level air, 680/550/440 nm)"
+      },
+      "mie": {
+        "scattering": [3.996e-6, 3.996e-6, 3.996e-6],
+        "extinction": [4.44e-6, 4.44e-6, 4.44e-6],
+        "scaleHeightM": 1200,
+        "g": [0.8, 0.8, 0.8],
+        "source": "Hillaire 2020 default continental aerosol"
+      },
+      "absorption": {
+        "extinction": [0.65e-6, 1.881e-6, 0.085e-6],
+        "centerM": 25000,
+        "halfWidthM": 15000,
+        "source": "Hillaire 2020 ozone (tent profile 10-40 km)"
+      },
+      "groundAlbedo": [0.3, 0.3, 0.3],
+      "apMaxM": 128000,
+      "sunTransmittanceInPost": false,
+      "approximate": false,
+      "source": "Hillaire, A Scalable and Production Ready Sky and Atmosphere Rendering Technique, EGSR 2020"
+    },
+    {
+      "id": "mars",
+      "thicknessM": 100000,
+      "rayleigh": {
+        "scattering": [0.1187e-6, 0.2774e-6, 0.677e-6],
+        "scaleHeightM": 11100,
+        "source": "Earth Rayleigh x number-density ratio 0.00825 (610 Pa, 210 K) x CO2/air cross-section 2.48 (Sneep & Ubachs 2005)"
+      },
+      "mie": {
+        "scattering": [5.29e-5, 5.01e-5, 4.36e-5],
+        "extinction": [5.45e-5, 5.45e-5, 5.45e-5],
+        "scaleHeightM": 11000,
+        "g": [0.62, 0.68, 0.8],
+        "source": "Dust tau 0.6 (MSL typical), single-scattering albedo 0.97/0.92/0.80 and stronger blue forward lobe after Wolff et al. 2009 and Lemmon et al. 2015 (blue sunset)"
+      },
+      "absorption": {
+        "extinction": [0, 0, 0],
+        "centerM": 0,
+        "halfWidthM": 1,
+        "source": "none"
+      },
+      "groundAlbedo": [0.3, 0.2, 0.12],
+      "apMaxM": 128000,
+      "sunTransmittanceInPost": true,
+      "approximate": true,
+      "source": "Hand-built dusty CO2 model tuned so the low-Sun sky near the Sun is blue (B/R > 1.1) and butterscotch away from it"
+    },
+    {
+      "id": "venus",
+      "thicknessM": 60000,
+      "rayleigh": {
+        "scattering": [0.71e-6, 1.66e-6, 4.05e-6],
+        "scaleHeightM": 5000,
+        "source": "CO2 at the ~70 km cloud tops (0.04 bar, 230 K): Earth Rayleigh x 0.049 x 2.48"
+      },
+      "mie": {
+        "scattering": [3.0e-5, 3.0e-5, 3.0e-5],
+        "extinction": [3.03e-5, 3.03e-5, 3.03e-5],
+        "scaleHeightM": 5000,
+        "g": [0.7, 0.7, 0.7],
+        "source": "Upper sulfuric-acid haze, tau about 0.15, SSA 0.99 (approximate)"
+      },
+      "absorption": {
+        "extinction": [0, 0.15e-6, 1.2e-6],
+        "centerM": 10000,
+        "halfWidthM": 20000,
+        "source": "Unknown blue/UV absorber giving the yellow-white tint (approximate)"
+      },
+      "groundAlbedo": [0.8, 0.78, 0.7],
+      "apMaxM": 128000,
+      "sunTransmittanceInPost": true,
+      "approximate": true,
+      "source": "The rendered sphere is the cloud deck; this models only the haze above it"
+    },
+    {
+      "id": "titan",
+      "thicknessM": 600000,
+      "rayleigh": {
+        "scattering": [27e-6, 64e-6, 156e-6],
+        "scaleHeightM": 20000,
+        "source": "N2 at 1.5 bar, 94 K: Earth Rayleigh x number-density ratio 4.5"
+      },
+      "mie": {
+        "scattering": [4.75e-5, 5.27e-5, 4.68e-5],
+        "extinction": [5.0e-5, 6.2e-5, 7.8e-5],
+        "scaleHeightM": 65000,
+        "g": [0.6, 0.6, 0.6],
+        "source": "Tholin haze, tau about 3-5, SSA 0.95/0.85/0.60 (approximate, after Tomasko et al. 2008)"
+      },
+      "absorption": {
+        "extinction": [0, 0, 0],
+        "centerM": 0,
+        "halfWidthM": 1,
+        "source": "none"
+      },
+      "groundAlbedo": [0.2, 0.18, 0.15],
+      "apMaxM": 128000,
+      "sunTransmittanceInPost": true,
+      "approximate": true,
+      "source": "Hand-built orange haze ball"
+    }
+  ]
+}
