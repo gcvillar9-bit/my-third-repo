@@ -1,0 +1,56 @@
+{
+  "source": "Statistical model of the belts (not a catalogue): element ranges from Minor Planet Center / JPL SBDB distributions, gap and resonance locations from Kirkwood (1867) and Murray & Dermott (1999)",
+  "approximate": true,
+  "epochJd": 2451545.0,
+  "gaussK": 0.01720209895,
+  "counts": { "potato": 20000, "low": 60000, "medium": 150000, "high": 250000, "ultra": 400000 },
+  "fractions": { "main": 0.7, "hilda": 0.03, "trojan": 0.07, "kuiper": 0.14, "plutino": 0.06 },
+  "planets": {
+    "source": "Standish (1992) J2000 mean elements: mean longitude L0 (deg) and rate (deg/Julian century)",
+    "jupiter": { "L0": 34.39644051, "rate": 3034.74612775 },
+    "neptune": { "L0": -55.12002969, "rate": 218.45945325 }
+  },
+  "main": {
+    "aMin": 2.1,
+    "aMax": 3.3,
+    "eSigma": 0.11,
+    "eMax": 0.35,
+    "iSigmaDeg": 7,
+    "H": [11, 18],
+    "gaps": [
+      { "name": "3:1", "a": 2.502, "width": 0.024, "depth": 0.97 },
+      { "name": "5:2", "a": 2.825, "width": 0.016, "depth": 0.93 },
+      { "name": "7:3", "a": 2.958, "width": 0.01, "depth": 0.85 },
+      { "name": "2:1", "a": 3.279, "width": 0.03, "depth": 0.97 }
+    ]
+  },
+  "hilda": { "aSpread": 0.04, "eMin": 0.07, "eMax": 0.3, "iSigmaDeg": 8, "sigmaAmpDeg": 40, "H": [10, 16] },
+  "trojan": {
+    "aSpread": 0.12,
+    "eMax": 0.15,
+    "iSigmaDeg": 12,
+    "libAmpMaxDeg": 35,
+    "libPeriodYr": 150,
+    "l4Fraction": 0.62,
+    "H": [9, 15]
+  },
+  "kuiper": {
+    "aMin": 42,
+    "aMax": 48,
+    "coldFraction": 0.6,
+    "eSigmaCold": 0.04,
+    "eSigmaHot": 0.1,
+    "iColdDeg": 2,
+    "iHotDeg": 15,
+    "H": [5, 9]
+  },
+  "plutino": { "aSpread": 0.25, "eMin": 0.1, "eMax": 0.3, "iSigmaDeg": 10, "sigmaAmpDeg": 80, "H": [5, 9] },
+  "display": {
+    "source": "Visibility enhancement (not physical): real belt members are far below naked-eye brightness",
+    "boostMag": 19,
+    "referenceCount": 150000,
+    "pointSizePx": 2,
+    "nearFadeM": [1e6, 1e8],
+    "farFadeAu": [3000, 30000]
+  }
+}
