@@ -1,0 +1,15 @@
+{
+  "module": "starsystems",
+  "assets": [
+    {
+      "id": "stellarium_modern",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/modern/index.json",
+      "file": "stellarium_modern_index.json",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "Stellarium sky culture 'modern' (IAU constellation figures), Stellarium contributors, github.com/Stellarium/stellarium",
+      "outputs": ["data/starsystems/constellations.json"],
+      "sha256": "1f2f5ffd6c9e25a7d0dcfdbf1f756e2db03dd3b8ed4ec016a2839b09f6b0fe1e",
+      "bytes": 205767
+    }
+  ]
+}
