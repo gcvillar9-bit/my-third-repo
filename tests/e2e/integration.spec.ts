@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Phase-1 integration: default start (earth-now) plus the solar-system palette flow with the UI shell.
+ * Integration: default start (earth-dawn-400km since Phase 2) plus the solar-system palette flow with the UI shell.
  * Test mode has no rAF, so the flight advances through renderFrames (60 frames = 1 s at the fixed step).
  */
 test(
-  'integration: default start is earth-now, palette "Saturn" arrives within 12 s',
+  'integration: default start is earth-dawn-400km, palette "Saturn" arrives within 12 s',
   { tag: '@smoke' },
   async ({ page }) => {
     const problems: string[] = [];
@@ -13,13 +13,20 @@ test(
       if (msg.type() === 'error') problems.push(`console: ${msg.text()}`);
     });
     page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
-    // No b=: boot must fall back to the default bookmark (earth-now, lookAt earth).
+    // No b=: boot must fall back to the default bookmark (earth-dawn-400km, lookAt earth).
     await page.goto('?test=1&q=potato&ui=1');
     await page.waitForFunction(() => window.__universe !== undefined);
     await page.evaluate(() => window.__universe!.ready());
     await page.evaluate(() => window.__universe!.renderFrames(2));
     const hud = page.locator('.cz-hud');
     await expect(hud).toHaveAttribute('data-target', 'earth');
+    // The palette flight starts from earth-now: from 400 km the terrain and in-atmosphere frames make
+    // 700 software-rendered frames too slow for the test budget.
+    await page.evaluate(async () => {
+      await window.__universe!.goto('earth-now');
+      await window.__universe!.ready();
+      await window.__universe!.renderFrames(2);
+    });
 
     await page.keyboard.press('/');
     const input = page.locator('.cz-palette-input');

@@ -24,11 +24,14 @@ import { Loop, TEST_DT } from './loop';
 import { startOnboarding } from './onboarding';
 import { captureErrors, installTestApi, recordError } from './test-api';
 import { instantOf, parseHash, stateFromCamera, UrlSync, type UrlState } from './url-state';
+import { terrainStats } from '../modules/terrain/public';
 
 /** Sim instant used in test mode when no ?t= is given (deterministic screenshots). */
 export const TEST_DEFAULT_TIME = '2026-01-01T00:00:00Z';
 /** Bookmark shown at boot when the URL names no view (registered by solar-system). */
-export const DEFAULT_BOOKMARK = 'earth-now';
+export const DEFAULT_BOOKMARK = 'earth-dawn-400km';
+/** Used when the default bookmark is missing (e.g. a build without the earth module). */
+export const FALLBACK_BOOKMARK = 'earth-now';
 
 export interface Engine {
   ctx: ModuleContext;
@@ -65,6 +68,7 @@ export async function boot(): Promise<Engine | undefined> {
   let render: EngineRenderer;
   try {
     render = new EngineRenderer({
+      tileCount: () => terrainStats().tiles,
       canvas,
       test,
       quality,
@@ -162,7 +166,7 @@ export async function boot(): Promise<Engine | undefined> {
   // Initial view: ?b= (tests) > #b= / #f=&p=&q= > default bookmark > overview of the ssb.
   const initial: UrlState = test ? { b: env.params.get('b') ?? undefined } : hash;
   if (!(await applyUrlState(initial))) {
-    const def = registry.bookmark(DEFAULT_BOOKMARK);
+    const def = registry.bookmark(DEFAULT_BOOKMARK) ?? registry.bookmark(FALLBACK_BOOKMARK);
     if (def) await camera.goto(def, { instant: true });
     else {
       const p = vec3(0, -3 * AU, 1 * AU);
@@ -214,6 +218,10 @@ export async function boot(): Promise<Engine | undefined> {
       },
       setTime: (iso) => clock.setTime(iso),
       stats: () => render.stats(),
+      compileAll: async () => {
+        await render.compileAll();
+        return render.stats().programs;
+      },
     });
   }
 

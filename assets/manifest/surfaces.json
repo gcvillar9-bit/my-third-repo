@@ -1,0 +1,41 @@
+{
+  "module": "surfaces",
+  "assets": [
+    {
+      "id": "celestia_moon-normal",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/moon-normal.png",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires), derived from LRO LOLA topography",
+      "outputs": ["data/surfaces/moon_height_2k.png"],
+      "sha256": "5d7642362db87145d763491e019aedb74ce39d3821a5f904cee06a39567d7d45",
+      "bytes": 12281284
+    },
+    {
+      "id": "celestia_mars-normal",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/mars-normal.png",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent textures/hires), derived from MGS MOLA topography",
+      "outputs": ["data/surfaces/mars_height_2k.png"],
+      "sha256": "618e8083c824a06a884a4ed422b4aa229e4b4140bbb8e1be7aa1a4196df18335",
+      "bytes": 6777168
+    },
+    {
+      "id": "three-globe_earth-topology",
+      "url": "https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-topology.png",
+      "license": "MIT",
+      "attribution": "three-globe examples (vasturiano/three-globe); NASA/NOAA ETOPO relief (public domain)",
+      "outputs": ["data/surfaces/earth_height_2k.png"],
+      "sha256": "839b12da2e4dd346b256cebae72e10c479a102c8980a22084c41275e4b9a0e12",
+      "bytes": 378243
+    },
+    {
+      "id": "three-globe_earth-water",
+      "url": "https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-water.png",
+      "license": "MIT",
+      "attribution": "three-globe examples (vasturiano/three-globe); NASA water mask (public domain)",
+      "outputs": ["data/surfaces/earth_ocean_2k.png"],
+      "sha256": "3a8132db56aac4e64e7fcbf2928ee970c075ac6a96b38798d0bb8be82836a4d3",
+      "bytes": 430200
+    }
+  ]
+}

@@ -4,7 +4,7 @@ Fly through a realistic universe in your browser: from standing on planet surfac
 
 **Live:** https://gcvillar9-bit.github.io/my-third-repo/ (needs WebGL2)
 
-## What works so far (Phase 1)
+## What works so far (Phases 1 and 2)
 
 - A camera that travels seamlessly from metres to light-years (64-bit frame tree, camera-relative rendering, log depth).
 - Physically exposed rendering: real luminances, auto exposure, bloom and filmic tone mapping.
@@ -13,12 +13,18 @@ Fly through a realistic universe in your browser: from standing on planet surfac
 - 119,625 real stars (HYG catalogue) with true colours and brightness from any viewpoint, plus the Milky Way glow.
 - Search palette, info cards, time controls (warp, pause, any date), HUD with speed and distance, shareable links.
 
-Demo links and what to look for: [docs/demos/phase-1.md](docs/demos/phase-1.md).
+- Phase 2: seamless terrain from orbit to your boots on every rocky planet and moon (cube-sphere quadtree, real
+  Moon, Mars and Earth elevation plus procedural craters, dunes, ridges and calderas), walk mode with real gravity
+  and jumping, physically based atmospheres (Earth, Mars, Venus, Titan: blue Earth sky, blue Martian sunset) and a
+  hero Earth with ocean glint, city lights, clouds and cloud shadows. Optional streamed HD Earth terrain.
+
+Demo links and what to look for: [docs/demos/phase-1.md](docs/demos/phase-1.md),
+[docs/demos/phase-2.md](docs/demos/phase-2.md).
 
 ## Controls
 
 `/` search and fly · drag to look · `W` `A` `S` `D` fly · `R` / `F` up and down · `Q` / `E` roll · wheel or `[` `]`
-speed · `O` orbit · `G` go to · `I` info · `,` `.` time warp · `P` pause · `N` now · `L` copy link · `H` hide UI ·
+speed · `O` orbit · `G` go to (near a surface: walk, with `Shift` run and `Space` jump) · `I` info · `,` `.` time warp · `P` pause · `N` now · `L` copy link · `H` hide UI ·
 `?` help. Add `?perf=1` to the URL for an fps meter.
 
 ## Run locally

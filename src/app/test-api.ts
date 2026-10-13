@@ -14,6 +14,13 @@ export interface TestApiHost {
   goto(bookmarkId: string): Promise<void>;
   setTime(iso: string): void;
   stats(): RenderStats;
+  /** Compiles the materials of every scene (renderer.compileAsync) and returns the program count. */
+  compileAll(): Promise<number>;
+}
+
+/** Test-only additions to the contract's UniverseTestApi (see docs/CONTRACTS.md). */
+export interface UniverseTestApiExtras {
+  compileAll(): Promise<number>;
 }
 
 const errors: string[] = [];
@@ -43,7 +50,7 @@ export const srgbToLinear = (c: number): number => (c <= 0.04045 ? c / 12.92 : (
 
 export function installTestApi(host: TestApiHost): UniverseTestApi {
   const { renderer } = host;
-  const api: UniverseTestApi = {
+  const api: UniverseTestApi & UniverseTestApiExtras = {
     ready: () => host.ready(),
     async renderFrames(n: number) {
       for (let i = 0; i < n; i++) {
@@ -72,6 +79,7 @@ export function installTestApi(host: TestApiHost): UniverseTestApi {
       return [sum[0] / n, sum[1] / n, sum[2] / n];
     },
     errors: () => errors.slice(),
+    compileAll: () => host.compileAll(),
   };
   window.__universe = api;
   return api;

@@ -7,3 +7,10 @@ export declare function fft2d(
   height: number,
   inverse?: boolean,
 ): void;
+export declare function frankotChellappa(
+  p: ArrayLike<number>,
+  q: ArrayLike<number>,
+  w: number,
+  h: number,
+  opts?: { mirrorY?: boolean; kernel?: 'central' | 'omega'; lambda?: number },
+): Float64Array;
