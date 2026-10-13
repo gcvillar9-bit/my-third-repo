@@ -1,0 +1,174 @@
+{
+  "description": "GalaxyModel parameters (P4-A). Units: kpc, degrees, emissivity in Lsun(V) pc^-3, dust opacity kappa_V in 1/kpc. Model frame: origin Sgr A*, z = physical mid-plane normal (tilted so the Sun sits z0 above it), x from the Sun's projection towards the centre, y towards l = 90 deg (direction of rotation at the Sun). Arm azimuth beta (Reid 2019): 0 towards the Sun as seen from the centre, increasing in the direction of Galactic rotation (clockwise seen from the north Galactic pole).",
+  "sun": {
+    "R0": 8.178,
+    "z0": 0.0208,
+    "source": "R0: GRAVITY Collaboration 2019, A&A 625, L10; z0: Bennett & Bovy 2019, MNRAS 482, 1417 (same values as src/core/units.ts)"
+  },
+  "thinDisk": {
+    "hR": 2.6,
+    "hz": 0.3,
+    "j0": 0.03,
+    "holeR": 3.0,
+    "holeDepth": 0.6,
+    "teff": 4800,
+    "source": "hR, hz: Bland-Hawthorn & Gerhard 2016, ARA&A 54, 529 (Table 6); j0 = 0.03 Lsun/pc^3 so that 2 j0 hz = 18 Lsun/pc^2, the local V-band disc surface brightness of Flynn et al. 2006 (MNRAS 372, 1149), approximate; inner depletion inside the bar (Freudenreich 1998, ApJ 492, 495, approximate)"
+  },
+  "thickDisk": {
+    "hR": 2.0,
+    "hz": 0.9,
+    "norm": 0.12,
+    "teff": 4500,
+    "source": "Bland-Hawthorn & Gerhard 2016, ARA&A 54, 529: thick/thin local density ratio f = 0.12, hR 2.0 kpc, hz 0.9 kpc"
+  },
+  "bulge": {
+    "x0": 1.0,
+    "y0": 0.42,
+    "z0": 0.3,
+    "j0": 2.2,
+    "teff": 4300,
+    "source": "Boxy/peanut bulge axis ratios 10:6.3:2.6 rounded (Wegg & Gerhard 2013, MNRAS 435, 1874); j0 tuned so bulge + bar give ~1e10 Lsun(V) (Bland-Hawthorn & Gerhard 2016), approximate"
+  },
+  "bar": {
+    "angleDeg": 27,
+    "halfLength": 5.0,
+    "yScale": 0.55,
+    "zScale": 0.18,
+    "endSharpness": 6,
+    "j0": 0.6,
+    "teff": 4500,
+    "source": "Long bar half-length 5.0 kpc, angle 27 deg to the Sun-centre line, near end at positive l (Wegg, Gerhard & Portail 2015, MNRAS 450, 4050; Bland-Hawthorn & Gerhard 2016); widths and j0 approximate"
+  },
+  "armProfile": {
+    "widthGrowth": 0.042,
+    "widthScale": 2.0,
+    "youngJ0": 0.07,
+    "youngHR": 3.5,
+    "youngHz": 0.09,
+    "youngTeff": 11000,
+    "oldContrast": 1.0,
+    "taperDeg": 25,
+    "source": "Arm width grows 0.042 kpc per kpc of radius (Reid et al. 2019, ApJ 885, 131); stellar/optical arms drawn 2x the maser-traced widths (approximate); young-population emissivity, scale length/height and old-disk arm contrast (arm/interarm ~2, Drimmel & Spergel 2001, ApJ 556, 181) are approximate"
+  },
+  "arms": [
+    {
+      "name": "Norma-Outer",
+      "segment": "Norma",
+      "betaKink": 18,
+      "rKink": 4.46,
+      "psiLt": -1.0,
+      "psiGt": 19.5,
+      "width": 0.14,
+      "betaMeasured": [5, 54],
+      "betaRender": [-10, 100],
+      "young": 0.6,
+      "old": 0.25,
+      "dust": 0.6,
+      "source": "Reid et al. 2019, ApJ 885, 131, Table 2 (render range extrapolated, approximate)"
+    },
+    {
+      "name": "Norma-Outer",
+      "segment": "Outer",
+      "betaKink": 18,
+      "rKink": 12.24,
+      "psiLt": 3.0,
+      "psiGt": 9.4,
+      "width": 0.65,
+      "betaMeasured": [-16, 71],
+      "betaRender": [-120, 200],
+      "young": 0.6,
+      "old": 0.25,
+      "dust": 0.6,
+      "source": "Reid et al. 2019, ApJ 885, 131, Table 2 (render range extrapolated, approximate)"
+    },
+    {
+      "name": "Scutum-Centaurus",
+      "segment": "Scutum-Centaurus",
+      "betaKink": 23,
+      "rKink": 4.91,
+      "psiLt": 14.1,
+      "psiGt": 12.1,
+      "width": 0.23,
+      "betaMeasured": [0, 104],
+      "betaRender": [-300, 110],
+      "young": 1.0,
+      "old": 1.0,
+      "dust": 1.0,
+      "source": "Reid et al. 2019, ApJ 885, 131, Table 2 (render range extrapolated, approximate)"
+    },
+    {
+      "name": "Sagittarius-Carina",
+      "segment": "Sagittarius-Carina",
+      "betaKink": 24,
+      "rKink": 6.04,
+      "psiLt": 17.1,
+      "psiGt": 1.0,
+      "width": 0.27,
+      "betaMeasured": [2, 97],
+      "betaRender": [-170, 140],
+      "young": 0.8,
+      "old": 0.3,
+      "dust": 0.8,
+      "source": "Reid et al. 2019, ApJ 885, 131, Table 2 (render range extrapolated, approximate)"
+    },
+    {
+      "name": "Local",
+      "segment": "Local",
+      "betaKink": 9,
+      "rKink": 8.26,
+      "psiLt": 11.4,
+      "psiGt": 11.4,
+      "width": 0.31,
+      "betaMeasured": [-8, 27],
+      "betaRender": [-45, 65],
+      "young": 0.5,
+      "old": 0.15,
+      "dust": 0.25,
+      "source": "Reid et al. 2019, ApJ 885, 131, Table 2 (render range extrapolated, approximate; weaker dust: the Sun sits in the low-extinction Local Bubble on its inner edge, Lallement et al. 2019)"
+    },
+    {
+      "name": "Perseus",
+      "segment": "Perseus",
+      "betaKink": 40,
+      "rKink": 8.87,
+      "psiLt": 10.3,
+      "psiGt": 8.7,
+      "width": 0.35,
+      "betaMeasured": [-23, 115],
+      "betaRender": [-200, 215],
+      "young": 1.0,
+      "old": 1.0,
+      "dust": 1.0,
+      "source": "Reid et al. 2019, ApJ 885, 131, Table 2 (render range extrapolated, approximate)"
+    }
+  ],
+  "dust": {
+    "hR": 5.0,
+    "hz": 0.1,
+    "kappaV0": 0.7,
+    "armKappa": 2.2,
+    "edgeOffset": 0.6,
+    "edgeWidth": 0.6,
+    "reddening": [0.75, 1.0, 1.32],
+    "source": "hR 5.0 kpc, hz 0.1 kpc (Misiriotis et al. 2006, A&A 459, 113); kappa_V tuned to ~1.3 mag/kpc in the local mid-plane and A_V ~30 mag towards Sgr A*; dust on the inner (concave) arm edges (density-wave shocks, Roberts 1969); R:V:B extinction ratios from Cardelli, Clayton & Mathis 1989 (R_V = 3.1); approximate"
+  },
+  "hii": {
+    "cell": 0.5,
+    "sigma": 0.06,
+    "hz": 0.05,
+    "j0": 0.6,
+    "fraction": 0.45,
+    "rgb": [1.0, 0.3, 0.42],
+    "source": "Procedural HII clumps along the arms (one hashed clump per 0.5 kpc cell, ~45% occupied); colour of Halpha + Hbeta + [NII] emission; approximate, artist-level"
+  },
+  "bounds": {
+    "rMax": 20.0,
+    "zMax": 4.0,
+    "source": "Ray-march bounding cylinder (model choice)"
+  },
+  "photometry": {
+    "lsunLumens": 3.56e28,
+    "calibration": 1.0,
+    "source": "Sun V-band-equivalent luminous flux 3.828e26 W x 93 lm/W (luminous efficacy of sunlight); calibration multiplier for continuity with the stars panorama (1 = none)"
+  }
+}
