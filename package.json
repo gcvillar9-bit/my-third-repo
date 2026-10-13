@@ -1,0 +1,59 @@
+{
+  "name": "cosmos",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cosmos: fly through a realistic universe in the browser, from planet surfaces to the cosmic web.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run",
+    "e2e": "flock /tmp/universe-pw.lock playwright test",
+    "assets:fetch": "node tools/fetch-assets.mjs",
+    "assets:build": "for f in tools/build-*.mjs; do [ -e \"$f\" ] || continue; [ \"$f\" = tools/build-credits.mjs ] && continue; echo \"> node $f\"; node \"$f\" || exit 1; done",
+    "credits": "node tools/build-credits.mjs",
+    "size-guard": "node tools/size-guard.mjs",
+    "verify": "pnpm typecheck && pnpm test && pnpm build && pnpm size-guard",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@preact/signals": "2.11.3",
+    "astronomy-engine": "2.1.19",
+    "comlink": "4.4.2",
+    "fast-png": "8.0.0",
+    "fuse.js": "7.5.0",
+    "lil-gui": "0.21.0",
+    "postprocessing": "6.39.5",
+    "preact": "10.29.8",
+    "simplex-noise": "4.0.3",
+    "stats-gl": "4.2.3",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/node": "22.20.5",
+    "@types/three": "0.186.0",
+    "d3-celestial": "0.7.35",
+    "prettier": "3.9.10",
+    "sharp": "0.35.5",
+    "typescript": "5.9.3",
+    "vite": "8.3.4",
+    "vitest": "5.0.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true,
+    "printWidth": 110
+  }
+}
