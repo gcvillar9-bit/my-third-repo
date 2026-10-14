@@ -1,0 +1,37 @@
+{
+  "note": "Wind-noise density proxy: rho(h) = rho0 * exp(-h / H) below topM. Values are rounded; only their order of magnitude matters for the sound.",
+  "rows": [
+    {
+      "id": "earth",
+      "rho0": 1.225,
+      "scaleHeightM": 8500,
+      "topM": 100000,
+      "approximate": false,
+      "source": "NASA Earth Fact Sheet (surface density 1.217 kg/m3, scale height 8.5 km); US Standard Atmosphere 1976 sea level 1.225 kg/m3"
+    },
+    {
+      "id": "mars",
+      "rho0": 0.02,
+      "scaleHeightM": 11100,
+      "topM": 120000,
+      "approximate": true,
+      "source": "NASA Mars Fact Sheet (surface density ~0.020 kg/m3, scale height 11.1 km)"
+    },
+    {
+      "id": "venus",
+      "rho0": 65,
+      "scaleHeightM": 15900,
+      "topM": 250000,
+      "approximate": true,
+      "source": "NASA Venus Fact Sheet (surface density ~65 kg/m3, scale height 15.9 km)"
+    },
+    {
+      "id": "titan",
+      "rho0": 5.3,
+      "scaleHeightM": 40000,
+      "topM": 600000,
+      "approximate": true,
+      "source": "Fulchignoni et al. 2005 (Huygens HASI, surface ~5.3 kg/m3); scale height ~40 km is a rough lower-atmosphere value"
+    }
+  ]
+}
