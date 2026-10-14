@@ -18,7 +18,7 @@ const CSS = `
   border-radius: 5px; padding: 2px 8px; cursor: pointer; }
 .cz-tour button:hover { background: rgba(255, 255, 255, 0.16); }
 html[${PHOTO_ATTR}] .cz-tour { display: none; }
-@media (max-width: 640px) { .cz-tour-bar { width: 60px; } }
+@media (max-width: 760px) { .cz-tour { top: 46px; } .cz-tour-bar { width: 60px; } }
 `;
 
 export interface OverlayHandlers {
