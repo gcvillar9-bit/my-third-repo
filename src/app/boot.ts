@@ -169,9 +169,8 @@ export async function boot(): Promise<Engine | undefined> {
   };
 
   // Initial view: ?b= (tests) > #b= / #f=&p=&q= > default bookmark > overview of the ssb.
-  const initial: UrlState = test && !(live && !env.params.get('b'))
-    ? { b: env.params.get('b') ?? undefined }
-    : hash;
+  const initial: UrlState =
+    test && !(live && !env.params.get('b')) ? { b: env.params.get('b') ?? undefined } : hash;
   if (!(await applyUrlState(initial))) {
     const def = registry.bookmark(DEFAULT_BOOKMARK) ?? registry.bookmark(FALLBACK_BOOKMARK);
     if (def) await camera.goto(def, { instant: true });

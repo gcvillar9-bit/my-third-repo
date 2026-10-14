@@ -37,8 +37,20 @@ geometry (≤ 0.6% from physical on Mars).
 **Selection.** One atmosphere per frame: the one the camera is inside, else the largest shell on screen above
 4 px (`space.ts`). The pass is inactive (skipped by the host) otherwise.
 
-**Steps** from `knobs.atmosphereSteps` (8…64): sky-view `clamp(2k, 24, 64)`, aerial cap `clamp(k, 8, 32)`
-(slice i uses `2(i+1)`), raymarch `clamp(k + 16, 24, 48)`.
+**Steps** from `knobs.atmosphereSteps` (8/12/24/48/48 for potato…ultra since P4-P): sky-view `clamp(2k, 24, 64)`,
+aerial cap `clamp(k, 8, 32)` (slice i uses `2(i+1)`), raymarch `clamp(k + 16, 24, 48)`. Outside views take
+`path / (shell / 8)` steps (8…max), the fractional part dithered per pixel (interleaved gradient noise) so step
+changes do not band towards the limb.
+
+**Reduced-resolution march (P4-P).** The raymarch branch (every pixel in the shell when the camera is outside,
+e.g. the default earth-dawn-400km view, which ran ~15 fps on the owner's laptop) runs in a separate pass at
+`MARCH_SCALE` of the frame per axis (0.5 on potato…high, 1 = per pixel on ultra) into a two-target HalfFloat MRT:
+(L per lux, path length km or −1 when the texel does not march) and (T, end type: geometry/ground vs. leaving the
+shell). The composite (`scatter.glsl` shared by both) keeps the LUT branches per pixel and upsamples the march from
+the four nearest texels with the same end type, weighted bilinear × 1/(1 + (Δpath/path/0.15)²); a pixel with no
+such neighbour marches itself. Work on medium at 1280×720 (pixels × steps): 10.1M for earth-dawn-400km against
+44M for the old full-resolution composite (48 steps); budgets in `tests/e2e/perf.spec.ts`. The same pass serves
+Mars, Venus and Titan; when the camera is inside an atmosphere the march only covers geometry beyond `apMaxKm`.
 
 ## Parameters (`planets.json`, SI with `source` fields; `params.ts` converts to km)
 

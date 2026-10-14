@@ -57,7 +57,8 @@ export interface EngineRendererOptions {
 
 /**
  * Per-frame ray-march work estimate (P4-P perf budgets): every draw whose object (or a direct
- * child of the rendered scene) has an integer `uSteps` uniform adds target pixels x uSteps.
+ * child of the rendered scene) has an integer `uSteps` uniform (or `material.userData.marchSteps`)
+ * adds target pixels x steps.
  * It is an upper bound (early-outs and adaptive step counts are not seen) but deterministic.
  */
 export interface MarchWork {
@@ -169,10 +170,16 @@ export class EngineRenderer implements RenderApi {
   private countMarchWork(): void {
     const r = this.renderer;
     const render = r.render.bind(r);
+    // `material.userData.marchSteps` overrides `uSteps` (a composite that only upsamples a reduced-
+    // resolution march sets it to its real per-pixel cost).
     const stepsOf = (o: Object3D): number => {
-      const m = (o as Mesh).material as (Material & { uniforms?: Record<string, { value: unknown }> }) | undefined;
-      const v = m && !Array.isArray(m) ? m.uniforms?.uSteps?.value : undefined;
-      return typeof v === 'number' && o.visible ? v : 0;
+      const m = (o as Mesh).material as
+        (Material & { uniforms?: Record<string, { value: unknown }> }) | Material[] | undefined;
+      if (!m || Array.isArray(m) || !o.visible) return 0;
+      const hint = m.userData?.marchSteps;
+      if (typeof hint === 'number') return hint;
+      const v = m.uniforms?.uSteps?.value;
+      return typeof v === 'number' ? v : 0;
     };
     r.render = (scene: Object3D, camera) => {
       let steps = stepsOf(scene);

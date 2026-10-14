@@ -12,7 +12,8 @@ type Cam = Awaited<ReturnType<UniverseTestApiExtras['camera']>>;
 
 const cam = (page: Page) =>
   page.evaluate(() => (window.__universe as unknown as UniverseTestApiExtras).camera()) as Promise<Cam>;
-const dist = (a: Cam, b: Cam) => Math.hypot(a.local.x - b.local.x, a.local.y - b.local.y, a.local.z - b.local.z);
+const dist = (a: Cam, b: Cam) =>
+  Math.hypot(a.local.x - b.local.x, a.local.y - b.local.y, a.local.z - b.local.z);
 /** Rotation angle between two camera orientations, rad. */
 const angle = (a: Cam, b: Cam) => {
   const d = Math.abs(a.quat.x * b.quat.x + a.quat.y * b.quat.y + a.quat.z * b.quat.z + a.quat.w * b.quat.w);
@@ -140,7 +141,9 @@ test('free flight: a lost pointerup does not leave the view turning', async ({ p
   // arrives with no button pressed and must end the drag instead of turning the view.
   await page.evaluate(() => {
     const c = document.querySelector('canvas')!;
-    c.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 400, clientY: 200, buttons: 0 }));
+    c.dispatchEvent(
+      new PointerEvent('pointermove', { pointerId: 1, clientX: 400, clientY: 200, buttons: 0 }),
+    );
   });
   await frames(page);
   const a = await cam(page);
@@ -148,7 +151,9 @@ test('free flight: a lost pointerup does not leave the view turning', async ({ p
   await page.evaluate(() => {
     const c = document.querySelector('canvas')!;
     for (let i = 0; i < 5; i++)
-      c.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 10 + 50 * i, clientY: 30, buttons: 0 }));
+      c.dispatchEvent(
+        new PointerEvent('pointermove', { pointerId: 1, clientX: 10 + 50 * i, clientY: 30, buttons: 0 }),
+      );
   });
   await frames(page);
   const b = await cam(page);
@@ -156,4 +161,33 @@ test('free flight: a lost pointerup does not leave the view turning', async ({ p
   expect(angle(a, b)).toBeLessThan(1e-3);
   await page.mouse.up();
   expect(problems).toEqual([]);
+});
+
+test.describe('terrain walking perf budget', () => {
+  // Medium at 1280x720 (see perf.spec.ts). Measured when set: 165 calls, 428k triangles and 224
+  // resident tiles (the medium cap); before P4-P medium used a 2 px error target with a 512-tile cap.
+  test.use({ viewport: { width: 1280, height: 720 } });
+  test('apollo11-2m on medium 1280x720 stays within draw and triangle budgets', async ({ page }) => {
+    const problems: string[] = [];
+    page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
+    await page.goto('?test=1&q=medium&b=apollo11-2m');
+    await page.waitForFunction(() => window.__universe !== undefined);
+    const stats = await page.evaluate(async () => {
+      const u = window.__universe!;
+      await u.ready();
+      await u.renderFrames(1);
+      await u.ready();
+      await u.renderFrames(3);
+      return u.stats();
+    });
+    const errors = await page.evaluate(() => window.__universe!.errors());
+    console.log(
+      `[perf] apollo11-2m: calls ${stats.calls}, triangles ${stats.triangles}, tiles ${stats.tiles}`,
+    );
+    expect(errors).toEqual([]);
+    expect(problems).toEqual([]);
+    expect(stats.calls).toBeLessThanOrEqual(260);
+    expect(stats.triangles).toBeLessThanOrEqual(700_000);
+    expect(stats.tiles).toBeLessThanOrEqual(224);
+  });
 });
