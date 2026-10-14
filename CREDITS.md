@@ -7,6 +7,12 @@ upstream licences: derived binaries of CC BY-SA data stay CC BY-SA, and Celestia
 aggregate. Entries flagged **non-commercial** must be replaced (for example by a procedural texture) before any
 commercial use.
 
+## exoplanets
+
+| Source                                                                                                                               | Licence                                   | Attribution                                                        | Used for                     |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------ | ---------------------------- |
+| [oec_table](https://raw.githubusercontent.com/OpenExoplanetCatalogue/oec_tables/master/comma_separated/open_exoplanet_catalogue.txt) | [MIT](https://spdx.org/licenses/MIT.html) | Open Exoplanet Catalogue, Hanno Rein and contributors (oec_tables) | data/exoplanets/systems.json |
+
 ## milkyway
 
 | Source                                                                                                            | Licence                                                             | Attribution                                                                                                                                                                                                   | Used for                     |
@@ -75,6 +81,12 @@ commercial use.
 | [three_milkyway_ny](https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_ny.jpg)           | [MIT](https://spdx.org/licenses/MIT.html)                       | three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)                             | textures/stars/fallback_ny.webp                                                  |
 | [three_milkyway_pz](https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_pz.jpg)           | [MIT](https://spdx.org/licenses/MIT.html)                       | three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)                             | textures/stars/fallback_pz.webp                                                  |
 | [three_milkyway_nz](https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nz.jpg)           | [MIT](https://spdx.org/licenses/MIT.html)                       | three.js examples (mrdoob/three.js, examples/textures/cube/MilkyWay)                             | textures/stars/fallback_nz.webp                                                  |
+
+## starsystems
+
+| Source                                                                                                            | Licence                                                         | Attribution                                                                                                            | Used for                             |
+| ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| [stellarium_modern](https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/modern/index.json) | [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/) | Stellarium sky culture 'modern' (IAU constellation figures), Stellarium contributors, github.com/Stellarium/stellarium | data/starsystems/constellations.json |
 
 ## surfaces
 

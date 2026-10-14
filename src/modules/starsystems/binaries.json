@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "notes": "Hand-entered star-system rows for promotion (P4-C). Orbits are relative (secondary about primary) Campbell elements; a in arcsec is converted with distancePc. Barycentre direction = mass-weighted HYG directions of the components; velocity = the primary's HYG space velocity. Values are approximate where flagged.",
+  "systems": [
+    {
+      "id": "alpha-cen",
+      "name": "Alpha Centauri AB",
+      "primaryHip": 71683,
+      "distancePc": 1.3384,
+      "distanceSource": "Kervella et al. 2016, A&A 594, A107 (parallax 747.17 mas)",
+      "orbit": {
+        "periodYr": 79.929,
+        "periastronYr": 1955.594,
+        "e": 0.5208,
+        "aArcsec": 17.66,
+        "iDeg": 79.32,
+        "nodeDeg": 205.064,
+        "periDeg": 232.006,
+        "approximate": true,
+        "source": "Pourbaix & Boffin 2016, A&A 586, A90"
+      },
+      "components": [
+        {
+          "id": "hip:71683",
+          "hip": 71683,
+          "name": "Alpha Centauri A",
+          "massMsun": 1.1055,
+          "radiusRsun": 1.2234,
+          "teffK": 5790,
+          "source": "Kervella et al. 2016 (mass), Kervella et al. 2017, A&A 597, A137 (radius); Teff approximate"
+        },
+        {
+          "id": "hip:71681",
+          "hip": 71681,
+          "name": "Alpha Centauri B",
+          "massMsun": 0.9373,
+          "radiusRsun": 0.8632,
+          "teffK": 5260,
+          "source": "Kervella et al. 2016 (mass), Kervella et al. 2017 (radius); Teff approximate"
+        }
+      ]
+    },
+    {
+      "id": "proxima",
+      "name": "Proxima Centauri",
+      "primaryHip": 70890,
+      "distancePc": 1.302,
+      "distanceSource": "Gaia DR3 parallax 768.07 mas (Gaia Collaboration 2023)",
+      "components": [
+        {
+          "id": "hip:70890",
+          "hip": 70890,
+          "name": "Proxima Centauri",
+          "massMsun": 0.1221,
+          "radiusRsun": 0.1542,
+          "teffK": 3050,
+          "source": "Boyajian et al. 2012, ApJ 757, 112 (radius, Teff); Mann et al. 2015 (mass); approximate"
+        }
+      ]
+    },
+    {
+      "id": "sirius",
+      "name": "Sirius AB",
+      "primaryHip": 32349,
+      "distancePc": 2.6548,
+      "distanceSource": "Bond et al. 2017, ApJ 840, 70 (parallax 376.68 mas)",
+      "orbit": {
+        "periodYr": 50.1284,
+        "periastronYr": 1994.5715,
+        "e": 0.59142,
+        "aArcsec": 7.4957,
+        "iDeg": 136.336,
+        "nodeDeg": 45.4,
+        "periDeg": 149.161,
+        "approximate": false,
+        "source": "Bond et al. 2017, ApJ 840, 70"
+      },
+      "components": [
+        {
+          "id": "hip:32349",
+          "hip": 32349,
+          "name": "Sirius A",
+          "massMsun": 2.063,
+          "radiusRsun": 1.711,
+          "teffK": 9940,
+          "source": "Bond et al. 2017 (mass); Davis et al. 2011 (radius); Adelman 2004 (Teff)"
+        },
+        {
+          "id": "sirius-b",
+          "hip": null,
+          "absMagV": 11.33,
+          "name": "Sirius B",
+          "massMsun": 1.018,
+          "radiusRsun": 0.0081,
+          "teffK": 25000,
+          "source": "Bond et al. 2017 (mass, Teff 25369 K rounded); Joyce et al. 2018, MNRAS 479, 1612 (radius); HYG Gl 244B (M_V)"
+        }
+      ]
+    }
+  ]
+}

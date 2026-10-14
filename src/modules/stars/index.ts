@@ -10,6 +10,7 @@ import { StarCatalog, type StarNames } from './catalog';
 import type { StarsDecodeApi } from './decode.worker';
 import { decodeStarsBin, type StarData } from './format';
 import { createMilkyWay, type MilkyWayLayer } from './milkyway';
+import { applyVelocityOverrides } from './overrides';
 import { createStarPoints, yearsSinceJ2000 } from './points';
 import {
   cameraPc,
@@ -18,7 +19,7 @@ import {
   createSearchProvider,
   starBookmarks,
 } from './providers';
-import { resolveCatalog } from './public';
+import { bindHideStars, hiddenStars, resolveCatalog } from './public';
 
 const STARS_BIN = 'data/stars/stars.bin';
 const NAMES_JSON = 'data/stars/names.json';
@@ -47,6 +48,7 @@ const starsModule: UniverseModule = {
     const { registry, render, quality, ui } = ctx;
     const namesP = ctx.assets.json<StarNames>(NAMES_JSON);
     const [data, names] = await Promise.all([ctx.assets.track(loadStarData(ctx), 'stars.decode'), namesP]);
+    applyVelocityOverrides(data, names);
     const cat = new StarCatalog(data, names);
 
     const points = createStarPoints(data, render.uniforms, quality.knobs.pointBudget);
@@ -140,7 +142,8 @@ const starsModule: UniverseModule = {
 
     registry.addSearch(createSearchProvider(cat));
     registry.addInfo(createInfoProvider(cat, { viewerPc: () => viewer, years: () => years }));
-    ui.addLabelSource(createLabelSource(cat, () => labelsOn));
+    ui.addLabelSource(createLabelSource(cat, () => labelsOn, hiddenStars));
+    bindHideStars((idx) => points.setHidden(idx));
     registry.addBookmarks(starBookmarks(cat));
     resolveCatalog(cat);
   },

@@ -28,6 +28,20 @@
   },
   "entries": [
     {
+      "module": "exoplanets",
+      "id": "oec_table",
+      "url": "https://raw.githubusercontent.com/OpenExoplanetCatalogue/oec_tables/master/comma_separated/open_exoplanet_catalogue.txt",
+      "license": "MIT",
+      "licenseName": "MIT License",
+      "licenseUrl": "https://spdx.org/licenses/MIT.html",
+      "attribution": "Open Exoplanet Catalogue, Hanno Rein and contributors (oec_tables)",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/exoplanets/systems.json"],
+      "licenseText": null
+    },
+    {
       "module": "milkyway",
       "id": "celestia_globulars",
       "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/globulars.dsc",
@@ -806,6 +820,20 @@
       "flags": [],
       "note": null,
       "outputs": ["textures/stars/fallback_nz.webp"],
+      "licenseText": null
+    },
+    {
+      "module": "starsystems",
+      "id": "stellarium_modern",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/modern/index.json",
+      "license": "CC-BY-SA-4.0",
+      "licenseName": "Creative Commons Attribution-ShareAlike 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Stellarium sky culture 'modern' (IAU constellation figures), Stellarium contributors, github.com/Stellarium/stellarium",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/starsystems/constellations.json"],
       "licenseText": null
     },
     {
