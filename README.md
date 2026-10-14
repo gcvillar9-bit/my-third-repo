@@ -49,6 +49,10 @@ to the largest structures in the universe and back home. Or press `/` and type a
   Andromeda, the Magellanic Clouds, M33, M81/M82, the Whirlpool, the Sombrero, Centaurus A and the Virgo cluster.
   Info cards give distance in light-years and megaparsecs and the light-travel time.
 - Beyond them, a simulated cosmic web of filaments and voids out to 800 Mpc (labelled "simulated").
+- The Great Attractor and Laniakea, our home supercluster: a toy model of the cosmic flow (about 1,000 animated
+  streamlines converging on the Great Attractor, with "Our path" from the Milky Way) inside an approximate outline
+  of Laniakea (after Tully et al. 2014), plus the Norma Cluster and the Shapley Supercluster. Settings > Sky >
+  "Laniakea flows".
 
 **Showtime**
 

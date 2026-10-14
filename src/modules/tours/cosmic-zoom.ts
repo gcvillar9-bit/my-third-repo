@@ -73,6 +73,12 @@ export const COSMIC_ZOOM: TourDef = {
       text: 'The Virgo Cluster, about 54 million light-years away: more than a thousand galaxies around the giant elliptical M87.',
     },
     { type: 'wait', seconds: 9 },
+    { type: 'goto', target: 'great-attractor', duration: 8 },
+    {
+      type: 'caption',
+      text: 'The Great Attractor, about 250 million light-years away: the Milky Way and thousands of galaxies are drifting toward it at about 600 km/s, inside our home supercluster, Laniakea.',
+    },
+    { type: 'wait', seconds: 9 },
     { type: 'goto', target: 'cosmic-web-500mpc', duration: 8 },
     {
       type: 'caption',
