@@ -22,5 +22,6 @@
 - Dynamic resolution measures whole frames, so CPU-bound scenes (many draw calls) gain little when it scales down.
 - The terrain error target is in drawing-buffer pixels, so a resolution step can change the LOD (small pops).
 - The surfaces apollo11-2m texture check passes with little margin (0.011 vs 0.01). See requests.
+- Full e2e run: 47/48 pass. The failing blackholes gaia-bh3-dormant test also fails on base 5a3455a (request 4).
 
 **Requests**: `docs/requests/p4-perf.md`.

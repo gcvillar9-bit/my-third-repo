@@ -10,3 +10,7 @@
 3. **milkyway / blackholes**: nothing needed. Both are already cheap on medium (1/4-res march × 48 steps,
    1/2-res lensing × 64 steps) and are budgeted in `tests/e2e/perf.spec.ts`; a pass that caches its result while
    the view is still is measured after a resize.
+4. **blackholes**: `tests/e2e/blackholes.spec.ts` "gaia-bh3-dormant lenses the star field" fails on the dev tip
+   5a3455a itself (diff/total 0.2478 < 0.3, identical value with and without P4-P), presumably since the Milky Way
+   merge changed the background the lensing cube captures. It is the only failure of the full e2e suite on this
+   branch (47 of 48 pass).
