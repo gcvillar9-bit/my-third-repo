@@ -1,0 +1,14 @@
+{
+  "module": "exoplanets",
+  "assets": [
+    {
+      "id": "oec_table",
+      "url": "https://raw.githubusercontent.com/OpenExoplanetCatalogue/oec_tables/master/comma_separated/open_exoplanet_catalogue.txt",
+      "license": "MIT",
+      "attribution": "Open Exoplanet Catalogue, Hanno Rein and contributors (oec_tables)",
+      "outputs": ["data/exoplanets/systems.json"],
+      "sha256": "0a27f7bbac5e66234ee5687fe672b4d127de240768a2f569317426c9d367204b",
+      "bytes": 808498
+    }
+  ]
+}

@@ -4,7 +4,7 @@ Fly through a realistic universe in your browser: from standing on planet surfac
 
 **Live:** https://gcvillar9-bit.github.io/my-third-repo/ (needs WebGL2)
 
-## What works so far (Phases 1 to 3)
+## What works so far (Phases 1 to 4)
 
 - A camera that travels seamlessly from metres to light-years (64-bit frame tree, camera-relative rendering, log depth).
 - Physically exposed rendering: real luminances, auto exposure, bloom and filmic tone mapping.
@@ -23,14 +23,23 @@ Fly through a realistic universe in your browser: from standing on planet surfac
   asteroid and Kuiper belts (up to 400k bodies on GPU Kepler orbits, Kirkwood gaps, Hildas, Trojans, plutinos);
   and a solar/lunar eclipse finder that puts you on the ground at totality.
 
+- Phase 4: the Galaxy. Black holes with real light bending (Sgr A\* with its photon ring, Doppler-bright disk
+  and the S-stars on their precessing orbits; M87\*, Cygnus X-1 with its supergiant companion, and the dormant Gaia
+  black holes); the Milky Way from outside as a barred spiral built on the measured arms, bar, discs and dust, with
+  194 globular clusters; 3D constellation lines that break apart as you travel (Shift+C); nearby stars that
+  become real suns up close, double stars (Alpha Centauri, Sirius) and more than 5,000 known exoplanets with habitable
+  zones; stars that move with their true proper motion over time. Also: automatic resolution scaling, a cheaper
+  half-resolution atmosphere and a fix for look-drag snap-backs.
+
 Demo links and what to look for: [docs/demos/phase-1.md](docs/demos/phase-1.md),
-[docs/demos/phase-2.md](docs/demos/phase-2.md), [docs/demos/phase-3.md](docs/demos/phase-3.md).
+[docs/demos/phase-2.md](docs/demos/phase-2.md), [docs/demos/phase-3.md](docs/demos/phase-3.md),
+[docs/demos/phase-4.md](docs/demos/phase-4.md).
 
 ## Controls
 
 `/` search and fly · drag to look · `W` `A` `S` `D` fly · `R` / `F` up and down · `Q` / `E` roll · wheel or `[` `]`
 speed · `O` orbit · `G` go to (near a surface: walk, with `Shift` run and `Space` jump) · `I` info · `,` `.` time warp · `P` pause · `N` now · `L` copy link · `H` hide UI ·
-`?` help. Add `?perf=1` to the URL for an fps meter.
+`Shift`+`C` constellation lines · `?` help. Add `?perf=1` to the URL for an fps meter.
 
 ## Run locally
 

@@ -9,12 +9,13 @@ import { AssetLoaderImpl } from '../core/assets';
 import { ResourceBudgetImpl } from '../core/budget';
 import { addStandardFrames, FrameTreeImpl } from '../core/frames';
 import { qlookRotation, quat, vec3 } from '../core/math64';
-import { parseQuality, QualityStateImpl } from '../core/quality';
+import { DYNAMIC_SCALE_BOUNDS, parseQuality, QualityStateImpl } from '../core/quality';
 import { RegistryImpl } from '../core/registry';
 import { SimClockImpl, STANDARD_VALIDITY } from '../core/time';
 import { AU } from '../core/units';
 import { WorkerPoolImpl } from '../core/workers';
 import { CameraController } from '../camera/controller';
+import { DynamicResolution } from '../render/dynamic-res';
 import { DEFAULT_TEST_EV } from '../render/exposure';
 import { EngineRenderer } from '../render/renderer';
 import { mountUi } from '../ui/index';
@@ -45,6 +46,10 @@ export interface Engine {
 export async function boot(): Promise<Engine | undefined> {
   const env = parseEnv(window.location.search, import.meta.env.BASE_URL, import.meta.env.DEV);
   const test = env.test;
+  // ?test=1&live=1: the test API plus a normal session (rAF loop, mouse/keyboard input, URL sync,
+  // initial view from the hash). Used by the input regression spec.
+  const live = test && env.params.get('live') === '1';
+  const interactive = !test || live;
   if (test || import.meta.env.DEV) captureErrors();
   const report = (msg: string) => {
     recordError(msg);
@@ -91,7 +96,7 @@ export async function boot(): Promise<Engine | undefined> {
   for (const v of STANDARD_VALIDITY) registry.addValidity(v);
 
   const hash = parseHash(window.location.hash);
-  const explicitTime = test ? instantOf(env.params.get('t') ?? undefined) : instantOf(hash.t);
+  const explicitTime = test && !live ? instantOf(env.params.get('t') ?? undefined) : instantOf(hash.t);
   const clock = new SimClockImpl({
     jd: explicitTime ?? (test ? instantOf(TEST_DEFAULT_TIME)! : undefined),
     ranges: () => registry.validityRanges(),
@@ -150,7 +155,7 @@ export async function boot(): Promise<Engine | undefined> {
   }
 
   const applyUrlState = async (s: UrlState): Promise<boolean> => {
-    if (s.t && !test) {
+    if (s.t && interactive) {
       const jd = instantOf(s.t);
       if (jd !== null) clock.setTime(jd);
     }
@@ -164,7 +169,8 @@ export async function boot(): Promise<Engine | undefined> {
   };
 
   // Initial view: ?b= (tests) > #b= / #f=&p=&q= > default bookmark > overview of the ssb.
-  const initial: UrlState = test ? { b: env.params.get('b') ?? undefined } : hash;
+  const initial: UrlState =
+    test && !(live && !env.params.get('b')) ? { b: env.params.get('b') ?? undefined } : hash;
   if (!(await applyUrlState(initial))) {
     const def = registry.bookmark(DEFAULT_BOOKMARK) ?? registry.bookmark(FALLBACK_BOOKMARK);
     if (def) await camera.goto(def, { instant: true });
@@ -180,12 +186,54 @@ export async function boot(): Promise<Engine | undefined> {
   lockTime = false;
   if (fixedEv) render.exposure.setFixedEV(render.exposure.ev);
 
-  const urlSync = test
-    ? null
-    : new UrlSync(
+  const urlSync = interactive
+    ? new UrlSync(
         () => stateFromCamera(camera.getState(), clock.jd),
         (s) => void applyUrlState(s),
-      );
+      )
+    : null;
+  // The applied #b= (or #f=) hash is replaced by the live view at once, so a later hashchange,
+  // reload or history step never re-applies the stale bookmark (owner bug: view snapped back).
+  urlSync?.commit();
+
+  // Dynamic resolution (real sessions only; QualityState pins the scale to 1 under ?test=1).
+  const dyn = new DynamicResolution({}, 1);
+  let dynOn = !test;
+  let dynPreset = quality.preset;
+  const dynBounds = () => {
+    const [lo, hi] = DYNAMIC_SCALE_BOUNDS[quality.preset];
+    dyn.setBounds(lo, hi);
+  };
+  dynBounds();
+  quality.subscribe(() => {
+    if (quality.preset === dynPreset) return;
+    dynPreset = quality.preset;
+    dynBounds();
+    dyn.reset(1);
+    quality.setDynamicScale(1);
+  });
+  registry.addSetting({
+    id: 'render.dynamicResolution',
+    label: 'Dynamic resolution',
+    group: 'Performance',
+    type: 'boolean',
+    default: true,
+    persist: true,
+    description: 'Lowers the render resolution (down to half) when the frame rate drops below ~55 fps.',
+    onChange: (v) => {
+      dynOn = v === true && !test;
+      dyn.reset(1);
+      quality.setDynamicScale(1);
+    },
+  });
+  let lastFrameMs = 0;
+  const tickDynamic = (ms: number) => {
+    const dt = lastFrameMs ? ms - lastFrameMs : 0;
+    lastFrameMs = ms;
+    if (!dynOn) return;
+    const s = dyn.sample(dt);
+    if (s !== null) quality.setDynamicScale(s);
+  };
   let perfUpdate: (() => void) | null = null;
   const loop = new Loop({
     frames,
@@ -198,6 +246,7 @@ export async function boot(): Promise<Engine | undefined> {
     onError: report,
     afterFrame: (ms) => {
       urlSync?.tick(ms);
+      tickDynamic(ms);
       perfUpdate?.();
     },
   });
@@ -218,6 +267,14 @@ export async function boot(): Promise<Engine | undefined> {
       },
       setTime: (iso) => clock.setTime(iso),
       stats: () => render.stats(),
+      work: () => render.workStats(),
+      camera: () => ({
+        ...camera.getState(),
+        mode: camera.mode,
+        traveling: camera.traveling,
+        altitude: camera.nearestSurface()?.altitude ?? null,
+      }),
+      resolution: () => ({ ...render.size, dynamicScale: quality.dynamicScale }),
       compileAll: async () => {
         await render.compileAll();
         return render.stats().programs;
@@ -225,7 +282,7 @@ export async function boot(): Promise<Engine | undefined> {
     });
   }
 
-  if (test) {
+  if (!interactive) {
     loop.frame(TEST_DT);
   } else {
     camera.attach(canvas);
@@ -237,7 +294,23 @@ export async function boot(): Promise<Engine | undefined> {
           const s = new Stats({ trackGPU: false });
           s.init(render.renderer);
           document.body.appendChild(s.dom);
-          perfUpdate = () => s.update();
+          // Dynamic-resolution readout under the graphs (scale, buffer size, mean frame time).
+          const info = document.createElement('div');
+          info.className = 'cz-perf-res';
+          info.style.cssText =
+            'position:fixed;left:0;top:48px;z-index:10000;font:11px/1.3 monospace;color:#9fe;' +
+            'background:rgba(0,0,0,0.6);padding:2px 5px;pointer-events:none';
+          document.body.appendChild(info);
+          let n = 0;
+          perfUpdate = () => {
+            s.update();
+            if (n++ % 15) return;
+            const ms = dyn.meanMs;
+            info.textContent =
+              `res ${quality.dynamicScale.toFixed(2)}x ${dynOn ? 'auto' : 'fixed'} ` +
+              `${render.size.width}x${render.size.height}` +
+              (ms ? ` ${(1000 / ms).toFixed(0)} fps` : '');
+          };
         })
         .catch((e: unknown) => report(`perf overlay: ${String(e)}`));
     }

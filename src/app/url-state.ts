@@ -99,34 +99,77 @@ export async function copyLink(url: string): Promise<boolean> {
   }
 }
 
-/** Keeps location.hash in sync with the view (throttled) and reports external hash edits. */
+/** Canonical text of a hash (so encodings of the same state compare equal). */
+export const canonicalHash = (h: string): string => formatHash(parseHash(h));
+
+/** Minimal window surface UrlSync needs (injectable for unit tests). */
+export interface UrlSyncHost {
+  location: { hash: string; pathname: string; search: string; origin: string };
+  history: { state: unknown; replaceState(data: unknown, unused: string, url?: string | null): void };
+  addEventListener(type: 'hashchange', cb: () => void): void;
+}
+
+/**
+ * Keeps location.hash in sync with the view (throttled) and applies external hash edits.
+ *
+ * P4-P fix (owner report: "the view throws me back to the same spot"): the hash that boot applied
+ * (typically `#b=<bookmark>`) used to stay in the address bar for up to a second and was then only
+ * remembered as `last`; any hashchange that brought back an earlier hash (a history step, a
+ * trackpad back-swipe, a re-focused tab restoring the URL) re-ran the bookmark and snapped the
+ * camera back. Now boot calls commit() right after the initial view, which replaces the hash
+ * with the live state at once, and hashchange only applies a hash that is canonically different
+ * from every hash this session wrote recently and from the one already applied.
+ */
 export class UrlSync {
   private last = '';
-  private lastWrite = 0;
+  private lastWrite = -Infinity;
+  private readonly written: string[] = [];
+  private readonly host: UrlSyncHost;
 
   constructor(
     private readonly read: () => UrlState,
     private readonly apply: (s: UrlState) => void,
+    host?: UrlSyncHost,
   ) {
-    window.addEventListener('hashchange', () => {
-      if (location.hash === this.last) return;
-      this.last = location.hash;
-      this.apply(parseHash(location.hash));
-    });
+    this.host = host ?? (window as unknown as UrlSyncHost);
+    this.last = canonicalHash(this.host.location.hash);
+    this.host.addEventListener('hashchange', () => this.onHashChange());
+  }
+
+  private onHashChange(): void {
+    const h = canonicalHash(this.host.location.hash);
+    if (!h || h === this.last || this.written.includes(h)) return;
+    this.last = h;
+    this.apply(parseHash(h));
+    // The user's hash has been applied: show the live state from now on (a bookmark id would
+    // otherwise be re-applied by the next history step).
+    this.lastWrite = -Infinity;
+  }
+
+  /** Writes the live state now (after boot applied the initial view). */
+  commit(): void {
+    this.write();
   }
 
   /** Call every frame; writes at most once per second when the state changed. */
   tick(nowMs: number): void {
     if (nowMs - this.lastWrite < 1000) return;
     this.lastWrite = nowMs;
+    this.write();
+  }
+
+  private write(): void {
     const h = formatHash(this.read());
     if (h === this.last) return;
     this.last = h;
-    history.replaceState(history.state, '', h || location.pathname + location.search);
+    this.written.push(h);
+    if (this.written.length > 16) this.written.shift();
+    const { location: loc, history } = this.host;
+    history.replaceState(history.state, '', h || loc.pathname + loc.search);
   }
 
   /** Current share URL. */
   url(): string {
-    return shareUrl(location, this.read());
+    return shareUrl(this.host.location, this.read());
   }
 }

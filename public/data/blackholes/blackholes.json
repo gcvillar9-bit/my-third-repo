@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "notes": "Hand-entered values. Masses in solar masses, distances in parsecs, ICRS RA/Dec in degrees. Disk parameters (tMaxK, lum, rOut, riaf*, mesh*) are display choices, not measurements (Cyg X-1 tMaxK 8e6 K matches the ~0.5-1 keV inner-disk temperatures of its soft state; colours clamp at 40000 K); incDeg/paDeg orient the disk axis on the sky (i > 90 = clockwise).",
+  "holes": [
+    {
+      "id": "sgra",
+      "name": "Sgr A*",
+      "aliases": ["Sagittarius A*", "Sgr A star", "Galactic Centre black hole"],
+      "massMsun": 4.3e6,
+      "distancePc": 8178,
+      "raDeg": 266.41684,
+      "decDeg": -29.00781,
+      "atMwOrigin": true,
+      "disk": { "mode": "thin", "tMaxK": 7500, "lum": 2000, "rOut": 14, "riafTK": 3200, "riafLum": 0.05, "incDeg": 158, "paDeg": 115 },
+      "description": "The 4 million solar-mass black hole at the centre of the Milky Way; the Event Horizon Telescope imaged its shadow in 2022. In visible light it is a faint, radiatively inefficient flow ('Realistic'); 'Illustrative' shows a bright thin disk instead.",
+      "source": "Mass 4.30e6 Msun (project catalogue value; GRAVITY Collaboration 2019 A&A 625 L10 gives 4.15e6, EHT 2022 ApJL 930 L12 4.0e6); position Reid & Brunthaler 2004 ApJ 616 872; disk orientation from GRAVITY 2018 A&A 618 L10 flare orbits (approximate)"
+    },
+    {
+      "id": "m87",
+      "name": "M87*",
+      "aliases": ["M87 black hole", "Powehi", "Virgo A"],
+      "massMsun": 6.5e9,
+      "distancePc": 16.8e6,
+      "raDeg": 187.70593,
+      "decDeg": 12.39112,
+      "disk": { "mode": "thin", "tMaxK": 6500, "lum": 2000, "rOut": 14, "riafTK": 3500, "riafLum": 0.08, "incDeg": 163, "paDeg": 288 },
+      "description": "The supermassive black hole in the giant elliptical galaxy M87, the first black-hole shadow ever imaged (Event Horizon Telescope, 2019). We see it nearly face-on, 17 degrees from its jet axis.",
+      "source": "EHT Collaboration 2019 ApJL 875 L1, L5, L6 (mass, distance, 17 deg jet inclination, jet PA 288 deg); position NED"
+    },
+    {
+      "id": "cygx1",
+      "name": "Cygnus X-1",
+      "aliases": ["Cyg X-1"],
+      "massMsun": 21.2,
+      "distancePc": 2220,
+      "raDeg": 299.59032,
+      "decDeg": 35.2016,
+      "disk": { "mode": "thin", "tMaxK": 8000000, "lum": 3e11, "rOut": 14, "riafTK": 9000, "riafLum": 1e9, "incDeg": 27.51, "paDeg": 0, "meshOutRs": 150000, "meshLum": 4e12 },
+      "companion": {
+        "id": "hde226868",
+        "name": "HDE 226868",
+        "massMsun": 40.6,
+        "radiusRsun": 22.3,
+        "teffK": 31000,
+        "periodDays": 5.599829,
+        "t0Jd": 2441874.707,
+        "source": "Miller-Jones et al. 2021 Science 371 1046 (masses, inclination); radius and Teff Orosz et al. 2011 ApJ 742 84 (approximate); ephemeris Brocksopp et al. 1999 A&A 343 861 (approximate)"
+      },
+      "description": "The first black hole ever identified (1971): a 21 solar-mass hole feeding on the wind of the blue supergiant HDE 226868 in a 5.6-day orbit. The accretion stream drawn here is illustrative.",
+      "source": "Miller-Jones et al. 2021 Science 371 1046 (mass, 2.22 kpc parallax distance); position SIMBAD"
+    },
+    {
+      "id": "gaiabh1",
+      "name": "Gaia BH1",
+      "aliases": ["Gaia DR3 4373465352415301632"],
+      "massMsun": 9.62,
+      "distancePc": 480,
+      "raDeg": 262.17121,
+      "decDeg": -0.58109,
+      "disk": { "mode": "none" },
+      "description": "The nearest known black hole: a dormant 9.6 solar-mass hole orbited every 186 days by a Sun-like star, found with Gaia astrometry. It does not accrete, so only its lensing shows.",
+      "source": "El-Badry et al. 2023 MNRAS 518 1057"
+    },
+    {
+      "id": "gaiabh2",
+      "name": "Gaia BH2",
+      "aliases": ["Gaia DR3 5870569352746779008"],
+      "massMsun": 8.94,
+      "distancePc": 1160,
+      "raDeg": 207.56971,
+      "decDeg": -59.239,
+      "disk": { "mode": "none" },
+      "description": "A dormant 8.9 solar-mass black hole with a red-giant companion on a 3.5-year orbit.",
+      "source": "El-Badry et al. 2023 MNRAS 521 4323"
+    },
+    {
+      "id": "gaiabh3",
+      "name": "Gaia BH3",
+      "aliases": ["Gaia DR3 4318465066420528000"],
+      "massMsun": 32.7,
+      "distancePc": 590,
+      "raDeg": 294.828,
+      "decDeg": 14.93169,
+      "disk": { "mode": "none" },
+      "description": "The most massive stellar black hole known in the Milky Way (33 solar masses). Dormant, with a metal-poor giant companion on an 11.6-year orbit.",
+      "source": "Gaia Collaboration, Panuzzo et al. 2024 A&A 686 L2"
+    },
+    {
+      "id": "v404cyg",
+      "name": "V404 Cygni",
+      "aliases": ["V404 Cyg", "GS 2023+338"],
+      "massMsun": 9.0,
+      "distancePc": 2390,
+      "raDeg": 306.01592,
+      "decDeg": 33.86719,
+      "disk": { "mode": "thin", "tMaxK": 9000, "lum": 5e9, "rOut": 14, "riafTK": 5000, "riafLum": 1e7, "incDeg": 67, "paDeg": 0 },
+      "description": "A low-mass X-ray binary that erupts every few decades (1938, 1989, 2015) when its disk dumps matter onto the 9 solar-mass hole.",
+      "source": "Khargharia et al. 2010 ApJ 716 1105 (mass, inclination); Miller-Jones et al. 2009 ApJL 706 L230 (parallax distance)"
+    },
+    {
+      "id": "a0620",
+      "name": "A0620-00",
+      "aliases": ["V616 Monocerotis", "V616 Mon", "Nova Monocerotis 1975"],
+      "massMsun": 6.61,
+      "distancePc": 1060,
+      "raDeg": 95.68558,
+      "decDeg": -0.34575,
+      "disk": { "mode": "thin", "tMaxK": 7000, "lum": 2e9, "rOut": 14, "riafTK": 4500, "riafLum": 1e7, "incDeg": 51, "paDeg": 0 },
+      "description": "One of the closest X-ray binaries: a 6.6 solar-mass black hole with a K-dwarf companion, quiet since its 1975 outburst.",
+      "source": "Cantrell et al. 2010 ApJ 710 1127"
+    }
+  ],
+  "sstars": [
+    { "id": "s2", "name": "S2", "aArcsec": 0.125058, "e": 0.884649, "iDeg": 134.567, "OmegaDeg": 228.171, "omegaDeg": 66.263, "tpYear": 2018.379, "periodYr": 16.0455, "absMagV": -3.0, "teffK": 25000, "source": "GRAVITY Collaboration 2020 A&A 636 L5 (elements); absMagV and Teff approximate (B0-2.5 V)" },
+    { "id": "s29", "name": "S29", "aArcsec": 0.3974, "e": 0.969, "iDeg": 144.37, "OmegaDeg": 7.0, "omegaDeg": 205.79, "tpYear": 2021.41, "periodYr": 90.4, "absMagV": -1.3, "teffK": 22000, "approximate": true, "source": "GRAVITY Collaboration 2022 A&A 657 L12 (pericentre 2021.41 at about 100 AU); elements approximate" },
+    { "id": "s55", "name": "S55", "aArcsec": 0.1078, "e": 0.7209, "iDeg": 150.1, "OmegaDeg": 325.5, "omegaDeg": 331.5, "tpYear": 2009.31, "periodYr": 12.8, "absMagV": -1.0, "teffK": 22000, "approximate": true, "source": "Gillessen et al. 2017 ApJ 837 30, Table 3; photometry approximate" },
+    { "id": "s38", "name": "S38", "aArcsec": 0.1416, "e": 0.8201, "iDeg": 171.1, "OmegaDeg": 101.06, "omegaDeg": 17.99, "tpYear": 2003.19, "periodYr": 19.2, "absMagV": -1.5, "teffK": 20000, "approximate": true, "source": "Gillessen et al. 2017 ApJ 837 30, Table 3; photometry approximate" },
+    { "id": "s62", "name": "S62", "aArcsec": 0.0905, "e": 0.976, "iDeg": 72.76, "OmegaDeg": 122.61, "omegaDeg": 42.62, "tpYear": 2003.33, "periodYr": 9.9, "absMagV": -0.5, "teffK": 20000, "approximate": true, "source": "Peissker et al. 2020 ApJ 889 61 (orbit disputed)" },
+    { "id": "s4714", "name": "S4714", "aArcsec": 0.102, "e": 0.985, "iDeg": 127.7, "OmegaDeg": 129.28, "omegaDeg": 357.25, "tpYear": 2017.29, "periodYr": 12.0, "absMagV": -0.3, "teffK": 20000, "approximate": true, "source": "Peissker et al. 2020 ApJ 899 50" },
+    { "id": "s1", "name": "S1", "aArcsec": 0.595, "e": 0.556, "iDeg": 119.14, "OmegaDeg": 342.04, "omegaDeg": 122.3, "tpYear": 2001.8, "periodYr": 166, "absMagV": -2.8, "teffK": 23000, "approximate": true, "source": "Gillessen et al. 2017 ApJ 837 30, Table 3; photometry approximate" },
+    { "id": "s14", "name": "S14", "aArcsec": 0.2863, "e": 0.9761, "iDeg": 100.59, "OmegaDeg": 226.38, "omegaDeg": 334.59, "tpYear": 2000.12, "periodYr": 55.3, "absMagV": -1.5, "teffK": 22000, "approximate": true, "source": "Gillessen et al. 2017 ApJ 837 30, Table 3; photometry approximate" },
+    { "id": "s12", "name": "S12", "aArcsec": 0.2987, "e": 0.8883, "iDeg": 33.56, "OmegaDeg": 230.1, "omegaDeg": 317.9, "tpYear": 1995.59, "periodYr": 58.9, "absMagV": -1.8, "teffK": 22000, "approximate": true, "source": "Gillessen et al. 2017 ApJ 837 30, Table 3; photometry approximate" }
+  ]
+}

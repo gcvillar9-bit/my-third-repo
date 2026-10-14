@@ -28,6 +28,34 @@
   },
   "entries": [
     {
+      "module": "exoplanets",
+      "id": "oec_table",
+      "url": "https://raw.githubusercontent.com/OpenExoplanetCatalogue/oec_tables/master/comma_separated/open_exoplanet_catalogue.txt",
+      "license": "MIT",
+      "licenseName": "MIT License",
+      "licenseUrl": "https://spdx.org/licenses/MIT.html",
+      "attribution": "Open Exoplanet Catalogue, Hanno Rein and contributors (oec_tables)",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/exoplanets/systems.json"],
+      "licenseText": null
+    },
+    {
+      "module": "milkyway",
+      "id": "celestia_globulars",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/globulars.dsc",
+      "license": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "attribution": "Celestia Development Team (CelestiaContent data/globulars.dsc by F. Schrempp, pirogronian, E. O. Mendes, A. Tribick), from Baumgardt et al. 2023, MNRAS, Fundamental parameters of Galactic globular clusters",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/milkyway/globulars.json"],
+      "licenseText": null
+    },
+    {
       "module": "solar-system",
       "id": "earth_day_4096",
       "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_day_4096.jpg",
@@ -792,6 +820,20 @@
       "flags": [],
       "note": null,
       "outputs": ["textures/stars/fallback_nz.webp"],
+      "licenseText": null
+    },
+    {
+      "module": "starsystems",
+      "id": "stellarium_modern",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/skycultures/modern/index.json",
+      "license": "CC-BY-SA-4.0",
+      "licenseName": "Creative Commons Attribution-ShareAlike 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Stellarium sky culture 'modern' (IAU constellation figures), Stellarium contributors, github.com/Stellarium/stellarium",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/starsystems/constellations.json"],
       "licenseText": null
     },
     {

@@ -69,10 +69,12 @@ export function apolloView(
   let h = v3addScaled(vec3(), e, up, -v3dot(e, up));
   if (Math.hypot(h.x, h.y, h.z) < 1e-6) h = v3cross(vec3(), up, vec3(0, 0, 1));
   v3normalize(h, h);
-  // Earth ~6° below the top edge, horizon in the lower part of the frame.
+  // Earth ~4° below the top edge, horizon in the lower part of the frame. (P4-P: 4° rather than 6°
+  // now that the bookmark really stands 2 m above the drawn relief instead of ~560 m above it, so
+  // more of the textured near ground fills the lower band the surface checks look at.)
   const pitch = Math.max(
     5 * DEG,
-    Math.min(SURFACE_FOV / 2 - 6 * DEG, earthElevation - SURFACE_FOV / 2 + 6 * DEG),
+    Math.min(SURFACE_FOV / 2 - 4 * DEG, earthElevation - SURFACE_FOV / 2 + 4 * DEG),
   );
   return { pos, quat: lookPitched(h, up, pitch), earthElevation, pitch };
 }

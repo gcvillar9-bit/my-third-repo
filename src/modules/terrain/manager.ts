@@ -11,7 +11,7 @@ import type {
   ViewState,
 } from '../../core/contracts';
 import { qrotate, qrotateInv, quat, vec3 } from '../../core/math64';
-import { dirToFace, ellipsoidRadius, ROOT_KEYS, unpackKey } from './cube';
+import { dirToFace, ellipsoidRadius, MAX_LEVEL, ROOT_KEYS, unpackKey } from './cube';
 import { groundRadius } from './ground';
 import { PATCH_BYTES, type PatchData } from './patch';
 import { leafLevelAt, selectTree, type NodeBounds, type SelectParams } from './select';
@@ -308,10 +308,20 @@ export class TerrainManager {
     return leafLevelAt(this.split, face, s, t);
   }
 
-  /** Mesh height above the equatorial radius under unit body-fixed `dir`, m (null before the CPU function loads). */
+  /**
+   * Ground height above the equatorial radius under unit body-fixed `dir`, m (null before the CPU
+   * function loads), on the finest grid (MAX_LEVEL), not the level currently drawn there.
+   *
+   * P4-P fix (owner report: walking on the Moon, turning the view "throws me back"): the query used
+   * to follow the drawn LOD, which changes when the view turns (frustum culling, tile cap, tiles
+   * still loading). A coarse leaf under the feet sits metres to hundreds of metres below the
+   * surface (chord sag), so the walker fell, then was snapped back up when the leaf refined. The
+   * finest grid is what bookmarks use and what the mesh near the camera converges to (leaves
+   * within NEAR_KEEP are never culled), so walking and collision are now independent of the LOD.
+   */
   heightAt(dir: Vec3d): number | null {
     if (!this.fn) return null;
-    return groundRadius(this.fn, this.opts.a, this.opts.c, dir, this.levelAt(dir)) - this.opts.a;
+    return groundRadius(this.fn, this.opts.a, this.opts.c, dir, MAX_LEVEL) - this.opts.a;
   }
 
   /** Reference-ellipsoid radius along a unit direction, m. */

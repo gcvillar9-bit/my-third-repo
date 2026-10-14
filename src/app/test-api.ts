@@ -3,7 +3,8 @@
  * mode rAF is off: frames advance only through renderFrames(n).
  */
 import type { WebGLRenderer } from 'three';
-import type { RenderStats, UniverseTestApi } from '../core/contracts';
+import type { CameraState, RenderStats, UniverseTestApi } from '../core/contracts';
+import type { MarchWork } from '../render/renderer';
 
 export interface TestApiHost {
   renderer: WebGLRenderer;
@@ -16,11 +17,20 @@ export interface TestApiHost {
   stats(): RenderStats;
   /** Compiles the materials of every scene (renderer.compileAsync) and returns the program count. */
   compileAll(): Promise<number>;
+  /** Ray-march work of the last frame (P4-P perf budgets). */
+  work(): MarchWork;
+  /** Camera state and mode (input/regression specs). */
+  camera(): CameraState & { mode: string; traveling: boolean; altitude: number | null };
+  /** Drawing-buffer size and dynamic resolution scale. */
+  resolution(): { width: number; height: number; dynamicScale: number };
 }
 
 /** Test-only additions to the contract's UniverseTestApi (see docs/CONTRACTS.md). */
 export interface UniverseTestApiExtras {
   compileAll(): Promise<number>;
+  work(): MarchWork;
+  camera(): CameraState & { mode: string; traveling: boolean; altitude: number | null };
+  resolution(): { width: number; height: number; dynamicScale: number };
 }
 
 const errors: string[] = [];
@@ -80,6 +90,9 @@ export function installTestApi(host: TestApiHost): UniverseTestApi {
     },
     errors: () => errors.slice(),
     compileAll: () => host.compileAll(),
+    work: () => host.work(),
+    camera: () => host.camera(),
+    resolution: () => host.resolution(),
   };
   window.__universe = api;
   return api;

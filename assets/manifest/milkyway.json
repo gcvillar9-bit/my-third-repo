@@ -1,0 +1,14 @@
+{
+  "module": "milkyway",
+  "assets": [
+    {
+      "id": "celestia_globulars",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/globulars.dsc",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent data/globulars.dsc by F. Schrempp, pirogronian, E. O. Mendes, A. Tribick), from Baumgardt et al. 2023, MNRAS, Fundamental parameters of Galactic globular clusters",
+      "outputs": ["data/milkyway/globulars.json"],
+      "sha256": "0d9a49ace9c3e21c360b63ff8c79726cc7ab53860875c97fc49f0c6c9b09c244",
+      "bytes": 51790
+    }
+  ]
+}

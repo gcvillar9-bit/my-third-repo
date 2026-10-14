@@ -56,6 +56,8 @@ const SOLID: ReadonlySet<Body['kind']> = new Set([
   'comet',
   'spacecraft',
 ]);
+/** A single pointer move larger than this fraction of the viewport height is not a look drag. */
+export const MAX_LOOK_JUMP = 0.5;
 const ZERO: Readonly<Vec3d> = Object.freeze(vec3());
 const LOOK_RATE = 1.2; // rad/s for arrow keys
 
@@ -482,23 +484,42 @@ export class CameraController implements CameraApi {
     };
     const onKeyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
     const onBlur = () => this.keys.clear();
+    // Mouse/trackpad look. P4-P hardening: a drag ends on pointerup, pointercancel, lost pointer
+    // capture or the first move that arrives with the primary button released (a release outside
+    // the window used to leave the view turning with every hover move); a single move event that
+    // jumps by more than MAX_LOOK_JUMP of the viewport height (pointer re-entry, capture glitches)
+    // only re-bases the drag instead of throwing the view.
     let drag: { id: number; x: number; y: number } | null = null;
+    const endDrag = (e: PointerEvent) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag = null;
+      if (el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture?.(e.pointerId);
+    };
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
-      el.setPointerCapture?.(e.pointerId);
+      try {
+        el.setPointerCapture?.(e.pointerId);
+      } catch {
+        // Pointer already gone (released between dispatch and capture): the drag ends on its next move.
+      }
     };
     const onMove = (e: PointerEvent) => {
       if (!drag || e.pointerId !== drag.id) return;
-      const rad = this.st.fovY / this.viewportHeight;
-      this.look.yaw += (e.clientX - drag.x) * rad;
-      this.look.pitch += (e.clientY - drag.y) * rad;
+      if (e.pointerType !== 'touch' && (e.buttons & 1) === 0) {
+        endDrag(e);
+        return;
+      }
+      const dx = e.clientX - drag.x;
+      const dy = e.clientY - drag.y;
       drag.x = e.clientX;
       drag.y = e.clientY;
+      if (Math.hypot(dx, dy) > MAX_LOOK_JUMP * this.viewportHeight) return;
+      const rad = this.st.fovY / this.viewportHeight;
+      this.look.yaw += dx * rad;
+      this.look.pitch += dy * rad;
     };
-    const onUp = (e: PointerEvent) => {
-      if (drag && e.pointerId === drag.id) drag = null;
-    };
+    const onUp = (e: PointerEvent) => endDrag(e);
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (this._mode === 'orbit') this.look.zoom *= Math.exp(e.deltaY * 0.001);
@@ -512,6 +533,7 @@ export class CameraController implements CameraApi {
     el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerup', onUp);
     el.addEventListener('pointercancel', onUp);
+    el.addEventListener('lostpointercapture', onUp);
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       window.removeEventListener('keydown', onWalkKey, true);
@@ -522,6 +544,7 @@ export class CameraController implements CameraApi {
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerup', onUp);
       el.removeEventListener('pointercancel', onUp);
+      el.removeEventListener('lostpointercapture', onUp);
       el.removeEventListener('wheel', onWheel);
     };
   }

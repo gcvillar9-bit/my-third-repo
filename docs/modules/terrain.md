@@ -55,9 +55,14 @@ ground used by collision, and walk mode. Code: `src/modules/terrain/**`, `src/ca
 
 ## Ground and walk mode
 
-- GroundProvider `terrain` (priority 10): `heightAt = groundRadius(dir, leafLevel) − a`, where the radial ray is
-  intersected with the same float64 triangle (diagonal p00–p11) of the leaf currently drawn under `dir`
-  (level 16 before any tile exists). Unit test: within 1 cm of the Float32 mesh.
+- GroundProvider `terrain` (priority 10): `heightAt = groundRadius(dir, MAX_LEVEL) − a`, the radial ray
+  intersected with the float64 triangle (diagonal p00–p11) of the finest grid. P4-P: it used the level of the leaf
+  drawn under `dir`, which changes as the view turns (frustum, tile cap, loading); a coarse leaf sits metres to
+  hundreds of metres below the surface (chord sag), so walkers fell and were thrown back up ("clicking to look
+  throws me back"). The mesh near the camera converges to this grid (leaves within `NEAR_KEEP` are never culled).
+- Walker re-seat (`RESEAT_THRESHOLD` 0.5 m): a standing walker whose ground changes by more than that at the same
+  spot (height source swapped, e.g. surfaces replacing the Moon's default relief after boot) stands on the new
+  ground instead of free-falling. Walking off a real ledge still falls.
 - Walk (`src/camera/walk.ts`): G toggles within 10 km of a solid surface (capture-phase listener; elsewhere G keeps
   the UI's "fly to selection"). Eye 1.7 m, `g = GM/R²`, Space jumps at 2 m/s (Moon apex `v²/2g` = 1.23 m),
   W/A/S/D 1.4 m/s, Shift 4.2 m/s, mouse/arrows look (yaw about the local vertical, pitch ±89°). The camera anchors
@@ -72,13 +77,24 @@ ground used by collision, and walk mode. Code: `src/modules/terrain/**`, `src/ca
   fovY 80°, walk mode (the walker then settles the eye to 1.7 m above the drawn mesh). EV 14.
 - Test only (`?test=1`): `terrain-jitter-a` / `-b` (same site, free mode, time frozen, b = a + 1 mm east).
 
+## Performance (P4-P)
+
+- Presets (`src/core/quality.ts`): error target 8/6/4/3/2 px and tile cap 64/128/224/384/512 for
+  potato/low/medium/high/ultra. Medium used 2 px with 512 tiles (heavier than high) and ran ~30 fps walking on the
+  owner's laptop; ultra (1024 tiles) ran ~15 fps. apollo11-2m on medium at 1280×720 now draws 165 calls, 428k
+  triangles with 224 resident tiles (`tests/e2e/input.spec.ts` budget).
+- The error target is in drawing-buffer pixels, so dynamic resolution also lowers the tile count when it scales down.
+- Moon bookmarks are re-placed when the surfaces module's relief replaces the default one (it is ~560 m lower at
+  Tranquility Base; apollo11-2m used to start ~560 m up). apollo11-2m now puts Earth ~4° below the top edge (was 6°)
+  so the textured near ground fills the lower band the surfaces checks probe.
+
 ## Known gaps
 
 - `renderer.stats().tiles` is still 0; `terrainStats()` has the numbers (request in `docs/requests/terrain.md`).
 - No geomorphing between levels (small pops at splits); T-junction cracks are hidden by skirts.
 - No cast shadows (terrain self-shadowing); crater interiors facing away from a low Sun are dark by shading only.
 - The tree under a walker at 2 m converges to level ≈ 10 on potato (64-tile cap: every split keeps its visible
-  siblings and the split node resident) versus level 21 on medium (384 tiles), so potato ground looks smooth; the
+  siblings and the split node resident) versus level ≈ 19-21 on medium, so potato ground looks smooth; the
   fragment detail bands add the small-scale texture.
 
 ## R2b integration changes
