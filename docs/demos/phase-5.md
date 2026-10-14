@@ -70,6 +70,21 @@ lighter and heavier presets.
   CPU and GPU meters plus a line with the render scale and draw calls, without reloading. Browsers without GPU
   timing (Safari) show "GPU n/a". `?perf=1` still turns it on from the address bar.
 
+## New: the Great Attractor
+
+- [The Great Attractor and the cosmic flow](https://gcvillar9-bit.github.io/my-third-repo/#b=great-attractor):
+  from about 150 Mpc above the supergalactic plane, hundreds of flow lines with moving dashes converge on the Great
+  Attractor, about 250 million light-years away behind the Milky Way's disc. The green line, "Our path", starts
+  at the Milky Way (the cyan ring): the Local Group moves at about 627 km/s relative to the cosmic microwave
+  background, mostly toward it and the Shapley Supercluster beyond.
+- [Laniakea, our home supercluster](https://gcvillar9-bit.github.io/my-third-repo/#b=laniakea): the whole
+  supercluster ("immeasurable heaven" in Hawaiian, about 520 million light-years across, ~100,000 galaxies,
+  ~10^17 solar masses) as a faint golden outline.
+- The flows are a toy model (softened pulls of the Great Attractor, Shapley and Virgo, calibrated to 627 km/s at
+  the Milky Way) and the outline is a stylised shape, both labelled approximate. Search for "Great Attractor",
+  "Norma Cluster", "Shapley Supercluster", "Laniakea" or "CMB dipole" for info cards. The Cosmic Zoom tour now
+  stops at the Great Attractor between Virgo and the cosmic web. Turn it off in Settings > Sky > "Laniakea flows".
+
 ## Other changes
 
 - The Milky Way band in the night sky is brighter, and the
