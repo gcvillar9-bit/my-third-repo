@@ -153,5 +153,16 @@ describe('star systems', () => {
 
     promoter.release('test');
     expect(bodies.size).toBe(0);
+
+    // A plain named HYG star (51 Peg, no system row): one frame, radius estimated from M_V and B-V Teff.
+    const peg = cat.findByHip(113357);
+    expect(promoter.promoteIndex(peg, 'test')).toBe('star:113357');
+    const body = bodies.get('hip:113357')!;
+    expect(body.radius / R_SUN).toBeGreaterThan(0.8);
+    expect(body.radius / R_SUN).toBeLessThan(1.6);
+    const p = frames.relative('ssb', 'star:113357', jd, vec3());
+    const c = cat.positionPc(peg, yearsSinceJ2000(jd), vec3());
+    expect(Math.hypot(p.x / PC - c.x, p.y / PC - c.y, p.z / PC - c.z)).toBeLessThan(1e-9);
+    promoter.release('test');
   });
 });
