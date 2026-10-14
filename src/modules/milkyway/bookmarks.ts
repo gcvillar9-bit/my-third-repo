@@ -29,7 +29,7 @@ export const BAND_LOOK = { l: 8, b: -2 };
 export const OUTSIDE_EV = -10.5;
 export const EDGE_EV = -9.5;
 export const ABOVE_EV = -9;
-export const BAND_EV = -8.5;
+export const BAND_EV = -6;
 /** Distance of the band viewpoint from the Sun (beyond the asteroid-belt far fade at 30000 AU). */
 export const BAND_DIST = 0.2 * PC;
 

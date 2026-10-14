@@ -53,3 +53,44 @@ test(
     expect([...errors, ...problems]).toEqual([]);
   },
 );
+
+/**
+ * Integration (Phase 5): with the galaxies and cosmic-web modules merged, the tour must fly through
+ * m31-approach, virgo-cluster and cosmic-web-500mpc (in that order) and end back home without errors.
+ */
+test('tours: Cosmic Zoom reaches the galaxy and cosmic-web stops and ends at home', async ({ page }) => {
+  test.setTimeout(120_000);
+  const problems: string[] = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') problems.push(`console: ${msg.text()}`);
+  });
+  page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
+  await page.goto('?test=1&q=potato&ui=1&b=earth-now&tour=cosmic-zoom&tourspeed=100');
+  await page.waitForFunction(() => window.__universe !== undefined);
+  await page.evaluate(() => window.__universe!.ready());
+  await page.evaluate(() => window.__universe!.renderFrames(4));
+  await expect(page.locator('.cz-tour')).toBeVisible();
+
+  const targets: string[] = [];
+  let shot = false;
+  for (let i = 0; i < 80; i++) {
+    await page.evaluate(() => window.__universe!.renderFrames(6));
+    const target = await page.evaluate(
+      () => document.querySelector<HTMLElement>('.cz-tour')?.dataset.target ?? null,
+    );
+    if (target === null) break; // overlay removed: the tour has ended
+    if (target && targets[targets.length - 1] !== target) targets.push(target);
+    if (!shot && target === 'virgo-cluster') {
+      await page.screenshot({ path: 'artifacts/tours/tour-virgo-caption.png' });
+      shot = true;
+    }
+  }
+  const galaxyStops = targets.filter((t) =>
+    ['m31-approach', 'virgo-cluster', 'cosmic-web-500mpc'].includes(t),
+  );
+  expect(galaxyStops, targets.join(', ')).toEqual(['m31-approach', 'virgo-cluster', 'cosmic-web-500mpc']);
+  expect(targets[targets.length - 1]).toBe('earth-now');
+  await expect(page.locator('.cz-tour')).toHaveCount(0);
+  const errors = await page.evaluate(() => window.__universe!.errors());
+  expect([...errors, ...problems]).toEqual([]);
+});

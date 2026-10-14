@@ -76,7 +76,7 @@ export const COSMIC_ZOOM: TourDef = {
     { type: 'goto', target: 'cosmic-web-500mpc', duration: 8 },
     {
       type: 'caption',
-      text: 'The cosmic web: galaxies trace filaments and walls around voids hundreds of millions of light-years across.',
+      text: 'The cosmic web, simulated here: galaxies trace filaments and walls around voids hundreds of millions of light-years across.',
     },
     { type: 'wait', seconds: 10 },
     { type: 'goto', target: 'earth-now', duration: 10 },

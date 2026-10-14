@@ -22,6 +22,7 @@
 | `settings.ts`   | `SettingsStoreImpl` (UiApi.settings)                                                            |
 | `format.ts`     | Speed, distance, light-time, rate, instant and log-scale formatting                             |
 | `debug-gui.ts`  | `?debug` lil-gui (debug settings, EV compensation, quality), lazy-loaded                        |
+| `actions.ts`    | `uiActions.openHelp()` for callers outside the UI tree (onboarding card)                        |
 
 - **Palette** (`/` or Ctrl+K): ranking = fuse score − bonus (exact name or alias 1, prefix 0.5, word prefix 0.25)
   − 0.01 · priority. Provider entries win over built-ins with the same id; `query()` results are merged. Built-ins:
@@ -41,12 +42,18 @@
 - **Copy link:** `shareUrl` + `copyLink` from `src/app/url-state.ts`.
 - **Settings panel (⚙):** quality preset (`quality.set`) and every non-debug SettingDef grouped by `group`.
   Values persist in localStorage when `persist` (not in test mode). `onChange` runs at registration and on change.
+- **Topbar:** ▶ Tour (`.cz-tour-btn`, starts Cosmic Zoom through `src/modules/tours/public.ts`) and Photo
+  (`.cz-photo-btn`). Palette entries of kind `tour` start that tour. Flying to a `LINE_BOOKMARKS` bookmark
+  (palette, labels, info card, tours) switches the constellation lines on (`wantsLines` in `controller.ts`).
+- **Photo mode:** `html[data-photo]` (set by the photo module) hides the shell, labels, caption, toasts, tour
+  overlay and onboarding card through a rule in `styles.ts`.
 - `?perf=1` stats-gl is handled by boot (`src/app/boot.ts`), not by the UI.
 
 ## Keys
 
-`/` or Ctrl+K search · `,` `.` time warp · P pause/play · N now · I info card · G fly to selection ·
-O orbit/free · H hide UI · L copy link · ? help · Esc closes. Keys are ignored while typing in inputs. The camera
+`/` or Ctrl+K search · `,` `.` time warp · K pause/play (pauses the tour while one runs) · N now · I info card ·
+G fly to selection · O orbit/free · H hide UI · L copy link · ? help · Esc closes (photo mode first, then the tour).
+P is photo mode, handled by the photo module (`src/modules/photo`); UI keys are ignored while it is on. Keys are ignored while typing in inputs. The camera
 owns WASD, R/F/Space/C, Q/E, arrows and `[` `]`.
 
 ## Tests

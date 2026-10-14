@@ -14,3 +14,8 @@ No contract changes. For the integrator and other packages:
    integrator to update `src/modules/tours/cosmic-zoom.ts`.
 4. **boot (integrator, optional):** `startOnboarding(ui, env)` is unchanged; it now shows a dismissible hint card
    once per browser instead of a toast.
+
+**Resolved by R5 (final integration):** 1 docs/modules/ui.md updated (keys, topbar, photo rule, actions.ts);
+2 `mw-band-from-earth` moved to EV -6 (e2e band 0.056, >10x the off-band sky); 3 P5-A kept the DESIGN ids and a new
+e2e test plays the whole tour through m31-approach, virgo-cluster and cosmic-web-500mpc back to earth-now; 4 no
+boot change needed.

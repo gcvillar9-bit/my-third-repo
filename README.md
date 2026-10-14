@@ -1,7 +1,7 @@
 # Cosmos
 
 Fly through a realistic universe in your browser, from your boots on the Moon to the cosmic web. Real ephemerides,
-star catalogues and galaxy surveys place everything that can be known; physically motivated procedural models fill
+star and galaxy catalogues place everything that can be known; physically motivated procedural models fill
 in the rest and are labelled "simulated" or "approximate". Everything renders live in WebGL2 at true scale, with
 real luminances and an automatic exposure, like a camera.
 
@@ -45,8 +45,10 @@ to the largest structures in the universe and back home. Or press `/` and type a
 
 **Deep universe**
 
-- Nearby galaxies (Andromeda, the Magellanic Clouds, the Virgo cluster) and the cosmic web of filaments and voids
-  beyond them, with cosmology readouts (lookback time, distance).
+- 10,936 real galaxies (Celestia catalogue) placed in 3D, with oriented spiral and elliptical images up close:
+  Andromeda, the Magellanic Clouds, M33, M81/M82, the Whirlpool, the Sombrero, Centaurus A and the Virgo cluster.
+  Info cards give distance in light-years and megaparsecs and the light-travel time.
+- Beyond them, a simulated cosmic web of filaments and voids out to 800 Mpc (labelled "simulated").
 
 **Showtime**
 
