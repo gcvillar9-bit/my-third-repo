@@ -36,6 +36,8 @@ export const HALO_K = 0.012;
 /** Pre-exposed radiance at which the halo is cut. */
 export const HALO_FLOOR = 0.002;
 export const MAX_RADIUS = 48;
+/** Beyond this camera distance from the Sun (pc) the 100 kpc no-parallax placeholder stars are culled. */
+export const FAR_CULL_PC = 1000;
 
 /** Years since J2000 for a JD (TT), clamped to the proper-motion validity. */
 export const yearsSinceJ2000 = (jd: number): number =>
@@ -71,6 +73,7 @@ function starMaterial(shared: SharedUniforms, bvMin: number, bvStep: number) {
     uBvMin: { value: bvMin },
     uBvStep: { value: bvStep },
     uHide: { value: new Int32Array(HIDE_MAX).fill(-1) },
+    uFarCull: { value: 0 },
   };
   // cosmos:no-depth (background layer: stars are drawn at infinity without depth, DESIGN 3.2)
   const material = new ShaderMaterial({
@@ -180,6 +183,7 @@ export function createStarPoints(data: StarData, shared: SharedUniforms, count: 
       points.quaternion.set(q.x, q.y, q.z, q.w);
       uniforms.uYears.value = yearsSinceJ2000(view.jd);
       uniforms.uScale.value = pixelScale(view.exposure, view.pixelAngle, self.gain);
+      uniforms.uFarCull.value = Math.hypot(camPc.x, camPc.y, camPc.z) > FAR_CULL_PC ? 1 : 0;
     },
     memoryBytes: () => bytes,
     dispose() {

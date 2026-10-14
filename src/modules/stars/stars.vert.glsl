@@ -14,6 +14,7 @@ uniform float uHaloFloor;  // pre-exposed radiance where the halo is cut
 uniform float uMaxRadius;  // px
 uniform float uBvMin;
 uniform float uBvStep;
+uniform float uFarCull;   // 1 when the camera is > 1 kpc from the Sun: drop the 100 kpc no-parallax placeholders
 uniform int uHide[4];     // star indices drawn elsewhere (promoted stars), -1 = unused
 
 varying vec3 vColor;
@@ -29,7 +30,9 @@ void main() {
   float i1 = uScale * exp2(-1.3287712380 * m);
   bool hidden = gl_VertexID == uHide[0] || gl_VertexID == uHide[1] || gl_VertexID == uHide[2] ||
     gl_VertexID == uHide[3];
-  if (hidden || i1 * CORE_PEAK < uMinPeak || absMag > 40.0) {
+  // HYG puts stars without parallax at 100 kpc (|p|² = 1e10 pc²); seen from far away they form a fake shell.
+  bool placeholder = uFarCull > 0.5 && dot(position, position) > 9.0e9;
+  if (hidden || placeholder || i1 * CORE_PEAK < uMinPeak || absMag > 40.0) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     gl_PointSize = 0.0;
     vColor = vec3(0.0);

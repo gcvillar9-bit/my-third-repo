@@ -137,6 +137,8 @@ export class Promoter {
   private readonly scanPos: Float64Array;
   private readonly scanVel: Float64Array;
   private hidden: number[] = [];
+  private readonly hideIdx = new Int32Array(MAX_SPRITES);
+  private readonly hideDist = new Float64Array(MAX_SPRITES);
   private readonly tmp: Vec3d = { x: 0, y: 0, z: 0 };
   private readonly rel: Vec3d = { x: 0, y: 0, z: 0 };
   private readonly cam: Vec3d = { x: 0, y: 0, z: 0 };
@@ -229,13 +231,21 @@ export class Promoter {
     cam.z = -this.tmp.z / PC;
     if (view.frameIndex % SCAN_EVERY === 0 || view.test) this.scan(cam, years);
 
+    if (this.active.length === 0) {
+      this.sprites.setCount(0);
+      if (this.hidden.length) this.setHidden(0);
+      return;
+    }
     let n = 0;
-    const hide: { i: number; d: number }[] = [];
+    let h = 0;
     for (const g of this.active) {
       for (const s of g.stars) {
         const rel = view.toCamera(s.frame, ZERO, this.rel);
         const d = Math.hypot(rel.x, rel.y, rel.z);
-        if (s.hygIndex >= 0) hide.push({ i: s.hygIndex, d });
+        if (s.hygIndex >= 0 && h < MAX_SPRITES) {
+          this.hideIdx[h] = s.hygIndex;
+          this.hideDist[h++] = d;
+        }
         const px = (2 * s.radius) / (Math.max(d, 1) * view.pixelAngle);
         if (px <= SPHERE_MIN_PX && n < MAX_SPRITES) {
           rel.x /= PC;
@@ -246,12 +256,28 @@ export class Promoter {
       }
     }
     this.sprites.setCount(n);
-    hide.sort((a, b) => a.d - b.d);
-    const next = hide.slice(0, HIDE_MAX).map((h) => h.i);
-    if (next.length !== this.hidden.length || next.some((v, k) => v !== this.hidden[k])) {
-      this.hidden = next;
-      hideStars(next);
+    this.setHidden(h);
+  }
+
+  /** Hides the HIDE_MAX nearest of the first `h` candidates; calls hideStars only on change. */
+  private setHidden(h: number): void {
+    // Partial selection sort by distance (h is tiny).
+    const m = Math.min(h, HIDE_MAX);
+    for (let a = 0; a < m; a++) {
+      let best = a;
+      for (let b = a + 1; b < h; b++) if (this.hideDist[b] < this.hideDist[best]) best = b;
+      const ti = this.hideIdx[a];
+      const td = this.hideDist[a];
+      this.hideIdx[a] = this.hideIdx[best];
+      this.hideDist[a] = this.hideDist[best];
+      this.hideIdx[best] = ti;
+      this.hideDist[best] = td;
     }
+    let same = m === this.hidden.length;
+    for (let k = 0; same && k < m; k++) same = this.hidden[k] === this.hideIdx[k];
+    if (same) return;
+    this.hidden = Array.from(this.hideIdx.subarray(0, m));
+    hideStars(this.hidden);
   }
 
   private scan(cam: Vec3d, years: number): void {

@@ -1,4 +1,4 @@
-# Stars (P1-D)
+# Stars (P1-D, P4-C)
 
 The HYG sky: `src/modules/stars/`. Data formats: `docs/modules/data-formats.md`.
 
@@ -12,6 +12,10 @@ The HYG sky: `src/modules/stars/`. Data formats: `docs/modules/data-formats.md`.
 | LabelSource                   | `stars.labels`                                                                                                  | Proper-named stars brighter than m 2.5 **as seen from the camera** (priority 30 − 4m).              |
 | Bookmarks                     | `orion-from-earth`, `sun-from-alpha-cen`                                                                        | Both in `ssb`, EV −4, fovY 40°.                                                                     |
 | Settings                      | `stars.points`, `stars.milkyWay`, `stars.labels` (persisted); debug: `stars.gain`, `stars.milkyWayGain` (stops) |                                                                                                     |
+
+`public.ts` also exports (P4-C) `hideStars(indices)` / `hiddenStars()` (up to `HIDE_MAX` = 4 star indices skipped by
+the point shader via `gl_VertexID` and by the label source, for promoted stars), `createStarSprites` (the same
+photometric sprite material for a few camera-relative positions), `yearsSinceJ2000` and `PM_PC_PER_KMS_YR`.
 
 `public.ts` exports `starCatalog()` (a promise of the decoded `StarCatalog`: positions with proper motion,
 `appMag` from any viewpoint, names, `findByHip`, `teff`), `galacticUv`, `raDec`, `spectralClass` and the flag constants.
@@ -44,8 +48,12 @@ The HYG sky: `src/modules/stars/`. Data formats: `docs/modules/data-formats.md`.
 
 ## Decisions and notes
 
-- Stars are not Bodies in P1. A search entry's target is a computed Bookmark 0.05 pc Sun-wards of the star, looking
-  at it (stars without parallax: 1 AU from the Sun, looking at them). Promotion to a Float64 frame is P4.
+- **Velocity overrides (P4-C):** `overrides.json` rows (with sources) patch decoded velocities at load. HYG v4.1
+  clips Barnard's Star's pmdec at 9 999.99 mas/yr (10.03″/yr); the Gaia DR3 values give 10.39″/yr. The real fix
+  belongs in `tools/build-stars.mjs` (request in `docs/requests/p4-starsystems.md`).
+
+- Stars are not Bodies by default. A search entry's target is a computed Bookmark 0.05 pc Sun-wards of the star,
+  looking at it (stars without parallax: 1 AU from the Sun). Arriving there promotes the star (starsystems).
 - Info cards: distance (ly, pc), apparent magnitude from the Sun and from the camera, absolute magnitude,
   spectral class estimated from Teff, V-band luminosity (no bolometric correction), colour temperature, B-V,
   RA/Dec, designation, HIP, variable/multiple. Derived values are flagged `approximate`.

@@ -8,7 +8,7 @@ export type { NameRow, StarCatalog, StarNames } from './catalog';
 export type { StarData } from './format';
 export { appMagAt, raDec, spectralClass } from './catalog';
 export { FLAG_DIST_UNKNOWN, FLAG_HIPPARCOS, FLAG_MULTIPLE, FLAG_NAMED, FLAG_VARIABLE } from './format';
-export { galacticUv } from './milkyway';
+export { FADE_END, FADE_START, galacticUv, MILKY_WAY_LUMINANCE, milkyWayFade } from './milkyway';
 export { createStarSprites, HIDE_MAX, yearsSinceJ2000, type StarSprites } from './points';
 export { PM_PC_PER_KMS_YR } from './format';
 
