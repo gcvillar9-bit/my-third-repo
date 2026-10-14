@@ -177,6 +177,20 @@ describe('galaxy bookmarks', () => {
     const fwd = qrotate({ x: 0, y: 0, z: 0 }, m31b.quat!, { x: 0, y: 0, z: -1 });
     expect((fwd.x * toGal[0] + fwd.y * toGal[1] + fwd.z * toGal[2]) / dist).toBeGreaterThan(0.9999);
     expect(local.id).toBe('local-group');
+    // Milky Way, M31, M33 and the Magellanic Clouds all inside the 16:9 frustum.
+    const q = local.quat!;
+    const qi = { x: -q.x, y: -q.y, z: -q.z, w: q.w };
+    const tanV = Math.tan(local.fovY! / 2);
+    for (const p of [[0, 0, 0], ...['m31', 'm33', 'lmc', 'smc'].map((id) => named(id).pos)]) {
+      const c = qrotate({ x: 0, y: 0, z: 0 }, qi, {
+        x: p[0] * MPC - local.pos.x,
+        y: p[1] * MPC - local.pos.y,
+        z: p[2] * MPC - local.pos.z,
+      });
+      expect(c.z).toBeLessThan(0);
+      expect(Math.abs(c.y / c.z)).toBeLessThan(0.9 * tanV);
+      expect(Math.abs(c.x / c.z)).toBeLessThan(0.9 * tanV * (16 / 9));
+    }
     const m87 = named('m87');
     expect(virgo.id).toBe('virgo-cluster');
     expect(
