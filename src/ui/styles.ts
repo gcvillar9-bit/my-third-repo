@@ -75,4 +75,5 @@ kbd { font: 10px ui-monospace, monospace; opacity: 0.7; border: 1px solid rgba(2
 .cz-label:hover { opacity: 1; color: #fff; }
 .cz-label-emph { color: #9cc3ff !important; opacity: 1; }
 @media (max-width: 640px) { .cz-badges, .cz-help { display: none; } .cz-hud { bottom: 54px; } }
+html[data-photo] .cz-shell, html[data-photo] .cz-labels { display: none; }
 `;

@@ -17,6 +17,8 @@ import {
   logScaleFraction,
   toDatetimeLocal,
 } from './format';
+import { CONSTELLATIONS_SETTING, LINE_BOOKMARKS } from '../modules/starsystems/public';
+import { TOUR_ENTRY_PREFIX, tours } from '../modules/tours/public';
 import { bodyEntry, bookmarkEntry, SearchIndex } from './search';
 import { SettingsStoreImpl } from './settings';
 
@@ -59,6 +61,11 @@ const EMPTY_HUD: HudData = {
   traveling: false,
   frame: '',
 };
+
+/** Constellation bookmarks switch the lines on however they are reached (P5-B). */
+export function wantsLines(target: string | Bookmark): boolean {
+  return LINE_BOOKMARKS.includes(typeof target === 'string' ? target : target.id);
+}
 
 export class UiController {
   readonly paletteOpen = signal(false);
@@ -165,6 +172,7 @@ export class UiController {
   fly(target: string | Bookmark, selectId?: string | null): void {
     if (selectId !== undefined) this.select(selectId);
     const name = typeof target === 'string' ? this.nameOf(target) : target.title;
+    if (wantsLines(target)) this.settings.set(CONSTELLATIONS_SETTING, true);
     void this.ctx.camera.goto(target).then((ok) => {
       if (!ok && this.ctx.camera.traveling === false && this.flightFailed(target)) {
         this.toast(`Cannot fly to ${name}`, 'warn');
@@ -182,6 +190,11 @@ export class UiController {
 
   choose(entry: SearchEntry): void {
     this.paletteOpen.value = false;
+    if (entry.kind === 'tour') {
+      const id = entry.id.startsWith(TOUR_ENTRY_PREFIX) ? entry.id.slice(TOUR_ENTRY_PREFIX.length) : entry.id;
+      if (!tours.start(id)) this.toast(`Tour ${entry.name} is not available`, 'warn');
+      return;
+    }
     const bm = typeof entry.target === 'string' ? undefined : entry.target;
     this.fly(entry.target, entry.kind === 'bookmark' ? (bm?.lookAt ?? null) : entry.id);
   }
