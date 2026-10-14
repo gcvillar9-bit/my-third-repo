@@ -81,12 +81,20 @@ describe('UrlSync (P4-P: no snap back to an applied bookmark)', () => {
     };
     return host;
   }
-  const live = (x: number): UrlState => ({ f: 'moon.fixed', p: { x, y: 0, z: 0 }, t: '1969-07-21T03:00:00Z' });
+  const live = (x: number): UrlState => ({
+    f: 'moon.fixed',
+    p: { x, y: 0, z: 0 },
+    t: '1969-07-21T03:00:00Z',
+  });
 
   it('replaces the applied #b= hash with the live state at once', () => {
     const host = fakeHost('#b=apollo11-2m');
     const applied: UrlState[] = [];
-    const sync = new UrlSync(() => live(1), (s) => applied.push(s), host);
+    const sync = new UrlSync(
+      () => live(1),
+      (s) => applied.push(s),
+      host,
+    );
     sync.commit();
     expect(host.location.hash).toBe(formatHash(live(1)));
     sync.tick(500);
@@ -97,7 +105,11 @@ describe('UrlSync (P4-P: no snap back to an applied bookmark)', () => {
     const host = fakeHost('#b=apollo11-2m');
     const applied: UrlState[] = [];
     let x = 1;
-    const sync = new UrlSync(() => live(x), (s) => applied.push(s), host);
+    const sync = new UrlSync(
+      () => live(x),
+      (s) => applied.push(s),
+      host,
+    );
     sync.commit();
     const first = host.location.hash;
     x = 5;
@@ -112,7 +124,11 @@ describe('UrlSync (P4-P: no snap back to an applied bookmark)', () => {
   it('applies a genuinely new hash once, then shows the live state again', () => {
     const host = fakeHost('');
     const applied: UrlState[] = [];
-    const sync = new UrlSync(() => live(3), (s) => applied.push(s), host);
+    const sync = new UrlSync(
+      () => live(3),
+      (s) => applied.push(s),
+      host,
+    );
     host.navigate('#b=apollo11-2m');
     expect(applied).toEqual([{ b: 'apollo11-2m' }]);
     sync.tick(100); // written at once after an applied edit
