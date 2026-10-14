@@ -36,6 +36,33 @@ function standing(ground: (d: { x: number; y: number; z: number }) => number) {
 }
 
 describe('walk physics', () => {
+  it('re-seats a standing walker when the ground source changes under it (P4-P)', () => {
+    let h = 0;
+    const ground = () => MOON.radius + h;
+    const { w, pose } = standing(ground);
+    for (let i = 0; i < 5; i++) w.step(pose, none(), DT, ground);
+    expect(v3len(pose.local) - MOON.radius).toBeCloseTo(EYE_HEIGHT, 6);
+    h = -560; // e.g. the Moon's default relief replaced by the LOLA-based height source
+    w.step(pose, none(), DT, ground);
+    expect(w.grounded).toBe(true);
+    expect(v3len(pose.local) - MOON.radius - h).toBeCloseTo(EYE_HEIGHT, 6);
+    h = 3; // and back up
+    w.step(pose, none(), DT, ground);
+    expect(v3len(pose.local) - MOON.radius - h).toBeCloseTo(EYE_HEIGHT, 6);
+  });
+
+  it('still falls when walking off a real ledge', () => {
+    // The ground drops 5 m as soon as the walker leaves the +x point.
+    const { w, pose } = standing(() => MOON.radius);
+    const start = { ...pose.local };
+    const ledge = (d: { x: number; y: number; z: number }) =>
+      Math.abs(d.y) + Math.abs(d.z) > 1e-10 ? MOON.radius - 5 : MOON.radius;
+    w.step(pose, none(), DT, () => MOON.radius);
+    w.step(pose, { ...none(), forward: 1 }, DT, ledge);
+    expect(w.grounded).toBe(false);
+    expect(v3len(pose.local)).toBeGreaterThan(v3len(start) - 0.01);
+  });
+
   it('uses g = GM/R² (Moon 1.62 m/s²)', () => {
     expect(surfaceGravity(MOON)).toBeCloseTo(1.623, 3);
     expect(surfaceGravity({ radius: 1e5 })).toBeGreaterThan(0);

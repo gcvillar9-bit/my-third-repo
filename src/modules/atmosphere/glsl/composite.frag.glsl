@@ -2,18 +2,59 @@
 // log depth texture, so it works over any geometry provider.
 //   camera inside:  sky pixels -> sky-view LUT + background * transmittance LUT (stars fade in daylight);
 //                   geometry nearer than uApMax -> aerial-perspective atlas; farther -> raymarch.
-//   camera outside: per-pixel raymarch through the shell (limb glow, terminator, haze over the disk).
+//   camera outside: raymarch through the shell (limb glow, terminator, haze over the disk).
+// Raymarched pixels come from the reduced-resolution march pass when uHalf > 0.5 (P4-P): see
+// upsampleMarch; a pixel with no matching neighbour marches at full resolution itself.
 // out = in * T + L * E_sun * exposure.
 uniform sampler2D uInput;
-uniform sampler2D uDepth;
 uniform sampler2D uSkyView;
 uniform sampler2D uAerial;
+uniform sampler2D uHalfL;  // march pass: L, path length (-1: not marched)
+uniform sampler2D uHalfT;  // march pass: transmittance
+uniform vec2 uHalfSize;
+uniform float uHalf;
 uniform vec3 uSunE;       // solar illuminance at the body, lux per channel
 uniform float uExposure;
-uniform float uInside;
 uniform float uSunTPost;  // multiply surface pixels by the Sun transmittance
-uniform int uSteps;
 varying vec2 vUv;
+
+// Path-length similarity scale of the upsample weights (relative difference).
+#define HALF_SIGMA 0.15
+
+// Upsamples the reduced-resolution march: the four nearest texels whose ray ends the same way as
+// this pixel's (geometry/ground vs. leaving the shell) are blended with bilinear x path-similarity
+// weights, so the limb and silhouettes do not bleed while smooth but steep gradients (grazing rays
+// near the limb) still interpolate. False when no neighbour qualifies: march this pixel instead.
+bool upsampleMarch(AtmoPixel p, out vec3 L, out vec3 T) {
+  L = vec3(0.0);
+  T = vec3(0.0);
+  float path = p.tEnd - p.tStart;
+  float type = p.geomIn || p.hitsGround ? 1.0 : 0.0;
+  vec2 st = vUv * uHalfSize - 0.5;
+  vec2 fl = floor(st);
+  vec2 fr = st - fl;
+  ivec2 i0 = ivec2(fl);
+  ivec2 hi = ivec2(uHalfSize) - 1;
+  float wsum = 0.0;
+  for (int k = 0; k < 4; k++) {
+    ivec2 o = ivec2(k & 1, k >> 1);
+    ivec2 ij = clamp(i0 + o, ivec2(0), hi);
+    vec4 a = texelFetch(uHalfL, ij, 0);
+    if (a.a < 0.0) continue;
+    vec4 t = texelFetch(uHalfT, ij, 0);
+    if (abs(t.a - type) > 0.5) continue;
+    float rel = abs(a.a - path) / max(path, 1e-3) / HALF_SIGMA;
+    float wb = (o.x == 1 ? fr.x : 1.0 - fr.x) * (o.y == 1 ? fr.y : 1.0 - fr.y);
+    float w = (wb + 1e-3) / (1.0 + rel * rel);
+    L += a.rgb * w;
+    T += t.rgb * w;
+    wsum += w;
+  }
+  if (wsum <= 0.0) return false;
+  L /= wsum;
+  T /= wsum;
+  return true;
+}
 
 vec3 skyViewLookup(vec3 ro, float r, vec3 rd, bool hitsGround) {
   vec3 up = ro / r;
@@ -56,64 +97,25 @@ vec3 finiteOrZero(vec3 c) {
 
 void main() {
   vec3 col = finiteOrZero(texture(uInput, vUv).rgb);
-  vec3 dirV = viewDirFromUv(vUv);
-  vec4 ray = atmoRay(dirV);
-  vec3 rd = ray.xyz;
-  vec3 ro = uCamPos;
-  float r = length(ro);
-  vec2 top = raySphere(ro, rd, uAtmoTop);
-  if (top.y <= 0.0) {
+  AtmoPixel p = atmoPixel(vUv);
+  if (p.kind == ATMO_NONE) {
     gl_FragColor = vec4(col, 1.0);
     return;
   }
-  float d = texture(uDepth, vUv).r;
-  bool bg = d >= 0.9999999;
-  float tGeom = bg ? 1e30 : linearFromLogDepth(d) / max(-dirV.z, 1e-6) * 0.001 * ray.w;
-  float tStart = max(top.x, 0.0);
-  bool geomIn = !bg && tGeom < top.y;
-  if (geomIn && tGeom <= tStart) {
-    gl_FragColor = vec4(col, 1.0);
-    return;
-  }
-  float mu = dot(ro, rd) / r;
-  float tG;
-  if (uInside > 0.5) {
-    tG = groundDistance(r, uCamH, mu);
-  } else {
-    vec2 g = raySphere(ro, rd, uAtmoBottom);
-    tG = g.x > 0.0 ? g.x : -1.0;
-  }
-  bool hitsGround = tG > 0.0 && tG < top.y;
-  float tEnd = geomIn ? tGeom : (hitsGround ? tG : top.y);
   vec3 L = vec3(0.0);
   vec3 T = vec3(1.0);
-  vec3 f = vec3(0.0);
-  if (uInside > 0.5 && !geomIn) {
-    L = skyViewLookup(ro, r, rd, hitsGround);
-    T = hitsGround ? vec3(0.0) : texture(uTransLut, transmittanceUv(r, mu)).rgb;
-  } else if (uInside > 0.5 && tGeom < uApMax) {
-    vec4 ap = aerialLookup(vUv, tGeom);
+  if (p.kind == ATMO_SKY) {
+    L = skyViewLookup(p.ro, p.r, p.rd, p.hitsGround);
+    T = p.hitsGround ? vec3(0.0) : texture(uTransLut, transmittanceUv(p.r, p.mu)).rgb;
+  } else if (p.kind == ATMO_AERIAL) {
+    vec4 ap = aerialLookup(vUv, p.tGeom);
     L = ap.rgb;
     T = vec3(ap.a);
-  } else {
-    // Split at the closest approach to the centre so limb rays get fine steps where the air is densest.
-    float tc = clamp(-dot(ro, rd), tStart, tEnd);
-    int n = uSteps;
-    if (uInside < 0.5) {
-      // Outside view: steps follow the path length through the shell, so the short path in front of
-      // the disc takes few steps while limb rays keep the full count.
-      float seg = (uAtmoTop - uAtmoBottom) / 8.0;
-      n = clamp(int(ceil((tEnd - tStart) / seg)), 8, uSteps);
-    }
-    if (tc > tStart + 1e-3 && tc < tEnd - 1e-3) {
-      atmoMarch(ro, rd, uSunDir, tStart, tc, n / 2, true, false, L, T, f);
-      atmoMarch(ro, rd, uSunDir, tc, tEnd, n - n / 2, false, false, L, T, f);
-    } else {
-      atmoMarch(ro, rd, uSunDir, tStart, tEnd, n, tc >= tEnd - 1e-3, false, L, T, f);
-    }
+  } else if (!(uHalf > 0.5 && upsampleMarch(p, L, T))) {
+    atmoMarchPixel(p, L, T);
   }
-  if (uSunTPost > 0.5 && geomIn) {
-    vec3 P = ro + rd * tGeom;
+  if (uSunTPost > 0.5 && p.geomIn) {
+    vec3 P = p.ro + p.rd * p.tGeom;
     float rp = length(P);
     // Any ground inside the shell (terrain reaches tens of km on Mars) is lit through the air above it.
     if (rp < uAtmoTop) {

@@ -5,26 +5,32 @@
  * ScreenPass that composites sky, aerial perspective and background transmittance.
  */
 import {
+  GLSL3,
+  HalfFloatType,
   Matrix3,
   Matrix4,
+  NearestFilter,
+  RGBAFormat,
   ShaderMaterial,
   Vector2,
   Vector3,
+  WebGLRenderTarget,
   type DepthTexture,
   type IUniform,
   type Texture,
-  type WebGLRenderTarget,
   type WebGLRenderer,
 } from 'three';
-import type { Body, RegistryReader, ScreenPass, ViewState } from '../../core/contracts';
+import type { Body, QualityPreset, RegistryReader, ScreenPass, ViewState } from '../../core/contracts';
 import { quat, vec3 } from '../../core/math64';
 import { SUN_RGB, solarIlluminance } from '../../core/photometry';
 import { DEPTH_GLSL, PHASE_GLSL } from '../../render/chunks/index';
 import aerialFrag from './glsl/aerial.frag.glsl?raw';
 import commonGlsl from './glsl/common.glsl?raw';
 import compositeFrag from './glsl/composite.frag.glsl?raw';
+import marchFrag from './glsl/march.frag.glsl?raw';
 import multiscatterFrag from './glsl/multiscatter.frag.glsl?raw';
 import skyviewFrag from './glsl/skyview.frag.glsl?raw';
+import scatterGlsl from './glsl/scatter.glsl?raw';
 import transmittanceFrag from './glsl/transmittance.frag.glsl?raw';
 import viewRayGlsl from './glsl/view-ray.glsl?raw';
 import { FULLSCREEN_VERT, FullscreenDraw, lutMaterial, lutTarget, targetBytes } from './gpu/fullscreen';
@@ -34,6 +40,25 @@ import type { AtmosphereParams } from './params';
 import { atmosphereFrame, selectAtmosphere, stepCounts, type AtmosphereFrame } from './space';
 
 export const ATMOSPHERE_PASS_ID = 'atmosphere.composite';
+
+/**
+ * Resolution of the in-scattering march relative to the frame (P4-P): the expensive per-pixel
+ * march (every pixel in the shell when the camera is outside, e.g. earth-dawn-400km) runs at half
+ * resolution per axis and is upsampled with path-length-aware weights; ultra marches per pixel.
+ */
+export const MARCH_SCALE: Readonly<Record<QualityPreset, number>> = {
+  potato: 0.5,
+  low: 0.5,
+  medium: 0.5,
+  high: 0.5,
+  ultra: 1,
+};
+
+/** Size of the reduced-resolution march target for a frame size and scale. */
+export const marchSize = (w: number, h: number, scale: number): [number, number] => [
+  Math.max(1, Math.ceil(w * scale)),
+  Math.max(1, Math.ceil(h * scale)),
+];
 
 export interface StaticLuts {
   trans: WebGLRenderTarget;
@@ -127,6 +152,14 @@ export class AtmosphereGpu implements ScreenPass {
   private readonly skyMat: ShaderMaterial;
   private readonly aerialMat: ShaderMaterial;
   private readonly compositeMat: ShaderMaterial;
+  private readonly marchMat: ShaderMaterial;
+  private marchTarget: WebGLRenderTarget | null = null;
+  private fullSize: [number, number] = [1, 1];
+  private readonly pixel = {
+    uDepth: { value: null as Texture | null },
+    uInside: { value: 0 },
+    uSteps: { value: 24 },
+  };
   private readonly cache: StaticLutCache<StaticLuts>;
   private skyTarget: WebGLRenderTarget | null = null;
   private apTarget: WebGLRenderTarget | null = null;
@@ -155,21 +188,33 @@ export class AtmosphereGpu implements ScreenPass {
     });
     this.compositeMat = new ShaderMaterial({
       vertexShader: `${DEPTH_GLSL}\n${FULLSCREEN_VERT}`,
-      fragmentShader: `${DEPTH_GLSL}\n${PRELUDE}${viewRayGlsl}\n${compositeFrag}`,
+      fragmentShader: `${DEPTH_GLSL}\n${PRELUDE}${viewRayGlsl}\n${scatterGlsl}\n${compositeFrag}`,
       uniforms: {
         ...U,
         ...this.view,
+        ...this.pixel,
         uMsOn: { value: 1 },
         uInput: { value: null },
-        uDepth: { value: null },
         uSkyView: { value: null },
         uAerial: { value: null },
+        uHalfL: { value: null },
+        uHalfT: { value: null },
+        uHalfSize: { value: new Vector2(1, 1) },
+        uHalf: { value: 0 },
         uSunE: { value: new Vector3() },
         uExposure: deps.exposure,
-        uInside: { value: 0 },
         uSunTPost: { value: 0 },
-        uSteps: { value: 24 },
       },
+      depthTest: false,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    // Reduced-resolution march (two outputs: L + path length, transmittance).
+    this.marchMat = new ShaderMaterial({
+      glslVersion: GLSL3,
+      vertexShader: FULLSCREEN_VERT,
+      fragmentShader: `${DEPTH_GLSL}\n${PRELUDE}${viewRayGlsl}\n${scatterGlsl}\n${marchFrag}`,
+      uniforms: { ...U, ...this.view, ...this.pixel, uMsOn: { value: 1 } },
       depthTest: false,
       depthWrite: false,
       toneMapped: false,
@@ -181,6 +226,33 @@ export class AtmosphereGpu implements ScreenPass {
         l.ms.dispose();
       },
     );
+  }
+
+  setSize(width: number, height: number): void {
+    this.fullSize = [width, height];
+  }
+
+  /** The march target for this frame's preset (null: march per pixel in the composite). */
+  private marchTargetFor(preset: QualityPreset): WebGLRenderTarget | null {
+    const scale = MARCH_SCALE[preset] ?? 0.5;
+    if (scale >= 1) {
+      this.marchTarget?.dispose();
+      this.marchTarget = null;
+      return null;
+    }
+    const [w, h] = marchSize(this.fullSize[0], this.fullSize[1], scale);
+    if (!this.marchTarget) {
+      this.marchTarget = new WebGLRenderTarget(w, h, {
+        count: 2,
+        type: HalfFloatType,
+        format: RGBAFormat,
+        minFilter: NearestFilter,
+        magFilter: NearestFilter,
+        depthBuffer: false,
+        generateMipmaps: false,
+      });
+    } else if (this.marchTarget.width !== w || this.marchTarget.height !== h) this.marchTarget.setSize(w, h);
+    return this.marchTarget;
   }
 
   /** Number of static LUT builds so far (tests/debug). */
@@ -294,11 +366,26 @@ export class AtmosphereGpu implements ScreenPass {
     }
     const E = solarIlluminance(f.sunDist);
     (cu.uSunE.value as Vector3).set(E * SUN_RGB[0], E * SUN_RGB[1], E * SUN_RGB[2]);
-    cu.uInside.value = inside ? 1 : 0;
+    const px = this.pixel;
+    px.uInside.value = inside ? 1 : 0;
+    px.uSteps.value = steps.march;
+    px.uDepth.value = depth;
     cu.uSunTPost.value = p.sunTransmittanceInPost ? 1 : 0;
-    cu.uSteps.value = steps.march;
     cu.uInput.value = input.texture;
-    cu.uDepth.value = depth;
+    const mt = this.marchTargetFor(view.quality);
+    if (mt) {
+      this.draw.render(gl, this.marchMat, mt);
+      cu.uHalfL.value = mt.textures[0];
+      cu.uHalfT.value = mt.textures[1];
+      (cu.uHalfSize.value as Vector2).set(mt.width, mt.height);
+      cu.uHalf.value = 1;
+      // Work hint for the renderer's march counter: the composite mostly upsamples.
+      this.compositeMat.userData.marchSteps = 1;
+    } else {
+      this.compositeMat.userData.marchSteps = steps.march;
+      cu.uHalfL.value = cu.uHalfT.value = luts.trans.texture; // unused; keep a valid binding
+      cu.uHalf.value = 0;
+    }
     this.draw.render(gl, this.compositeMat, output);
   }
 
@@ -307,6 +394,7 @@ export class AtmosphereGpu implements ScreenPass {
     for (const l of this.cache.values()) n += targetBytes(l.trans) + targetBytes(l.ms);
     if (this.skyTarget) n += targetBytes(this.skyTarget);
     if (this.apTarget) n += targetBytes(this.apTarget);
+    if (this.marchTarget) n += 2 * targetBytes(this.marchTarget);
     return n;
   }
 
@@ -315,7 +403,16 @@ export class AtmosphereGpu implements ScreenPass {
     this.skyTarget?.dispose();
     this.apTarget?.dispose();
     this.skyTarget = this.apTarget = null;
-    for (const mat of [this.transMat, this.msMat, this.skyMat, this.aerialMat, this.compositeMat])
+    this.marchTarget?.dispose();
+    this.marchTarget = null;
+    for (const mat of [
+      this.transMat,
+      this.msMat,
+      this.skyMat,
+      this.aerialMat,
+      this.compositeMat,
+      this.marchMat,
+    ])
       mat.dispose();
     this.draw.dispose();
     for (const s of this.shading.values()) {

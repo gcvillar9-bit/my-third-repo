@@ -12,7 +12,9 @@ import { WorkerPoolImpl, type WrapFn } from '../../../src/core/workers';
 describe('quality presets', () => {
   it('defines every preset with the DESIGN knobs', () => {
     expect(Object.keys(PRESET_KNOBS)).toEqual([...QUALITY_PRESETS]);
-    expect(QUALITY_PRESETS.map((p) => PRESET_KNOBS[p].terrainTileCap)).toEqual([64, 192, 512, 768, 1024]);
+    expect(QUALITY_PRESETS.map((p) => PRESET_KNOBS[p].terrainTileCap)).toEqual([64, 128, 224, 384, 512]);
+    // Error targets fall monotonically from potato to ultra (P4-P).
+    expect(QUALITY_PRESETS.map((p) => PRESET_KNOBS[p].terrainSse)).toEqual([8, 6, 4, 3, 2]);
     expect(QUALITY_PRESETS.map((p) => PRESET_KNOBS[p].gpuBudgetMB)).toEqual([128, 128, 256, 512, 512]);
     expect(PRESET_KNOBS.potato.smaa).toBe(false);
     expect(PRESET_KNOBS.potato.renderScale).toBe(1);
@@ -34,7 +36,10 @@ describe('quality presets', () => {
     expect(q.dynamicScale).toBe(1);
     const live = new QualityStateImpl('low');
     live.setDynamicScale(0.1);
-    expect(live.dynamicScale).toBe(0.5);
+    expect(live.dynamicScale).toBe(0.6); // low's floor (DYNAMIC_SCALE_BOUNDS)
+    const med = new QualityStateImpl('medium');
+    med.setDynamicScale(0.1);
+    expect(med.dynamicScale).toBe(0.5);
   });
 });
 

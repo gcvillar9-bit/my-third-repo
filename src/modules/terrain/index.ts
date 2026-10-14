@@ -36,14 +36,25 @@ const terrain: UniverseModule = {
 
     const moon = registry.body('moon');
     if (moon) {
-      await sys.loadFunction(moon);
-      const fn = sys.manager(moon)?.fn;
-      if (fn) {
-        const a = moon.radius;
-        const c = a * (1 - (moon.oblateness ?? 0));
+      const a = moon.radius;
+      const c = a * (1 - (moon.oblateness ?? 0));
+      const addMoonBookmarks = () => {
+        const fn = sys.manager(moon)?.fn;
+        if (!fn) return;
         const ground = (d: { x: number; y: number; z: number }) => groundRadius(fn, a, c, d, MAX_LEVEL);
         registry.addBookmarks(terrainBookmarks(ctx.frames, moon, ground, ctx.env.test));
-      }
+      };
+      await sys.loadFunction(moon);
+      addMoonBookmarks();
+      // P4-P fix: the surfaces module (initialised after terrain) replaces the Moon's default relief
+      // with its real height source, about 560 m lower at Tranquility Base. Re-place the bookmarks on
+      // the relief actually drawn once its CPU function has loaded (apollo11-2m used to start ~560 m
+      // up, and a walker seated on the old relief then fell); the walker re-seats itself meanwhile.
+      cleanup.push(
+        registry.subscribe((kind) => {
+          if (kind === 'height') void sys.loadFunction(moon).then(addMoonBookmarks, () => {});
+        }),
+      );
     }
 
     let last = camera.mode;

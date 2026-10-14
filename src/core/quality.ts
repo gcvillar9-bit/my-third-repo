@@ -1,5 +1,11 @@
 /**
  * Quality presets (DESIGN 3.3). `?q=<preset>` selects one at boot; medium is the default.
+ *
+ * P4-P (owner's laptop test): terrain error targets rise monotonically from ultra to potato
+ * (2/3/4/6/8 px) with tile caps that keep draw calls modest (64/128/224/384/512 tiles of
+ * ~2.3k triangles), and medium/low use fewer atmosphere steps (the composite marches at half
+ * resolution on every preset except ultra). Dynamic resolution (src/render/dynamic-res.ts)
+ * scales the render resolution within DYNAMIC_SCALE_BOUNDS on top of renderScale.
  */
 import { QUALITY_PRESETS, type QualityKnobs, type QualityPreset, type QualityState } from './contracts';
 
@@ -26,12 +32,12 @@ export const PRESET_KNOBS: Readonly<Record<QualityPreset, Readonly<QualityKnobs>
     preset: 'low',
     renderScale: 0.75,
     maxPixelRatio: 1,
-    atmosphereSteps: 16,
+    atmosphereSteps: 12,
     lensingSteps: 64,
     volumeSteps: 24,
     pointBudget: 300_000,
     terrainSse: 6,
-    terrainTileCap: 192,
+    terrainTileCap: 128,
     maxTextureSize: 2048,
     gpuBudgetMB: 128,
     bloom: true,
@@ -42,12 +48,12 @@ export const PRESET_KNOBS: Readonly<Record<QualityPreset, Readonly<QualityKnobs>
     preset: 'medium',
     renderScale: 1,
     maxPixelRatio: 1.5,
-    atmosphereSteps: 32,
+    atmosphereSteps: 24,
     lensingSteps: 128,
     volumeSteps: 48,
     pointBudget: 1_000_000,
-    terrainSse: 2,
-    terrainTileCap: 512,
+    terrainSse: 4,
+    terrainTileCap: 224,
     maxTextureSize: 4096,
     gpuBudgetMB: 256,
     bloom: true,
@@ -63,7 +69,7 @@ export const PRESET_KNOBS: Readonly<Record<QualityPreset, Readonly<QualityKnobs>
     volumeSteps: 96,
     pointBudget: 2_000_000,
     terrainSse: 3,
-    terrainTileCap: 768,
+    terrainTileCap: 384,
     maxTextureSize: 4096,
     gpuBudgetMB: 512,
     bloom: true,
@@ -74,18 +80,27 @@ export const PRESET_KNOBS: Readonly<Record<QualityPreset, Readonly<QualityKnobs>
     preset: 'ultra',
     renderScale: 1,
     maxPixelRatio: 2,
-    atmosphereSteps: 64,
+    atmosphereSteps: 48,
     lensingSteps: 256,
     volumeSteps: 160,
     pointBudget: 4_000_000,
     terrainSse: 2,
-    terrainTileCap: 1024,
+    terrainTileCap: 512,
     maxTextureSize: 8192,
     gpuBudgetMB: 512,
     bloom: true,
     smaa: true,
     temporal: true,
   },
+};
+
+/** Dynamic-resolution range per preset (fraction of renderScale x pixel ratio). */
+export const DYNAMIC_SCALE_BOUNDS: Readonly<Record<QualityPreset, readonly [number, number]>> = {
+  potato: [0.75, 1],
+  low: [0.6, 1],
+  medium: [0.5, 1],
+  high: [0.5, 1],
+  ultra: [0.5, 1],
 };
 
 export function isQualityPreset(v: unknown): v is QualityPreset {
@@ -136,7 +151,8 @@ export class QualityStateImpl implements QualityState {
   }
 
   setDynamicScale(s: number): void {
-    const v = this.test ? 1 : Math.min(1, Math.max(0.5, s));
+    const [lo, hi] = DYNAMIC_SCALE_BOUNDS[this._preset];
+    const v = this.test ? 1 : Math.min(hi, Math.max(lo, s));
     if (v === this._dynamic) return;
     this._dynamic = v;
     this.emit();

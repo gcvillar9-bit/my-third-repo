@@ -51,6 +51,23 @@ export interface EngineRendererOptions {
   initialEv?: number;
   /** Fix the exposure at initialEv (default: in test mode). */
   fixedExposure?: boolean;
+  /** Count ray-march fragment work per frame (default: in test mode; see workStats()). */
+  countWork?: boolean;
+}
+
+/**
+ * Per-frame ray-march work estimate (P4-P perf budgets): every draw whose object (or a direct
+ * child of the rendered scene) has an integer `uSteps` uniform (or `material.userData.marchSteps`)
+ * adds target pixels x steps.
+ * It is an upper bound (early-outs and adaptive step counts are not seen) but deterministic.
+ */
+export interface MarchWork {
+  /** Sum of target pixels x uSteps over the frame's march draws. */
+  fragmentSteps: number;
+  /** Number of march draws. */
+  draws: number;
+  /** Pixels covered by march draws (sum of their target sizes). */
+  pixels: number;
 }
 
 export function createBlackbodyLutTexture(): DataTexture {
@@ -99,6 +116,7 @@ export class EngineRenderer implements RenderApi {
   private cssW = 1;
   private cssH = 1;
   private readonly test: boolean;
+  private readonly work: MarchWork = { fragmentSteps: 0, draws: 0, pixels: 0 };
 
   constructor(private readonly opts: EngineRendererOptions) {
     this.test = opts.test;
@@ -127,6 +145,7 @@ export class EngineRenderer implements RenderApi {
       console.warn(msg);
     };
     this.camera.matrixAutoUpdate = true;
+    if (opts.countWork ?? opts.test) this.countMarchWork();
     this.uniforms = {
       uExposure: { value: 1 },
       uLogDepthFar: { value: CAMERA_FAR },
@@ -146,6 +165,39 @@ export class EngineRenderer implements RenderApi {
       this.post.setKnobs(k);
       this.resize(this.cssW, this.cssH);
     });
+  }
+
+  private countMarchWork(): void {
+    const r = this.renderer;
+    const render = r.render.bind(r);
+    // `material.userData.marchSteps` overrides `uSteps` (a composite that only upsamples a reduced-
+    // resolution march sets it to its real per-pixel cost).
+    const stepsOf = (o: Object3D): number => {
+      const m = (o as Mesh).material as
+        (Material & { uniforms?: Record<string, { value: unknown }> }) | Material[] | undefined;
+      if (!m || Array.isArray(m) || !o.visible) return 0;
+      const hint = m.userData?.marchSteps;
+      if (typeof hint === 'number') return hint;
+      const v = m.uniforms?.uSteps?.value;
+      return typeof v === 'number' ? v : 0;
+    };
+    r.render = (scene: Object3D, camera) => {
+      let steps = stepsOf(scene);
+      for (const c of scene.children) steps = Math.max(steps, stepsOf(c));
+      if (steps > 0) {
+        const t = r.getRenderTarget();
+        const px = t ? t.width * t.height : r.domElement.width * r.domElement.height;
+        this.work.fragmentSteps += px * steps;
+        this.work.pixels += px;
+        this.work.draws++;
+      }
+      render(scene, camera);
+    };
+  }
+
+  /** Ray-march work of the last frame (only counted in test mode or with countWork). */
+  workStats(): MarchWork {
+    return { ...this.work };
   }
 
   private createSceneTarget(w: number, h: number): WebGLRenderTarget {
@@ -231,6 +283,7 @@ export class EngineRenderer implements RenderApi {
     this.uniforms.uExposure.value = this.exposure.value;
     this.uniforms.uTime.value = timeReal;
     this.renderer.info.reset();
+    this.work.fragmentSteps = this.work.draws = this.work.pixels = 0;
     return this.exposure.value;
   }
 
