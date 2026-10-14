@@ -13,6 +13,12 @@ commercial use.
 | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------ | ---------------------------- |
 | [oec_table](https://raw.githubusercontent.com/OpenExoplanetCatalogue/oec_tables/master/comma_separated/open_exoplanet_catalogue.txt) | [MIT](https://spdx.org/licenses/MIT.html) | Open Exoplanet Catalogue, Hanno Rein and contributors (oec_tables) | data/exoplanets/systems.json |
 
+## galaxies
+
+| Source                                                                                                          | Licence                                                             | Attribution                                                                                                                                   | Used for                                             |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [celestia_galaxies](https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/galaxies.dsc) | [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) | Celestia Development Team (CelestiaContent data/galaxies.dsc, compiled by F. Schrempp from the NGC/IC (W. Steinicke), RC3 and NED catalogues) | data/galaxies/galaxies.bin, data/galaxies/names.json |
+
 ## milkyway
 
 | Source                                                                                                            | Licence                                                             | Attribution                                                                                                                                                                                                   | Used for                     |

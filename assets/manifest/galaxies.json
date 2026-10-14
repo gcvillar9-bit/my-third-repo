@@ -1,0 +1,14 @@
+{
+  "module": "galaxies",
+  "assets": [
+    {
+      "id": "celestia_galaxies",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/galaxies.dsc",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team (CelestiaContent data/galaxies.dsc, compiled by F. Schrempp from the NGC/IC (W. Steinicke), RC3 and NED catalogues)",
+      "outputs": ["data/galaxies/galaxies.bin", "data/galaxies/names.json"],
+      "sha256": "a47fef00f31304f440f3be47e49b482ff4ea31441e5e74b3623828cbf45d8245",
+      "bytes": 4158160
+    }
+  ]
+}
