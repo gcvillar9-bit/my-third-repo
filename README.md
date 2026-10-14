@@ -76,6 +76,7 @@ to the largest structures in the universe and back home. Or press `/` and type a
 | `Shift`+`C`       | Constellation lines                                                   |
 | `H`               | Hide the interface                                                    |
 | `L`               | Copy a link to this view                                              |
+| `M`               | Mute or unmute sound (also the speaker button in the top bar)         |
 | `?`               | Keyboard help                                                         |
 | `Esc`             | Close panels, leave the tour or photo mode                            |
 
@@ -84,7 +85,16 @@ to the largest structures in the universe and back home. Or press `/` and type a
 - Quality presets in the settings panel (⚙): potato, low, medium, high, ultra. The default is cheap enough for a
   laptop; high and ultra add terrain detail, stars and memory.
 - Dynamic resolution lowers the render scale when frames take too long and raises it again when there is headroom.
-- Add `?perf=1` to the URL for an fps and GPU meter. `?q=<preset>` picks a preset from the URL.
+- Settings (⚙) > Performance > "Show performance stats (FPS / CPU / GPU)" turns the stats-gl meter on and off at
+  runtime (remembered; `?perf=1` forces it on). Browsers without GPU timer queries show "GPU n/a". `?q=<preset>`
+  picks a preset from the URL.
+
+## Sound
+
+Procedural sound (Web Audio, no audio files) starts after your first click or key press: an ambient pad that changes
+chord from the ground to the cosmic web, a flight whoosh, wind inside atmospheres, a black-hole rumble, footsteps
+when walking and a chime on arrival. Settings (⚙) > Sound has Sound on/off, Volume and "Realistic silence in space"
+(only wind, footsteps and cues). `M` or the speaker button mutes.
 
 ## Data and credits
 

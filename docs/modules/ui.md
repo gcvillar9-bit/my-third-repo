@@ -47,12 +47,17 @@
   (palette, labels, info card, tours) switches the constellation lines on (`wantsLines` in `controller.ts`).
 - **Photo mode:** `html[data-photo]` (set by the photo module) hides the shell, labels, caption, toasts, tour
   overlay and onboarding card through a rule in `styles.ts`.
-- `?perf=1` stats-gl is handled by boot (`src/app/boot.ts`), not by the UI.
+- **Perf overlay:** setting `render.perfStats` (group Performance, off, persisted) is registered by boot and drives
+  `src/app/perf-overlay.ts` (stats-gl created/destroyed at runtime, `.cz-perf-stats` + `.cz-perf-res` line, GPU
+  panel only with `EXT_disjoint_timer_query_webgl2`, else "GPU n/a"). `?perf=1` forces it on at boot.
+- **Sound:** the topbar speaker button (`.cz-mute-btn`, `aria-pressed` = muted) and `M` toggle `audio.enabled`
+  through the settings store (`AUDIO_ENABLED_SETTING` from `src/modules/audio/public.ts`); both are absent or no-ops
+  without the audio module.
 
 ## Keys
 
 `/` or Ctrl+K search · `,` `.` time warp · K pause/play (pauses the tour while one runs) · N now · I info card ·
-G fly to selection · O orbit/free · H hide UI · L copy link · ? help · Esc closes (photo mode first, then the tour).
+G fly to selection · O orbit/free · H hide UI · L copy link · M mute/unmute sound · ? help · Esc closes (photo mode first, then the tour).
 P is photo mode, handled by the photo module (`src/modules/photo`); UI keys are ignored while it is on. Keys are ignored while typing in inputs. The camera
 owns WASD, R/F/Space/C, Q/E, arrows and `[` `]`.
 

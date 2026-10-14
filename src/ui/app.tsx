@@ -2,13 +2,14 @@
 /** Preact components of the UI shell: palette, info card, time bar, HUD, settings, toasts. */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { QUALITY_PRESETS, type QualityPreset, type SettingDef } from '../core/contracts';
+import { AUDIO_ENABLED_SETTING } from '../modules/audio/public';
 import { photo } from '../modules/photo/public';
 import { COSMIC_ZOOM_ID, tours } from '../modules/tours/public';
 import type { UiController } from './controller';
 import { LOG_SCALE_TICKS, logScaleFraction } from './format';
 
 export const HELP_TEXT =
-  '/ search · drag look · WASD fly · R/F up/down · Q/E roll · wheel or [ ] speed · , . time warp · K pause (or pause the tour) · N now · I info · G go to (walk when within 10 km of the ground: WASD walk, Shift run, Space jump) · O orbit · P photo mode · H hide UI · L copy link · Esc exit tour/photo';
+  '/ search · drag look · WASD fly · R/F up/down · Q/E roll · wheel or [ ] speed · , . time warp · K pause (or pause the tour) · N now · I info · G go to (walk when within 10 km of the ground: WASD walk, Shift run, Space jump) · O orbit · P photo mode · H hide UI · L copy link · M mute/unmute sound · Esc exit tour/photo';
 
 function Palette({ ui }: { ui: UiController }) {
   const [text, setText] = useState('');
@@ -329,6 +330,31 @@ function SettingsPanel({ ui }: { ui: UiController }) {
   );
 }
 
+/** Speaker button: toggles the audio module's Sound setting (hidden when that module is absent). */
+function MuteButton({ ui }: { ui: UiController }) {
+  void ui.settingsVersion.value;
+  if (!ui.settings.definitions().some((d) => d.id === AUDIO_ENABLED_SETTING)) return null;
+  const on = ui.settings.get(AUDIO_ENABLED_SETTING) === true;
+  return (
+    <button
+      class="cz-btn cz-mute-btn"
+      title={on ? 'Mute sound (M)' : 'Unmute sound (M)'}
+      aria-label={on ? 'Mute sound' : 'Unmute sound'}
+      aria-pressed={!on}
+      onClick={() => ui.settings.set(AUDIO_ENABLED_SETTING, !on)}
+    >
+      <svg width="14" height="12" viewBox="0 0 14 12" aria-hidden="true" style="vertical-align:-1px">
+        <path d="M1 4h3l4-3v10L4 8H1z" fill="currentColor" />
+        {on ? (
+          <path d="M10 3.5a3.5 3.5 0 0 1 0 5M11.5 1.5a6 6 0 0 1 0 9" stroke="currentColor" fill="none" />
+        ) : (
+          <path d="M9.5 4l4 4m0-4l-4 4" stroke="currentColor" fill="none" />
+        )}
+      </svg>
+    </button>
+  );
+}
+
 export function App({ ui }: { ui: UiController }) {
   const hud = ui.hudVisible.value;
   return (
@@ -355,6 +381,7 @@ export function App({ ui }: { ui: UiController }) {
             <button class="cz-btn" title="Copy a link to this view (L)" onClick={() => void ui.copyLink()}>
               Copy link
             </button>
+            <MuteButton ui={ui} />
             <button
               class="cz-btn"
               title="Settings"
