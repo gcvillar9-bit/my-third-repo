@@ -39,7 +39,7 @@ Total 16 + 27N bytes. float32 Mpc is good to ~0.06 pc at 1 Mpc and ~40 pc at 660
 
 ## Rendering (`renderables.ts`, background layer, 2 draws)
 
-- One `Points` draw (all galaxies) and one instanced-quad draw (all galaxies, culled in the vertex shader), both
+- One `Points` draw (all galaxies) and one instanced-quad draw (instances compacted on the CPU each frame to the galaxies wider than 1.5 px, typically tens to hundreds, ~10k-iteration loop with no allocations; no draw when none qualify), both
   RTE in Mpc relative to the `universe` origin (camera split into float32 high/low without allocations).
 - Points: m = M + 5 log10(d/Mpc) + 25, E = `LUX_MAG0`·10^(−0.4 m), spread over a 0.65 px Gaussian (as the stars),
   coloured by a type-dependent mix of 4300 K and 8500 K blackbody colours (approximate).

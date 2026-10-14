@@ -1,4 +1,4 @@
-// Galaxy impostors (background layer): one instanced quad per galaxy, culled in the vertex stage unless
+// Galaxy impostors (background layer): one instanced quad per candidate galaxy (compacted on the CPU), faded unless
 // the galaxy's angular radius exceeds a few pixels. Disc galaxies are drawn as their projected ellipse
 // (major axis = disc line of nodes, minor axis foreshortened by |n·v|, floored for edge-on discs) with
 // the face-on morphology sprite rotated into place; ellipticals are axis-ratio billboards. Surface

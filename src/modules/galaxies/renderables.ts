@@ -10,6 +10,7 @@ import {
   BufferGeometry,
   DataTexture,
   DoubleSide,
+  DynamicDrawUsage,
   Float32BufferAttribute,
   Group,
   InstancedBufferAttribute,
@@ -95,12 +96,25 @@ export function createGalaxyLayer(data: GalaxyData, atlas: MorphAtlas): GalaxyLa
   const ig = new InstancedBufferGeometry();
   ig.setAttribute('position', new Float32BufferAttribute([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], 3));
   ig.setIndex([0, 1, 2, 0, 2, 3]);
-  ig.setAttribute('iPos', new InstancedBufferAttribute(data.pos, 3));
-  ig.setAttribute('iQuat', new InstancedBufferAttribute(data.quat, 4, true));
-  ig.setAttribute('iRadius', new InstancedBufferAttribute(data.radiusKpc, 1));
-  ig.setAttribute('iAbsMag', new InstancedBufferAttribute(data.absMag, 1));
-  ig.setAttribute('iType', new InstancedBufferAttribute(new Float32Array(data.type), 1));
-  ig.instanceCount = n;
+  // Instance buffers are compacted on the CPU each frame to the galaxies whose angular radius exceeds
+  // IMPOSTOR_LO px (typically tens to hundreds), so the draw costs nothing when none qualify.
+  const iPos = new Float32Array(3 * n);
+  const iQuat = new Int8Array(4 * n);
+  const iRadius = new Float32Array(n);
+  const iAbsMag = new Float32Array(n);
+  const iType = new Float32Array(n);
+  const instAttrs = [
+    ['iPos', new InstancedBufferAttribute(iPos, 3)],
+    ['iQuat', new InstancedBufferAttribute(iQuat, 4, true)],
+    ['iRadius', new InstancedBufferAttribute(iRadius, 1)],
+    ['iAbsMag', new InstancedBufferAttribute(iAbsMag, 1)],
+    ['iType', new InstancedBufferAttribute(iType, 1)],
+  ] as const;
+  for (const [name, attr] of instAttrs) {
+    attr.setUsage(DynamicDrawUsage);
+    ig.setAttribute(name, attr);
+  }
+  ig.instanceCount = 0;
   const tex = new DataTexture(atlas.data, atlas.width, atlas.height, RGBAFormat, UnsignedByteType);
   tex.minFilter = LinearMipmapLinearFilter;
   tex.magFilter = LinearFilter;
@@ -169,6 +183,41 @@ export function createGalaxyLayer(data: GalaxyData, atlas: MorphAtlas): GalaxyLa
       shared.uPixelAngle.value = view.pixelAngle;
       pointUniforms.uScale.value = (LUX_MAG0 * view.exposure) / (view.pixelAngle * view.pixelAngle);
       impUniforms.uLumScale.value = LUX_MAG0 * view.exposure;
+      // Compact the impostor candidates (same tests as the shader's weight, without the fades' tails).
+      const pa2 = (IMPOSTOR_LO * view.pixelAngle) ** 2;
+      const panoOff = shared.uPanoFade.value < 1e-3;
+      const P = data.pos;
+      let k = 0;
+      for (let i = 0; i < n; i++) {
+        const R = data.radiusKpc[i] * 1e-3;
+        const dx = P[3 * i] - cam.x;
+        const dy = P[3 * i + 1] - cam.y;
+        const dz = P[3 * i + 2] - cam.z;
+        const d2 = dx * dx + dy * dy + dz * dz;
+        if (R * R < pa2 * d2 || d2 < 0.36 * R * R) continue;
+        if (panoOff) {
+          const sx = P[3 * i] - sunPos.x;
+          const sy = P[3 * i + 1] - sunPos.y;
+          const sz = P[3 * i + 2] - sunPos.z;
+          if (data.absMag[i] + 25 + 2.5 * Math.log10(sx * sx + sy * sy + sz * sz) < PANO_MAG) continue;
+        }
+        iPos[3 * k] = P[3 * i];
+        iPos[3 * k + 1] = P[3 * i + 1];
+        iPos[3 * k + 2] = P[3 * i + 2];
+        for (let c = 0; c < 4; c++) iQuat[4 * k + c] = data.quat[4 * i + c];
+        iRadius[k] = data.radiusKpc[i];
+        iAbsMag[k] = data.absMag[i];
+        iType[k] = data.type[i];
+        k++;
+      }
+      ig.instanceCount = k;
+      impostors.visible = k > 0;
+      if (k > 0)
+        for (const [, attr] of instAttrs) {
+          attr.clearUpdateRanges();
+          attr.addUpdateRange(0, k * attr.itemSize);
+          attr.needsUpdate = true;
+        }
     },
     memoryBytes: () =>
       2 * (data.pos.byteLength + data.radiusKpc.byteLength + data.absMag.byteLength + 4 * n) +
