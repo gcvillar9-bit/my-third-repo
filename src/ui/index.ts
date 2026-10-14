@@ -6,6 +6,9 @@
 import { render } from 'preact';
 import { createElement } from 'preact';
 import type { MountUi, UiApi, UiContext } from '../core/contracts';
+import { photo } from '../modules/photo/public';
+import { tours } from '../modules/tours/public';
+import { uiActions } from './actions';
 import { App } from './app';
 import { UiController } from './controller';
 import { LabelOverlay } from './labels';
@@ -53,6 +56,7 @@ export const mountUi: MountUi = (root: HTMLElement, ctx: UiContext): UiApi => {
       ui.frame(view);
     });
     installKeys(ui, ctx);
+    uiActions.openHelp = () => (ui.helpOpen.value = true);
     ui.refreshTime();
     if (ctx.env.debug && !ctx.env.test) {
       void import('./debug-gui')
@@ -94,7 +98,8 @@ function installKeys(ui: UiController, ctx: UiContext): void {
       else ui.showInfo(null);
       return;
     }
-    if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey || ui.paletteOpen.value) return;
+    if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey || ui.paletteOpen.value || photo.active)
+      return;
     switch (e.key) {
       case '/':
         e.preventDefault();
@@ -111,7 +116,12 @@ function installKeys(ui: UiController, ctx: UiContext): void {
       case 'Period':
         clock.warpStep(1);
         break;
-      case 'KeyP':
+      case 'KeyK':
+        // P is photo mode (photo module); K pauses the tour when one runs, else the clock.
+        if (tours.status()) {
+          tours.togglePause();
+          return;
+        }
         if (clock.paused || clock.rate === 0) {
           if (clock.rate === 0) clock.setRate(1);
           else clock.resume();

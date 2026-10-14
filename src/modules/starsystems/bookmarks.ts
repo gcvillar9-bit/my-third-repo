@@ -19,7 +19,7 @@ export const BIG_DIPPER_JD = JD_J2000 + (1e5 * JULIAN_YEAR) / DAY;
 /** Camera offset of 'orion-from-200ly' from the Sun, pc (perpendicular to the Orion direction). */
 export const ORION_OFFSET_PC = (200 * LY) / PC;
 /** Bookmarks that switch the constellation lines on when opened as the initial view. */
-export const LINE_BOOKMARKS = ['orion-lines-from-earth', 'orion-from-200ly', 'big-dipper-100kyr'];
+export { LINE_BOOKMARKS } from './public';
 
 const NORTH = vec3(0, 0, 1);
 

@@ -2,11 +2,13 @@
 /** Preact components of the UI shell: palette, info card, time bar, HUD, settings, toasts. */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { QUALITY_PRESETS, type QualityPreset, type SettingDef } from '../core/contracts';
+import { photo } from '../modules/photo/public';
+import { COSMIC_ZOOM_ID, tours } from '../modules/tours/public';
 import type { UiController } from './controller';
 import { LOG_SCALE_TICKS, logScaleFraction } from './format';
 
 export const HELP_TEXT =
-  '/ search · drag look · WASD fly · R/F up/down · Q/E roll · [ ] speed · , . time warp · P pause · N now · I info · G go to (walk when within 10 km of the ground: WASD walk, Shift run, Space jump) · O orbit · H hide UI · L copy link';
+  '/ search · drag look · WASD fly · R/F up/down · Q/E roll · wheel or [ ] speed · , . time warp · K pause (or pause the tour) · N now · I info · G go to (walk when within 10 km of the ground: WASD walk, Shift run, Space jump) · O orbit · P photo mode · H hide UI · L copy link · Esc exit tour/photo';
 
 function Palette({ ui }: { ui: UiController }) {
   const [text, setText] = useState('');
@@ -336,6 +338,19 @@ export function App({ ui }: { ui: UiController }) {
           <div class="cz-topbar">
             <button class="cz-btn" title="Search (/ or Ctrl+K)" onClick={() => (ui.paletteOpen.value = true)}>
               ⌕ Search <kbd>/</kbd>
+            </button>
+            <button
+              class="cz-btn cz-tour-btn"
+              title="Take the Cosmic Zoom tour: from the Moon to the cosmic web (Esc exits)"
+              onClick={() => {
+                if (tours.status()) tours.stop();
+                else tours.start(COSMIC_ZOOM_ID);
+              }}
+            >
+              ▶ Tour
+            </button>
+            <button class="cz-btn cz-photo-btn" title="Photo mode (P)" onClick={() => photo.toggle()}>
+              Photo
             </button>
             <button class="cz-btn" title="Copy a link to this view (L)" onClick={() => void ui.copyLink()}>
               Copy link

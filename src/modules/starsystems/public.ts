@@ -22,6 +22,12 @@ export {
 } from './orbit';
 export const STARSYSTEMS_MODULE_ID = 'starsystems';
 export const CONSTELLATIONS_SETTING = 'starsystems.constellations';
+/** Bookmarks that switch the constellation lines on when flown to (URL, palette, labels, tours). */
+export const LINE_BOOKMARKS: readonly string[] = [
+  'orion-lines-from-earth',
+  'orion-from-200ly',
+  'big-dipper-100kyr',
+];
 
 export interface StarSystemsApi {
   /** Promotes the system containing HYG star `index` (held until `release(owner)`); returns the star's frame id. */
