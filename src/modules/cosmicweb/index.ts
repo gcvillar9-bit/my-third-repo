@@ -35,7 +35,7 @@ export const INNER_END = 140;
 export const FADE_START = 20;
 export const FADE_END = 120;
 export const WEB_TEFF = 7000;
-export const WEB_EV = -15;
+export const WEB_EV = -16.5;
 export const WEB_ID = 'cosmicweb';
 const DEG = Math.PI / 180;
 

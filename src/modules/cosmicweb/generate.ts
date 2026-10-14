@@ -73,30 +73,47 @@ export function generateWeb(
     inSphere(rand, radius, nodes, 3 * i);
     rich[i] = Math.min(20, Math.pow(Math.max(rand(), 1e-6), -0.6));
   }
-  // Three nearest neighbours per node (brute force, O(N²) once).
+  // Three nearest neighbours per node, searched over a uniform grid (cells of radius/8, 5³ cells around
+  // the node: ~2 mean node spacings, which holds the 3 nearest for all but a few edge nodes).
+  const G = 16;
+  const cellOf = (v: number) => Math.min(G - 1, Math.max(0, Math.floor(((v / radius + 1) / 2) * G)));
+  const head = new Int32Array(G * G * G).fill(-1);
+  const next = new Int32Array(nodeCount);
+  for (let i = nodeCount - 1; i >= 0; i--) {
+    const c = (cellOf(nodes[3 * i + 2]) * G + cellOf(nodes[3 * i + 1])) * G + cellOf(nodes[3 * i]);
+    next[i] = head[c];
+    head[c] = i;
+  }
   const edges: [number, number, number][] = [];
   const seen = new Set<number>();
   const best = [0, 0, 0];
   const bestD = [0, 0, 0];
   for (let i = 0; i < nodeCount; i++) {
     bestD.fill(Infinity);
-    for (let j = 0; j < nodeCount; j++) {
-      if (j === i) continue;
-      const dx = nodes[3 * j] - nodes[3 * i];
-      const dy = nodes[3 * j + 1] - nodes[3 * i + 1];
-      const dz = nodes[3 * j + 2] - nodes[3 * i + 2];
-      const d = dx * dx + dy * dy + dz * dz;
-      if (d >= bestD[2]) continue;
-      let k = 2;
-      while (k > 0 && bestD[k - 1] > d) {
-        bestD[k] = bestD[k - 1];
-        best[k] = best[k - 1];
-        k--;
-      }
-      bestD[k] = d;
-      best[k] = j;
-    }
+    const cx = cellOf(nodes[3 * i]);
+    const cy = cellOf(nodes[3 * i + 1]);
+    const cz = cellOf(nodes[3 * i + 2]);
+    for (let z = Math.max(0, cz - 2); z <= Math.min(G - 1, cz + 2); z++)
+      for (let y = Math.max(0, cy - 2); y <= Math.min(G - 1, cy + 2); y++)
+        for (let x = Math.max(0, cx - 2); x <= Math.min(G - 1, cx + 2); x++)
+          for (let j = head[(z * G + y) * G + x]; j >= 0; j = next[j]) {
+            if (j === i) continue;
+            const dx = nodes[3 * j] - nodes[3 * i];
+            const dy = nodes[3 * j + 1] - nodes[3 * i + 1];
+            const dz = nodes[3 * j + 2] - nodes[3 * i + 2];
+            const d = dx * dx + dy * dy + dz * dz;
+            if (d >= bestD[2]) continue;
+            let k = 2;
+            while (k > 0 && bestD[k - 1] > d) {
+              bestD[k] = bestD[k - 1];
+              best[k] = best[k - 1];
+              k--;
+            }
+            bestD[k] = d;
+            best[k] = j;
+          }
     for (let k = 0; k < 3; k++) {
+      if (bestD[k] === Infinity) continue;
       const a = Math.min(i, best[k]);
       const b = Math.max(i, best[k]);
       const key = a * nodeCount + b;

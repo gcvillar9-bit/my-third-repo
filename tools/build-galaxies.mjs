@@ -14,6 +14,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { PUBLIC, ROOT } from './lib/fetch.mjs';
+import { writeFormatted } from './lib/format.mjs';
 import { ensureModuleAssets } from './lib/manifest.mjs';
 
 export const MAGIC = 0x584c4147; // 'GALX' little-endian
@@ -254,9 +255,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       names,
     }) + '\n',
   );
-  writeFileSync(
+  await writeFormatted(
     join(ROOT, 'src', 'modules', 'galaxies', 'named.json'),
-    JSON.stringify({ source: 'tools/build-galaxies.mjs', galaxies: named }, null, 2) + '\n',
+    JSON.stringify({ source: 'tools/build-galaxies.mjs', galaxies: named }),
   );
   const m31 = named[0];
   console.log(

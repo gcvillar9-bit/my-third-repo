@@ -79,10 +79,10 @@ export function morphSample(k: number, x: number, y: number): [number, number] {
       ];
     }
     case 2: {
-      // Sa(b): big bulge, tightly wound arms (pitch 9 deg) with dust lanes
+      // Sa(b): big bulge, fairly tight arms (pitch 13 deg) with dust lanes
       const disc = Math.exp(-r / 0.24);
-      const a = arms(r, th, 9, 3);
-      const dust = 1 - 0.45 * arms(r, th, 9, 6, 2.2) * Math.min(1, r / 0.15);
+      const a = arms(r, th, 13, 3);
+      const dust = 1 - 0.45 * arms(r, th, 13, 6, 2.2) * Math.min(1, r / 0.15);
       return [(0.5 * sersic4(r, 0.1) + 0.25 * disc) * e * dust, 0.35 * disc * (0.25 + a) * dust * e];
     }
     case 3: {
