@@ -3,11 +3,13 @@
  * Uniform values are physical: uStarI0 is the disk-centre radiance per channel such that the
  * disk-averaged luminance equals diskLuminance(teff).
  */
-import { Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import type { SurfaceShading, ViewState } from '../../core/contracts';
 import { SUN_TEFF, blackbodyRgb } from '../../core/photometry';
 import { DAY, JD_J2000 } from '../../core/units';
+import { DRIFT_COEFFS, MAX_REGIONS, MAX_SPOTS, type SunActivity } from './activity';
 import photosphereGlsl from './glsl/photosphere.glsl?raw';
+import data from './sun-data.json';
 import {
   GRANULE_CONTRAST,
   GRANULE_M,
@@ -30,6 +32,24 @@ export interface StarSurfaceOptions {
   granuleM?: number;
   /** rms granulation contrast (default 0.14). */
   contrast?: number;
+  /** Simulated activity (the Sun only): spots, faculae, and the H-alpha view when `view.halpha`. */
+  activity?: SunActivity;
+  /** Live view switches read every frame. */
+  view?: SunViewSwitches;
+}
+
+/** Shared per-frame switches of the Sun's look (the 'sun.filter' setting). */
+export interface SunViewSwitches {
+  halpha: boolean;
+}
+
+/** H-alpha disk-centre radiance per channel: the colour scaled so the disk-mean luminance is `L`. */
+export function halphaI0(L: number): [number, number, number] {
+  const [r, g, b] = data.halpha.colour;
+  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const [a, k] = data.halpha.limb;
+  const mean = a + (2 * k) / 3; // 2 * integral of (a + k mu) mu dmu
+  return [r, g, b].map((c) => (L * c) / y / mean) as [number, number, number];
 }
 
 /** Granule size for a star of `teff` and `radius` (pressure scale height ~ T/g, solar mass assumed). */
@@ -62,7 +82,22 @@ export function starSurface(teff: number, radius: number, opts: StarSurfaceOptio
     uGranContrast: { value: opts.contrast ?? GRANULE_CONTRAST },
     uNetContrast: { value: NETWORK_CONTRAST },
     uStarTime: { value: 0 },
+    uSpot: { value: opts.activity?.spots ?? new Float32Array(MAX_SPOTS * 4) },
+    uSpotCount: { value: 0 },
+    uRegion: { value: opts.activity?.regions ?? new Float32Array(MAX_REGIONS * 4) },
+    uRegionB: { value: opts.activity?.regionsB ?? new Float32Array(MAX_REGIONS * 4) },
+    uRegionCount: { value: 0 },
+    uUmbra: { value: new Vector3(...data.spots.umbraIntensity) },
+    uPenumbra: { value: data.spots.penumbraIntensity },
+    uPenRatio: { value: data.spots.penumbraRatio },
+    uFacular: { value: data.spots.facularContrast },
+    uDrift: { value: new Vector3(...DRIFT_COEFFS) },
+    uFilament: { value: [0, 0, 0, 0] },
+    uHalpha: { value: 0 },
+    uHaI0: { value: new Vector3(...halphaI0(L)) },
+    uHaLimb: { value: new Vector2(...data.halpha.limb) },
   };
+  const act = opts.activity;
   return {
     bodyId: opts.bodyId ?? 'sun',
     priority: opts.priority ?? 10,
@@ -70,6 +105,12 @@ export function starSurface(teff: number, radius: number, opts: StarSurfaceOptio
     uniforms,
     update(view: ViewState) {
       uniforms.uStarTime.value = starTime(view.jd);
+      if (!act) return;
+      act.update(view.jd);
+      uniforms.uSpotCount.value = act.spotCount;
+      uniforms.uRegionCount.value = act.regionCount;
+      uniforms.uFilament.value = act.filament;
+      uniforms.uHalpha.value = opts.view?.halpha ? 1 : 0;
     },
   };
 }

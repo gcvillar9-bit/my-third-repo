@@ -3,6 +3,8 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * sun at 480x270 potato. sun-closeup: 21,000 km above the photosphere looking 50 deg off nadir;
  * granulation fills the frame (cells largest at the bottom), black space above the limb at the top.
+ * sun-sunspots: straight down on a big simulated group (dark umbrae in the photosphere).
+ * sun-halpha-prominences: H-alpha filter on, red limb across the bottom, prominence above it.
  */
 type RGB = [number, number, number];
 const lum = ([r, g, b]: RGB) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -55,3 +57,38 @@ test(
     expect(stats.calls).toBeLessThanOrEqual(150);
   },
 );
+
+test(
+  'sun-sunspots: dark umbrae inside a bright granulated photosphere',
+  { tag: '@smoke' },
+  async ({ page }) => {
+    const problems: string[] = [];
+    const { probe, errors } = await open(page, 'sun-sunspots', problems);
+    expect(errors).toEqual([]);
+    expect(problems).toEqual([]);
+    const lums: number[] = [];
+    for (let y = 10; y < 270; y += 10)
+      for (let x = 10; x < 480; x += 10) lums.push(lum(await probe(x, y, 2, 2)));
+    lums.sort((a, b) => a - b);
+    const median = lums[lums.length >> 1];
+    expect(median).toBeGreaterThan(0.08); // the photosphere fills the frame
+    expect(lums[3]).toBeLessThan(0.45 * median); // clearly dark spot pixels
+    expect(lums.filter((v) => v < 0.6 * median).length).toBeLessThan(0.4 * lums.length);
+  },
+);
+
+test('sun-halpha-prominences: red-dominant disk, bright prominence above the limb', async ({ page }) => {
+  const problems: string[] = [];
+  const { probe, errors } = await open(page, 'sun-halpha-prominences', problems);
+  expect(errors).toEqual([]);
+  expect(problems).toEqual([]);
+  const disk = await probe(200, 250, 80, 15);
+  expect(lum(disk)).toBeGreaterThan(0.05);
+  expect(disk[0]).toBeGreaterThan(3 * disk[2]); // R >> B
+  const sky = lum(await probe(0, 0, 40, 20));
+  let best = 0;
+  for (let y = 90; y < 170; y += 4)
+    for (let x = 120; x < 360; x += 6) best = Math.max(best, lum(await probe(x, y, 3, 3)));
+  expect(best).toBeGreaterThan(0.03);
+  expect(best).toBeGreaterThan(5 * sky + 0.01);
+});

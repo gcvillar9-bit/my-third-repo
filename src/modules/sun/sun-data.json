@@ -4,12 +4,42 @@
     "approximate": true,
     "wavelengthsUm": [0.65, 0.55, 0.45],
     "rows": [
-      { "k": 0, "c": 0.75267, "l1": -0.265577, "l5": 0 },
-      { "k": 1, "c": 0.93874, "l1": 0.265577, "l5": -0.004095 },
-      { "k": 2, "c": -1.89287, "l1": 0, "l5": 0.012582 },
-      { "k": 3, "c": 2.42234, "l1": 0, "l5": -0.017117 },
-      { "k": 4, "c": -1.7115, "l1": 0, "l5": 0.011977 },
-      { "k": 5, "c": 0.49062, "l1": 0, "l5": -0.003347 }
+      {
+        "k": 0,
+        "c": 0.75267,
+        "l1": -0.265577,
+        "l5": 0
+      },
+      {
+        "k": 1,
+        "c": 0.93874,
+        "l1": 0.265577,
+        "l5": -0.004095
+      },
+      {
+        "k": 2,
+        "c": -1.89287,
+        "l1": 0,
+        "l5": 0.012582
+      },
+      {
+        "k": 3,
+        "c": 2.42234,
+        "l1": 0,
+        "l5": -0.017117
+      },
+      {
+        "k": 4,
+        "c": -1.7115,
+        "l1": 0,
+        "l5": 0.011977
+      },
+      {
+        "k": 5,
+        "c": 0.49062,
+        "l1": 0,
+        "l5": -0.003347
+      }
     ]
   },
   "corona": {
@@ -17,9 +47,18 @@
     "approximate": true,
     "scale": 1e-6,
     "terms": [
-      { "a": 0.0532, "p": 2.5 },
-      { "a": 1.425, "p": 7 },
-      { "a": 2.565, "p": 17 }
+      {
+        "a": 0.0532,
+        "p": 2.5
+      },
+      {
+        "a": 1.425,
+        "p": 7
+      },
+      {
+        "a": 2.565,
+        "p": 17
+      }
     ],
     "shellRadii": 8
   },
@@ -30,5 +69,95 @@
     "supergranuleKm": 30000,
     "contrast": 0.14,
     "networkContrast": 0.03
+  },
+  "cycle": {
+    "source": "Smoothed monthly sunspot number minima/maxima from SILSO (WDC-SILSO, Royal Observatory of Belgium), cycle shape from Hathaway, Wilson & Reichmann (1994), Sol. Phys. 151, 177: R ~ x^3/(exp(x^2) - c), c = 0.71. Cycle 25 maximum and cycle 26 are estimates; cycles outside the table repeat the generic row every periodYears",
+    "approximate": true,
+    "shapeC": 0.71,
+    "periodYears": 11.0,
+    "generic": {
+      "riseYears": 4.4,
+      "maxSsn": 140
+    },
+    "rows": [
+      {
+        "cycle": 22,
+        "minYear": 1986.7,
+        "maxYear": 1989.9,
+        "maxSsn": 214
+      },
+      {
+        "cycle": 23,
+        "minYear": 1996.6,
+        "maxYear": 2001.9,
+        "maxSsn": 180
+      },
+      {
+        "cycle": 24,
+        "minYear": 2008.9,
+        "maxYear": 2014.3,
+        "maxSsn": 116
+      },
+      {
+        "cycle": 25,
+        "minYear": 2019.9,
+        "maxYear": 2024.8,
+        "maxSsn": 160
+      },
+      {
+        "cycle": 26,
+        "minYear": 2030.9,
+        "maxYear": 2035.3,
+        "maxSsn": 130,
+        "predicted": true
+      }
+    ]
+  },
+  "butterfly": {
+    "source": "Hathaway D. H. (2011), Sol. Phys. 273, 221: mean emergence latitude ~28 deg * exp(-t / 90 months) from cycle start (Sporer's law); spread and limits approximate",
+    "approximate": true,
+    "startLatDeg": 28,
+    "decayMonths": 90,
+    "sigmaDeg": 5,
+    "minLatDeg": 3,
+    "maxLatDeg": 40
+  },
+  "rotation": {
+    "source": "Snodgrass H. B. (1983), ApJ 270, 288: sidereal rotation of small magnetic features omega = A + B sin^2(lat) + C sin^4(lat) (2.902, -0.464, -0.328 urad/s converted to deg/day); frame rate is the IAU WGCCRE W-dot of the Sun (sun.fixed)",
+    "approximate": true,
+    "aDegPerDay": 14.366,
+    "bDegPerDay": -2.297,
+    "cDegPerDay": -1.624,
+    "frameDegPerDay": 14.1844
+  },
+  "spots": {
+    "source": "Typical sunspot-group properties: umbra ~20-30% and penumbra ~75-85% of the quiet-Sun intensity in white light, penumbra/umbra radius ~2.4, groups 50-200 Mm long, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
+    "approximate": true,
+    "umbraIntensity": [0.3, 0.22, 0.16],
+    "penumbraIntensity": 0.8,
+    "penumbraRatio": 2.4,
+    "umbraRadiusMm": [2.5, 12.5],
+    "groupLengthMm": [50, 200],
+    "lifeDays": [3, 38],
+    "groupsPerSsn": 0.1333,
+    "joyTiltPerLat": 0.5,
+    "maxGroups": 24,
+    "facularContrast": 0.18
+  },
+  "prominences": {
+    "source": "Prominences 10-100 Mm tall, H-alpha (656.3 nm) dominated, brighter than the inner corona in totality (~1e-5 of the disk); quiescent ones live weeks at filament latitudes 15-55 deg (Parenti 2014, Living Rev. Sol. Phys. 11, 1). Brightness factors are approximate",
+    "approximate": true,
+    "brightness": 3e-5,
+    "chromosphereBrightness": 1.2e-5,
+    "colour": [1.0, 0.3, 0.42],
+    "heightMm": [10, 100],
+    "quiescentLatDeg": [15, 55],
+    "halphaBrightness": 0.3
+  },
+  "halpha": {
+    "source": "Look of narrowband H-alpha full-disk photos (deep red-orange disk, mild limb darkening); not physical exposure, luminance matched to the white-light disk mean",
+    "approximate": true,
+    "colour": [1.0, 0.15, 0.025],
+    "limb": [0.6, 0.4]
   }
 }
