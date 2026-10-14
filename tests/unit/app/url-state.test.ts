@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { parseEnv } from '../../../src/app/env';
-import { formatHash, instantOf, parseHash, shareUrl, stateFromCamera } from '../../../src/app/url-state';
+import {
+  formatHash,
+  instantOf,
+  parseHash,
+  shareUrl,
+  stateFromCamera,
+  UrlSync,
+  type UrlState,
+} from '../../../src/app/url-state';
 import { jdToIso, utcToTt } from '../../../src/core/time';
 
 describe('URL state', () => {
@@ -48,5 +56,68 @@ describe('URL state', () => {
     const env = parseEnv('?test=1&q=potato&seed=7&perf=1', '/my-third-repo/');
     expect(env).toMatchObject({ test: true, debug: false, perf: true, seed: 7, baseUrl: '/my-third-repo/' });
     expect(parseEnv('?debug', '/').debug).toBe(true);
+  });
+});
+
+describe('UrlSync (P4-P: no snap back to an applied bookmark)', () => {
+  function fakeHost(hash: string) {
+    let onChange: () => void = () => {};
+    const host = {
+      location: { hash, pathname: '/my-third-repo/', search: '', origin: 'http://x' },
+      history: {
+        state: null,
+        replaceState: (_d: unknown, _u: string, url?: string | null) => {
+          host.location.hash = url && url.startsWith('#') ? url : '';
+        },
+      },
+      addEventListener: (_t: 'hashchange', cb: () => void) => {
+        onChange = cb;
+      },
+      /** Simulates a navigation that changes the hash (address bar, history step). */
+      navigate(h: string) {
+        host.location.hash = h;
+        onChange();
+      },
+    };
+    return host;
+  }
+  const live = (x: number): UrlState => ({ f: 'moon.fixed', p: { x, y: 0, z: 0 }, t: '1969-07-21T03:00:00Z' });
+
+  it('replaces the applied #b= hash with the live state at once', () => {
+    const host = fakeHost('#b=apollo11-2m');
+    const applied: UrlState[] = [];
+    const sync = new UrlSync(() => live(1), (s) => applied.push(s), host);
+    sync.commit();
+    expect(host.location.hash).toBe(formatHash(live(1)));
+    sync.tick(500);
+    expect(applied).toEqual([]);
+  });
+
+  it('ignores hashchanges back to hashes it wrote or already applied', () => {
+    const host = fakeHost('#b=apollo11-2m');
+    const applied: UrlState[] = [];
+    let x = 1;
+    const sync = new UrlSync(() => live(x), (s) => applied.push(s), host);
+    sync.commit();
+    const first = host.location.hash;
+    x = 5;
+    sync.tick(2000);
+    expect(host.location.hash).not.toBe(first);
+    host.navigate(first); // e.g. a history step restoring an older written state
+    expect(applied).toEqual([]);
+    host.navigate('');
+    expect(applied).toEqual([]);
+  });
+
+  it('applies a genuinely new hash once, then shows the live state again', () => {
+    const host = fakeHost('');
+    const applied: UrlState[] = [];
+    const sync = new UrlSync(() => live(3), (s) => applied.push(s), host);
+    host.navigate('#b=apollo11-2m');
+    expect(applied).toEqual([{ b: 'apollo11-2m' }]);
+    sync.tick(100); // written at once after an applied edit
+    expect(host.location.hash).toBe(formatHash(live(3)));
+    host.navigate('#b=apollo11-2m'); // the user enters it again: a real request
+    expect(applied.length).toBe(2);
   });
 });

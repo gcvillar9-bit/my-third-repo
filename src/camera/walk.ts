@@ -33,6 +33,11 @@ export const JUMP_SPEED = 2;
 export const WALK_RANGE = 10_000;
 /** Entering above eye height but below this altitude falls under gravity instead of snapping, m. */
 export const SEAT_MAX = 3;
+/**
+ * A grounded walker whose ground moves by more than this between two frames at the same spot
+ * (the height source was swapped or refined under the feet) is re-seated instead of falling, m.
+ */
+export const RESEAT_THRESHOLD = 0.5;
 const PITCH_LIMIT = (89 * Math.PI) / 180;
 const G = 6.6743e-11;
 
@@ -73,6 +78,9 @@ export class Walker {
   /** Horizontal velocity kept while airborne, body-fixed, m/s. */
   readonly vh = vec3();
   grounded = true;
+  /** Ground radius and direction at the end of the last grounded step (re-seat detection). */
+  private lastGround = NaN;
+  private readonly lastDir = vec3();
 
   constructor(readonly g: number) {}
 
@@ -84,6 +92,7 @@ export class Walker {
     const alt = r - gr;
     this.vr = 0;
     this.vh.x = this.vh.y = this.vh.z = 0;
+    this.lastGround = NaN;
     if (alt > EYE_HEIGHT && alt <= SEAT_MAX) {
       this.grounded = false;
     } else {
@@ -114,6 +123,13 @@ export class Walker {
   step(pose: WalkPose, input: WalkInput, dt: number, ground: GroundFn): void {
     let r = v3len(pose.local);
     const up = v3scale(vec3(), pose.local, 1 / r);
+    // P4-P fix: the ground under a standing walker changed (height source swapped after boot, as
+    // when the surfaces module replaces the Moon's default relief; or a finer tile under the
+    // feet): stand on the new ground instead of free-falling (hundreds of metres) or being thrown.
+    if (this.grounded && Number.isFinite(this.lastGround) && v3dot(up, this.lastDir) > 1 - 1e-14) {
+      const g0 = ground(up);
+      if (Math.abs(g0 - this.lastGround) > RESEAT_THRESHOLD) r = g0 + EYE_HEIGHT;
+    }
     this.level(pose, up, input.yaw, input.pitch);
     // Horizontal heading from the camera, projected on the local horizontal plane.
     const f = qrotate(vec3(), pose.quat, vec3(0, 0, -1));
@@ -155,6 +171,12 @@ export class Walker {
       }
     }
     v3scale(pose.local, dir, r);
+    if (this.grounded) {
+      this.lastGround = gr;
+      this.lastDir.x = dir.x;
+      this.lastDir.y = dir.y;
+      this.lastDir.z = dir.z;
+    } else this.lastGround = NaN;
     // Keep the camera level relative to the new vertical (the up vector turned by the move).
     this.level(pose, dir, 0, 0);
   }
