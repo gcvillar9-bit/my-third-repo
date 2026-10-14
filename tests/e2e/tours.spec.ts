@@ -56,7 +56,7 @@ test(
 
 /**
  * Integration (Phase 5): with the galaxies and cosmic-web modules merged, the tour must fly through
- * m31-approach, virgo-cluster and cosmic-web-500mpc (in that order) and end back home without errors.
+ * m31-approach, virgo-cluster, great-attractor and cosmic-web-500mpc (in that order) and end back home without errors.
  */
 test('tours: Cosmic Zoom reaches the galaxy and cosmic-web stops and ends at home', async ({ page }) => {
   test.setTimeout(120_000);
@@ -86,9 +86,14 @@ test('tours: Cosmic Zoom reaches the galaxy and cosmic-web stops and ends at hom
     }
   }
   const galaxyStops = targets.filter((t) =>
-    ['m31-approach', 'virgo-cluster', 'cosmic-web-500mpc'].includes(t),
+    ['m31-approach', 'virgo-cluster', 'great-attractor', 'cosmic-web-500mpc'].includes(t),
   );
-  expect(galaxyStops, targets.join(', ')).toEqual(['m31-approach', 'virgo-cluster', 'cosmic-web-500mpc']);
+  expect(galaxyStops, targets.join(', ')).toEqual([
+    'm31-approach',
+    'virgo-cluster',
+    'great-attractor',
+    'cosmic-web-500mpc',
+  ]);
   expect(targets[targets.length - 1]).toBe('earth-now');
   await expect(page.locator('.cz-tour')).toHaveCount(0);
   const errors = await page.evaluate(() => window.__universe!.errors());

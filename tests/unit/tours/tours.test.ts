@@ -150,17 +150,18 @@ describe('Cosmic Zoom', () => {
       'sgra-lensing',
       'm31-approach',
       'virgo-cluster',
+      'great-attractor',
       'cosmic-web-500mpc',
       'earth-now',
     ]);
   });
 
   it('skips the galaxy stops when their bookmarks are missing and still ends at home', () => {
-    const missing = ['m31-approach', 'virgo-cluster', 'cosmic-web-500mpc'];
+    const missing = ['m31-approach', 'virgo-cluster', 'great-attractor', 'cosmic-web-500mpc'];
     const { rec } = play(COSMIC_ZOOM, 1 / 30, missing);
     const gotos = rec.log.filter((l) => l.includes(' goto ')).map((l) => l.split(' ')[2]);
     expect(gotos).toEqual(ids.filter((i) => !missing.includes(i)));
-    expect(rec.log.join('\n')).not.toMatch(/Andromeda|Virgo|cosmic web:/);
+    expect(rec.log.join('\n')).not.toMatch(/Andromeda|Virgo|Great Attractor|cosmic web:/);
     // Time rate is raised for the Solar System and put back afterwards.
     expect(rec.log.filter((l) => l.includes(' rate ')).map((l) => l.split(' ')[2])).toEqual(['2000000', '1']);
   });
@@ -169,7 +170,7 @@ describe('Cosmic Zoom', () => {
     const c = compileTour(COSMIC_ZOOM, () => true);
     expect(c.total).toBeGreaterThan(120);
     expect(c.total).toBeLessThan(240);
-    expect(c.stops.length).toBe(11);
+    expect(c.stops.length).toBe(12);
     for (const s of c.stops)
       expect(
         c.events.some((e) => e.step.type === 'caption' && e.time >= s.time && e.time <= s.time + 10),
