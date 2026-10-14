@@ -49,15 +49,15 @@ export interface StarPoints extends Renderable {
   /** Linear brightness gain (settings). */
   gain: number;
   setCount(n: number): void;
+  /** Hides up to HIDE_MAX star indices (promoted stars drawn by starsystems). */
+  setHidden(indices: readonly number[]): void;
 }
 
-export function createStarPoints(data: StarData, shared: SharedUniforms, count: number): StarPoints {
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(data.position, 3));
-  geometry.setAttribute('absMag', new Float16BufferAttribute(data.absMagHalf, 1));
-  geometry.setAttribute('velocity', new Float16BufferAttribute(data.velocityHalf, 3));
-  geometry.setAttribute('bvCode', new BufferAttribute(data.bv, 1));
-  geometry.setDrawRange(0, Math.min(count, data.count));
+/** Most star indices `setHidden` accepts. */
+export const HIDE_MAX = 4;
+
+/** Shared star-sprite material (HYG points and promoted-star sprites use the same photometry). */
+function starMaterial(shared: SharedUniforms, bvMin: number, bvStep: number) {
   const rte = createRteUniforms();
   const uniforms: Record<string, IUniform> = {
     ...rte,
@@ -68,8 +68,9 @@ export function createStarPoints(data: StarData, shared: SharedUniforms, count: 
     uHaloK: { value: HALO_K },
     uHaloFloor: { value: HALO_FLOOR },
     uMaxRadius: { value: MAX_RADIUS },
-    uBvMin: { value: data.bvMin },
-    uBvStep: { value: data.bvStep },
+    uBvMin: { value: bvMin },
+    uBvStep: { value: bvStep },
+    uHide: { value: new Int32Array(HIDE_MAX).fill(-1) },
   };
   // cosmos:no-depth (background layer: stars are drawn at infinity without depth, DESIGN 3.2)
   const material = new ShaderMaterial({
@@ -81,6 +82,75 @@ export function createStarPoints(data: StarData, shared: SharedUniforms, count: 
     depthTest: false,
     depthWrite: false,
   });
+  return { rte, uniforms, material };
+}
+
+/**
+ * A few photometric star sprites at camera-relative positions (pc, float64 on the CPU), drawn with
+ * the HYG point shader. Used for promoted stars whose disk is still below a pixel or two.
+ */
+export interface StarSprites extends Renderable {
+  gain: number;
+  /** Sets sprite k: camera-relative position (pc, world axes), absolute V magnitude, B-V (null = unknown). */
+  write(k: number, rel: Vec3d, absMag: number, bv: number | null): void;
+  setCount(n: number): void;
+}
+
+export function createStarSprites(id: string, shared: SharedUniforms, max: number): StarSprites {
+  const bvMin = -0.5;
+  const bvStep = 0.014;
+  const pos = new Float32Array(3 * max);
+  const mag = new Float32Array(max).fill(99);
+  const bvCode = new Float32Array(max).fill(255);
+  const geometry = new BufferGeometry();
+  const posAttr = new BufferAttribute(pos, 3);
+  const magAttr = new BufferAttribute(mag, 1);
+  const bvAttr = new BufferAttribute(bvCode, 1);
+  geometry.setAttribute('position', posAttr);
+  geometry.setAttribute('absMag', magAttr);
+  geometry.setAttribute('velocity', new BufferAttribute(new Float32Array(3 * max), 3));
+  geometry.setAttribute('bvCode', bvAttr);
+  geometry.setDrawRange(0, 0);
+  const { uniforms, material } = starMaterial(shared, bvMin, bvStep);
+  const points = new Points(geometry, material);
+  points.frustumCulled = false;
+  const self: StarSprites = {
+    id,
+    layer: 'background',
+    object: points,
+    gain: 1,
+    write(k, rel, absMag, bv) {
+      pos[3 * k] = rel.x;
+      pos[3 * k + 1] = rel.y;
+      pos[3 * k + 2] = rel.z;
+      mag[k] = absMag;
+      bvCode[k] = bv === null ? 255 : Math.max(0, Math.min(254, Math.round((bv - bvMin) / bvStep)));
+      posAttr.needsUpdate = magAttr.needsUpdate = bvAttr.needsUpdate = true;
+    },
+    setCount(n) {
+      geometry.setDrawRange(0, Math.max(0, Math.min(n, max)));
+    },
+    update(view) {
+      // Positions are already camera-relative in world axes: identity orientation, RTE camera at 0.
+      uniforms.uScale.value = pixelScale(view.exposure, view.pixelAngle, self.gain);
+    },
+    memoryBytes: () => 32 * max,
+    dispose() {
+      geometry.dispose();
+      material.dispose();
+    },
+  };
+  return self;
+}
+
+export function createStarPoints(data: StarData, shared: SharedUniforms, count: number): StarPoints {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(data.position, 3));
+  geometry.setAttribute('absMag', new Float16BufferAttribute(data.absMagHalf, 1));
+  geometry.setAttribute('velocity', new Float16BufferAttribute(data.velocityHalf, 3));
+  geometry.setAttribute('bvCode', new BufferAttribute(data.bv, 1));
+  geometry.setDrawRange(0, Math.min(count, data.count));
+  const { rte, uniforms, material } = starMaterial(shared, data.bvMin, data.bvStep);
   const points = new Points(geometry, material);
   points.frustumCulled = false;
   const bytes =
@@ -95,6 +165,10 @@ export function createStarPoints(data: StarData, shared: SharedUniforms, count: 
     gain: 1,
     setCount(n: number) {
       geometry.setDrawRange(0, Math.max(0, Math.min(n, data.count)));
+    },
+    setHidden(indices) {
+      const h = uniforms.uHide.value as Int32Array;
+      for (let k = 0; k < HIDE_MAX; k++) h[k] = k < indices.length ? indices[k] : -1;
     },
     update(view) {
       view.toCamera(SSB_FRAME, vec3(), toSun);

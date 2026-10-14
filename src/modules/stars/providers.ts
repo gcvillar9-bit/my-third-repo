@@ -176,7 +176,11 @@ export function createInfoProvider(cat: StarCatalog, hooks: StarsUiHooks) {
 }
 
 /** Labels for proper-named stars brighter than LABEL_MAG_LIMIT from the current viewpoint. */
-export function createLabelSource(cat: StarCatalog, enabled: () => boolean): LabelSource {
+export function createLabelSource(
+  cat: StarCatalog,
+  enabled: () => boolean,
+  hidden: () => readonly number[] = () => [],
+): LabelSource {
   const candidates = cat.names.rows.filter((r) => r[2] && !cat.distanceUnknown(r[0])).map((r) => r[0]);
   const ids = candidates.map((i) => cat.idOf(i));
   const names = candidates.map((i) => cat.displayName(i));
@@ -188,8 +192,10 @@ export function createLabelSource(cat: StarCatalog, enabled: () => boolean): Lab
       if (!enabled()) return;
       cameraPc(view, cam);
       const years = yearsSinceJ2000(view.jd);
+      const skip = hidden();
       for (let k = 0; k < candidates.length; k++) {
         const i = candidates[k];
+        if (skip.length && skip.includes(i)) continue;
         cat.positionPc(i, years, p);
         const m = appMagAt(cat.data.absMag[i], Math.hypot(p.x - cam.x, p.y - cam.y, p.z - cam.z));
         if (m > LABEL_MAG_LIMIT) continue;

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "notes": "Runtime space-velocity corrections applied to the decoded stars.bin (P4-C). HYG v4.1 clips |pmdec| at 9999.99 mas/yr, so Barnard's Star moves 10.03\"/yr instead of 10.39\"/yr. Velocity = rv along the line of sight + 4.74047 km/s * d[pc] * mu[\"/yr] across it, at the HYG position and distance.",
+  "velocity": [
+    {
+      "hip": 87937,
+      "name": "Barnard's Star",
+      "pmRaMasYr": -801.551,
+      "pmDecMasYr": 10362.394,
+      "rvKms": -110.3,
+      "source": "Gaia DR3 proper motion (Gaia Collaboration 2023); radial velocity approximate (Gaia DR3 / Fouqué et al. 2018)"
+    }
+  ]
+}

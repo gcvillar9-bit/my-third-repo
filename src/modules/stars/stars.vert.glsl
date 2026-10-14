@@ -14,6 +14,7 @@ uniform float uHaloFloor;  // pre-exposed radiance where the halo is cut
 uniform float uMaxRadius;  // px
 uniform float uBvMin;
 uniform float uBvStep;
+uniform int uHide[4];     // star indices drawn elsewhere (promoted stars), -1 = unused
 
 varying vec3 vColor;
 varying float vRadius;
@@ -26,7 +27,9 @@ void main() {
   float d = max(length(rel), 1e-9);
   float m = absMag + 5.0 * log2(d * 0.1) * 0.30102999566;
   float i1 = uScale * exp2(-1.3287712380 * m);
-  if (i1 * CORE_PEAK < uMinPeak || absMag > 40.0) {
+  bool hidden = gl_VertexID == uHide[0] || gl_VertexID == uHide[1] || gl_VertexID == uHide[2] ||
+    gl_VertexID == uHide[3];
+  if (hidden || i1 * CORE_PEAK < uMinPeak || absMag > 40.0) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     gl_PointSize = 0.0;
     vColor = vec3(0.0);
