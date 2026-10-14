@@ -19,6 +19,7 @@ import { DynamicResolution } from '../render/dynamic-res';
 import { DEFAULT_TEST_EV } from '../render/exposure';
 import { EngineRenderer } from '../render/renderer';
 import { mountUi } from '../ui/index';
+import { PerfOverlay } from './perf-overlay';
 import { discoverModules, initModules } from './discover';
 import { parseEnv } from './env';
 import { Loop, TEST_DT } from './loop';
@@ -234,7 +235,36 @@ export async function boot(): Promise<Engine | undefined> {
     const s = dyn.sample(dt);
     if (s !== null) quality.setDynamicScale(s);
   };
-  let perfUpdate: (() => void) | null = null;
+  // Performance overlay (stats-gl): a persisted setting, off by default; ?perf=1 forces it on at boot.
+  const perf = new PerfOverlay({
+    renderer: render.renderer,
+    report,
+    info: () => {
+      const ms = dyn.meanMs;
+      return (
+        `res ${quality.dynamicScale.toFixed(2)}x ${dynOn ? 'auto' : 'fixed'} ` +
+        `${render.size.width}x${render.size.height}` +
+        (ms ? ` ${(1000 / ms).toFixed(0)} fps` : '') +
+        ` · ${render.stats().calls} calls`
+      );
+    },
+  });
+  // onAfterFrame (not the rAF-only afterFrame) so the overlay also updates under renderFrames.
+  render.onAfterFrame(() => perf.update());
+  let perfTouched = false;
+  registry.addSetting({
+    id: 'render.perfStats',
+    label: 'Show performance stats (FPS / CPU / GPU)',
+    group: 'Performance',
+    type: 'boolean',
+    default: false,
+    persist: true,
+    description: 'stats-gl overlay: frames per second, CPU and GPU frame time (GPU n/a where unsupported).',
+    onChange: (v) => {
+      perf.setEnabled(v === true || (env.perf && !perfTouched));
+      perfTouched = true;
+    },
+  });
   const loop = new Loop({
     frames,
     clock,
@@ -247,7 +277,6 @@ export async function boot(): Promise<Engine | undefined> {
     afterFrame: (ms) => {
       urlSync?.tick(ms);
       tickDynamic(ms);
-      perfUpdate?.();
     },
   });
 
@@ -288,32 +317,6 @@ export async function boot(): Promise<Engine | undefined> {
     camera.attach(canvas);
     loop.start();
     startOnboarding(ui, env);
-    if (env.perf) {
-      import('stats-gl')
-        .then(({ default: Stats }) => {
-          const s = new Stats({ trackGPU: false });
-          s.init(render.renderer);
-          document.body.appendChild(s.dom);
-          // Dynamic-resolution readout under the graphs (scale, buffer size, mean frame time).
-          const info = document.createElement('div');
-          info.className = 'cz-perf-res';
-          info.style.cssText =
-            'position:fixed;left:0;top:48px;z-index:10000;font:11px/1.3 monospace;color:#9fe;' +
-            'background:rgba(0,0,0,0.6);padding:2px 5px;pointer-events:none';
-          document.body.appendChild(info);
-          let n = 0;
-          perfUpdate = () => {
-            s.update();
-            if (n++ % 15) return;
-            const ms = dyn.meanMs;
-            info.textContent =
-              `res ${quality.dynamicScale.toFixed(2)}x ${dynOn ? 'auto' : 'fixed'} ` +
-              `${render.size.width}x${render.size.height}` +
-              (ms ? ` ${(1000 / ms).toFixed(0)} fps` : '');
-          };
-        })
-        .catch((e: unknown) => report(`perf overlay: ${String(e)}`));
-    }
   }
   return { ctx, loop, render, camera, frames, registry };
 }

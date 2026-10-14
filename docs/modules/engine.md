@@ -80,7 +80,9 @@ Core services, render pipeline, camera and app shell. Contracts: `src/core/contr
   0.05 (0.1 below ~26 fps), at most once per 1.2 s; it steps up only after 4 s at ≥ ~57 fps, and an upscale
   followed by a downscale within 6 s doubles that hold (up to 60 s), so it settles instead of pumping. Stalls over
   250 ms reset the window. Setting `render.dynamicResolution` (group Performance, on by default, persisted);
-  `?perf=1` shows the scale, drawing-buffer size and fps under the stats-gl graphs. It measures whole frames, so a
+  setting `render.perfStats` ("Show performance stats", off by default, persisted; `?perf=1` forces it on at boot)
+  shows the stats-gl graphs (GPU only with timer queries, else "GPU n/a") and a line with the scale, drawing-buffer
+  size, fps and draw calls (`src/app/perf-overlay.ts`, updated from `render.onAfterFrame`). It measures whole frames, so a
   CPU-bound scene can scale down without gaining much (the back-off then keeps it from oscillating).
 - Ray-march work counter: in test mode the renderer adds target pixels × `uSteps` (or
   `material.userData.marchSteps`) for every draw whose object or a direct child of the rendered scene carries it
