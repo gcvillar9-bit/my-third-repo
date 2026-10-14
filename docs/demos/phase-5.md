@@ -51,9 +51,24 @@ the site in a private window to see it again.
 
 ## Checking speed
 
-Add `?perf=1` to the address (https://gcvillar9-bit.github.io/my-third-repo/?perf=1) to show a frame-rate and GPU
-meter in the corner. The default "medium" quality is set to stay smooth on a laptop; Settings (the gear) has
+Turn on Settings > Performance > "Show performance stats" (or add `?perf=1` to the address,
+https://gcvillar9-bit.github.io/my-third-repo/?perf=1) to show a frame-rate and GPU meter in the corner. The default "medium" quality is set to stay smooth on a laptop; Settings (the gear) has
 lighter and heavier presets.
+
+## New: sound and performance overlay
+
+- **Sound.** Click or press any key once and the universe starts to sound: a soft pad that changes chord as you
+  go from a planet's surface to orbit, interplanetary and interstellar space, the galaxy and the cosmic web (slow
+  6 s crossfades); a whoosh when you speed up or fly fast; wind inside the atmospheres of Earth, Mars, Venus and
+  Titan (stronger with air density and speed, with gusts); a deep rumble that grows as you approach a black hole
+  (try [Sgr A*](https://gcvillar9-bit.github.io/my-third-repo/#b=sgra-lensing)); footsteps and a landing thud in
+  walk mode (lower on light worlds such as the Moon); a small chime when an autopilot flight arrives.
+- **Controls.** The speaker button in the top bar or `M` mutes. Settings (the gear) > Sound has Sound on/off,
+  Volume (default 50%) and "Realistic silence in space" (only wind, footsteps and the chime play). All choices are
+  remembered. Muted or at volume 0, the audio engine is suspended and costs nothing.
+- **Performance overlay.** Settings > Performance > "Show performance stats (FPS / CPU / GPU)" shows the frame-rate,
+  CPU and GPU meters plus a line with the render scale and draw calls, without reloading. Browsers without GPU
+  timing (Safari) show "GPU n/a". `?perf=1` still turns it on from the address bar.
 
 ## Other changes
 

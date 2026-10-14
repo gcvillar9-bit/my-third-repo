@@ -6,6 +6,7 @@
 import { render } from 'preact';
 import { createElement } from 'preact';
 import type { MountUi, UiApi, UiContext } from '../core/contracts';
+import { AUDIO_ENABLED_SETTING } from '../modules/audio/public';
 import { photo } from '../modules/photo/public';
 import { tours } from '../modules/tours/public';
 import { uiActions } from './actions';
@@ -149,6 +150,14 @@ function installKeys(ui: UiController, ctx: UiContext): void {
       case 'KeyL':
         void ui.copyLink();
         break;
+      case 'KeyM': {
+        // Mute/unmute (audio module); a no-op without it.
+        if (!ui.settings.definitions().some((d) => d.id === AUDIO_ENABLED_SETTING)) return;
+        const on = ui.settings.get(AUDIO_ENABLED_SETTING) !== true;
+        ui.settings.set(AUDIO_ENABLED_SETTING, on);
+        ui.toast(on ? 'Sound on' : 'Sound muted', 'info', 1200);
+        return;
+      }
       default:
         return;
     }
