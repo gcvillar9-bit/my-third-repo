@@ -90,7 +90,11 @@ async function main() {
         segments.push(a, b);
       }
     }
-    if (segments.length) figures.push({ id, name: c.common_name?.english ?? id, segments });
+    // Latin IAU name ('native', e.g. Gemini) with the English byname ('Twins') as an alias.
+    const cn = c.common_name ?? {};
+    const name = cn.native ?? cn.english ?? id;
+    const english = cn.english && cn.english !== name ? cn.english : null;
+    if (segments.length) figures.push({ id, name, ...(english ? { english } : {}), segments });
   }
   figures.sort((a, b) => a.id.localeCompare(b.id));
   const out = {
