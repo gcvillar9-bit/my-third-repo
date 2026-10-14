@@ -1,0 +1,71 @@
+{
+  "source": "Hand-entered; every row names its reference. Galactic (l, b) are degrees, distances Mpc from the Sun (H0 = 70 km/s/Mpc where converted from cz).",
+  "structures": [
+    {
+      "id": "great-attractor",
+      "name": "Great Attractor",
+      "l": 307,
+      "b": 9,
+      "distMpc": 70,
+      "czKms": 4350,
+      "massMsun": 1e16,
+      "source": "Lynden-Bell et al. 1988, ApJ 326, 19 (l 307, b 9, cz 4350 km/s); Kocevski & Ebeling 2006, ApJ 645, 1043; distance and mass order of magnitude only",
+      "approximate": true
+    },
+    {
+      "id": "norma",
+      "name": "Norma Cluster (Abell 3627)",
+      "l": 325.3,
+      "b": -7.3,
+      "distMpc": 69.6,
+      "czKms": 4871,
+      "massMsun": 1e15,
+      "source": "Kraan-Korteweg et al. 1996, Nature 379, 519; Woudt et al. 2008, MNRAS 383, 445 (cz 4871 km/s, mass ~1e15 Msun); distance = cz / 70",
+      "approximate": true
+    },
+    {
+      "id": "shapley",
+      "name": "Shapley Supercluster",
+      "l": 306.4,
+      "b": 29.8,
+      "distMpc": 200,
+      "z": 0.048,
+      "massMsun": 5e16,
+      "source": "Shapley 1930; Raychaudhury 1989, Nature 342, 251; Proust et al. 2006, A&A 447, 133 (core z ~0.048, mass several 1e16 Msun)",
+      "approximate": true
+    },
+    {
+      "id": "virgo",
+      "name": "Virgo Cluster",
+      "ref": "galaxies:m87",
+      "l": 283.78,
+      "b": 74.49,
+      "distMpc": 16.5,
+      "massMsun": 1.2e15,
+      "source": "Position: the galaxies module's M87 (Celestia catalogue); mass: Fouque et al. 2001, A&A 375, 770",
+      "approximate": true
+    },
+    {
+      "id": "laniakea",
+      "name": "Laniakea Supercluster",
+      "diameterMpc": 160,
+      "diameterMly": 520,
+      "massMsun": 1e17,
+      "galaxies": 100000,
+      "centreFractionOfGA": 0.5,
+      "semiAxesMpc": [85, 78, 55],
+      "source": "Tully, Courtois, Hoffman & Pomarede 2014, Nature 513, 71. Outline here is a stylised lumpy ellipsoid (centre half-way to the Great Attractor), not the measured basin surface",
+      "approximate": true
+    },
+    {
+      "id": "lg-motion",
+      "name": "Local Group motion relative to the CMB",
+      "l": 276,
+      "b": 30,
+      "speedKms": 627,
+      "speedErrKms": 22,
+      "source": "Kogut et al. 1993, ApJ 419, 1 (COBE dipole in the Local Group frame: 627 +/- 22 km/s toward l 276, b 30)",
+      "approximate": true
+    }
+  ]
+}
