@@ -103,13 +103,24 @@ test('blackholes: gaia-bh3-dormant lenses the star field around a black shadow',
   // Same view with lensing switched off (URL override): the stars near the hole move.
   await open(page, 'gaia-bh3-dormant', '&blackholes.lensing=0');
   const straight = await inner();
+  // Lensing conserves surface brightness, so the smooth Milky Way sky (GalaxyModel sky cube, active
+  // 200 pc - 2 kpc from the Sun) only changes inside the shadow and would dilute the ratio. Compare
+  // the point sources: subtract each set's median (the diffuse sky level) before differencing.
+  const median = (v: number[]) => [...v].sort((a, b) => a - b)[v.length >> 1];
+  const bgL = median(lensed);
+  const bgS = median(straight);
+  let raw = 0;
   let diff = 0;
   let total = 0;
   for (let i = 0; i < lensed.length; i++) {
-    diff += Math.abs(lensed[i] - straight[i]);
-    total += lensed[i] + straight[i];
+    raw += lensed[i] + straight[i];
+    const l = Math.max(lensed[i] - bgL, 0);
+    const s = Math.max(straight[i] - bgS, 0);
+    diff += Math.abs(l - s);
+    total += l + s;
   }
-  expect(total).toBeGreaterThan(0.002);
+  expect(raw).toBeGreaterThan(0.002);
+  expect(total).toBeGreaterThan(0);
   expect(diff / total).toBeGreaterThan(0.3);
   expect(problems).toEqual([]);
 });

@@ -69,9 +69,10 @@ export const impactFromAngle = (r: number, psi: number): number => (r * Math.sin
 export function shadowAngle(r: number): number {
   if (r <= 1) return Math.PI;
   const s = (B_CRIT * Math.sqrt(1 - 1 / r)) / r;
-  // Inside r < 3 (r_s ≈ 1.5·2) the shadow covers more than a hemisphere.
+  // Only inside the photon sphere (r < 1.5 r_s = 3M) does the shadow cover more than a hemisphere:
+  // there a tangential ray falls in, so the escape cone is the one around the outward radial.
   const a = Math.asin(Math.min(1, s));
-  return r < (3 * PHOTON_SPHERE) / 1.5 && r < 1.5 * 2 ? Math.PI - a : a;
+  return r < PHOTON_SPHERE ? Math.PI - a : a;
 }
 
 /** One RK4 step of x'' = -1.5 h² x / r⁵ on state [x, v] (6 numbers), in place. */

@@ -50,6 +50,23 @@ describe('Schwarzschild null geodesics (r_s = 1)', () => {
     expect(shadowAngle(1e6) * 1e6).toBeCloseTo(B_CRIT, 4);
     expect(impactFromAngle(30, shadowAngle(30))).toBeCloseTo(B_CRIT, 9);
     expect(shadowAngle(1.5)).toBeCloseTo(Math.PI / 2, 9);
+    // Between the photon sphere and 3 r_s the shadow is still smaller than a hemisphere: a ray just
+    // outside the shadow edge escapes and one just inside is captured (audit regression, r = 2 r_s).
+    const r = 2;
+    const psi = shadowAngle(r);
+    expect(psi).toBeLessThan(Math.PI / 2);
+    for (const [f, fate] of [
+      [1.01, 'escape'],
+      [0.99, 'capture'],
+    ] as const) {
+      const a = psi * f;
+      const res = traceRay([r, 0, 0], [-Math.cos(a), Math.sin(a), 0], {
+        stepFactor: 0.002,
+        maxSteps: 400000,
+      });
+      expect(res.fate).toBe(fate);
+    }
+    expect(shadowAngle(1.2)).toBeGreaterThan(Math.PI / 2);
   });
 
   it('reproduces the weak-field deflection 2 r_s / b within 1% at b = 1000 r_s', () => {
