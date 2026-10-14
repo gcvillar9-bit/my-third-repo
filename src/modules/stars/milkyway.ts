@@ -24,10 +24,12 @@ import shader from './milkyway.glsl?raw';
 
 /**
  * Panorama luminance (cd/m²) for a texel value of 1. The 8-bit panorama is sampled as linear
- * data (not sRGB-decoded): its values then track surface brightness, giving about 19.5
- * mag/arcsec² towards the galactic centre (texel 0.6) and about 22 in the Cygnus band (0.04).
+ * data (not sRGB-decoded). At 3e-3 the band measured only ~1.0e-4 cd/m² (~22.3 mag/arcsec²)
+ * towards (l, b) = (8°, -2°), where the Sagittarius star clouds are 1-2e-3 and the milkyway
+ * GalaxyModel gives ~7e-4; P5-B raised it 8x (3 stops) so the band reads at the night
+ * auto-exposure and the 200-400 pc crossfade to the GalaxyModel sky cube is continuous.
  */
-export const MILKY_WAY_LUMINANCE = 3e-3;
+export const MILKY_WAY_LUMINANCE = 2.4e-2;
 /** Fade distances from the Sun, m. */
 export const FADE_START = 200 * PC;
 export const FADE_END = 400 * PC;

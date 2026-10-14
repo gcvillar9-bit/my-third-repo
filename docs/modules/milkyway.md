@@ -72,11 +72,11 @@ Search entries (`gc:<name>`, kind `cluster`) fly to 6 tidal radii; info cards li
 - `mw-edge-on` (EV -9.5): 60 kpc out towards l = 90 deg, 1 kpc above the plane; dust lane across the bulge.
 - `mw-above-sun-1kpc` (EV -9, fovY 60 deg): 1 kpc above the Sun looking towards the centre; exercises the
   re-baked sky cube (the inside view), disc and bulge below a dark sky.
-- `mw-band-from-earth` (EV -8.5, fovY 80 deg): Earth's sky towards (l, b) = (8, -2) deg, Galactic north up, seen
+- `mw-band-from-earth` (EV -6, fovY 80 deg): Earth's sky towards (l, b) = (8, -2) deg, Galactic north up, seen
   from 0.2 pc on the Sagittarius side. From 1 AU the smallbodies module's boosted asteroid-belt points (far fade
-  3000-30000 AU) streak along the ecliptic, right through Sagittarius. The panorama band is ~10x fainter than
-  the GalaxyModel predicts (see requests), so this bookmark needs EV -8.5 to read; the wide field keeps the star
-  halos small.
+  3000-30000 AU) streak along the ecliptic, right through Sagittarius. Phase 5 raised the panorama 8x
+  (`MILKY_WAY_LUMINANCE` 2.4e-2), so this bookmark moved from EV -8.5 to -6 (no overexposure or visible 8-bit
+  compression blocks); the wide field keeps the star halos small.
 
 ## Tests
 

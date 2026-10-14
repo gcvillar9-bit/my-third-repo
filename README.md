@@ -1,45 +1,95 @@
 # Cosmos
 
-Fly through a realistic universe in your browser: from standing on planet surfaces, through the Solar System and the Milky Way, out to the cosmic web. Real ephemerides and star catalogues place everything that can be known; physically motivated procedural models fill in the rest and are labelled "simulated".
+Fly through a realistic universe in your browser, from your boots on the Moon to the cosmic web. Real ephemerides,
+star and galaxy catalogues place everything that can be known; physically motivated procedural models fill
+in the rest and are labelled "simulated" or "approximate". Everything renders live in WebGL2 at true scale, with
+real luminances and an automatic exposure, like a camera.
 
-**Live:** https://gcvillar9-bit.github.io/my-third-repo/ (needs WebGL2)
+**Live:** https://gcvillar9-bit.github.io/my-third-repo/ (desktop browser with WebGL2; Chrome, Edge, Safari or Firefox)
 
-## What works so far (Phases 1 to 4)
+New here? Press **▶ Tour** (top right) for _Cosmic Zoom_, a three-minute guided flight from the Apollo 11 boot prints
+to the largest structures in the universe and back home. Or press `/` and type any name.
 
-- A camera that travels seamlessly from metres to light-years (64-bit frame tree, camera-relative rendering, log depth).
-- Physically exposed rendering: real luminances, auto exposure, bloom and filmic tone mapping.
-- The Solar System at its true positions for any date: the Sun, 8 planets, 27 moons and 6 dwarf planets or asteroids,
-  with textures, Saturn's rings, orbit lines and correct brightness when seen as points.
-- 119,625 real stars (HYG catalogue) with true colours and brightness from any viewpoint, plus the Milky Way glow.
-- Search palette, info cards, time controls (warp, pause, any date), HUD with speed and distance, shareable links.
+## Features
 
-- Phase 2: seamless terrain from orbit to your boots on every rocky planet and moon (cube-sphere quadtree, real
-  Moon, Mars and Earth elevation plus procedural craters, dunes, ridges and calderas), walk mode with real gravity
-  and jumping, physically based atmospheres (Earth, Mars, Venus, Titan: blue Earth sky, blue Martian sunset) and a
-  hero Earth with ocean glint, city lights, clouds and cloud shadows. Optional streamed HD Earth terrain.
+**Solar System**
 
-- Phase 3: gas giants with drifting cloud bands, the Great Red Spot and moon-shadow transits; Saturn's and Uranus's
-  rings at true radii with backlit glow and shadows both ways; a granulated, limb-darkened Sun with a corona; the
-  asteroid and Kuiper belts (up to 400k bodies on GPU Kepler orbits, Kirkwood gaps, Hildas, Trojans, plutinos);
-  and a solar/lunar eclipse finder that puts you on the ground at totality.
+- The Sun, 8 planets, 27 moons and 6 dwarf planets or asteroids at their true positions for any date, with orbit
+  lines and correct brightness when seen as points of light.
+- A granulated, limb-darkened Sun with a corona; solar and lunar eclipses, with a finder that puts you on the ground
+  at totality.
+- The asteroid and Kuiper belts: up to 400,000 bodies on GPU Kepler orbits (Kirkwood gaps, Hildas, Trojans,
+  plutinos).
 
-- Phase 4: the Galaxy. Black holes with real light bending (Sgr A\* with its photon ring, Doppler-bright disk
-  and the S-stars on their precessing orbits; M87\*, Cygnus X-1 with its supergiant companion, and the dormant Gaia
-  black holes); the Milky Way from outside as a barred spiral built on the measured arms, bar, discs and dust, with
-  194 globular clusters; 3D constellation lines that break apart as you travel (Shift+C); nearby stars that
-  become real suns up close, double stars (Alpha Centauri, Sirius) and more than 5,000 known exoplanets with habitable
-  zones; stars that move with their true proper motion over time. Also: automatic resolution scaling, a cheaper
-  half-resolution atmosphere and a fix for look-drag snap-backs.
+**Worlds**
 
-Demo links and what to look for: [docs/demos/phase-1.md](docs/demos/phase-1.md),
-[docs/demos/phase-2.md](docs/demos/phase-2.md), [docs/demos/phase-3.md](docs/demos/phase-3.md),
-[docs/demos/phase-4.md](docs/demos/phase-4.md).
+- Seamless terrain from orbit to the ground on every rocky planet and moon: real Moon, Mars and Earth elevation plus
+  procedural craters, dunes, ridges and calderas. Walk mode with real gravity and jumping.
+- Physically based atmospheres (Earth, Mars, Venus, Titan): blue Earth skies, blue Martian sunsets.
+- A hero Earth with ocean glint, city lights, clouds and cloud shadows.
+- Gas giants with drifting cloud bands, the Great Red Spot and moon-shadow transits; Saturn's and Uranus's rings at
+  true radii with backlit glow and shadows both ways.
+
+**Galaxy**
+
+- 119,625 real stars (HYG) with true colours and brightness from any viewpoint, moving with their proper motions.
+- 3D constellation lines that break apart as you travel; nearby stars become real suns up close; double stars
+  (Alpha Centauri, Sirius) and more than 5,000 known exoplanets with habitable zones.
+- The Milky Way: the night-sky band from Earth, and from outside a barred spiral built on the measured arms, bar,
+  discs and dust, with 194 globular clusters.
+
+**Black holes**
+
+- Real light bending: Sgr A\* with its photon ring, Doppler-bright disk and the S-stars on their precessing orbits;
+  M87\*, Cygnus X-1 with its supergiant companion, and the dormant Gaia black holes.
+
+**Deep universe**
+
+- 10,936 real galaxies (Celestia catalogue) placed in 3D, with oriented spiral and elliptical images up close:
+  Andromeda, the Magellanic Clouds, M33, M81/M82, the Whirlpool, the Sombrero, Centaurus A and the Virgo cluster.
+  Info cards give distance in light-years and megaparsecs and the light-travel time.
+- Beyond them, a simulated cosmic web of filaments and voids out to 800 Mpc (labelled "simulated").
+
+**Showtime**
+
+- Guided tour _Cosmic Zoom_ (palette: "Tour: Cosmic Zoom", or the ▶ Tour button): pause, skip, Esc to leave.
+- Photo mode (`P`): hides the interface, sets the field of view (5-120°) and exposure, and saves a PNG with a
+  credits line.
+- Search palette, info cards, time controls (warp, pause, any date), HUD with speed, distance and light-travel time,
+  and shareable links to any view.
 
 ## Controls
 
-`/` search and fly · drag to look · `W` `A` `S` `D` fly · `R` / `F` up and down · `Q` / `E` roll · wheel or `[` `]`
-speed · `O` orbit · `G` go to (near a surface: walk, with `Shift` run and `Space` jump) · `I` info · `,` `.` time warp · `P` pause · `N` now · `L` copy link · `H` hide UI ·
-`Shift`+`C` constellation lines · `?` help. Add `?perf=1` to the URL for an fps meter.
+| Key               | Action                                                                |
+| ----------------- | --------------------------------------------------------------------- |
+| `/` or `Ctrl`+`K` | Search and fly anywhere                                               |
+| Drag              | Look around                                                           |
+| `W` `A` `S` `D`   | Fly (`R` / `F` up and down, `Q` / `E` roll)                           |
+| Wheel or `[` `]`  | Change speed                                                          |
+| `,` `.`           | Slower or faster time (and backwards)                                 |
+| `K`               | Pause or play time (pauses the tour while one runs)                   |
+| `N`               | Back to the present                                                   |
+| `G`               | Go to the selection; near a surface, walk (`Shift` run, `Space` jump) |
+| `O`               | Orbit or free camera                                                  |
+| `I`               | Info card                                                             |
+| `P`               | Photo mode                                                            |
+| `Shift`+`C`       | Constellation lines                                                   |
+| `H`               | Hide the interface                                                    |
+| `L`               | Copy a link to this view                                              |
+| `?`               | Keyboard help                                                         |
+| `Esc`             | Close panels, leave the tour or photo mode                            |
+
+## Performance
+
+- Quality presets in the settings panel (⚙): potato, low, medium, high, ultra. The default is cheap enough for a
+  laptop; high and ultra add terrain detail, stars and memory.
+- Dynamic resolution lowers the render scale when frames take too long and raises it again when there is headroom.
+- Add `?perf=1` to the URL for an fps and GPU meter. `?q=<preset>` picks a preset from the URL.
+
+## Data and credits
+
+App code is MIT-licensed. Data and textures keep their upstream licences: see [CREDITS.md](CREDITS.md) (also served as
+`credits.json`). Pluto's texture is licensed for non-commercial use only. Exported photos carry a short credits line.
 
 ## Run locally
 
@@ -55,14 +105,13 @@ pnpm e2e            # headless Playwright smoke tests (Chromium)
 Processed assets are committed under `public/`, so CI never downloads anything. To rebuild them, run
 `pnpm assets:fetch` first (about 135 MB into `.cache/`), then `pnpm assets:build && pnpm credits`.
 `pnpm contact-sheet` tiles the e2e screenshots in `artifacts/` into one review image.
-
 `pnpm build && pnpm preview` serves the production build under the same `/my-third-repo/` subpath as GitHub Pages.
+
+Useful URL parameters: `#b=<bookmark>` opens a saved view, `?tour=cosmic-zoom` starts the tour, `?ui=0` hides the
+interface, `?debug` shows the developer panel.
 
 ## Project docs
 
-- `docs/DESIGN.md`: design and phase plan
-- `docs/CONTRACTS.md`: module plug-in contracts
+- `docs/DESIGN.md`: design and phase plan; demo links per phase in `docs/demos/`
+- `docs/CONTRACTS.md`: module plug-in contracts; `docs/modules/*.md`: one page per module
 - `CLAUDE.md`: conventions for contributors and agents
-
-App code is MIT-licensed. Data and textures keep their upstream licences: see [CREDITS.md](CREDITS.md) (also served as
-`credits.json`). Pluto's texture is licensed for non-commercial use only.

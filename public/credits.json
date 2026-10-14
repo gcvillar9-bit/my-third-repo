@@ -42,6 +42,20 @@
       "licenseText": null
     },
     {
+      "module": "galaxies",
+      "id": "celestia_galaxies",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/galaxies.dsc",
+      "license": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "attribution": "Celestia Development Team (CelestiaContent data/galaxies.dsc, compiled by F. Schrempp from the NGC/IC (W. Steinicke), RC3 and NED catalogues)",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/galaxies/galaxies.bin", "data/galaxies/names.json"],
+      "licenseText": null
+    },
+    {
       "module": "milkyway",
       "id": "celestia_globulars",
       "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/globulars.dsc",
