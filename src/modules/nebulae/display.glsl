@@ -13,13 +13,17 @@ uniform vec2 uTexMax;        // last texel centre, uv
 uniform float uInvStore;
 uniform float uGain;
 uniform float uExposure;
-uniform float uAlphaScale;   // 1 - milkyWayFade: near the Sun the panorama photo already holds M42's dust
+uniform float uAlphaScale;   // 1 - milkyWayFade: near the Sun the panorama stands for the whole sky glow
 uniform mat3 uBasis;         // columns: RGB of unit-luminance Hα, [OIII], scattered
 uniform float uAstro;        // 1: Astrophoto tone curve
+uniform float uAstroRef;     // cd/m², the calibrated core
+uniform float uAstroPeak;
 uniform float uSoft;
 uniform float uSaturation;
 // Full-resolution detail for distant views (the march runs at a reduced resolution).
-uniform sampler2D uEmission;
+uniform sampler2D uEmission; // linear-light, mipmapped: L / NEB_LREF per component
+uniform sampler2D uCore;     // linear-light, mipmapped: Hubble detail ratio (R)
+uniform float uHasCore;
 uniform float uDetail;
 uniform float uLodBias;
 uniform vec3 uOrigin;
@@ -40,21 +44,29 @@ void main() {
       vec3 p = uOrigin + rd * t;
       vec2 xe = p.xy / (NEB_D + p.z);
       vec2 uv = vec2(0.5 - xe.x * (0.5 / NEB_XI_MAX), 0.5 + xe.y * (0.5 / NEB_XI_MAX));
-      vec3 sharp = pow(texture2D(uEmission, uv).rgb, vec3(NEB_ENC));
-      vec3 soft = pow(texture2D(uEmission, uv, uLodBias).rgb, vec3(NEB_ENC));
+      vec3 sharp = texture2D(uEmission, uv).rgb;
+      vec3 soft = texture2D(uEmission, uv, uLodBias).rgb;
       float s = sharp.x + sharp.y + sharp.z;
       float b = soft.x + soft.y + soft.z;
-      float ratio = b > 1e-6 ? clamp(s / b, 0.25, 4.0) : 1.0;
-      L *= mix(1.0, ratio, uDetail);
+      float ratio = b > 1e-9 ? s / b : 1.0;
+      // The Hubble core detail the march resolution averaged away.
+      vec2 cuv = vec2(0.5 - xe.x * (0.5 / NEB_CORE_XI), 0.5 + xe.y * (0.5 / NEB_CORE_XI));
+      if (uHasCore > 0.5 && all(greaterThan(cuv, vec2(0.0))) && all(lessThan(cuv, vec2(1.0)))) {
+        float cs = texture2D(uCore, cuv).r;
+        float cb = texture2D(uCore, cuv, uLodBias).r;
+        ratio *= cb > 1e-6 ? cs / cb : 1.0;
+      }
+      L *= mix(1.0, clamp(ratio, 0.25, 4.0), uDetail);
     }
   }
-  vec3 rgb = uBasis * L * uExposure;
+  vec3 rgb = uBasis * L;
   if (uAstro > 0.5) {
+    // Exposure-independent stretch of the physical luminance against the calibrated core (display.ts ASTRO).
     float y = nebLum(rgb);
-    float ys = y > 0.0 ? asinh(y / uSoft) / asinh(1.0 / uSoft) : 0.0;
+    float ys = y > 0.0 ? uAstroPeak * uAstroRef * asinh(y / (uSoft * uAstroRef)) / asinh(1.0 / uSoft) : 0.0;
     rgb *= y > 0.0 ? ys / y : 0.0;
     rgb = max(vec3(ys) + uSaturation * (rgb - vec3(ys)), vec3(0.0));
   }
-  gl_FragColor = vec4(rgb, clamp(m.a, 0.0, 1.0) * uAlphaScale);
+  gl_FragColor = vec4(rgb * uExposure, clamp(m.a, 0.0, 1.0) * uAlphaScale);
 }
 #endif

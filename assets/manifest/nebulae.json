@@ -6,7 +6,7 @@
       "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/nebulae/default/m42.png",
       "file": "stellarium_m42.png",
       "license": "CC-BY-3.0",
-      "attribution": "M42 wide-field image by HG731GZ, from the Stellarium deep-sky image set (nebulae/default/m42.png), github.com/Stellarium/stellarium",
+      "attribution": "M42 wide-field image by HG731GZ, from the Stellarium deep-sky image set (nebulae/default/m42.png; credited to HG731GZ in nebulae/default/textures.json), github.com/Stellarium/stellarium. Licence: Stellarium CREDITS.md section 4.6 lists HG731GZ's images under CC BY 3.0 Unported (it names the M31 pictures; the M42 licence is inferred from the same contributor and should be confirmed), https://github.com/Stellarium/stellarium/blob/master/CREDITS.md",
       "outputs": [
         "data/nebulae/orion-emission.webp",
         "data/nebulae/orion-maps.webp",
@@ -30,7 +30,7 @@
       "url": "https://raw.githubusercontent.com/xirong/xirong.github.io/master/space/textures/deep-sky/orion_m42.jpg",
       "file": "hubble_orion_m42.jpg",
       "license": "CC-BY-4.0",
-      "attribution": "NASA, ESA, M. Robberto (STScI/ESA) and the HST Orion Treasury Project Team (ESA/Hubble heic0601a; NASA imagery public domain), 1280 px copy mirrored in xirong/xirong.github.io",
+      "attribution": "NASA, ESA, M. Robberto (STScI/ESA) and the HST Orion Treasury Project Team: ESA/Hubble heic0601a, https://esahubble.org/images/heic0601a/ (the upstream source; CC BY 4.0, NASA imagery public domain). Downloaded as a 1280 px copy mirrored in xirong/xirong.github.io; the sha256 pins those bytes, registration on the Trapezium, θ² Ori A and NU Ori confirms the field",
       "outputs": ["data/nebulae/orion-core.webp"],
       "sha256": "19d882d02d16cc8b4458b9a311b67abfebaba2891bca06a41f2c513eb0f05fd0",
       "bytes": 216171

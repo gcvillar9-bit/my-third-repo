@@ -77,10 +77,10 @@ describe('nebulae depth model', () => {
     expect(step - smooth).toBeCloseTo(MODEL.barRise, 2);
   });
 
-  it('thickens the emitting layer from ~0.1 pc at the core to ~1 pc outwards', () => {
-    expect(thickness(0, 0)).toBeCloseTo(0.1, 6);
+  it('thickens the emitting layer from ~0.03 pc at the core to ~1 pc outwards', () => {
+    expect(thickness(0, 0)).toBeCloseTo(0.03, 6);
     expect(thickness(10, 0)).toBeCloseTo(1, 6);
-    expect(thickness(0, 1)).toBeCloseTo(0.1 * (1 + MODEL.thicknessNoise), 6);
+    expect(thickness(0, 1)).toBeCloseTo(0.03 * (1 + MODEL.thicknessNoise), 6);
   });
 
   it('orders every column: veil in front, emission, dark cloud behind, all inside the box', () => {
@@ -151,6 +151,31 @@ describe('nebulae depth model', () => {
     expect(back.L[0] + back.L[1] + back.L[2]).toBeLessThan(0.01 * (front.L[0] + front.L[1] + front.L[2]));
   });
 
+  it('shears the emitting layer only when asked (inside views), never from Earth', () => {
+    const o = { x: 0.05, y: -0.04, z: -0.32 };
+    let diff = 0;
+    let sum = 0;
+    for (let k = 0; k < 40; k++) {
+      const dx = (hash(k, 21) - 0.5) * 1.2;
+      const dy = (hash(k, 22) - 0.5) * 1.2;
+      const n = Math.hypot(dx, dy, 1);
+      const d = { x: dx / n, y: dy / n, z: 1 / n };
+      const a = marchRay(o, d, 48, 0.5, synthetic, XI);
+      const b = marchRay(o, d, 48, 0.5, synthetic, XI, 1);
+      expect(b.T).toBe(a.T); // the absorbers are not moved
+      for (let c = 0; c < 3; c++) {
+        expect(Number.isFinite(b.L[c])).toBe(true);
+        diff += Math.abs(b.L[c] - a.L[c]);
+        sum += a.L[c];
+      }
+    }
+    expect(diff / sum).toBeGreaterThan(1e-3); // the shear moves texels
+    expect(diff / sum).toBeLessThan(0.5); // but only by a layer thickness
+    // warp = 0 is the default (the Earth view): identical results.
+    const { o: eo, d: ed } = earthRay(0.001, -0.002);
+    expect(marchRay(eo, ed, 48, 0.3, synthetic, XI, 0)).toEqual(marchRay(eo, ed, 48, 0.3, synthetic, XI));
+  });
+
   it('is deterministic', () => {
     const a = marchRay({ x: 1, y: -2, z: -5 }, { x: -0.1, y: 0.3, z: 0.95 }, 48, 0.37, synthetic, XI);
     const b = marchRay({ x: 1, y: -2, z: -5 }, { x: -0.1, y: 0.3, z: 0.95 }, 48, 0.37, synthetic, XI);
@@ -169,7 +194,7 @@ describe('nebulae depth model', () => {
   });
 
   it('shares every model constant with the GLSL twin', () => {
-    const glsl = ['model.glsl', 'march.glsl', 'display.glsl']
+    const glsl = ['model.glsl', 'march.glsl', 'display.glsl', 'linearise.glsl']
       .map((f) => readFileSync(`${ROOT}src/modules/nebulae/${f}`, 'utf8'))
       .join('\n');
     const defines = nebulaGlslDefines(meta);

@@ -2,9 +2,9 @@
 // model.ts). Writes the radiance of the three components (Hα+[NII], [OIII]+Hβ, scattered; cd/m² · uStore) and the
 // V-band opacity 1 - T of the background. Exposure-independent, so the result is cached while the view is still.
 // Prefixed with nebulaGlslDefines() + model.glsl.
-uniform sampler2D uEmission;  // observed column radiance per component, (L / NEB_LREF)^(1 / NEB_ENC)
+uniform sampler2D uEmission;  // observed column radiance per component, L / NEB_LREF (linear light, mipmapped)
 uniform sampler2D uMaps;      // tau_V / NEB_TAU_MAX, displacement, thickness noise (0.5 = 0)
-uniform sampler2D uCore;      // Hubble detail ratio, 0.5 + log2(ratio) / (2 NEB_CORE_SPAN)
+uniform sampler2D uCore;      // Hubble detail ratio (linear, R, mipmapped)
 uniform sampler2D uBlueNoise;
 uniform vec3 uOrigin;         // camera, local pc
 uniform mat3 uRayBasis;       // columns: right · tan(fovX/2), up · tan(fovY/2), forward (local axes)
@@ -14,6 +14,7 @@ uniform float uStore;
 uniform float uJitterOffset;
 uniform float uPixelAngle;    // radians per march pixel
 uniform float uHasCore;
+uniform float uWarp;          // 0..1: lateral shear of the emitting layer (views near the nebula; 0 from afar)
 varying vec2 vUv;
 
 struct NebPoint {
@@ -22,28 +23,48 @@ struct NebPoint {
   NebLayers L;
 };
 
-NebPoint nebEval(vec3 ro, vec3 rd, float t) {
-  vec3 p = ro + rd * t;
-  vec2 xe = p.xy / (NEB_D + p.z);
-  vec2 uv = vec2(0.5 - xe.x * (0.5 / NEB_XI_MAX), 0.5 + xe.y * (0.5 / NEB_XI_MAX));
-  float lod = log2(max(t * uPixelAngle / NEB_TEXEL_PC, 1.0));
-  vec3 S = NEB_LREF * pow(textureLod(uEmission, uv, lod).rgb, vec3(NEB_ENC));
-  vec3 m = textureLod(uMaps, uv, max(lod - 1.0, 0.0)).rgb; // maps are half the emission resolution
-  vec3 maps = vec3(m.x * NEB_TAU_MAX, m.y * 2.0 - 1.0, m.z * 2.0 - 1.0);
+vec2 nebUv(vec2 xe) { return vec2(0.5 - xe.x * (0.5 / NEB_XI_MAX), 0.5 + xe.y * (0.5 / NEB_XI_MAX)); }
+
+// Observed radiance of the column through xe (cd/m² per component), Hubble core detail applied; `foot` is the
+// sample's footprint across the columns (pc).
+vec3 nebSample(vec2 xe, float lod, float foot) {
+  vec3 S = NEB_LREF * textureLod(uEmission, nebUv(xe), lod).rgb;
   if (uHasCore > 0.5) {
     vec2 cuv = vec2(0.5 - xe.x * (0.5 / NEB_CORE_XI), 0.5 + xe.y * (0.5 / NEB_CORE_XI));
     if (all(greaterThan(cuv, vec2(0.0))) && all(lessThan(cuv, vec2(1.0)))) {
-      float clod = log2(max(t * uPixelAngle / NEB_CORE_TEXEL_PC, 1.0));
-      S *= exp2((textureLod(uCore, cuv, clod).r - 0.5) * 2.0 * NEB_CORE_SPAN);
+      float clod = log2(max(foot / NEB_CORE_TEXEL_PC, 1.0));
+      S *= textureLod(uCore, cuv, clod).r;
     }
   }
+  return S;
+}
+
+// `dt` is the step that led here: a ray crossing columns sideways (grazing views from inside) samples a texture
+// footprint as wide as its sideways travel per step, so detail between samples is averaged, not aliased into noise.
+NebPoint nebEval(vec3 ro, vec3 rd, float t, float dt) {
+  vec3 p = ro + rd * t;
+  vec2 xe = p.xy / (NEB_D + p.z);
+  vec2 uv = nebUv(xe);
+  float foot = max(t * uPixelAngle, length(rd.xy) * dt);
+  float lod = log2(max(foot / NEB_TEXEL_PC, 1.0));
+  float mlod = max(lod - 1.0, 0.0); // maps are half the emission resolution
+  vec3 m = textureLod(uMaps, uv, mlod).rgb;
+  vec3 maps = vec3(m.x * NEB_TAU_MAX, m.y * 2.0 - 1.0, m.z * 2.0 - 1.0);
   float edge = nebEdge(xe);
-  S *= edge;
   maps.x *= edge;
   NebPoint q;
   q.z = p.z;
-  q.S = S;
   q.L = nebColumn(xe * NEB_D, maps);
+  // Near the nebula, shear the emitting layer sideways through its depth (direction from the thickness noise at
+  // xe and at xe turned by 90°), so a texel is not extruded straight along its Earth column into a radial
+  // streak; the view from Earth (uWarp = 0) is unchanged.
+  vec2 xs = xe;
+  if (uWarp > 0.0) {
+    float u = clamp((p.z - q.L.sheet.x) / q.L.sheet.y, -1.0, 1.0);
+    float n2 = textureLod(uMaps, nebUv(vec2(-xe.y, xe.x)), mlod).b * 2.0 - 1.0;
+    xs += uWarp * NEB_WARP * (q.L.sheet.y / NEB_D) * u * vec2(maps.z, n2);
+  }
+  q.S = nebSample(xs, lod, foot) * edge;
   return q;
 }
 
@@ -101,7 +122,7 @@ void main() {
   }
   float jitter = fract(texture2D(uBlueNoise, gl_FragCoord.xy / 64.0).r + uJitterOffset);
   float base = (t1 - t0) / float(uSteps);
-  NebPoint a = nebEval(uOrigin, rd, t0);
+  NebPoint a = nebEval(uOrigin, rd, t0, 0.0);
   vec4 T = vec4(1.0);
   vec3 Lsum = vec3(0.0);
   float t = t0;
@@ -110,7 +131,7 @@ void main() {
     float dt = nebStep(a, base) * (i == 0 ? 0.25 + 0.75 * jitter : 1.0);
     if (i == uSteps - 1 || t + dt > t1) dt = t1 - t;
     t += dt;
-    NebPoint b = nebEval(uOrigin, rd, t);
+    NebPoint b = nebEval(uOrigin, rd, t, dt);
     nebSegment(a, b, dt, T, Lsum);
     a = b;
   }

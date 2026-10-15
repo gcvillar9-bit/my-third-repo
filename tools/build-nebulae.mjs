@@ -9,15 +9,20 @@
  *    registration against catalogue stars (src/modules/nebulae/orion.json "registration"): the build fails when
  *    any residual exceeds maxResidualPx source pixels.
  * 2. Removes the star remnants (halo rings around removed stars) and inpaints them.
- * 3. Resamples to a gnomonic square centred on θ¹ Ori C (north up, east left), unmixes the colours into
- *    Hα+[NII], [OIII]+Hβ and scattered light, rebuilds the clipped Huygens region as a dome and fits the
- *    photometric calibration (L = a·sinh(p·v), the inverse of an asinh stretch) so the total is V = 4.0 and the core
- *    16.5 mag/arcsec²; M43 (V 9.0) is an independent check. Writes orion-emission.webp (the three observed components,
- *    L/lRef encoded as v^ENCODE_EXP) and orion-maps.webp (R: dust optical depth τ_V / maxTau, G: z displacement,
- *    B: thickness noise; 0.5 = 0).
+ * 3. Resamples to a gnomonic square centred on θ¹ Ori C (north up, east left) and rebuilds the clipped Huygens
+ *    region as a dome.
  * 4. Registers the Hubble heic0601a mosaic from the Trapezium stars (similarity fit) and writes a de-starred
- *    luminance detail-ratio map of the core, orion-core.webp (0.5 + log2(ratio)/4). Skipped (core: null) when
- *    the registration fails.
+ *    luminance detail-ratio map of the core, orion-core.webp (0.5 + log2(ratio)/(2·RATIO_LOG2_SPAN)): detail finer
+ *    than the resampled photo (~16") outside the clipped region, and everything finer than ~2' (ratio against a
+ *    60" blur) inside it, where the photo has no structure at all (the Orion Bar, the ridges, the Fish's Mouth).
+ *    Skipped (core: null) when the registration fails.
+ * 5. Fits the photometric calibration (L = a·sinh(p·v), the inverse of an asinh stretch) with the core ratio
+ *    applied, so what the runtime shows has total V = 4.0 and a 16.5 mag/arcsec² core; M43 (V 9.0) is an
+ *    independent check. Unmixes the colours into Hα+[NII], [OIII]+Hβ and scattered light; inside the clipped
+ *    region (white in the photo) the sourced core mix of orion.json replaces the unmix. Writes
+ *    orion-emission.webp (the three observed components, L/lRef encoded as v^ENCODE_EXP) and orion-maps.webp
+ *    (R: dust optical depth τ_V / maxTau, from the calibrated light deficit of the lanes; G: z displacement;
+ *    B: thickness noise; 0.5 = 0).
  * Deterministic and re-runnable. Records everything the runtime needs in orion-meta.json.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -33,22 +38,25 @@ const D2R = Math.PI / 180;
 const ARCSEC = D2R / 3600;
 /** Emission texture encoding: L / lRef = v^ENCODE_EXP (shared with src/modules/nebulae/model.ts). */
 export const ENCODE_EXP = 4;
-/** Detail-ratio encoding: ratio = 2^((v - 0.5) · RATIO_LOG2_SPAN · 2). */
-export const RATIO_LOG2_SPAN = 2;
+/** Detail-ratio encoding: ratio = 2^((v - 0.5) · RATIO_LOG2_SPAN · 2) (×1/8 to ×8, the Orion Bar's ×3-5). */
+export const RATIO_LOG2_SPAN = 3;
+/** σ of the wide reference blur of the core ratio inside the clipped region, arcsec. */
+const CORE_WIDE_SIGMA_ARCSEC = 60;
 /** V = 0 illuminance, lux (src/core/photometry.ts LUX_MAG0). */
 const LUX_MAG0 = 2.54e-6;
+const ORION = JSON.parse(readFileSync(join(ROOT, 'src', 'modules', 'nebulae', 'orion.json'), 'utf8'));
 /**
  * Photo RGB (linear) of one unit of each component, as a typical RGB astro camera records it:
- * Hα+[NII] (656/658 nm) pink-red, [OIII]+Hβ (501/486 nm) teal, scattered starlight blue-white.
+ * Hα+[NII] (656/658 nm) pink-red, [OIII]+Hβ (501/486 nm) teal, scattered starlight blue-white (orion.json
+ * photo.cameraResponse, a sourced model choice).
  */
-export const CAMERA = [
-  [1.0, 0.13, 0.2],
-  [0.12, 0.85, 0.7],
-  [0.55, 0.72, 1.0],
-];
-/** Photo log-deficits below this are texture between filaments, not dust; τ per unit of log-deficit above it. */
-const DEFICIT_FLOOR = 0.12;
-const TAU_PER_DEFICIT = 6;
+export const CAMERA = ORION.photo.cameraResponse;
+/**
+ * Calibrated log-deficits (ln of the local upper envelope over the light) below this are texture between
+ * filaments, not dust; above it τ = deficit - floor, so behind a lane the de-reddened light S·e^τ is the envelope
+ * (times e^-floor) and the view from inside, behind the Veil, stays smooth.
+ */
+const DEFICIT_FLOOR = 0.5;
 /** Linear level above which all three channels of the Stellarium photo are clipped (it tops out at ~230/255). */
 const SATURATED = 0.69;
 const lum = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -571,7 +579,8 @@ export const transfer = (logY, p) =>
 const TRANSFER_RANGE = TRANSFER === 'power' ? [1, 6] : [0.2, 40];
 
 /**
- * Photometric calibration L = a · T(Y · e^{g·shape}, p) of the photo luminance Y (T = `transfer`). The photo's clipped
+ * Photometric calibration L = a · T(Y · e^{g·shape}, p) of the photo luminance Y (T = `transfer`), measured with an
+ * optional per-pixel `gain` (the core detail ratio the runtime multiplies in). The photo's clipped
  * Huygens region is a plateau; its true brightness rises towards the inside as a dome, e^{g·shape} with
  * shape = d - d²/(2·dMax) (d = depth inside the plateau). With a fixed stretch p (`fixedP`), the dome slope g is set
  * by the core/total ratio (the brightest core disk against the M42 aperture total) and a by the total. Without
@@ -589,6 +598,7 @@ export function fitCalibration({
   coreL,
   m43Lux,
   fixedP,
+  gain = null,
 }) {
   // Work inside the bounding box of the plateau (plus a margin) for the core maximum.
   let x0 = N;
@@ -616,14 +626,15 @@ export function fitCalibration({
   const bh = y1 - y0 + 1;
   const logY = new Float32Array(N * N);
   for (let i = 0; i < N * N; i++) logY[i] = Math.log(Math.max(Y[i], 1e-9));
+  const G = (i) => (gain ? gain[i] : 1);
   const total = (g, gs) => {
     let t = 0;
-    for (let i = 0; i < N * N; i++) if (inTotal[i]) t += transfer(logY[i] + gs * shape[i], g);
+    for (let i = 0; i < N * N; i++) if (inTotal[i]) t += transfer(logY[i] + gs * shape[i], g) * G(i);
     return t * omega;
   };
   const m43 = (g, gs) => {
     let t = 0;
-    for (let i = 0; i < N * N; i++) if (inM43[i]) t += transfer(logY[i] + gs * shape[i], g);
+    for (let i = 0; i < N * N; i++) if (inM43[i]) t += transfer(logY[i] + gs * shape[i], g) * G(i);
     return t * omega;
   };
   const core = (g, gs) => {
@@ -631,7 +642,7 @@ export function fitCalibration({
     for (let j = 0; j < bh; j++)
       for (let i = 0; i < bw; i++) {
         const k = (j + y0) * N + i + x0;
-        p[j * bw + i] = transfer(logY[k] + gs * shape[k], g);
+        p[j * bw + i] = transfer(logY[k] + gs * shape[k], g) * G(k);
       }
     const b = gaussBlur(p, bw, bh, coreSigma);
     let mx = 0;
@@ -711,6 +722,49 @@ export function clippedDome(sat, N) {
   const shape = new Float32Array(d.length);
   if (depth > 0) for (let i = 0; i < d.length; i++) shape[i] = d[i] - (d[i] * d[i]) / (2 * depth);
   return { shape, depth, pixels };
+}
+
+/**
+ * Feathered weight (0..1) of a binary region: smoothstep of the signed distance to its edge (px, + inside) over
+ * `blendPx` centred on the edge.
+ */
+export function plateauWeight(mask, N, blendPx) {
+  const dIn = insideDistance(mask, N, N);
+  const out = new Float32Array(N * N);
+  for (let i = 0; i < N * N; i++) out[i] = mask[i] ? 0 : 1;
+  const dOut = insideDistance(out, N, N, true);
+  const w = new Float32Array(N * N);
+  const h = 0.5 * Math.max(blendPx, 1e-6);
+  for (let i = 0; i < N * N; i++) {
+    const t = clamp((dIn[i] - dOut[i] + h) / (2 * h), 0, 1);
+    w[i] = t * t * (3 - 2 * t);
+  }
+  return w;
+}
+
+/**
+ * The core detail ratio as the runtime applies it, averaged over each emission pixel (4x4 bilinear sub-samples of
+ * the decoded orion-core.webp; 1 outside the core field): the gain the calibration and the data test include.
+ */
+export function coreGainOnGrid(bytes, C, channels, core, N, xiMax, sub = 4) {
+  const ratio = { w: C, h: C, c: 1, data: new Float32Array(C * C) };
+  for (let i = 0; i < C * C; i++)
+    ratio.data[i] = 2 ** ((bytes[i * channels] / 255 - 0.5) * 2 * core.ratioLog2Span);
+  const gain = new Float32Array(N * N).fill(1);
+  for (let j = 0; j < N; j++)
+    for (let i = 0; i < N; i++) {
+      let s = 0;
+      for (let b = 0; b < sub; b++)
+        for (let a = 0; a < sub; a++) {
+          const xi = (1 - (2 * (i + (a + 0.5) / sub)) / N) * xiMax;
+          const eta = (1 - (2 * (j + (b + 0.5) / sub)) / N) * xiMax;
+          const u = (1 - xi / core.xiMax) * 0.5;
+          const v = (1 - eta / core.xiMax) * 0.5;
+          s += u > 0 && u < 1 && v > 0 && v < 1 ? sample(ratio, u * C, v * C, 0) : 1;
+        }
+      gain[j * N + i] = s / (sub * sub);
+    }
+  return gain;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -872,10 +926,25 @@ async function main() {
     for (let k = 0; k < 3; k++) grid.data[3 * i + k] = Math.max(0, grid.data[3 * i + k] - skyRgb[k]);
   const Y = luminanceOf(grid);
   const dome = clippedDome(satGrid, N);
-  // --- 4. Calibration: L = a · sinh(p · v) ------------------------------------------------------------------------
   const pxRad = (2 * xiMax) / N;
   const pxArcsec = pxRad / ARCSEC;
   const omega = pxRad * pxRad;
+  // Feathered weight of the clipped region (photo.coreBlendArcmin across its edge): where the core ratio uses its
+  // wide reference and the sourced core mix replaces the photo's (white) colours.
+  const plateauW = plateauWeight(satGrid, N, (orion.photo.coreBlendArcmin * 60) / pxArcsec);
+  const plateauImg = { w: N, h: N, c: 1, data: plateauW };
+  const plateauAt = (xi, eta) =>
+    sample(plateauImg, (1 - xi / xiMax) * 0.5 * N, (1 - eta / xiMax) * 0.5 * N, 0);
+
+  // --- 4. Hubble core detail ratio (applied by the runtime on top of the emission) -----------------------------
+  const core = await buildCore(orion, paths.get('hubble_m42'), outDir, debug, pxArcsec, plateauAt);
+  let gain = null;
+  if (core) {
+    const dec = await sharp(join(outDir, 'orion-core.webp')).raw().toBuffer({ resolveWithObject: true });
+    gain = coreGainOnGrid(dec.data, dec.info.width, dec.info.channels, core, N, xiMax);
+  }
+
+  // --- 5. Calibration: L = a · sinh(p · v), measured with the core ratio --------------------------------------
   const posOf = (ra, dec) => {
     const [xi, eta] = gnomonic(ra0, dec0, ra, dec);
     return [(1 - xi / xiMax) * 0.5 * N, (1 - eta / xiMax) * 0.5 * N];
@@ -905,20 +974,23 @@ async function main() {
     coreL: luminanceFromMu(ph.coreMuV),
     m43Lux: LUX_MAG0 * 10 ** (-0.4 * ph.m43V),
     fixedP: process.env.NEBULAE_P ? Number(process.env.NEBULAE_P) : STRETCH_P,
+    gain,
   });
   const { p: stretch, a, slope } = fit;
   const L = new Float32Array(N * N);
   for (let i = 0; i < N * N; i++)
     L[i] = a * transfer(Math.log(Math.max(Y[i], 1e-9)) + slope * dome.shape[i], stretch);
+  // What the runtime shows: the emission times the core ratio.
+  const Lshown = gain ? L.map((v, i) => v * gain[i]) : L;
   const measure = (mask) => {
     let t = 0;
-    for (let i = 0; i < N * N; i++) if (mask[i]) t += L[i] * omega;
+    for (let i = 0; i < N * N; i++) if (mask[i]) t += Lshown[i] * omega;
     return -2.5 * Math.log10(t / LUX_MAG0);
   };
   const m43V = measure(inM43);
   const totalV = measure(inTotal);
   let coreMax = 0;
-  const coreB = gaussBlur(L, N, N, coreR / Math.SQRT2);
+  const coreB = gaussBlur(Lshown, N, N, coreR / Math.SQRT2);
   for (let i = 0; i < N * N; i++) coreMax = Math.max(coreMax, coreB[i]);
   const coreMu = muFromLuminance(coreMax);
   console.log(
@@ -926,36 +998,85 @@ async function main() {
       `(dome peak x${Math.exp((slope * dome.depth) / 2).toFixed(2)}); total V ${totalV.toFixed(2)}, core ${coreMu.toFixed(2)} mag/arcsec², M43 V ${m43V.toFixed(2)}`,
   );
 
-  // --- 5. Components and the dust map -----------------------------------------------------------------------
+  // --- 6. Components and the dust map -----------------------------------------------------------------------
+  // The photo's colours, except in the clipped region (white in the photo, which would unmix to a pink-white):
+  // there the sourced luminance shares of the [OIII]-dominated Huygens region, blended over the region's edge.
+  const mix = orion.photo.coreMix;
+  const coreFrac = [mix.halpha, mix.oiii, mix.scattered];
+  const coreSum = coreFrac[0] + coreFrac[1] + coreFrac[2];
   const comp = [new Float32Array(N * N), new Float32Array(N * N), new Float32Array(N * N)];
   const tmp = [0, 0, 0];
   for (let i = 0; i < N * N; i++) {
     unmix(grid.data[3 * i], grid.data[3 * i + 1], grid.data[3 * i + 2], tmp);
     const s = tmp[0] + tmp[1] + tmp[2];
-    for (let k = 0; k < 3; k++) comp[k][i] = s > 0 ? (L[i] * tmp[k]) / s : 0;
+    const w = plateauW[i];
+    for (let k = 0; k < 3; k++) {
+      const photo = s > 0 ? tmp[k] / s : 1 / 3;
+      comp[k][i] = L[i] * ((1 - w) * photo + (w * coreFrac[k]) / coreSum);
+    }
   }
-  // Dust lanes: the photo's local brightness deficit (display-encoded luminance against its upper envelope over
-  // ~1.5'), only where the envelope is nebular light and the pixel is brown-red (reddened) or dark: blue reflection
-  // deficits are not dust. Deficits below DEFICIT_FLOOR are texture between filaments. A lane that removes e^-τ of
-  // the light behind it shows as a photo deficit of e^(-τ/TAU_PER_DEFICIT) after the stretch.
+  // Dust lanes: the local deficit of the calibrated light against its upper envelope over ~1.5', only where the
+  // envelope is nebular light and the pixel is brown-red (reddened) or dark (blue reflection deficits are not
+  // dust). τ = ln(L_env / L) - DEFICIT_FLOOR: seen from Earth the lane still shows the photo, and behind it (from
+  // inside, past the Veil) the de-reddened light S·e^τ is the envelope, not a dark hole.
   const V = new Float32Array(N * N);
   for (let i = 0; i < N * N; i++) V[i] = Math.max(Y[i], 0) ** (1 / 2.2);
-  const Vs = gaussBlur(V, N, N, 1.2);
-  const env = gaussBlur(maxFilter(Vs, N, N, 8), N, N, 5);
+  const env = gaussBlur(maxFilter(gaussBlur(V, N, N, 1.2), N, N, 8), N, N, 5);
   const envRef = percentile(env, 0.999);
+  const Ls = gaussBlur(L, N, N, 1.2);
+  const envL = gaussBlur(maxFilter(Ls, N, N, 8), N, N, 5);
   const tauMax = orion.geometry.veil.maxTau;
   const tau = new Float32Array(N * N);
   for (let i = 0; i < N * N; i++) {
-    const deficit = Math.log(Math.max(1e-6, env[i]) / Math.max(1e-6, Vs[i]));
+    const deficit = Math.log(Math.max(1e-12, envL[i]) / Math.max(1e-12, Ls[i]));
     const weight = clamp((env[i] / envRef - 0.15) / 0.15, 0, 1);
     const r = grid.data[3 * i] + 1e-9;
     const bl = grid.data[3 * i + 2];
     const brown = clamp(1.6 - (2 * bl) / r, 0, 1);
-    tau[i] = clamp(TAU_PER_DEFICIT * (deficit - DEFICIT_FLOOR) * weight * brown, 0, tauMax);
+    tau[i] = clamp((deficit - DEFICIT_FLOOR) * weight * brown, 0, tauMax);
   }
+  // The Dark Bay next to the core, where the photo is clipped or the deficit spans the whole envelope window:
+  // the light NE of θ¹ Ori C short of its azimuthal envelope at the same radius is the Veil's extinction
+  // (orion.json geometry.darkBay), so S·e^τ restores the envelope behind it.
+  const db = orion.geometry.darkBay;
+  const rMax = (db.radiusArcmin * 60) / pxArcsec;
+  const LsShown = gaussBlur(Lshown, N, N, 2);
+  const ringEnv = new Float32Array(Math.ceil(rMax) + 2);
+  {
+    const bins = Array.from({ length: ringEnv.length }, () => []);
+    for (let j = 0; j < N; j++)
+      for (let i = 0; i < N; i++) {
+        const r = Math.hypot(i + 0.5 - N / 2, j + 0.5 - N / 2);
+        if (r < ringEnv.length) bins[Math.floor(r)].push(LsShown[j * N + i]);
+      }
+    bins.forEach((b, k) => {
+      b.sort((x, y) => x - y);
+      ringEnv[k] = b.length ? b[Math.min(b.length - 1, Math.floor(db.ringPercentile * b.length))] : 0;
+    });
+  }
+  let bayMax = 0;
+  for (let j = 0; j < N; j++)
+    for (let i = 0; i < N; i++) {
+      const east = -(i + 0.5 - N / 2);
+      const north = -(j + 0.5 - N / 2);
+      const r = Math.hypot(east, north);
+      if (r >= rMax) continue;
+      const pa = (Math.atan2(east, north) * 180) / Math.PI;
+      let dpa = Math.abs(pa - db.centerPaDeg) % 360;
+      if (dpa > 180) dpa = 360 - dpa;
+      const ang = 1 - clamp((dpa - db.halfWidthDeg) / db.softDeg, 0, 1);
+      const rad = 1 - clamp((r - 0.8 * rMax) / (0.2 * rMax), 0, 1);
+      const k = j * N + i;
+      const env = ringEnv[Math.floor(r)];
+      const t = Math.log(Math.max(1e-12, env) / Math.max(1e-12, LsShown[k]));
+      const bay = clamp(t, 0, tauMax) * ang * ang * (3 - 2 * ang) * rad;
+      if (bay > tau[k]) tau[k] = bay;
+      bayMax = Math.max(bayMax, bay);
+    }
   const tauS = gaussBlur(tau, N, N, 2.5);
+  console.log(`build-nebulae: dust lanes and the Dark Bay, τ_V up to ${bayMax.toFixed(2)} next to the core`);
 
-  // --- 6. Encode emission ---------------------------------------------------------------------------------
+  // --- 7. Encode emission ---------------------------------------------------------------------------------
   let lRef = 0;
   for (let k = 0; k < 3; k++) for (const v of comp[k]) lRef = Math.max(lRef, v);
   const enc = (v) => clamp(v / lRef, 0, 1) ** (1 / ENCODE_EXP);
@@ -970,7 +1091,7 @@ async function main() {
     { nearLossless: true, quality: 60, effort: 6 },
   );
 
-  // --- 7. Maps: τ, z displacement (log-brightness structure), thickness noise -------------------------------
+  // --- 8. Maps: τ, z displacement (log-brightness structure), thickness noise -------------------------------
   const M = orion.field.mapPixels;
   const down = (arr) => {
     const f = N / M;
@@ -1020,9 +1141,6 @@ async function main() {
     );
   }
 
-  // --- 8. Hubble core detail ratio ----------------------------------------------------------------------------
-  const core = await buildCore(orion, paths.get('hubble_m42'), outDir, debug, pxArcsec);
-
   const meta = {
     version: 1,
     source:
@@ -1041,6 +1159,7 @@ async function main() {
       lRef,
       components: ['halpha', 'oiii', 'scattered'],
       camera: CAMERA,
+      coreMix: coreFrac.map((v) => round(v / coreSum, 4)),
     },
     maps: {
       file: 'data/nebulae/orion-maps.webp',
@@ -1086,7 +1205,7 @@ const HST_SCALE = [0.6, 0.85];
 const HST_MAX_ROTATION_DEG = 6;
 
 /** Registers the Hubble mosaic from the Trapezium stars and writes the core detail-ratio map. */
-async function buildCore(orion, path, outDir, debug, emissionPxArcsec) {
+async function buildCore(orion, path, outDir, debug, emissionPxArcsec, plateauAt) {
   const img = await loadLinear(path);
   const { raDeg: ra0, decDeg: dec0 } = orion.center;
   // Registration targets: the Trapezium (θ¹ Ori A-E, unresolved and saturated at this scale) as one blob at its
@@ -1205,12 +1324,22 @@ async function buildCore(orion, path, outDir, debug, emissionPxArcsec) {
   }
   inpaint(img, mask);
   const Yc = luminanceOf(img);
-  // Detail beyond the resolution of the resampled Stellarium image (~2.5 emission texels FWHM).
+  // Outside the clipped region: detail beyond the resolution of the resampled Stellarium image (~2.5 emission
+  // texels FWHM). Inside it the photo has no structure at all, so the reference is a wide (60") blur: the
+  // Orion Bar, the bright ridges and the edge of the Fish's Mouth (20"-3') come from the Hubble image.
   const sigma = (2.5 * emissionPxArcsec) / 2.355 / arcsecPerPx;
   const smooth = gaussBlur(Yc, img.w, img.h, sigma);
+  const wide = gaussBlur(Yc, img.w, img.h, CORE_WIDE_SIGMA_ARCSEC / arcsecPerPx);
   const floor = percentile(smooth, 0.05) + 1e-4;
+  // The numerator is lightly smoothed (σ 1.2 px, ~1.7"): the 1280 px JPEG's pixel grain would otherwise show as a
+  // mottled texture at the inside views' magnification (~0.6"/px), with up to ×8 contrast inside the clipped region.
+  const sharpY = gaussBlur(Yc, img.w, img.h, 1.2);
   const ratioSrc = { w: img.w, h: img.h, c: 1, data: new Float32Array(img.w * img.h) };
-  for (let i = 0; i < Yc.length; i++) ratioSrc.data[i] = (Yc[i] + floor) / (smooth[i] + floor);
+  const ratioWide = { w: img.w, h: img.h, c: 1, data: new Float32Array(img.w * img.h) };
+  for (let i = 0; i < Yc.length; i++) {
+    ratioSrc.data[i] = (sharpY[i] + floor) / (smooth[i] + floor);
+    ratioWide.data[i] = (sharpY[i] + floor) / (wide[i] + floor);
+  }
   // Resample onto the core grid (gnomonic about θ¹ Ori C).
   const C = orion.field.corePixels;
   // Half-width: stay inside the Hubble frame around θ¹ Ori C.
@@ -1224,11 +1353,13 @@ async function buildCore(orion, path, outDir, debug, emissionPxArcsec) {
       const xi = (1 - (2 * (i + 0.5)) / C) * xiCore;
       const eta = (1 - (2 * (j + 0.5)) / C) * xiCore;
       const [u, v] = map(-xi / ARCSEC, -eta / ARCSEC);
-      const r = sample(ratioSrc, u, v, 0);
+      const w = plateauAt(xi, eta);
+      const lf = Math.log2(Math.max(sample(ratioSrc, u, v, 0), 1e-3));
+      const lw = Math.log2(Math.max(sample(ratioWide, u, v, 0), 1e-3));
       // Feather to 1 over the outer 10% of the core field.
       const edge = Math.max(Math.abs(xi), Math.abs(eta)) / xiCore;
       const f = clamp((1 - edge) / 0.1, 0, 1);
-      const lr = clamp(Math.log2(Math.max(r, 1e-3)), -RATIO_LOG2_SPAN, RATIO_LOG2_SPAN) * f;
+      const lr = clamp(w * lw + (1 - w) * lf, -RATIO_LOG2_SPAN, RATIO_LOG2_SPAN) * f;
       out[j * C + i] = 0.5 + lr / (2 * RATIO_LOG2_SPAN);
     }
   await writeRgb(join(outDir, 'orion-core.webp'), C, C, out, out, out, { quality: 90, effort: 6 });

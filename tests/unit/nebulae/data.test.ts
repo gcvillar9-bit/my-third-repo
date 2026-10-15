@@ -1,19 +1,30 @@
 import { readFileSync } from 'node:fs';
 import sharp from 'sharp';
 import { beforeAll, describe, expect, it } from 'vitest';
+import {
+  coreGainOnGrid,
+  gnomonic as gnomonicAbout,
+  homography,
+  stellariumMapping,
+} from '../../../tools/build-nebulae.mjs';
 import { LUX_MAG0 } from '../../../src/core/photometry';
 import { gnomonic, type NebulaMeta } from '../../../src/modules/nebulae/model';
 import { luminanceFromMu, muFromLuminance } from '../../../src/modules/nebulae/photometry';
 import orion from '../../../src/modules/nebulae/orion.json';
 
 /**
- * The shipped build products (tools/build-nebulae.mjs): registration residuals and the photometric calibration,
- * measured by decoding the WebP the shader reads with the same decode (L = lRef · Σ v^ENC).
+ * The shipped build products (tools/build-nebulae.mjs): registration and the photometric calibration, measured by
+ * decoding the WebPs the shader reads with the same decode (L = lRef · Σ v^ENC, times the Hubble core ratio the
+ * runtime multiplies in).
  */
 const ROOT = new URL('../../../', import.meta.url).pathname;
 const meta = JSON.parse(readFileSync(`${ROOT}public/data/nebulae/orion-meta.json`, 'utf8')) as NebulaMeta & {
   registration: {
-    stellarium: { maxResidualPx: number; limitPx: number; stars: { px: number }[] };
+    stellarium: {
+      maxResidualPx: number;
+      limitPx: number;
+      stars: { px: number; predicted: [number, number] }[];
+    };
     hubble: { targets: { px: number }[] } | null;
   };
 };
@@ -26,11 +37,18 @@ beforeAll(async () => {
     .raw()
     .toBuffer({ resolveWithObject: true });
   N = info.width;
+  let gain: Float32Array | null = null;
+  if (meta.core) {
+    const c = await sharp(`${ROOT}public/data/nebulae/orion-core.webp`)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    gain = coreGainOnGrid(c.data, c.info.width, c.info.channels, meta.core, N, meta.field.xiMax);
+  }
   L = new Float64Array(N * N);
   for (let i = 0; i < N * N; i++) {
     let s = 0;
     for (let k = 0; k < 3; k++) s += (data[i * info.channels + k] / 255) ** meta.emission.encodeExp;
-    L[i] = s * meta.emission.lRef;
+    L[i] = s * meta.emission.lRef * (gain ? gain[i] : 1);
   }
 });
 
@@ -63,6 +81,56 @@ describe('nebulae build products', () => {
     expect(reg.limitPx).toBe(orion.registration.maxResidualPx);
     for (const s of reg.stars) expect(s.px).toBeLessThanOrEqual(3);
     expect(reg.maxResidualPx).toBeLessThanOrEqual(3);
+  });
+
+  it('maps the Stellarium corners and stars with the bottom-left texture convention, north up and east left', () => {
+    const fx = JSON.parse(readFileSync(`${ROOT}tests/fixtures/nebulae/stellarium-m42.json`, 'utf8')) as {
+      width: number;
+      height: number;
+      worldCoords: [number, number][];
+      textureCoords: [number, number][];
+    };
+    const map = stellariumMapping(fx, fx.width, fx.height);
+    // Corners land on (s · W, (1 - t) · H): texture coordinate (0, 0) is the bottom-left of the image.
+    fx.worldCoords.forEach(([ra, dec], k) => {
+      const [x, y] = map(ra, dec);
+      expect(x).toBeCloseTo(fx.textureCoords[k][0] * fx.width, 6);
+      expect(y).toBeCloseTo((1 - fx.textureCoords[k][1]) * fx.height, 6);
+    });
+    // North up (smaller row), east left (smaller column) around θ¹ Ori C.
+    const c = orion.center;
+    const [x0, y0] = map(c.raDeg, c.decDeg);
+    const [, yN] = map(c.raDeg, c.decDeg + 0.05);
+    const [xE] = map(c.raDeg + 0.05, c.decDeg);
+    expect(yN).toBeLessThan(y0 - 10);
+    expect(xE).toBeLessThan(x0 - 10);
+    // The build's predicted star positions are what this pinned mapping gives (no hidden flip or offset).
+    meta.registration.stellarium.stars.forEach((s, k) => {
+      const row = orion.registration.stars[k];
+      const [x, y] = map(row.raDeg, row.decDeg);
+      expect(Math.hypot(x - s.predicted[0], y - s.predicted[1])).toBeLessThan(0.02);
+    });
+    // The homography reproduces its four points; the gnomonic projection is east/north positive.
+    const H = homography(
+      [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1],
+      ],
+      [
+        [2, 3],
+        [5, 3],
+        [6, 7],
+        [1, 6],
+      ],
+    );
+    expect(H(1, 1)[0]).toBeCloseTo(6, 9);
+    expect(H(0, 1)[1]).toBeCloseTo(6, 9);
+    const [xi, eta] = gnomonicAbout(c.raDeg, c.decDeg, c.raDeg + 0.01, c.decDeg + 0.02);
+    expect(xi).toBeGreaterThan(0);
+    expect(eta).toBeGreaterThan(0);
+    expect(gnomonicAbout(c.raDeg, c.decDeg, c.raDeg, c.decDeg)).toEqual([0, 0]);
   });
 
   it('registers the Hubble core map from the Trapezium stars (or skips it)', () => {

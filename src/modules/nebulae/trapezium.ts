@@ -80,5 +80,7 @@ export function customStar(row: NebulaStarRow, hygIndex: number): CustomStar {
     // Held for the whole session, so seen from Earth these labels must yield to the bright named stars
     // (stars.labels: priority 30 - 4 m, i.e. above 20 down to m 2.5).
     labelPriority: row.id === 'theta1-ori-c' ? LABEL_PRIORITY_MAIN : LABEL_PRIORITY,
+    // ui.ts has a sourced card for every nebula star (θ¹ Ori B and E have no HYG row to fall back on).
+    ownInfo: true,
   };
 }

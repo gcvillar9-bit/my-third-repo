@@ -4,9 +4,12 @@
  * - Realistic: the true colour of each emission (CIE 1931 colour of the lines in linear sRGB, brought into gamut
  *   by adding white, which keeps the luminance), so the luminance on screen is physical;
  * - Astrophoto: a display-only look like a processed astro image: magenta-red Hα, teal [OIII], an asinh stretch
- *   of the pre-exposed luminance and saturation ×1.6. No re-march is needed to switch.
+ *   of the physical luminance against the calibrated core (exposure-independent) and saturation ×1.6. No
+ *   re-march is needed to switch.
  */
 import { blackbodyRgb, CIE_1931_2DEG, CIE_START_NM, CIE_STEP_NM, luminance } from '../../core/photometry';
+import orion from './orion.json';
+import { luminanceFromMu } from './photometry';
 
 export type NebulaStyle = 'realistic' | 'astrophoto';
 export const NEBULA_STYLES: readonly NebulaStyle[] = ['realistic', 'astrophoto'];
@@ -78,8 +81,20 @@ export const ASTRO_BASIS: readonly Rgb[] = [
   unitLum([0.6, 0.75, 1.15]),
 ];
 
-/** asinh softening (pre-exposed luminance) and gain of the Astrophoto stretch; Y = 1 maps to itself. */
-export const ASTRO = { soft: 0.015, saturation: 1.6 } as const;
+/**
+ * The Astrophoto stretch works on physical luminance against a fixed reference, the calibrated core
+ * (16.5 mag/arcsec² = 0.027 cd/m²), never on the pre-exposed value: the result is a fixed light field that the
+ * exposure only scales, so the eye adaptation cannot undo the stretch (it would settle ~4 stops darker inside the
+ * Veil otherwise). Y_s = peak · L_ref · asinh(Y / (soft · L_ref)) / asinh(1 / soft): light at soft · L_ref
+ * (~21 mag/arcsec²) is lifted ~3 stops, and the core lands at peak · L_ref, which the night EV -5 puts at ~0.4
+ * pre-exposed (AgX's colourful range rather than white).
+ */
+export const ASTRO = {
+  ref: luminanceFromMu(orion.photometry.coreMuV),
+  soft: 0.015,
+  peak: 0.55,
+  saturation: 1.6,
+} as const;
 
 /** Colour of component radiances L (cd/m², per component) in a style, before exposure. */
 export function styleRgb(style: NebulaStyle, L: Rgb): Rgb {
@@ -87,14 +102,21 @@ export function styleRgb(style: NebulaStyle, L: Rgb): Rgb {
   return [0, 1, 2].map((c) => B[0][c] * L[0] + B[1][c] * L[1] + B[2][c] * L[2]) as Rgb;
 }
 
-/** The Astrophoto tone curve on pre-exposed linear RGB: asinh stretch of the luminance, then saturation. */
+/** The Astrophoto tone curve on physical linear RGB (cd/m²): asinh stretch of the luminance, then saturation. */
 export function astrophotoTransform(rgb: Rgb): Rgb {
   const y = luminance(...rgb);
   if (y <= 0) return [0, 0, 0];
-  const ys = Math.asinh(y / ASTRO.soft) / Math.asinh(1 / ASTRO.soft);
+  const ys = (ASTRO.peak * ASTRO.ref * Math.asinh(y / (ASTRO.soft * ASTRO.ref))) / Math.asinh(1 / ASTRO.soft);
   const k = ys / y;
   const out = rgb.map((c) => c * k) as Rgb;
   return out.map((c) => Math.max(0, ys + ASTRO.saturation * (c - ys))) as Rgb;
+}
+
+/** What the display pass writes (pre-exposed): style colour, the Astrophoto curve, then the exposure. */
+export function displayRgb(style: NebulaStyle, L: Rgb, exposure: number): Rgb {
+  const rgb = styleRgb(style, L);
+  const out = style === 'astrophoto' ? astrophotoTransform(rgb) : rgb;
+  return out.map((c) => c * exposure) as Rgb;
 }
 
 /** Column-major mat3 elements (three.js Matrix3.set takes row-major) of a basis: columns are the components. */

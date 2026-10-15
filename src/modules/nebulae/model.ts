@@ -7,8 +7,9 @@
  * a dust optical depth. Along the column the emission is spread over thin layers whose profiles integrate to 1,
  * so the view from Earth equals the photo whatever the depth model does:
  * - sheet: the ionization front, a concave bowl 0.2 pc behind θ¹ Ori C rising towards Earth outwards, with
- *   the Orion Bar escarpment 0.23 pc SE; ~0.1 pc thick near the core, ~1 pc outwards; z displacement and
- *   thickness noise from the maps;
+ *   the Orion Bar escarpment 0.23 pc SE; ~0.03 pc thick near the core, ~1 pc outwards; z displacement and
+ *   thickness noise from the maps; near the nebula the layer is sheared sideways through its depth (`warp`) so
+ *   a texel is not extruded into a radial streak (the view from Earth has no shear);
  * - M43: a 0.6 pc ball around NU Ori;
  * - veil: an absorber ~2 pc in front (dust lanes from the map plus a smooth A_V); the emission behind it is
  *   de-reddened by the same τ, so the product seen from Earth is the photo;
@@ -92,7 +93,7 @@ export const MODEL = {
   barRise: G.bar.risePc,
   barWidth: G.bar.widthPc,
   /** Half-length of the escarpment along the Bar. */
-  barLength: 1.2,
+  barLength: G.bar.halfLengthPc,
   thicknessCore: G.sheet.thicknessCorePc,
   thicknessOuter: G.sheet.thicknessOuterPc,
   thicknessRadius: G.sheet.outerRadiusPc,
@@ -106,8 +107,8 @@ export const MODEL = {
   veilBaseTau: G.veil.baseAv / 1.0857,
   veilBaseRadius: G.veil.baseRadiusPc,
   tauMax: G.veil.maxTau,
-  /** Minimum gap between an absorber and the emission it sits in front of / behind. */
-  layerGap: 0.3,
+  /** Minimum gap between the veil and the emission behind it. */
+  layerGap: G.veil.gapPc,
   omcGap: G.omc.gapPc,
   omcHalf: G.omc.halfThicknessPc,
   omcTau: G.omc.tau,
@@ -116,7 +117,9 @@ export const MODEL = {
   /** A_λ / A_V of the three components. */
   ext: [G.extinctionRatios.halpha, G.extinctionRatios.oiii, G.extinctionRatios.scattered] as const,
   /** Field edge: emission and dust fade to 0 between EDGE·ξmax and ξmax. */
-  edge: 0.9,
+  edge: orion.field.edgeFade,
+  /** Lateral shear of the emitting layer at its faces near the nebula, in half-thicknesses (warpFactor). */
+  warp: G.sheet.warp,
 } as const;
 
 export const smoothstep = (a: number, b: number, x: number): number => {
@@ -327,6 +330,7 @@ export function marchRay(
   jitter: number,
   sampler: FieldSampler,
   xiMax: number,
+  warp = 0,
 ): MarchResult {
   const box = volumeBox(xiMax);
   const res: MarchResult = { L: [0, 0, 0], T: 1, evals: 0 };
@@ -335,20 +339,32 @@ export function marchRay(
   const [tNear, tFar] = hit;
   const base = (tFar - tNear) / steps;
   const cs: ColumnSample = { S: [0, 0, 0], tau: 0, disp: 0, thick: 0 };
+  const cw: ColumnSample = { S: [0, 0, 0], tau: 0, disp: 0, thick: 0 };
   const evalAt = (t: number): Point => {
     const x = o.x + d.x * t;
     const y = o.y + d.y * t;
     const z = o.z + d.z * t;
     const k = D_PC + z;
-    sampler(x / k, y / k, cs);
-    const e = edgeFade(x / k, y / k, xiMax);
-    cs.S[0] *= e;
-    cs.S[1] *= e;
-    cs.S[2] *= e;
+    const xi = x / k;
+    const eta = y / k;
+    sampler(xi, eta, cs);
+    const e = edgeFade(xi, eta, xiMax);
     cs.tau *= e;
-    const L = columnLayers((x / k) * D_PC, (y / k) * D_PC, cs, emptyLayers());
+    const L = columnLayers(xi * D_PC, eta * D_PC, cs, emptyLayers());
+    let S: [number, number, number] = [cs.S[0], cs.S[1], cs.S[2]];
+    if (warp > 0) {
+      // Lateral shear of the emitting layer through its depth (march.glsl nebEval).
+      const u = Math.min(1, Math.max(-1, (z - L.sheetZ) / L.sheetHw));
+      const n2 = sampler(-eta, xi, cw).thick;
+      const s = (warp * MODEL.warp * L.sheetHw * u) / D_PC;
+      sampler(xi + s * cs.thick, eta + s * n2, cw);
+      S = [cw.S[0], cw.S[1], cw.S[2]];
+    }
+    S[0] *= e;
+    S[1] *= e;
+    S[2] *= e;
     res.evals++;
-    return { t, z, S: [cs.S[0], cs.S[1], cs.S[2]], L };
+    return { t, z, S, L };
   };
   const T = [1, 1, 1, 1]; // per component, then V
   let a = evalAt(tNear);
@@ -474,6 +490,7 @@ export function nebulaGlslDefines(meta: NebulaMeta): string {
     `#define NEB_MIN_STEP ${f(MIN_STEP)}`,
     `#define NEB_MAX_STEP ${f(MAX_STEP)}`,
     `#define NEB_T_EXIT ${f(T_EXIT)}`,
+    `#define NEB_WARP ${f(m.warp)}`,
     '',
   ].join('\n');
 }

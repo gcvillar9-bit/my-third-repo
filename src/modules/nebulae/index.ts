@@ -8,7 +8,7 @@
  */
 import type { Bookmark, ModuleContext, UniverseModule } from '../../core/contracts';
 import { v3len, vec3 } from '../../core/math64';
-import { starCatalog } from '../stars/public';
+import { setPanoramaHole, starCatalog } from '../stars/public';
 import { starSystems } from '../starsystems/public';
 import {
   ASTROPHOTO_ID,
@@ -20,11 +20,11 @@ import {
 } from './bookmarks';
 import { NEBULA_STYLES, type NebulaStyle } from './display';
 import { nebulaFrame } from './frame';
-import { META_PATH, type NebulaMeta } from './model';
+import { CENTER as orionCentre, META_PATH, type NebulaMeta } from './model';
 import { NEBULAE_MODULE_ID } from './public';
 import { cameraLocal, createNebula, type NebulaRenderable, type NebulaState } from './render';
 import { ENABLED_SETTING, STYLE_SETTING, StyleAuto } from './style';
-import { customStar, findHygIndex, NEBULA_STARS } from './trapezium';
+import { customStar, findHygIndex, NEBULA_STARS, unitIcrs } from './trapezium';
 import { createLabels, createSearch, info } from './ui';
 
 /** Initial bookmark id from ?b= or #b=. */
@@ -34,6 +34,15 @@ function initialBookmark(ctx: ModuleContext): string | null {
   const hash = typeof location !== 'undefined' ? /[#&]b=([^&]+)/.exec(location.hash) : null;
   return hash ? decodeURIComponent(hash[1]) : null;
 }
+
+/**
+ * The Milky Way panorama holds its own blurred M42 (and its dust). While the volume is drawn, the stars module
+ * replaces the panorama within PANORAMA_HOLE.innerDeg of θ¹ Ori C by a smooth membrane through a ring of taps at
+ * ringDeg, fading back by outerDeg, so the calibrated nebula is not added on top of that copy (the volume's field is
+ * ±0.9°).
+ */
+export const PANORAMA_HOLE = { innerDeg: 1.0, outerDeg: 1.4, ringDeg: 1.6 } as const;
+const DEG = Math.PI / 180;
 
 const nebulae: UniverseModule = {
   id: NEBULAE_MODULE_ID,
@@ -47,6 +56,20 @@ const nebulae: UniverseModule = {
 
     const state: NebulaState = { enabled: true, style: 'realistic', gain: 1 };
     let nebula: NebulaRenderable | null = null;
+    let loaded = false;
+    const centre = unitIcrs(orionCentre.raDeg, orionCentre.decDeg);
+    const updateHole = () =>
+      setPanoramaHole(
+        state.enabled && loaded
+          ? {
+              dir: centre,
+              inner: PANORAMA_HOLE.innerDeg * DEG,
+              outer: PANORAMA_HOLE.outerDeg * DEG,
+              ring: PANORAMA_HOLE.ringDeg * DEG,
+              strength: 1,
+            }
+          : null,
+      );
 
     registry.addSetting({
       id: ENABLED_SETTING,
@@ -55,7 +78,10 @@ const nebulae: UniverseModule = {
       type: 'boolean',
       default: true,
       description: 'The Orion Nebula (M42, M43) as a 3D volume.',
-      onChange: (v) => void (state.enabled = v === true),
+      onChange: (v) => {
+        state.enabled = v === true;
+        updateHole();
+      },
     });
     registry.addSetting({
       id: STYLE_SETTING,
@@ -105,6 +131,8 @@ const nebulae: UniverseModule = {
       ]);
       nebula = createNebula(render.renderer, render.uniforms, meta, { emission, maps, core }, state);
       registry.addRenderable(nebula);
+      loaded = true;
+      updateHole();
     };
     void assets
       .track(load(), 'nebulae.orion')
@@ -121,7 +149,10 @@ const nebulae: UniverseModule = {
       .catch((e: unknown) => console.error('[nebulae] star promotion failed', e));
 
     // Astrophoto on arrival at its bookmark, back off when leaving (style.ts).
-    const auto = new StyleAuto((v) => ui.settings.set(STYLE_SETTING, v));
+    const auto = new StyleAuto(
+      (v) => ui.settings.set(STYLE_SETTING, v),
+      () => ui.settings.get<NebulaStyle>(STYLE_SETTING),
+    );
     ui.settings.subscribe(STYLE_SETTING, () => auto.changed());
     const params = ctx.env.params as URLSearchParams;
     const enabled = params.get(ENABLED_SETTING);

@@ -4,8 +4,12 @@
  * background opacity into a HalfFloat target, re-marched only when the view changes (8-frame jittered
  * accumulation while still, never in tests); a quad over the rect composites it at renderOrder -7.5 (after the
  * panorama and the Galaxy, before the star points) with premultiplied blending, so the nebula's dust dims the
- * Galaxy behind it while stars drawn later stay undimmed. The opacity is scaled by 1 - milkyWayFade because near
- * the Sun the panorama photo already contains M42. Below MIN_PX on screen nothing is drawn.
+ * Galaxy behind it while stars drawn later stay undimmed. Near the Sun the opacity is scaled by 1 - milkyWayFade:
+ * there the panorama photo stands for the whole sky glow in front of and around M42 (its own blurred M42 is cut out
+ * by the stars module's panorama hole, index.ts), so the nebula adds its light rather than blacking out that glow.
+ * Below MIN_PX on screen nothing is drawn. The 8-bit emission and core textures are copied once into linear-light
+ * HalfFloat targets with their own mip chains, so coarse levels average light, not encoded values (flux-true at
+ * every distance). Nothing is allocated per frame.
  */
 import {
   BufferGeometry,
@@ -14,6 +18,7 @@ import {
   Float32BufferAttribute,
   HalfFloatType,
   LinearFilter,
+  LinearMipmapLinearFilter,
   Matrix3,
   Mesh,
   NoBlending,
@@ -46,14 +51,25 @@ import { milkyWayFade } from '../stars/public';
 import displayGlsl from './display.glsl?raw';
 import { ASTRO, ASTRO_BASIS, basisRows, REALISTIC_BASIS, type NebulaStyle } from './display';
 import { NEBULA_FRAME, Q_LOCAL_TO_ICRS, toLocal } from './frame';
+import lineariseGlsl from './linearise.glsl?raw';
 import marchGlsl from './march.glsl?raw';
 import modelGlsl from './model.glsl?raw';
 import { nebulaGlslDefines, volumeBox, type NebulaMeta } from './model';
+
+type Box = ReturnType<typeof volumeBox>;
 
 /** Steps per preset (design table). */
 export const STEPS: Record<QualityPreset, number> = { potato: 24, low: 32, medium: 48, high: 96, ultra: 128 };
 /** Per-axis divisor of the march target. */
 export const RES_DIVISOR: Record<QualityPreset, number> = { potato: 4, low: 3, medium: 3, high: 2, ultra: 1 };
+/**
+ * The march target never exceeds the texel count the design budget was set at (1280x720 / divisor²), so the
+ * cost does not grow with the drawing buffer (2268x1240 on medium marches ~102k texels, not 312k).
+ */
+export const MARCH_REF_PIXELS = 1280 * 720;
+/** Near the nebula the emitting layer is sheared sideways (march.glsl uWarp): full below WARP_NEAR_PC, 0 beyond FAR. */
+export const WARP_NEAR_PC = 5;
+export const WARP_FAR_PC = 20;
 /** Below this size on screen (px) the nebula is not drawn. */
 export const MIN_PX = 4;
 /** Frames averaged while the view is still (only with knobs.temporal, never in tests). */
@@ -106,9 +122,37 @@ export function cameraLocal(view: Pick<ViewState, 'toCamera'>, out: Vec3d): Vec3
   return toLocal(out, out);
 }
 
+/** March target size for a viewport and preset: the preset divisor, raised so W·H ≤ MARCH_REF_PIXELS / div². */
+export function marchSize(
+  width: number,
+  height: number,
+  quality: QualityPreset,
+  out: { w: number; h: number; div: number } = { w: 0, h: 0, div: 1 },
+): { w: number; h: number; div: number } {
+  const base = RES_DIVISOR[quality];
+  const cap = MARCH_REF_PIXELS / (base * base);
+  const div = Math.max(base, Math.sqrt((width * height) / cap));
+  out.div = div;
+  out.w = Math.max(16, Math.ceil(width / div));
+  out.h = Math.max(16, Math.ceil(height / div));
+  return out;
+}
+
+const RECT_C = vec3();
+const RECT_W = vec3();
+const FULL = (out: MarchRect): MarchRect => {
+  out.x0 = -1;
+  out.y0 = -1;
+  out.x1 = 1;
+  out.y1 = 1;
+  out.full = true;
+  return out;
+};
+
 /**
  * NDC rect of the box seen from `cam` (local pc) with view orientation `q` (world), or null when it is off screen.
- * Returns the whole screen when the camera is inside the box or the box straddles the camera plane.
+ * Returns the whole screen when the camera is inside the box or the box straddles the camera plane. `out` and
+ * `box` (volumeBox(xiMax)) can be passed to avoid allocations.
  */
 export function screenRect(
   cam: Vec3d,
@@ -116,19 +160,20 @@ export function screenRect(
   fovY: number,
   aspect: number,
   xiMax: number,
+  out: MarchRect = { x0: 0, y0: 0, x1: 0, y1: 0, full: false },
+  box: Box = volumeBox(xiMax),
 ): MarchRect | null {
-  const box = volumeBox(xiMax);
   const inside =
     Math.abs(cam.x) <= box.half && Math.abs(cam.y) <= box.half && cam.z >= box.zMin && cam.z <= box.zMax;
-  if (inside) return { x0: -1, y0: -1, x1: 1, y1: 1, full: true };
+  if (inside) return FULL(out);
   const ty = Math.tan(fovY / 2);
   const tx = ty * aspect;
   let x0 = Infinity;
   let y0 = Infinity;
   let x1 = -Infinity;
   let y1 = -Infinity;
-  const c = vec3();
-  const w = vec3();
+  const c = RECT_C;
+  const w = RECT_W;
   let behind = 0;
   for (let k = 0; k < 8; k++) {
     c.x = (k & 1 ? box.half : -box.half) - cam.x;
@@ -148,20 +193,24 @@ export function screenRect(
     y1 = Math.max(y1, ny);
   }
   if (behind === 8) return null; // the (convex) box is entirely behind the camera
-  if (behind > 0) return { x0: -1, y0: -1, x1: 1, y1: 1, full: true };
+  if (behind > 0) return FULL(out);
   if (x1 < -1 || y1 < -1 || x0 > 1 || y0 > 1) return null;
-  return {
-    x0: Math.max(-1, x0),
-    y0: Math.max(-1, y0),
-    x1: Math.min(1, x1),
-    y1: Math.min(1, y1),
-    full: false,
-  };
+  out.x0 = Math.max(-1, x0);
+  out.y0 = Math.max(-1, y0);
+  out.x1 = Math.min(1, x1);
+  out.y1 = Math.min(1, y1);
+  out.full = false;
+  return out;
 }
 
 /** Apparent size (px) of the field from `cam` (local pc). */
-export function apparentPx(cam: Vec3d, pixelAngle: number, xiMax: number): number {
-  const half = volumeBox(xiMax).half;
+export function apparentPx(
+  cam: Vec3d,
+  pixelAngle: number,
+  xiMax: number,
+  box: Box = volumeBox(xiMax),
+): number {
+  const half = box.half;
   const d = v3len(cam);
   if (d <= half) return Infinity;
   return (2 * Math.asin(half / d)) / pixelAngle;
@@ -197,19 +246,66 @@ export function createNebula(
   state: NebulaState,
 ): NebulaRenderable {
   const defines = nebulaGlslDefines(meta);
+  const box = volumeBox(meta.field.xiMax);
+  const quadCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const triangle = fullscreenTriangle();
+
+  // --- linear-light copies of the 8-bit textures (once, on the first visible frame) ---
+  const linearTarget = (t: Texture) => {
+    const img = t.image as { width?: number; height?: number } | undefined;
+    return new WebGLRenderTarget(img?.width ?? 1024, img?.height ?? 1024, {
+      type: HalfFloatType,
+      minFilter: LinearMipmapLinearFilter,
+      magFilter: LinearFilter,
+      depthBuffer: false,
+      generateMipmaps: true,
+    });
+  };
+  const emissionLin = linearTarget(tex.emission);
+  const coreLin = tex.core && meta.core ? linearTarget(tex.core) : null;
+  let linearised = false;
+  const linearise = () => {
+    // cosmos:no-depth (offscreen one-time copy into a linear-light target: no geometry, no depth)
+    const mat = new ShaderMaterial({
+      vertexShader: QUAD_VERTEX,
+      fragmentShader: defines + lineariseGlsl,
+      uniforms: { uSrc: { value: tex.emission }, uMode: { value: 0 } },
+      depthTest: false,
+      depthWrite: false,
+      blending: NoBlending,
+    });
+    const scene = new Scene();
+    const mesh = new Mesh(triangle, mat);
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+    const prev = gl.getRenderTarget();
+    gl.setRenderTarget(emissionLin);
+    gl.render(scene, quadCamera); // three.js regenerates the target's mip chain after the render
+    if (coreLin && tex.core) {
+      mat.uniforms.uSrc.value = tex.core;
+      mat.uniforms.uMode.value = 1;
+      gl.setRenderTarget(coreLin);
+      gl.render(scene, quadCamera);
+    }
+    gl.setRenderTarget(prev);
+    mat.dispose();
+    // The 8-bit sources are no longer needed on the GPU.
+    tex.emission.dispose();
+    tex.core?.dispose();
+    linearised = true;
+  };
+
   // --- march (offscreen) ---
   const marchScene = new Scene();
-  const marchCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  const marchGeometry = fullscreenTriangle();
   // cosmos:no-depth (offscreen full-screen march: no geometry, no depth)
   const marchMat = new ShaderMaterial({
     vertexShader: QUAD_VERTEX,
     fragmentShader: defines + modelGlsl + marchGlsl,
     uniforms: {
-      uEmission: { value: tex.emission },
+      uEmission: { value: emissionLin.texture },
       uMaps: { value: tex.maps },
-      uCore: { value: tex.core ?? tex.maps },
-      uHasCore: { value: tex.core && meta.core ? 1 : 0 },
+      uCore: { value: coreLin ? coreLin.texture : emissionLin.texture },
+      uHasCore: { value: coreLin ? 1 : 0 },
       uBlueNoise: shared.uBlueNoise,
       uOrigin: { value: new Vector3() },
       uRayBasis: { value: new Matrix3() },
@@ -218,6 +314,7 @@ export function createNebula(
       uStore: { value: STORE_SCALE },
       uJitterOffset: { value: 0 },
       uPixelAngle: { value: 1e-3 },
+      uWarp: { value: 0 },
     },
     depthTest: false,
     depthWrite: false,
@@ -227,7 +324,7 @@ export function createNebula(
   marchMat.blendDst = OneMinusConstantAlphaFactor;
   marchMat.blendSrcAlpha = ConstantAlphaFactor;
   marchMat.blendDstAlpha = OneMinusConstantAlphaFactor;
-  const marchMesh = new Mesh(marchGeometry, marchMat);
+  const marchMesh = new Mesh(triangle, marchMat);
   marchMesh.frustumCulled = false;
   marchScene.add(marchMesh);
 
@@ -243,9 +340,13 @@ export function createNebula(
     uAlphaScale: { value: 0 },
     uBasis: { value: new Matrix3() },
     uAstro: { value: 0 },
+    uAstroRef: { value: ASTRO.ref },
+    uAstroPeak: { value: ASTRO.peak },
     uSoft: { value: ASTRO.soft },
     uSaturation: { value: ASTRO.saturation },
-    uEmission: { value: tex.emission },
+    uEmission: { value: emissionLin.texture },
+    uCore: { value: coreLin ? coreLin.texture : emissionLin.texture },
+    uHasCore: { value: coreLin ? 1 : 0 },
     uDetail: { value: 0 },
     uLodBias: { value: 0 },
     uOrigin: { value: new Vector3() },
@@ -276,16 +377,23 @@ export function createNebula(
   const tmp = vec3();
   const axis = vec3();
   const basis = new Matrix3();
+  const rect: MarchRect = { x0: 0, y0: 0, x1: 0, y1: 0, full: false };
+  const size = { w: 0, h: 0, div: 1 };
   const last = { x: NaN, y: NaN, z: NaN, qx: 0, qy: 0, qz: 0, qw: 0, fov: 0, w: 0, h: 0, rw: 0, rh: 0 };
   const lastRect = { x0: 0, y0: 0, x1: 0, y1: 0, steps: 0 };
   let accumulated = 0;
   let dirty = true;
   let lastSteps = 0;
-  const realistic = basisRows(REALISTIC_BASIS);
-  const astro = basisRows(ASTRO_BASIS);
+  const realistic = toColumnMajor(basisRows(REALISTIC_BASIS));
+  const astro = toColumnMajor(basisRows(ASTRO_BASIS));
 
-  const dirLocal = (q: ViewState['worldQuat'], x: number, y: number, z: number): Vec3d =>
-    toLocal(qrotate(axis, q, vec3(x, y, z)), axis);
+  /** Local direction of camera axis (x, y, z) into `axis`. */
+  const dirLocal = (q: ViewState['worldQuat'], x: number, y: number, z: number): Vec3d => {
+    axis.x = x;
+    axis.y = y;
+    axis.z = z;
+    return toLocal(qrotate(axis, q, axis), axis);
+  };
 
   const march = (rw: number, rh: number, steps: number, alpha: number, jitter: number) => {
     const t = target!;
@@ -303,7 +411,7 @@ export function createNebula(
     gl.autoClear = false;
     t.viewport.set(0, 0, rw, rh);
     gl.setRenderTarget(t);
-    gl.render(marchScene, marchCamera);
+    gl.render(marchScene, quadCamera);
     gl.setRenderTarget(prev);
     gl.autoClear = prevClear;
   };
@@ -332,14 +440,13 @@ export function createNebula(
       mesh.visible = false;
       if (!state.enabled) return;
       cameraLocal(view, cam);
-      if (apparentPx(cam, view.pixelAngle, meta.field.xiMax) < MIN_PX) return;
+      if (apparentPx(cam, view.pixelAngle, meta.field.xiMax, box) < MIN_PX) return;
       const aspect = view.viewport[0] / Math.max(1, view.viewport[1]);
       const q = view.worldQuat;
-      const rect = screenRect(cam, q, view.fovY, aspect, meta.field.xiMax);
-      if (!rect) return;
-      const div = RES_DIVISOR[view.quality];
-      const W = Math.max(16, Math.ceil(view.viewport[0] / div));
-      const H = Math.max(16, Math.ceil(view.viewport[1] / div));
+      if (!screenRect(cam, q, view.fovY, aspect, meta.field.xiMax, rect, box)) return;
+      if (!linearised) linearise();
+      marchSize(view.viewport[0], view.viewport[1], view.quality, size);
+      const { w: W, h: H, div } = size;
       const rw = Math.max(1, Math.min(W, Math.ceil(((rect.x1 - rect.x0) / 2) * W)));
       const rh = Math.max(1, Math.min(H, Math.ceil(((rect.y1 - rect.y0) / 2) * H)));
       if (!target) {
@@ -377,9 +484,23 @@ export function createNebula(
         rect.y1 !== lastRect.y1 ||
         steps !== lastRect.steps;
       if (changed) {
-        Object.assign(last, { x: cam.x, y: cam.y, z: cam.z, qx: q.x, qy: q.y, qz: q.z, qw: q.w });
-        Object.assign(last, { fov: view.fovY, w: W, h: H, rw, rh });
-        Object.assign(lastRect, { x0: rect.x0, y0: rect.y0, x1: rect.x1, y1: rect.y1, steps });
+        last.x = cam.x;
+        last.y = cam.y;
+        last.z = cam.z;
+        last.qx = q.x;
+        last.qy = q.y;
+        last.qz = q.z;
+        last.qw = q.w;
+        last.fov = view.fovY;
+        last.w = W;
+        last.h = H;
+        last.rw = rw;
+        last.rh = rh;
+        lastRect.x0 = rect.x0;
+        lastRect.y0 = rect.y0;
+        lastRect.x1 = rect.x1;
+        lastRect.y1 = rect.y1;
+        lastRect.steps = steps;
         accumulated = 0;
         dirty = false;
       }
@@ -395,8 +516,10 @@ export function createNebula(
       const uz = up.z * ty;
       const fw = dirLocal(q, 0, 0, -1);
       basis.set(rx, ux, fw.x, ry, uy, fw.y, rz, uz, fw.z);
+      const d = v3len(cam);
       (marchMat.uniforms.uRect.value as Vector4).set(rect.x0, rect.y0, rect.x1, rect.y1);
       marchMat.uniforms.uPixelAngle.value = view.pixelAngle * div;
+      marchMat.uniforms.uWarp.value = 1 - smooth(WARP_NEAR_PC, WARP_FAR_PC, d);
       const accumulate = !view.test && view.knobs.temporal && accumulated < ACCUM_FRAMES;
       if (changed || accumulate) {
         march(rw, rh, steps, 1 / (accumulated + 1), (accumulated * 0.6180339887) % 1);
@@ -410,13 +533,9 @@ export function createNebula(
       const dSun = v3len(view.toCamera(SSB_FRAME, ZERO, tmp));
       displayUniforms.uAlphaScale.value = 1 - milkyWayFade(dSun);
       const astroOn = state.style === 'astrophoto';
-      (displayUniforms.uBasis.value as Matrix3).fromArray(
-        astroOn ? toColumnMajor(astro) : toColumnMajor(realistic),
-      );
+      (displayUniforms.uBasis.value as Matrix3).fromArray(astroOn ? astro : realistic);
       displayUniforms.uAstro.value = astroOn ? 1 : 0;
-      const d = v3len(cam);
-      const t = Math.min(1, Math.max(0, (d - DETAIL_NEAR_PC) / (DETAIL_FAR_PC - DETAIL_NEAR_PC)));
-      displayUniforms.uDetail.value = t * t * (3 - 2 * t);
+      displayUniforms.uDetail.value = smooth(DETAIL_NEAR_PC, DETAIL_FAR_PC, d);
       displayUniforms.uLodBias.value = Math.log2(div);
       (displayUniforms.uOrigin.value as Vector3).set(cam.x, cam.y, cam.z);
       (displayUniforms.uRayBasis.value as Matrix3).copy(basis);
@@ -428,17 +547,22 @@ export function createNebula(
         const img = t?.image as { width?: number; height?: number } | undefined;
         return img?.width && img.height ? Math.round(img.width * img.height * 4 * (4 / 3)) : 0;
       };
+      const linBytes = (t: WebGLRenderTarget | null) =>
+        t ? Math.round(t.width * t.height * 8 * (4 / 3)) : 0;
       return (
         (target ? target.width * target.height * 8 : 0) +
-        texBytes(tex.emission) +
-        texBytes(tex.maps) +
-        texBytes(tex.core)
+        linBytes(emissionLin) +
+        linBytes(coreLin) +
+        (linearised ? 0 : texBytes(tex.emission) + texBytes(tex.core)) +
+        texBytes(tex.maps)
       );
     },
     dispose() {
       target?.dispose();
       target = null;
-      marchGeometry.dispose();
+      emissionLin.dispose();
+      coreLin?.dispose();
+      triangle.dispose();
       marchMat.dispose();
       quad.dispose();
       displayMat.dispose();
@@ -447,6 +571,12 @@ export function createNebula(
       tex.core?.dispose();
     },
   };
+}
+
+/** Smoothstep of x between a and b. */
+function smooth(a: number, b: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
 }
 
 /** Row-major 3x3 (Matrix3.set order) -> column-major array (Matrix3.fromArray order). */

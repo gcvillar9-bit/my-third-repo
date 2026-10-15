@@ -20,7 +20,14 @@ export class StyleAuto {
   private ours = false;
   private atStyleBookmark = false;
 
-  constructor(private readonly write: (v: NebulaStyle) => void) {}
+  /**
+   * `write` sets the setting; `read` (optional) returns its current value, so an arrival that finds Astrophoto
+   * already chosen (by the user) does not claim it and will not undo it later.
+   */
+  constructor(
+    private readonly write: (v: NebulaStyle) => void,
+    private readonly read: () => NebulaStyle | undefined = () => undefined,
+  ) {}
 
   /** Boot: an explicit URL override wins; otherwise a style bookmark as the initial view switches it on. */
   start(override: string | null, initialAtStyleBookmark: boolean): void {
@@ -49,6 +56,7 @@ export class StyleAuto {
   }
 
   private set(v: NebulaStyle): void {
+    if (this.read() === v) return; // nothing changes: neither claim nor release the setting
     this.ours = true;
     try {
       this.write(v);

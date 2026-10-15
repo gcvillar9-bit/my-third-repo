@@ -17,7 +17,8 @@
     "emissionPixels": 1024,
     "mapPixels": 512,
     "corePixels": 1024,
-    "source": "Build choice: a gnomonic square centred on θ¹ Ori C that stays inside the Stellarium image footprint"
+    "edgeFade": 0.9,
+    "source": "Build choice: a gnomonic square centred on θ¹ Ori C that stays inside the Stellarium image footprint; emission and dust fade to 0 between edgeFade·halfWidth and the edge (model choice)"
   },
   "catalogue": [
     {
@@ -55,6 +56,22 @@
     "m43Source": "OpenNGC NGC1982 V = 9.0 (check only, ±0.7 mag)",
     "approximate": true
   },
+  "photo": {
+    "cameraResponse": [
+      [1.0, 0.13, 0.2],
+      [0.12, 0.85, 0.7],
+      [0.55, 0.72, 1.0]
+    ],
+    "cameraSource": "Model choice: linear photo RGB of one unit of Hα+[NII] (656/658 nm, pink-red), [OIII]+Hβ (501/486 nm, teal) and scattered starlight (blue-white) for a typical one-shot-colour astro camera; used to unmix the Stellarium photo",
+    "coreMix": {
+      "halpha": 0.17,
+      "oiii": 0.7,
+      "scattered": 0.13,
+      "source": "Luminance (V-weighted) shares of the Huygens region where the photo is clipped: observed I(5007)/I(Hβ) ≈ 3.4, I(4959) ≈ 5007/3, Hα/Hβ ≈ 3.5, [NII] 6584/Hα ≈ 0.25 (Esteban et al. 2004, MNRAS 355, 229; O'Dell 2001) weighted by V(λ) (CIE 1931), with ~13% scattered Trapezium light; the [OIII]-dominated core reads teal-white",
+      "approximate": true
+    },
+    "coreBlendArcmin": 1.0
+  },
   "geometry": {
     "bowl": {
       "z0Pc": 0.2,
@@ -68,16 +85,18 @@
       "paDeg": 60,
       "risePc": 0.25,
       "widthPc": 0.12,
-      "source": "Orion Bar: the ionization front seen edge-on ~2' (0.23 pc) SE of θ¹ Ori C, running NE-SW (PA ~60°): O'Dell 2001; Wen & O'Dell 1995",
+      "halfLengthPc": 1.2,
+      "source": "Orion Bar: the ionization front seen edge-on ~2' (0.23 pc) SE of θ¹ Ori C, running NE-SW (PA ~60°) for ~10' (half-length ~1.2 pc): O'Dell 2001; Wen & O'Dell 1995. Rise, width and length of the escarpment are model choices",
       "approximate": true
     },
     "sheet": {
-      "thicknessCorePc": 0.1,
+      "thicknessCorePc": 0.03,
       "thicknessOuterPc": 1.0,
       "outerRadiusPc": 4.0,
       "displacement": 0.5,
       "thicknessNoise": 0.4,
-      "source": "Emitting layer ~0.1 pc thick near θ¹ Ori C (Wen & O'Dell 1995), thickening outwards; noise amplitudes are model choices",
+      "warp": 1.5,
+      "source": "Emitting layer near θ¹ Ori C: Wen & O'Dell 1995 (ApJ 438, 784) give ~0.1 pc for the ionized layer; with n_e ~1-2e4 cm⁻³ there (O'Dell 2001) its emission measure (~1e7 cm⁻⁶ pc) fits in a few 0.01 pc, so 0.03 pc is adopted at the core (model choice that also shortens the extrusion of the 2.5D model seen from inside), thickening outwards. Noise amplitudes and the lateral warp (in half-thicknesses, near the nebula only) are model choices",
       "approximate": true
     },
     "m43": {
@@ -90,8 +109,18 @@
       "halfThicknessPc": 0.3,
       "baseAv": 0.8,
       "baseRadiusPc": 2.0,
-      "maxTau": 2.0,
-      "source": "Orion's Veil: a neutral foreground layer ~1-3 pc in front of θ¹ Ori C with A_V ~ 1-2 mag (O'Dell 2001; Abel et al. 2019, ApJ 881, 130)",
+      "maxTau": 4.5,
+      "gapPc": 0.3,
+      "source": "Orion's Veil: a neutral foreground layer ~1-3 pc in front of θ¹ Ori C with A_V ~ 1-2 mag (O'Dell 2001; Abel et al. 2019, ApJ 881, 130); A_V up to ~4-5 mag in the Dark Bay (O'Dell & Yusef-Zadeh 2000, AJ 120, 382), hence maxTau 4.5. The 0.3 pc minimum gap to the emission is a model choice",
+      "approximate": true
+    },
+    "darkBay": {
+      "centerPaDeg": 45,
+      "halfWidthDeg": 55,
+      "softDeg": 20,
+      "radiusArcmin": 5,
+      "ringPercentile": 0.8,
+      "source": "The Dark Bay NE of the Trapezium is extinction in the Veil (A_V up to ~4-5), not missing gas: the radio continuum shows the ionized gas continuing smoothly behind it (O'Dell & Yusef-Zadeh 2000, AJ 120, 382). Inside radiusArcmin and the PA window the light short of its azimuthal envelope at the same radius is put in the Veil (τ = ln(envelope / L)), so the view from Earth is unchanged and the bowl behind the Veil is not dark there. Window and percentile are model choices",
       "approximate": true
     },
     "omc": {

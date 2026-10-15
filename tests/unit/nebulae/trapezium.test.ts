@@ -8,6 +8,7 @@ import {
   INSIDE_ID,
   nebulaBookmarks,
   NEBULA_EV,
+  TELESCOPE_EV,
   STYLE_BOOKMARKS,
   TELESCOPE_ID,
 } from '../../../src/modules/nebulae/bookmarks';
@@ -94,7 +95,8 @@ describe('nebula bookmarks, search and info', () => {
 
   it('registers the four design bookmarks', () => {
     for (const id of [TELESCOPE_ID, FROM_20LY_ID, INSIDE_ID, ASTROPHOTO_ID]) expect(bm(id)).toBeDefined();
-    expect(bm(TELESCOPE_ID).ev).toBe(NEBULA_EV);
+    expect(bm(TELESCOPE_ID).ev).toBe(TELESCOPE_EV);
+    expect(TELESCOPE_EV).toBe(NEBULA_EV);
     expect(bm(FROM_20LY_ID).ev).toBe(-5);
     expect(bm(ASTROPHOTO_ID).ev).toBe(-5);
     expect(STYLE_BOOKMARKS).toEqual([ASTROPHOTO_ID]);
@@ -111,6 +113,15 @@ describe('nebula bookmarks, search and info', () => {
     expect((sep * 180) / Math.PI).toBeLessThan(0.1);
     const up = qrotate(vec3(), t.quat!, vec3(0, 1, 0));
     expect(up.z).toBeGreaterThan(0.99);
+  });
+
+  it('keeps m42-astrophoto near the Earth line, so the Veil lanes stay on the emission (parallax ≤ 0.15 pc)', () => {
+    const p = bm(ASTROPHOTO_ID).pos;
+    const core = { x: 0, y: 0.25 * PC, z: 0 };
+    const v = { x: core.x - p.x, y: core.y - p.y, z: core.z - p.z };
+    const tilt = Math.acos(v.z / Math.hypot(v.x, v.y, v.z));
+    // The Veil sits ~2.2 pc in front of the bowl: its lanes shift by 2.2 pc · tan(tilt) against the emission.
+    expect(2.2 * Math.tan(tilt)).toBeLessThan(0.15);
   });
 
   it('puts m42-from-20ly 20 light-years from θ¹ Ori C and the inside view inside the nebula', () => {

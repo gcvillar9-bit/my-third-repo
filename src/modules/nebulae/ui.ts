@@ -211,45 +211,46 @@ export function info(id: string): InfoCard | null {
 export function createLabels(enabled: () => boolean): LabelSource {
   const cam = vec3();
   const field = (2 * Math.tan((orion.field.halfWidthDeg * Math.PI) / 180) * D_PC) / 2;
+  // Constant items (the label layer only reads them), so nothing is allocated per frame.
+  const m42: LabelItem = {
+    id: SEARCH_M42,
+    text: 'Orion Nebula',
+    frame: NEBULA_FRAME,
+    local: vec3(0, 0.3 * PC, 0),
+    priority: 26,
+    color: '#f5b3c4',
+    target: 'm42-from-20ly',
+  };
+  const m43: LabelItem = {
+    id: SEARCH_M43,
+    text: 'M43',
+    frame: NEBULA_FRAME,
+    local: vec3(MODEL.m43.x * PC, MODEL.m43.y * PC, 0),
+    priority: 20,
+    color: '#f5b3c4',
+    target: 'm43-close',
+  };
+  const trapezium: LabelItem = {
+    id: SEARCH_TRAPEZIUM,
+    text: 'Trapezium',
+    frame: NEBULA_FRAME,
+    local: vec3(0, 0, 0),
+    priority: 22,
+    color: '#cfe0ff',
+    target: 'trapezium-inside',
+  };
+  const sizePx = (half: number, at: number, pixelAngle: number) =>
+    (2 * Math.atan2(half, Math.max(at, 1e-9))) / pixelAngle;
   return {
     id: 'nebulae.labels',
     labels(view: ViewState, out: LabelItem[]) {
       if (!enabled()) return;
       cameraLocal(view, cam);
       const d = v3len(cam);
-      const sizePx = (half: number, at: number) =>
-        (2 * Math.atan2(half, Math.max(at, 1e-9))) / view.pixelAngle;
-      if (d > 2 && sizePx(field, d) > 40)
-        out.push({
-          id: SEARCH_M42,
-          text: 'Orion Nebula',
-          frame: NEBULA_FRAME,
-          local: vec3(0, 0.3 * PC, 0),
-          priority: 26,
-          color: '#f5b3c4',
-          target: 'm42-from-20ly',
-        });
+      if (d > 2 && sizePx(field, d, view.pixelAngle) > 40) out.push(m42);
       const d43 = Math.hypot(cam.x - MODEL.m43.x, cam.y - MODEL.m43.y, cam.z);
-      if (d43 > 0.8 && sizePx(MODEL.m43Radius, d43) > 10)
-        out.push({
-          id: SEARCH_M43,
-          text: 'M43',
-          frame: NEBULA_FRAME,
-          local: vec3(MODEL.m43.x * PC, MODEL.m43.y * PC, 0),
-          priority: 20,
-          color: '#f5b3c4',
-          target: 'm43-close',
-        });
-      if (d > 0.1 && d < 60 && sizePx(0.05, d) > 6)
-        out.push({
-          id: SEARCH_TRAPEZIUM,
-          text: 'Trapezium',
-          frame: NEBULA_FRAME,
-          local: vec3(0, 0, 0),
-          priority: 22,
-          color: '#cfe0ff',
-          target: 'trapezium-inside',
-        });
+      if (d43 > 0.8 && sizePx(MODEL.m43Radius, d43, view.pixelAngle) > 10) out.push(m43);
+      if (d > 0.1 && d < 60 && sizePx(0.05, d, view.pixelAngle) > 6) out.push(trapezium);
     },
   };
 }

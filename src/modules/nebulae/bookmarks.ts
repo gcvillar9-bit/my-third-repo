@@ -1,5 +1,5 @@
 /**
- * Orion Nebula bookmarks (all at EV -5, the dark-adapted night sky):
+ * Orion Nebula bookmarks (EV -5, the dark-adapted night sky, unless noted):
  * - 'm42-telescope': from Earth through a 2.5° field, north up (the photo the volume reproduces);
  * - 'm42-from-20ly': 20 light-years from θ¹ Ori C on the Earth side, 20° off our line of sight;
  * - 'trapezium-inside': inside the nebula just in front of the Trapezium, the glowing bowl behind it;
@@ -20,6 +20,13 @@ export const M43_VIEW_ID = 'm43-close';
 export const NEBULA_EV = -5;
 /** Exposure of 'trapezium-inside' (see nebulaBookmarks). */
 export const INSIDE_EV = -1.5;
+/**
+ * Exposure of 'm42-telescope': the dark-adapted night sky like the others. A longer exposure (EV -6 to -7) would
+ * show the faint wings (μ ≈ 21.6 at 8-10') further out, but it lifts the Milky Way panorama around Orion (stars
+ * module, ~20.4 mag/arcsec² there after its 8x display boost) into a blue-grey sky that still outshines the wings,
+ * and merges the Orion Bar into the blown core; at EV -5 the core keeps its structure on a dark sky.
+ */
+export const TELESCOPE_EV = NEBULA_EV;
 /** Bookmarks that switch the Astrophoto style on when reached. */
 export const STYLE_BOOKMARKS: readonly string[] = [ASTROPHOTO_ID];
 
@@ -79,9 +86,9 @@ export function nebulaBookmarks(): Bookmark[] {
       pos: m(c, AU),
       quat: qlookRotation(quat(), c, NORTH_ICRS),
       fovY: 2.5 * DEG,
-      ev: NEBULA_EV,
+      ev: TELESCOPE_EV,
       lookTarget:
-        'M42 from Earth in a 2.5° field, north up: the bright Huygens region left of centre with the dark Dark Bay ' +
+        'M42 from Earth in a 2.5° field, north up: the bright Huygens region just below centre with the dark Dark Bay ' +
         'notch to its upper left, M43 as a small round glow just above it, the red-pink wings spreading to the ' +
         'lower right, the four Trapezium stars in the core.',
     },
@@ -111,10 +118,13 @@ export function nebulaBookmarks(): Bookmark[] {
     localView(
       ASTROPHOTO_ID,
       'The Orion Nebula, astrophoto style',
-      offAxis(core, 3.2, 28, 330),
+      // Nearly on the Earth line: the Veil 2 pc in front shifts its dust lanes by 2 pc · tan(tilt) against the
+      // emission (0.1 pc at 3°), so the Dark Bay and the lane between M42 and M43 stay where the photos show them.
+      offAxis(core, 3.2, 3, 330),
       core,
       65,
-      'Astrophoto style from 10 ly: magenta-red hydrogen wings, teal oxygen core, stretched faint outskirts.',
+      'Astrophoto style from 10 ly, nearly along our line of sight: a teal oxygen core around the Trapezium, ' +
+        'magenta-red hydrogen wings, the Dark Bay notch and M43 above, stretched faint outskirts.',
     ),
     localView(
       M43_VIEW_ID,

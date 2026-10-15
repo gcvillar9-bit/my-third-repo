@@ -5,13 +5,23 @@ import {
   ASTRO,
   ASTRO_BASIS,
   astrophotoTransform,
+  displayRgb,
   linesRgb,
   REALISTIC_BASIS,
   styleRgb,
 } from '../../../src/modules/nebulae/display';
 import { Q_LOCAL_TO_ICRS, localAxesIcrs, toLocal, toWorld } from '../../../src/modules/nebulae/frame';
 import { D_PC } from '../../../src/modules/nebulae/model';
-import { apparentPx, MIN_PX, RES_DIVISOR, screenRect, STEPS } from '../../../src/modules/nebulae/render';
+import { luminanceFromMu } from '../../../src/modules/nebulae/photometry';
+import { exposureFromEv } from '../../../src/render/exposure';
+import {
+  apparentPx,
+  marchSize,
+  MIN_PX,
+  RES_DIVISOR,
+  screenRect,
+  STEPS,
+} from '../../../src/modules/nebulae/render';
 import { AUTO_OFF_PC, StyleAuto } from '../../../src/modules/nebulae/style';
 import type { NebulaStyle } from '../../../src/modules/nebulae/display';
 
@@ -46,23 +56,44 @@ describe('nebula display styles', () => {
     expect(oiii[1] + oiii[2]).toBeGreaterThan(4 * oiii[0]); // teal
   });
 
-  it('stretches faint light with asinh and boosts saturation ×1.6', () => {
+  it('stretches faint light with asinh against the calibrated core and boosts saturation ×1.6', () => {
     const grey = (y: number): [number, number, number] => [y, y, y];
-    // Reference level maps to itself, faint light is lifted a lot, the curve stays monotonic.
-    expect(luminance(...astrophotoTransform(grey(1)))).toBeCloseTo(1, 6);
-    const faint = luminance(...astrophotoTransform(grey(0.01)));
-    expect(faint / 0.01).toBeGreaterThan(5);
+    const R = ASTRO.ref;
+    expect(R).toBeCloseTo(luminanceFromMu(16.5), 9);
+    // The core maps to peak · L_ref, faint light (~21 mag/arcsec²) is lifted ~3 stops, the curve is monotonic.
+    expect(luminance(...astrophotoTransform(grey(R)))).toBeCloseTo(ASTRO.peak * R, 9);
+    const faint = luminance(...astrophotoTransform(grey(0.01 * R)));
+    expect(faint / (0.01 * R)).toBeGreaterThan(5);
     let prev = 0;
-    for (let y = 1e-4; y < 10; y *= 1.5) {
+    for (let y = 1e-4 * R; y < 10 * R; y *= 1.5) {
       const v = luminance(...astrophotoTransform(grey(y)));
       expect(v).toBeGreaterThan(prev);
       prev = v;
     }
-    const c: [number, number, number] = [0.3, 0.2, 0.25];
+    const c: [number, number, number] = [0.3 * R, 0.2 * R, 0.25 * R];
     const out = astrophotoTransform(c);
     const k = luminance(...out) / luminance(...c);
-    expect(chroma(out)).toBeCloseTo(ASTRO.saturation * chroma(c) * k, 6);
+    expect(chroma(out)).toBeCloseTo(ASTRO.saturation * chroma(c) * k, 9);
     expect(astrophotoTransform([0, 0, 0])).toEqual([0, 0, 0]);
+  });
+
+  it('keeps the Astrophoto stretch independent of the exposure (no feedback through the eye adaptation)', () => {
+    // A fixed light field: the output scales linearly with exposure, so the meter cannot undo the stretch.
+    const L: [number, number, number] = [0.004, 0.012, 0.002];
+    for (const e of [0.5, 2.4, 26.7, 120]) {
+      const a = displayRgb('astrophoto', L, e);
+      const b = displayRgb('astrophoto', L, 2 * e);
+      for (let c = 0; c < 3; c++) expect(b[c]).toBeCloseTo(2 * a[c], 12);
+    }
+    // At the night EV -5 the calibrated core lands in AgX's colourful range, not white; the dome peak too.
+    const e5 = exposureFromEv(-5);
+    const core = luminance(...displayRgb('astrophoto', [0, ASTRO.ref, 0], e5));
+    expect(core).toBeGreaterThan(0.25);
+    expect(core).toBeLessThan(0.5);
+    expect(luminance(...displayRgb('astrophoto', [0, 2 * ASTRO.ref, 0], e5))).toBeLessThan(0.6);
+    // Realistic is the calibrated light times the exposure.
+    const r = displayRgb('realistic', L, e5);
+    expect(luminance(...r)).toBeCloseTo((L[0] + L[1] + L[2]) * e5, 9);
   });
 });
 
@@ -107,6 +138,17 @@ describe('nebula frame and screen footprint', () => {
     expect(RES_DIVISOR).toEqual({ potato: 4, low: 3, medium: 3, high: 2, ultra: 1 });
     // Medium inside the nebula at 1280x720 stays under 8M fragment steps.
     expect((Math.ceil(1280 / 3) * Math.ceil(720 / 3) * STEPS.medium) / 1e6).toBeLessThan(8);
+    // The march target does not grow with the drawing buffer: the design divisor up to 1280x720, then capped.
+    expect(marchSize(1280, 720, 'medium')).toEqual({ w: 427, h: 240, div: 3 });
+    for (const q of ['potato', 'low', 'medium', 'high', 'ultra'] as const) {
+      const big = marchSize(2268, 1240, q);
+      const ref = marchSize(1280, 720, q);
+      expect(big.div).toBeGreaterThanOrEqual(RES_DIVISOR[q]);
+      expect(big.w * big.h).toBeLessThanOrEqual(ref.w * ref.h * 1.01);
+    }
+    // The owner's 2268x1240 on medium: inside views stay near the 1280x720 budget (5M steps, limit 8M).
+    const own = marchSize(2268, 1240, 'medium');
+    expect((own.w * own.h * STEPS.medium) / 1e6).toBeLessThan(5.1);
   });
 });
 
@@ -114,13 +156,35 @@ describe('nebula style auto-on / auto-off', () => {
   const machine = () => {
     const writes: NebulaStyle[] = [];
     let value: NebulaStyle = 'realistic';
-    const m: StyleAuto = new StyleAuto((v) => {
-      writes.push(v);
+    const m: StyleAuto = new StyleAuto(
+      (v) => {
+        if (v === value) return; // the settings store ignores a write of the same value (no notification)
+        writes.push(v);
+        value = v;
+        m.changed(); // the settings store notifies synchronously
+      },
+      () => value,
+    );
+    // The user picks a value from the settings panel.
+    const user = (v: NebulaStyle) => {
+      if (v === value) return;
       value = v;
-      m.changed(); // the settings store notifies synchronously
-    });
-    return { m, writes, value: () => value };
+      m.changed();
+    };
+    return { m, writes, value: () => value, user };
   };
+
+  it("keeps the user's own Astrophoto choice when arriving at and leaving the style bookmark", () => {
+    const { m, value, user, writes } = machine();
+    m.start(null, false);
+    user('astrophoto');
+    m.arrived(true, false); // already Astrophoto: not claimed
+    expect(m.autoOn).toBe(false);
+    m.distance(AUTO_OFF_PC * 10);
+    m.arrived(false, true);
+    expect(value()).toBe('astrophoto');
+    expect(writes).toEqual([]);
+  });
 
   it('switches Astrophoto on when arriving at its bookmark and off when leaving the nebula', () => {
     const { m, writes, value } = machine();

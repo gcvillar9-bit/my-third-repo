@@ -15,7 +15,7 @@
   "emission": {
     "file": "data/nebulae/orion-emission.webp",
     "encodeExp": 4,
-    "lRef": 0.017853500321507454,
+    "lRef": 0.015495001338422298,
     "components": [
       "halpha",
       "oiii",
@@ -37,11 +37,16 @@
         0.72,
         1
       ]
+    ],
+    "coreMix": [
+      0.17,
+      0.7,
+      0.13
     ]
   },
   "maps": {
     "file": "data/nebulae/orion-maps.webp",
-    "tauMax": 2,
+    "tauMax": 4.5,
     "channels": [
       "tauV/tauMax",
       "displacement",
@@ -53,7 +58,7 @@
     "halfWidthArcsec": 783.49,
     "xiMax": 0.003798471585823308,
     "pixels": 1024,
-    "ratioLog2Span": 2,
+    "ratioLog2Span": 3,
     "registration": {
       "targets": [
         {
@@ -90,8 +95,8 @@
   "calibration": {
     "transfer": "asinh",
     "stretch": 8,
-    "domePeak": 1.9315,
-    "a": 0.000003876629180203334,
+    "domePeak": 1.6988,
+    "a": 0.0000047420474684146255,
     "skyRgb": [
       0.00351,
       0.002688,
@@ -99,7 +104,7 @@
     ],
     "totalV": 4,
     "coreMuV": 16.5,
-    "m43V": 8.667,
+    "m43V": 8.44,
     "totalApertureArcmin": 30,
     "m43ApertureArcmin": 4,
     "coreRadiusArcmin": 0.5
