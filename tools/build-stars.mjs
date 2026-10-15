@@ -9,7 +9,8 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseCsv } from './lib/csv.mjs';
 import { PUBLIC } from './lib/fetch.mjs';
-import { img, morph, writeTiers, writeWebp } from './lib/image.mjs';
+import sharp from 'sharp';
+import { img, morph, writeWebp } from './lib/image.mjs';
 import { ensureModuleAssets } from './lib/manifest.mjs';
 import {
   FLAG_DIST_UNKNOWN,
@@ -220,14 +221,47 @@ function buildCatalog(csvPath) {
   return { stars, names };
 }
 
+/** Linear -> sRGB transfer (IEC 61966-2-1). */
+const linearToSrgb = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+
+/** Panorama WebP quality (sRGB-encoded storage keeps the dark sky above a few DN, so it needs the bits). */
+const MILKY_WAY_QUALITY = 90;
+
 async function buildMilkyWay(src, outDir) {
   // 0. Upstream rows run from the south galactic pole (top) to the north; flip so north is up (checked
   // against HYG: bright-star pixel score 226 vs 13 for every other convention).
   // 1. 5x5 median at 8k removes isolated point stars; 2. morphological opening (min then max, radius 2)
-  // removes residual bright specks while keeping the extended glow; 3. downsample to 4k/2k.
+  // removes residual bright specks while keeping the extended glow; 3. box-downsample to 4k/2k in float.
+  // The runtime treats the upstream 8-bit values as linear light (stars/milkyway.ts MILKY_WAY_LUMINANCE), so the
+  // tiers store those same linear values sRGB-encoded (the GPU decodes them back): the dark sky (0-10 of 255
+  // upstream) keeps the sub-DN precision of the downsampling instead of being quantised to a few DN, and the
+  // encoder spends bits there instead of leaving flat blocks.
   const med = await img(src).removeAlpha().flip().median(5).raw().toBuffer({ resolveWithObject: true });
   const opened = morph(morph(med, 'min', 2), 'max', 2);
-  return writeTiers(opened, outDir, 'milkyway_diffuse', ['2k', '4k'], { quality: 88 });
+  const { width: W, channels: C } = opened.info;
+  const out = {};
+  for (const [tier, w] of [
+    ['2k', 2048],
+    ['4k', 4096],
+  ]) {
+    const f = W / w;
+    const h = w / 2;
+    const buf = Buffer.alloc(w * h * 3);
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++)
+        for (let k = 0; k < 3; k++) {
+          let s = 0;
+          for (let j = 0; j < f; j++)
+            for (let i = 0; i < f; i++) s += opened.data[((y * f + j) * W + x * f + i) * C + k];
+          buf[(y * w + x) * 3 + k] = Math.round(255 * linearToSrgb(s / (f * f * 255)));
+        }
+    const path = join(outDir, `milkyway_diffuse_${tier}.webp`);
+    await sharp(buf, { raw: { width: w, height: h, channels: 3 } })
+      .webp({ quality: MILKY_WAY_QUALITY, effort: 6, smartSubsample: true })
+      .toFile(path);
+    out[tier] = `textures/stars/milkyway_diffuse_${tier}.webp`;
+  }
+  return out;
 }
 
 async function main() {

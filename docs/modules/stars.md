@@ -37,12 +37,21 @@ photometric sprite material for a few camera-relative positions), `yearsSinceJ20
   Unknown B-V uses 0.65. Betelgeuse uses the BSC B-V of 1.85 (build override).
 - **The Sun is not in the cloud** (HYG excludes it). Seen from outside the Solar System it must come from the
   solar-system module (photometric point); `sun-from-alpha-cen` relies on that.
-- **Milky Way panorama:** `textures/stars/milkyway_diffuse_{2k,4k}.webp` (4k when `maxTextureSize ≥ 4096`), no
-  mipmaps, mapped per fragment with `ICRS_TO_GALACTIC` (`src/core/frames.ts`): `u = 0.5 − l/2π`,
-  `v = 0.5 + b/π`. It is sampled as **linear** data: the star-removed 8-bit panorama is very dark (median 0,
-  99th percentile 9/255, galactic centre ~160/255), and its raw values then track surface brightness.
-  `MILKY_WAY_LUMINANCE` = 3e-3 cd/m² per unit gives about 19.5 mag/arcsec² at the centre and about 22 in Cygnus.
-  It fades out between 200 and 400 pc from the Sun (smoothstep).
+- **Milky Way panorama:** `textures/stars/milkyway_diffuse_{2k,4k}.webp` (4k when `maxTextureSize ≥ 4096`),
+  mapped per fragment with `ICRS_TO_GALACTIC` (`src/core/frames.ts`): `u = 0.5 − l/2π`, `v = 0.5 + b/π`. The
+  upstream 8-bit values are treated as **linear** light: the star-removed panorama is very dark (median 0, 99th
+  percentile 9/255, galactic centre ~160/255), and its raw values then track surface brightness. The tiers store
+  those linear values **sRGB-encoded** (box-downsampled in float, WebP q90; the GPU decodes them back), so the dark
+  sky keeps sub-DN precision instead of a few DN and the encoder no longer leaves flat chroma blocks (follow-up 4:
+  the 4k tier was 36 KB and showed 100-150 px teal/navy/maroon blocks at the 2.5° `m42-telescope` field). Mipmapped:
+  trilinear when minified, a 4-tap cubic B-spline when magnified (no texel blocks at telescope fields).
+  `MILKY_WAY_LUMINANCE` = 2.4e-2 cd/m² per unit (P5-B's 8x display boost). It fades out between 200 and 400 pc from
+  the Sun (smoothstep).
+- **Panorama hole** (`setPanoramaHole` in `public.ts`): a module that draws an object itself can cut a soft hole in
+  the panorama around it so the panorama's own blurred copy is not added on top. Inside `inner` the panorama is
+  replaced by a membrane through 8 taps on a ring of radius `ring` (their mean plus the first two angular harmonics,
+  scaled like a harmonic function inside a disc), fading back by `outer`. The nebulae module uses 1.0° / 1.4° /
+  1.6° around θ¹ Ori C while the Orion Nebula volume is drawn.
 - **Orientation check** (unit test): the b = 0 ring of the texture is > 4× brighter than b = ±60°, and at least
   24 of the 30 brightest HYG stars sit on local maxima (their removal residue) 2.5° around them.
 

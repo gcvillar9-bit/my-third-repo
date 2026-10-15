@@ -14,7 +14,9 @@ import {
 import { figureStars, type ConstellationsFile } from '../../../src/modules/starsystems/constellations';
 import { solveKepler } from '../../../src/modules/starsystems/orbit';
 import { Promoter, SYSTEM_ROWS } from '../../../src/modules/starsystems/promotion';
-import { yearsSinceJ2000 } from '../../../src/modules/stars/points';
+import { HIDE_MAX, yearsSinceJ2000 } from '../../../src/modules/stars/points';
+import { hiddenStars } from '../../../src/modules/stars/public';
+import type { ViewState } from '../../../src/core/contracts';
 
 const ROOT = new URL('../../../', import.meta.url).pathname;
 const json = <T>(p: string): T => JSON.parse(readFileSync(`${ROOT}public/${p}`, 'utf8')) as T;
@@ -164,5 +166,56 @@ describe('star systems', () => {
     const c = cat.positionPc(peg, yearsSinceJ2000(jd), vec3());
     expect(Math.hypot(p.x / PC - c.x, p.y / PC - c.y, p.z / PC - c.z)).toBeLessThan(1e-9);
     promoter.release('test');
+  });
+
+  it('hides the HYG duplicate of a custom star for its whole hold, even among many promotions', () => {
+    const frames = new FrameTreeImpl();
+    addStandardFrames(frames);
+    const bodies = new Map<string, Body>();
+    const registry = {
+      addFrame: (f: Parameters<Registry['addFrame']>[0]) => frames.addFrame(f),
+      body: (id: string) => bodies.get(id),
+      addBody: (b: Body) => void bodies.set(b.id, b),
+      removeBody: (id: string) => void bodies.delete(id),
+      setSurfaceShading: () => {},
+    } as unknown as Registry;
+    const shared = { uBlackbodyLut: { value: null } } as unknown as SharedUniforms;
+    const promoter = new Promoter(cat, frames, registry, shared);
+    const jd = 2461041.5;
+    const view = {
+      jd,
+      frameIndex: 0,
+      test: true,
+      pixelAngle: 1e-3,
+      toCamera: (frame: string, local: { x: number; y: number; z: number }, out: ReturnType<typeof vec3>) =>
+        frames.convertPoint(frame, local, 'ssb', jd, out),
+    } as unknown as ViewState;
+    // A far custom star (like θ¹ Ori C at 400 pc) whose HYG duplicate sits at the 100 kpc placeholder.
+    const dup = cat.findByHip(26221);
+    expect(dup).toBeGreaterThanOrEqual(0);
+    promoter.promoteCustom(
+      {
+        id: 'test-far',
+        name: 'Far star',
+        teff: 39000,
+        radius: 9.9 * R_SUN,
+        absMag: -2.9,
+        positionPc: vec3(13.8, 396, -37.6),
+        hygIndex: dup,
+        ownInfo: true,
+      },
+      'session',
+    );
+    // groupForIndex resolves the duplicate to the custom group.
+    expect(promoter.groupForIndex(dup)?.id).toBe('test-far');
+    expect(promoter.info('test-far')).toBeNull();
+    // Fifteen nearer HYG-indexed promotions (systems and single stars) must not push it out.
+    const near = [32349, 71683, 113357, 37279, 8102, 16537, 3829, 54035, 57939, 99240, 24186, 105090];
+    for (const hip of near) promoter.promoteIndex(cat.findByHip(hip), 'test');
+    promoter.update(view);
+    expect(hiddenStars()).toContain(dup);
+    expect(HIDE_MAX).toBeGreaterThanOrEqual(16);
+    promoter.release('test');
+    promoter.release('session');
   });
 });

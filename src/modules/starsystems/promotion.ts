@@ -56,6 +56,8 @@ export interface PromotedStar {
   approximate: boolean;
   source?: string;
   labelPriority?: number;
+  /** The promoting module describes this star itself (info() returns null for it). */
+  ownInfo?: boolean;
 }
 
 /** A custom (non-HYG) star, e.g. an exoplanet host fainter than HYG. */
@@ -78,6 +80,8 @@ export interface CustomStar {
   bv?: number | null;
   /** Label declutter priority of the body (default 45). */
   labelPriority?: number;
+  /** The promoting module has its own (sourced) info card for this star: no generic 'Star (promoted)' card. */
+  ownInfo?: boolean;
 }
 
 interface Group {
@@ -217,6 +221,7 @@ export class Promoter {
             approximate: true,
             source: c.source,
             labelPriority: c.labelPriority,
+            ownInfo: c.ownInfo,
           },
         ],
         frames: [this.singleFrame(frame, at, 1000 * AU)],
@@ -531,7 +536,7 @@ export class Promoter {
   /** Info card for promoted stars that the stars module does not describe (no HYG name row). */
   info(id: string): InfoCard | null {
     const s = this.star(id);
-    if (!s || s.hygIndex >= 0) return null;
+    if (!s || s.hygIndex >= 0 || s.ownInfo) return null;
     return {
       title: s.name,
       subtitle: 'Star (promoted)',

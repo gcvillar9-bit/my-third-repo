@@ -55,8 +55,11 @@ export interface StarPoints extends Renderable {
   setHidden(indices: readonly number[]): void;
 }
 
-/** Most star indices `setHidden` accepts. */
-export const HIDE_MAX = 8;
+/**
+ * Most star indices `setHidden` accepts: as many as starsystems draws sprites (MAX_SPRITES), so a session-held
+ * group (the Orion Nebula's five HYG duplicates) can never be pushed out of the hidden set by nearby promotions.
+ */
+export const HIDE_MAX = 16;
 
 /** Shared star-sprite material (HYG points and promoted-star sprites use the same photometry). */
 function starMaterial(shared: SharedUniforms, bvMin: number, bvStep: number) {
