@@ -44,6 +44,8 @@ describe('Trapezium promotion', () => {
       // Apparent magnitude from the Sun = V.
       expect(c.absMag + 5 * Math.log10(d / 10)).toBeCloseTo(s.v, 9);
       expect(c.radius).toBeCloseTo(s.radiusRsun * R_SUN, 0);
+      // Held all session: from Earth the labels yield to named stars brighter than m 2.5 (priority 30 - 4 m).
+      expect(c.labelPriority).toBeLessThan(20);
       expect(s.source.length).toBeGreaterThan(10);
     }
   });

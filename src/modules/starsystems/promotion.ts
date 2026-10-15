@@ -55,6 +55,7 @@ export interface PromotedStar {
   massMsun?: number;
   approximate: boolean;
   source?: string;
+  labelPriority?: number;
 }
 
 /** A custom (non-HYG) star, e.g. an exoplanet host fainter than HYG. */
@@ -75,6 +76,8 @@ export interface CustomStar {
   hygIndex?: number;
   /** Observed B-V for the sprite colour (default: the HYG value when hygIndex is set, else none). */
   bv?: number | null;
+  /** Label declutter priority of the body (default 45). */
+  labelPriority?: number;
 }
 
 interface Group {
@@ -213,6 +216,7 @@ export class Promoter {
             massMsun: c.massMsun,
             approximate: true,
             source: c.source,
+            labelPriority: c.labelPriority,
           },
         ],
         frames: [this.singleFrame(frame, at, 1000 * AU)],
@@ -340,7 +344,7 @@ export class Promoter {
       teff: s.teff,
       absMag: s.absMag,
       influenceRadius: f?.influenceRadius ?? 1000 * AU,
-      labelPriority: 45,
+      labelPriority: s.labelPriority ?? 45,
     };
   }
 
