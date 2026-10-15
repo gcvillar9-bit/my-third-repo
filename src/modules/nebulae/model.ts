@@ -32,7 +32,11 @@ export interface NebulaMeta {
   maps: { file: string; tauMax: number };
   core: { file: string; xiMax: number; pixels: number; ratioLog2Span: number } | null;
   calibration: {
-    gamma: number;
+    /** Inverse stretch of the photo: 'asinh' (L = a·sinh(p·v)) or 'power' (L = a·Y^p). */
+    transfer: string;
+    stretch: number;
+    /** Brightness rise of the rebuilt clipped core over its edge. */
+    domePeak: number;
     totalV: number;
     coreMuV: number;
     m43V: number;

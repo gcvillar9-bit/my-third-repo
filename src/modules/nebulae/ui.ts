@@ -204,7 +204,10 @@ export function info(id: string): InfoCard | null {
   return null;
 }
 
-/** Labels for M42, M43 and the Trapezium, shown when the nebula is large enough on screen and not too close. */
+/**
+ * Labels for M42, M43 and the Trapezium, shown when the nebula is large enough on screen and not too close. Their
+ * priorities sit below the bright named stars (stars.labels: 30 - 4 m), which keep their labels in Orion.
+ */
 export function createLabels(enabled: () => boolean): LabelSource {
   const cam = vec3();
   const field = (2 * Math.tan((orion.field.halfWidthDeg * Math.PI) / 180) * D_PC) / 2;
@@ -222,7 +225,7 @@ export function createLabels(enabled: () => boolean): LabelSource {
           text: 'Orion Nebula',
           frame: NEBULA_FRAME,
           local: vec3(0, 0.3 * PC, 0),
-          priority: 40,
+          priority: 26,
           color: '#f5b3c4',
           target: 'm42-from-20ly',
         });
@@ -233,7 +236,7 @@ export function createLabels(enabled: () => boolean): LabelSource {
           text: 'M43',
           frame: NEBULA_FRAME,
           local: vec3(MODEL.m43.x * PC, MODEL.m43.y * PC, 0),
-          priority: 35,
+          priority: 20,
           color: '#f5b3c4',
           target: 'm43-close',
         });
@@ -243,7 +246,7 @@ export function createLabels(enabled: () => boolean): LabelSource {
           text: 'Trapezium',
           frame: NEBULA_FRAME,
           local: vec3(0, 0, 0),
-          priority: 38,
+          priority: 22,
           color: '#cfe0ff',
           target: 'trapezium-inside',
         });

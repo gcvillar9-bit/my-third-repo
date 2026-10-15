@@ -15,7 +15,7 @@
   "emission": {
     "file": "data/nebulae/orion-emission.webp",
     "encodeExp": 4,
-    "lRef": 0.01784920133650303,
+    "lRef": 0.017853500321507454,
     "components": [
       "halpha",
       "oiii",
@@ -88,16 +88,18 @@
     }
   },
   "calibration": {
-    "gamma": 8.42595,
-    "a": 0.000003454836379450789,
+    "transfer": "asinh",
+    "stretch": 8,
+    "domePeak": 1.9315,
+    "a": 0.000003876629180203334,
     "skyRgb": [
-      0.003509,
-      0.002684,
-      0.002814
+      0.00351,
+      0.002688,
+      0.002819
     ],
     "totalV": 4,
     "coreMuV": 16.5,
-    "m43V": 9,
+    "m43V": 8.667,
     "totalApertureArcmin": 30,
     "m43ApertureArcmin": 4,
     "coreRadiusArcmin": 0.5
@@ -239,5 +241,5 @@
       "removedStars": 2388
     }
   },
-  "removedStars": 374
+  "removedStars": 202
 }

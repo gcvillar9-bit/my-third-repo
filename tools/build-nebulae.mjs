@@ -10,8 +10,9 @@
  *    any residual exceeds maxResidualPx source pixels.
  * 2. Removes the star remnants (halo rings around removed stars) and inpaints them.
  * 3. Resamples to a gnomonic square centred on θ¹ Ori C (north up, east left), unmixes the colours into
- *    Hα+[NII], [OIII]+Hβ and scattered light, and fits the photometric calibration (L = a·Y^γ) so the total
- *    is V = 4.0 and the core 16.5 mag/arcsec². Writes orion-emission.webp (the three observed components,
+ *    Hα+[NII], [OIII]+Hβ and scattered light, rebuilds the clipped Huygens region as a dome and fits the
+ *    photometric calibration (L = a·sinh(p·v), the inverse of an asinh stretch) so the total is V = 4.0 and the core
+ *    16.5 mag/arcsec²; M43 (V 9.0) is an independent check. Writes orion-emission.webp (the three observed components,
  *    L/lRef encoded as v^ENCODE_EXP) and orion-maps.webp (R: dust optical depth τ_V / maxTau, G: z displacement,
  *    B: thickness noise; 0.5 = 0).
  * 4. Registers the Hubble heic0601a mosaic from the Trapezium stars (similarity fit) and writes a de-starred
@@ -45,8 +46,9 @@ export const CAMERA = [
   [0.12, 0.85, 0.7],
   [0.55, 0.72, 1.0],
 ];
-/** Photo log-deficits below this are texture between filaments, not dust. */
-const DEFICIT_FLOOR = 0.35;
+/** Photo log-deficits below this are texture between filaments, not dust; τ per unit of log-deficit above it. */
+const DEFICIT_FLOOR = 0.12;
+const TAU_PER_DEFICIT = 6;
 /** Linear level above which all three channels of the Stellarium photo are clipped (it tops out at ~230/255). */
 const SATURATED = 0.69;
 const lum = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -421,6 +423,44 @@ export function inpaint(img, mask) {
       img.data[i * c + k] = ch[i] * (1 - mask[i]) + fill * mask[i];
     }
   }
+  // Refine the fully masked pixels into a harmonic (Laplace) fill of their boundary: the blur pyramid alone pulls
+  // a large hole towards the mean of a wide area, which a steep stretch inverse turns into a dark disc.
+  const holes = [];
+  for (let y = 1; y < h - 1; y++)
+    for (let x = 1; x < w - 1; x++) if (mask[y * w + x] >= 0.999) holes.push(y * w + x);
+  const idx = Int32Array.from(holes);
+  for (let k = 0; k < c; k++) {
+    const d = img.data;
+    for (let it = 0; it < 400; it++)
+      for (let n = 0; n < idx.length; n++) {
+        const i = idx[n];
+        const avg =
+          0.25 * (d[(i - 1) * c + k] + d[(i + 1) * c + k] + d[(i - w) * c + k] + d[(i + w) * c + k]);
+        d[i * c + k] += 1.85 * (avg - d[i * c + k]);
+      }
+  }
+}
+
+/** True when a detected blob is bluer than its surroundings (Stellarium's star remnants are blue-white rings). */
+function bluerThanSurroundings(img, x, y, rIn, r1, r2) {
+  let bi = 0;
+  let ri = 0;
+  let bo = 0;
+  let ro = 0;
+  for (let j = Math.floor(y - r2); j <= Math.ceil(y + r2); j++)
+    for (let i = Math.floor(x - r2); i <= Math.ceil(x + r2); i++) {
+      if (i < 0 || j < 0 || i >= img.w || j >= img.h) continue;
+      const d = Math.hypot(i + 0.5 - x, j + 0.5 - y);
+      const p = (j * img.w + i) * 3;
+      if (d <= rIn) {
+        bi += img.data[p + 2];
+        ri += img.data[p];
+      } else if (d >= r1 && d <= r2) {
+        bo += img.data[p + 2];
+        ro += img.data[p];
+      }
+    }
+  return bi / Math.max(1e-9, ri) > 1.06 * (bo / Math.max(1e-9, ro));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -519,18 +559,37 @@ export const luminanceFromMu = (mu) => (LUX_MAG0 * 10 ** (-0.4 * mu)) / (ARCSEC 
  * with v = Y^(1/2.2) the display-encoded luminance, the inverse of the asinh stretch of astro images.
  */
 const TRANSFER = process.env.NEBULAE_TRANSFER ?? 'asinh';
+/**
+ * Stretch parameter of the photo (asinh: p in sinh(p·v)). Fixed rather than fitted: a third fit on M43 is
+ * ill-conditioned (M43's flux depends on how NU Ori's remnant is treated), so M43 stays an independent check.
+ */
+const STRETCH_P = 8;
+/** Radius of NU Ori's halo ring in the Stellarium image, source px. */
+const NU_RING_PX = 13;
 export const transfer = (logY, p) =>
   TRANSFER === 'power' ? Math.exp(p * logY) : Math.sinh(p * Math.exp(logY / 2.2));
 const TRANSFER_RANGE = TRANSFER === 'power' ? [1, 6] : [0.2, 40];
 
 /**
- * Photometric calibration L = a · (Y · e^{g·shape})^γ of the photo luminance Y. The photo's clipped Huygens
- * region is a plateau; its true brightness rises towards the inside as a dome, e^{g·shape} with
- * shape = d - d²/(2·dMax) (d = depth inside the plateau). Three unknowns (a, γ, g), three catalogue numbers:
- * the total V inside the M42 aperture, the peak surface brightness of a core disk, and M43's V. For each γ the dome
- * slope g is set by the core/total ratio and a by the total; γ is then found from M43.
+ * Photometric calibration L = a · T(Y · e^{g·shape}, p) of the photo luminance Y (T = `transfer`). The photo's clipped
+ * Huygens region is a plateau; its true brightness rises towards the inside as a dome, e^{g·shape} with
+ * shape = d - d²/(2·dMax) (d = depth inside the plateau). With a fixed stretch p (`fixedP`), the dome slope g is set
+ * by the core/total ratio (the brightest core disk against the M42 aperture total) and a by the total. Without
+ * `fixedP`, p is also fitted so that M43 matches its catalogue V (ill-conditioned; kept for experiments).
  */
-export function fitCalibration({ Y, shape, N, omega, inTotal, inM43, coreSigma, totalLux, coreL, m43Lux }) {
+export function fitCalibration({
+  Y,
+  shape,
+  N,
+  omega,
+  inTotal,
+  inM43,
+  coreSigma,
+  totalLux,
+  coreL,
+  m43Lux,
+  fixedP,
+}) {
   // Work inside the bounding box of the plateau (plus a margin) for the core maximum.
   let x0 = N;
   let y0 = N;
@@ -593,7 +652,11 @@ export function fitCalibration({ Y, shape, N, omega, inTotal, inM43, coreSigma, 
     }
     return 0.5 * (lo + hi);
   };
-  // M43 / total falls as γ grows (M43 is fainter than the core in the photo).
+  if (fixedP !== undefined) {
+    const slope = slopeFor(fixedP);
+    return { p: fixedP, slope, a: totalLux / total(fixedP, slope) };
+  }
+  // M43 / total falls as p grows (M43 is fainter than the core in the photo).
   const m43Ratio = (g) => {
     const gs = slopeFor(g);
     return { gs, r: m43(g, gs) / total(g, gs) };
@@ -605,9 +668,9 @@ export function fitCalibration({ Y, shape, N, omega, inTotal, inM43, coreSigma, 
     if (m43Ratio(mid).r > want) lo = mid;
     else hi = mid;
   }
-  const gamma = 0.5 * (lo + hi);
-  const slope = slopeFor(gamma);
-  return { gamma, slope, a: totalLux / total(gamma, slope) };
+  const p = 0.5 * (lo + hi);
+  const slope = slopeFor(p);
+  return { p, slope, a: totalLux / total(p, slope) };
 }
 
 /**
@@ -718,19 +781,28 @@ async function main() {
   const [cx0, cy0] = toSrc(ra0, dec0);
   const srcPxArcsec =
     (3600 * Math.hypot(...entry.worldCoords[1].map((v, i) => v - entry.worldCoords[0][i]))) / src.w;
-  const coreExclude = (x, y) => Math.hypot(x - cx0, y - cy0) * srcPxArcsec < 150; // Huygens region: knots, not stars
+  // Huygens region and the heart of M43 around NU Ori: knots and nebula, not star remnants.
+  const nuRow = orion.stars.find((s) => s.id === 'nu-ori');
+  const [nx0, ny0] = toSrc(nuRow.raDeg, nuRow.decDeg);
+  const coreExclude = (x, y) =>
+    Math.hypot(x - cx0, y - cy0) * srcPxArcsec < 240 || Math.hypot(x - nx0, y - ny0) * srcPxArcsec < 90;
   // Saturated (clipped) pixels of the original image: the Huygens region, reconstructed after resampling.
   const satSrc = { w: src.w, h: src.h, c: 1, data: new Float32Array(src.w * src.h) };
   for (let i = 0; i < src.w * src.h; i++)
     satSrc.data[i] = Math.min(src.data[3 * i], src.data[3 * i + 1], src.data[3 * i + 2]) >= SATURATED ? 1 : 0;
   // Pass 1: halo rings left by Stellarium's star removal (blob scale); pass 2: residual compact cores.
-  const det = detectStars(Ysrc, src.w, src.h, { s1: 3, s2: 9, k: 3, exclude: coreExclude });
+  const blobs = detectStars(Ysrc, src.w, src.h, { s1: 3, s2: 9, k: 3, exclude: coreExclude });
+  const det = blobs.filter((d) => bluerThanSurroundings(src, d.x, d.y, 8, 14, 22));
   const mask = new Float32Array(src.w * src.h);
   for (const d of det) paintDisc(mask, src.w, src.h, d.x, d.y, clamp(8 + 3 * Math.log2(d.amp), 10, 22), 3);
   for (const s of orion.registration.stars) {
     const [px, py] = toSrc(s.raDeg, s.decDeg);
     paintDisc(mask, src.w, src.h, px, py, clamp(26 - 2.5 * (s.v - 3), 12, 28), 3);
   }
+  // NU Ori: Stellarium's removal left a bright halo ring (and a dark core) in the middle of M43. The ring is
+  // scattered starlight, not nebula (keeping it makes M43 ~1.2 mag brighter than its catalogue V), so the whole
+  // ring is replaced by a smooth fill from M43's outer nebulosity.
+  paintDisc(mask, src.w, src.h, nx0, ny0, NU_RING_PX, 5);
   // The dark frame of the source image (vignette border) is masked too.
   const border = 10;
   for (let y = 0; y < src.h; y++)
@@ -742,7 +814,9 @@ async function main() {
   for (const d of det2) paintDisc(mask2, src.w, src.h, d.x, d.y, clamp(4 + 2 * Math.log2(d.amp), 5, 10), 2);
   inpaint(src, mask2);
   for (let i = 0; i < mask.length; i++) mask[i] = Math.max(mask[i], mask2[i]);
-  console.log(`build-nebulae: star remnants removed: ${det.length} halos, ${det2.length} residual cores`);
+  console.log(
+    `build-nebulae: star remnants removed: ${det.length} halos (of ${blobs.length} blobs), ${det2.length} residual cores`,
+  );
   det.push(...det2);
   console.log(`build-nebulae: removed ${det.length} star remnants`);
   if (debug) {
@@ -798,7 +872,7 @@ async function main() {
     for (let k = 0; k < 3; k++) grid.data[3 * i + k] = Math.max(0, grid.data[3 * i + k] - skyRgb[k]);
   const Y = luminanceOf(grid);
   const dome = clippedDome(satGrid, N);
-  // --- 4. Calibration: L = a · Y^γ --------------------------------------------------------------------------
+  // --- 4. Calibration: L = a · sinh(p · v) ------------------------------------------------------------------------
   const pxRad = (2 * xiMax) / N;
   const pxArcsec = pxRad / ARCSEC;
   const omega = pxRad * pxRad;
@@ -830,11 +904,12 @@ async function main() {
     totalLux: LUX_MAG0 * 10 ** (-0.4 * ph.totalV),
     coreL: luminanceFromMu(ph.coreMuV),
     m43Lux: LUX_MAG0 * 10 ** (-0.4 * ph.m43V),
+    fixedP: process.env.NEBULAE_P ? Number(process.env.NEBULAE_P) : STRETCH_P,
   });
-  const { gamma, a, slope } = fit;
+  const { p: stretch, a, slope } = fit;
   const L = new Float32Array(N * N);
   for (let i = 0; i < N * N; i++)
-    L[i] = a * transfer(Math.log(Math.max(Y[i], 1e-9)) + slope * dome.shape[i], gamma);
+    L[i] = a * transfer(Math.log(Math.max(Y[i], 1e-9)) + slope * dome.shape[i], stretch);
   const measure = (mask) => {
     let t = 0;
     for (let i = 0; i < N * N; i++) if (mask[i]) t += L[i] * omega;
@@ -847,7 +922,7 @@ async function main() {
   for (let i = 0; i < N * N; i++) coreMax = Math.max(coreMax, coreB[i]);
   const coreMu = muFromLuminance(coreMax);
   console.log(
-    `build-nebulae: calibration γ = ${gamma.toFixed(3)}, a = ${a.toExponential(3)}, clipped core ${dome.pixels} px ` +
+    `build-nebulae: calibration ${TRANSFER} p = ${stretch.toFixed(3)}, a = ${a.toExponential(3)}, clipped core ${dome.pixels} px ` +
       `(dome peak x${Math.exp((slope * dome.depth) / 2).toFixed(2)}); total V ${totalV.toFixed(2)}, core ${coreMu.toFixed(2)} mag/arcsec², M43 V ${m43V.toFixed(2)}`,
   );
 
@@ -859,21 +934,24 @@ async function main() {
     const s = tmp[0] + tmp[1] + tmp[2];
     for (let k = 0; k < 3; k++) comp[k][i] = s > 0 ? (L[i] * tmp[k]) / s : 0;
   }
-  // Dust: luminance deficit against a smooth upper envelope, where the envelope is bright enough to be nebula.
-  const Ys = gaussBlur(Y, N, N, 1.5);
-  const env = gaussBlur(maxFilter(Ys, N, N, 14), N, N, 10);
+  // Dust lanes: the photo's local brightness deficit (display-encoded luminance against its upper envelope over
+  // ~1.5'), only where the envelope is nebular light and the pixel is brown-red (reddened) or dark: blue reflection
+  // deficits are not dust. Deficits below DEFICIT_FLOOR are texture between filaments. A lane that removes e^-τ of
+  // the light behind it shows as a photo deficit of e^(-τ/TAU_PER_DEFICIT) after the stretch.
+  const V = new Float32Array(N * N);
+  for (let i = 0; i < N * N; i++) V[i] = Math.max(Y[i], 0) ** (1 / 2.2);
+  const Vs = gaussBlur(V, N, N, 1.2);
+  const env = gaussBlur(maxFilter(Vs, N, N, 8), N, N, 5);
   const envRef = percentile(env, 0.999);
   const tauMax = orion.geometry.veil.maxTau;
   const tau = new Float32Array(N * N);
   for (let i = 0; i < N * N; i++) {
-    const deficit = Math.log(Math.max(1e-9, env[i]) / Math.max(1e-9, Ys[i]));
-    const weight = clamp((env[i] / envRef - 0.01) / 0.05, 0, 1); // only against real nebular light
-    // Brown-red (reddened) or dark pixels are dust; blue reflection deficits are not.
+    const deficit = Math.log(Math.max(1e-6, env[i]) / Math.max(1e-6, Vs[i]));
+    const weight = clamp((env[i] / envRef - 0.15) / 0.15, 0, 1);
     const r = grid.data[3 * i] + 1e-9;
     const bl = grid.data[3 * i + 2];
     const brown = clamp(1.6 - (2 * bl) / r, 0, 1);
-    // The photo is Y ∝ L^(1/γ), so a luminance deficit of e^-τ shows as a photo deficit of e^(-τ/γ).
-    tau[i] = clamp(gamma * (deficit - DEFICIT_FLOOR) * weight * (0.3 + 0.7 * brown), 0, tauMax);
+    tau[i] = clamp(TAU_PER_DEFICIT * (deficit - DEFICIT_FLOOR) * weight * brown, 0, tauMax);
   }
   const tauS = gaussBlur(tau, N, N, 2.5);
 
@@ -888,11 +966,8 @@ async function main() {
     comp[0].map(enc),
     comp[1].map(enc),
     comp[2].map(enc),
-    {
-      quality: 92,
-      effort: 6,
-      smartSubsample: true,
-    },
+    // Near-lossless: the three channels are independent components, so no 4:2:0 chroma subsampling.
+    { nearLossless: true, quality: 60, effort: 6 },
   );
 
   // --- 7. Maps: τ, z displacement (log-brightness structure), thickness noise -------------------------------
@@ -974,7 +1049,9 @@ async function main() {
     },
     core,
     calibration: {
-      gamma: round(gamma, 5),
+      transfer: TRANSFER,
+      stretch: round(stretch, 5),
+      domePeak: round(Math.exp((slope * dome.depth) / 2), 4),
       a,
       skyRgb: skyRgb.map((v) => round(v, 6)),
       totalV: ph.totalV,

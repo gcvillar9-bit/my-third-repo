@@ -27,6 +27,18 @@ are reachable from the build container.
 Hand-entered numbers live in `tools/lib/data/bodies-physical.json` and the `BV_OVERRIDES` table in
 `tools/build-stars.mjs`. Every row carries a `source`.
 
+## Orion Nebula (nebulae)
+
+| Source                                                                                                                                   | Files                                      | Licence                                     | Used for (public/)                                                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Stellarium deep-sky images, `Stellarium/stellarium@master/nebulae/default/` (image by HG731GZ)                                           | `m42.png` (1024², 3.2° field)              | CC BY 3.0                                   | `data/nebulae/orion-emission.webp`, `orion-maps.webp` (registered, de-starred, calibrated)                      |
+| Stellarium, same folder                                                                                                                  | `textures.json` (sky corners of `m42.png`) | GPL-2.0-or-later                            | registration of the image (`orion-meta.json`)                                                                   |
+| ESA/Hubble heic0601a (NASA, ESA, M. Robberto and the HST Orion Treasury Project Team), 1280 px copy in `xirong/xirong.github.io`         | `orion_m42.jpg`                            | CC BY 4.0 (ESA); NASA imagery public domain | `data/nebulae/orion-core.webp` (de-starred detail-ratio map of the core)                                        |
+| OpenNGC (Mattia Verga), `database_files/NGC.csv` rows NGC1976, NGC1982                                                                   | cited numbers                              | CC BY-SA 4.0 (facts, cited)                 | `src/modules/nebulae/orion.json`: positions, sizes, V = 4.0 (M42) and 9.0 (M43)                                 |
+| SIMBAD; Simón-Díaz et al. 2006, 2011; Windemuth et al. 2013; Herbig & Griffin 2006; Menten et al. 2007; Kounkel et al. 2017; O'Dell 2001 | cited numbers                              | facts, cited                                | `orion.json`: Trapezium, θ² Ori A and NU Ori rows, the distance and the depth model (approximate values say so) |
+
+All three downloads are sha256-pinned in `assets/manifest/nebulae.json` and processed by `tools/build-nebulae.mjs`.
+
 ## Planned for later phases (DESIGN 4.1, not yet fetched)
 
 | Source                                                                                        | Licence                       | Phase / package               |

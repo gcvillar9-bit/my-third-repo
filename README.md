@@ -39,6 +39,8 @@ to the largest structures in the universe and back home. Or press `/` and type a
   (Alpha Centauri, Sirius) and more than 5,000 known exoplanets with habitable zones.
 - The Milky Way: the night-sky band from Earth, and from outside a barred spiral built on the measured arms, bar,
   discs and dust, with 194 globular clusters.
+- The Orion Nebula in 3D: a calibrated photograph turned into a glowing bowl you can fly into, with M43, the
+  Trapezium at its true distance and an Astrophoto style.
 
 **Black holes**
 
