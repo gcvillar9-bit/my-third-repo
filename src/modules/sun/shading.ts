@@ -3,14 +3,11 @@
  * Uniform values are physical: uStarI0 is the disk-centre radiance per channel such that the
  * disk-averaged luminance equals diskLuminance(teff).
  */
-import { Vector2, Vector3 } from 'three';
-import type { FrameId, SurfaceShading, ViewState } from '../../core/contracts';
-import { qrotateInv, quat, vec3 } from '../../core/math64';
+import { Vector3 } from 'three';
+import type { SurfaceShading, ViewState } from '../../core/contracts';
 import { SUN_TEFF, blackbodyRgb } from '../../core/photometry';
 import { DAY, JD_J2000 } from '../../core/units';
-import { MAX_FILAMENTS, MAX_REGIONS, MAX_SPOTS, type SunActivity } from './activity';
 import photosphereGlsl from './glsl/photosphere.glsl?raw';
-import data from './sun-data.json';
 import {
   GRANULE_CONTRAST,
   GRANULE_M,
@@ -23,11 +20,6 @@ import {
 } from './photometry';
 
 const R_SUN = 6.957e8;
-/**
- * Sun radius in pixels below which the simulated activity is neither updated nor drawn (spots, prominences
- * and helmet streamers are sub-pixel; this keeps a distant Sun free of per-frame activity work).
- */
-export const ACTIVITY_MIN_PX = 2;
 
 export interface StarSurfaceOptions {
   /** Body id the shading applies to (default 'sun'). */
@@ -38,32 +30,6 @@ export interface StarSurfaceOptions {
   granuleM?: number;
   /** rms granulation contrast (default 0.14). */
   contrast?: number;
-  /** Simulated activity (the Sun only): spots, faculae, and the H-alpha view when `view.halpha`. */
-  activity?: SunActivity;
-  /**
-   * Body and body-fixed frames of the activity (when they exist): the camera position in body-fixed axes
-   * lets a crowded Sun pack the groups on the visible hemisphere first.
-   */
-  frames?: { body: FrameId; fixed: FrameId };
-  /** Live view switches read every frame. */
-  view?: SunViewSwitches;
-}
-
-/** Shared per-frame switches of the Sun's look (the 'sun.filter' setting). */
-export interface SunViewSwitches {
-  halpha: boolean;
-}
-
-/**
- * H-alpha disk-centre radiance per channel: the filter colour scaled so the disk-mean luminance is
- * `luminanceScale * L` (below the white-light mean, so the red channel does not clip into orange).
- */
-export function halphaI0(L: number): [number, number, number] {
-  const [r, g, b] = data.halpha.colour;
-  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  const [a, k] = data.halpha.limb;
-  const mean = a + (2 * k) / 3; // 2 * integral of (a + k mu) mu dmu
-  return [r, g, b].map((c) => (L * data.halpha.luminanceScale * c) / y / mean) as [number, number, number];
 }
 
 /** Granule size for a star of `teff` and `radius` (pressure scale height ~ T/g, solar mass assumed). */
@@ -96,28 +62,7 @@ export function starSurface(teff: number, radius: number, opts: StarSurfaceOptio
     uGranContrast: { value: opts.contrast ?? GRANULE_CONTRAST },
     uNetContrast: { value: NETWORK_CONTRAST },
     uStarTime: { value: 0 },
-    uSpot: { value: opts.activity?.spots ?? new Float32Array(MAX_SPOTS * 4) },
-    uSpotCount: { value: 0 },
-    uRegion: { value: opts.activity?.regions ?? new Float32Array(MAX_REGIONS * 4) },
-    uRegionB: { value: opts.activity?.regionsB ?? new Float32Array(MAX_REGIONS * 4) },
-    uRegionCount: { value: 0 },
-    uUmbra: { value: new Vector3(...data.spots.umbraIntensity) },
-    uPenumbra: { value: data.spots.penumbraIntensity },
-    uPenRatio: { value: data.spots.penumbraRatio },
-    uFacular: { value: data.spots.facularContrast },
-    uFil: { value: opts.activity?.fil ?? new Float32Array(MAX_FILAMENTS * 4) },
-    uFilCount: { value: 0 },
-    uHalpha: { value: 0 },
-    uHaI0: { value: new Vector3(...halphaI0(L)) },
-    uHaLimb: { value: new Vector2(...data.halpha.limb) },
   };
-  const act = opts.activity;
-  const fr = opts.frames;
-  const R = radius;
-  const ORIGIN = vec3();
-  const rel = vec3();
-  const q = quat();
-  const viewer: [number, number, number] = [0, 0, 0];
   return {
     bodyId: opts.bodyId ?? 'sun',
     priority: opts.priority ?? 10,
@@ -125,30 +70,6 @@ export function starSurface(teff: number, radius: number, opts: StarSurfaceOptio
     uniforms,
     update(view: ViewState) {
       uniforms.uStarTime.value = starTime(view.jd);
-      if (!act) return;
-      let v: [number, number, number] | null = null;
-      if (fr) {
-        // Camera position relative to the star's centre, body-fixed axes, radii.
-        view.toCamera(fr.body, ORIGIN, rel);
-        if (R / Math.max(Math.hypot(rel.x, rel.y, rel.z), 1) / view.pixelAngle < ACTIVITY_MIN_PX) {
-          uniforms.uSpotCount.value = 0;
-          uniforms.uRegionCount.value = 0;
-          uniforms.uFilCount.value = 0;
-          uniforms.uHalpha.value = opts.view?.halpha ? 1 : 0;
-          return;
-        }
-        qrotateInv(rel, view.frameQuat(fr.fixed, q), rel);
-        viewer[0] = -rel.x / R;
-        viewer[1] = -rel.y / R;
-        viewer[2] = -rel.z / R;
-        v = viewer;
-      }
-      act.update(view.jd, v);
-      uniforms.uSpotCount.value = act.spotCount;
-      uniforms.uRegionCount.value = act.regionCount;
-      const halpha = !!opts.view?.halpha;
-      uniforms.uHalpha.value = halpha ? 1 : 0;
-      uniforms.uFilCount.value = halpha ? act.filCount : 0;
     },
   };
 }
