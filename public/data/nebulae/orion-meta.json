@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "source": "tools/build-nebulae.mjs from the Stellarium M42 image (HG731GZ, CC BY 3.0) and the Hubble heic0601a mosaic (NASA, ESA, M. Robberto and the HST Orion Treasury Project Team)",
+  "center": {
+    "raDeg": 83.818583,
+    "decDeg": -5.389667
+  },
+  "field": {
+    "halfWidthDeg": 0.9,
+    "xiMax": 0.015709255323664916,
+    "pixels": 1024,
+    "mapPixels": 512,
+    "pxArcsec": 6.3286
+  },
+  "emission": {
+    "file": "data/nebulae/orion-emission.webp",
+    "encodeExp": 4,
+    "lRef": 0.017022570595145226,
+    "components": [
+      "halpha",
+      "oiii",
+      "scattered"
+    ],
+    "camera": [
+      [
+        1,
+        0.13,
+        0.2
+      ],
+      [
+        0.12,
+        0.85,
+        0.7
+      ],
+      [
+        0.55,
+        0.72,
+        1
+      ]
+    ]
+  },
+  "maps": {
+    "file": "data/nebulae/orion-maps.webp",
+    "tauMax": 2,
+    "channels": [
+      "tauV/tauMax",
+      "displacement",
+      "thickness"
+    ]
+  },
+  "core": {
+    "file": "data/nebulae/orion-core.webp",
+    "halfWidthArcsec": 783.49,
+    "xiMax": 0.003798471585823308,
+    "pixels": 1024,
+    "ratioLog2Span": 2,
+    "registration": {
+      "targets": [
+        {
+          "name": "Trapezium (θ¹ Ori A-E)",
+          "measured": [
+            568.17,
+            575.23
+          ],
+          "px": 1.523
+        },
+        {
+          "name": "θ² Ori A",
+          "measured": [
+            500.28,
+            644.08
+          ],
+          "px": 1.358
+        },
+        {
+          "name": "NU Ori",
+          "measured": [
+            402.41,
+            261.39
+          ],
+          "px": 0.38
+        }
+      ],
+      "arcsecPerPx": 1.3887,
+      "rotationDeg": -0.94,
+      "maxResidualPx": 1.523,
+      "removedStars": 2388
+    }
+  },
+  "calibration": {
+    "gamma": 2.57948,
+    "a": 0.005445677972286479,
+    "skyRgb": [
+      0.003509,
+      0.002684,
+      0.002814
+    ],
+    "totalV": 4,
+    "coreMuV": 16.5,
+    "m43V": 9,
+    "totalApertureArcmin": 30,
+    "m43ApertureArcmin": 4,
+    "coreRadiusArcmin": 0.5
+  },
+  "registration": {
+    "stellarium": {
+      "convention": "textures.json texture coordinate (0, 0) = bottom-left of the image",
+      "maxResidualPx": 2.82,
+      "limitPx": 3,
+      "stars": [
+        {
+          "name": "ι Ori (Hatysa)",
+          "predicted": [
+            649.3,
+            552.77
+          ],
+          "measured": [
+            649.35,
+            552.21
+          ],
+          "px": 0.56
+        },
+        {
+          "name": "HYG 3624",
+          "predicted": [
+            564.3,
+            612.99
+          ],
+          "measured": [
+            565.98,
+            612.17
+          ],
+          "px": 1.88
+        },
+        {
+          "name": "HYG 5181",
+          "predicted": [
+            491.77,
+            581.51
+          ],
+          "measured": [
+            493.68,
+            580.97
+          ],
+          "px": 1.98
+        },
+        {
+          "name": "HYG 5962",
+          "predicted": [
+            413.2,
+            230.86
+          ],
+          "measured": [
+            414.68,
+            233.26
+          ],
+          "px": 2.82
+        },
+        {
+          "name": "HYG 4822",
+          "predicted": [
+            424.72,
+            793.85
+          ],
+          "measured": [
+            426.06,
+            791.91
+          ],
+          "px": 2.36
+        },
+        {
+          "name": "HYG 6540",
+          "predicted": [
+            595.63,
+            83.31
+          ],
+          "measured": [
+            595.9,
+            84.49
+          ],
+          "px": 1.21
+        },
+        {
+          "name": "HYG 12401",
+          "predicted": [
+            686.81,
+            193.79
+          ],
+          "measured": [
+            685.77,
+            194.49
+          ],
+          "px": 1.25
+        },
+        {
+          "name": "HYG 9470",
+          "predicted": [
+            574.85,
+            478.01
+          ],
+          "measured": [
+            575.4,
+            477.49
+          ],
+          "px": 0.75
+        }
+      ]
+    },
+    "hubble": {
+      "targets": [
+        {
+          "name": "Trapezium (θ¹ Ori A-E)",
+          "measured": [
+            568.17,
+            575.23
+          ],
+          "px": 1.523
+        },
+        {
+          "name": "θ² Ori A",
+          "measured": [
+            500.28,
+            644.08
+          ],
+          "px": 1.358
+        },
+        {
+          "name": "NU Ori",
+          "measured": [
+            402.41,
+            261.39
+          ],
+          "px": 0.38
+        }
+      ],
+      "arcsecPerPx": 1.3887,
+      "rotationDeg": -0.94,
+      "maxResidualPx": 1.523,
+      "removedStars": 2388
+    }
+  },
+  "removedStars": 374
+}
