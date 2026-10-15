@@ -30,7 +30,9 @@ bool upsampleMarch(AtmoPixel p, out vec3 L, out vec3 T) {
   T = vec3(0.0);
   float path = p.tEnd - p.tStart;
   float type = p.geomIn || p.hitsGround ? 1.0 : 0.0;
-  vec2 st = vUv * uHalfSize - 0.5;
+  // Texel (i, j) holds full-resolution pixel (2i, 2j): pixel (x, y) sits at texel ((x, y) / 2), for
+  // even and odd frame sizes alike.
+  vec2 st = (gl_FragCoord.xy - 0.5) * 0.5;
   vec2 fl = floor(st);
   vec2 fr = st - fl;
   ivec2 i0 = ivec2(fl);
@@ -97,7 +99,7 @@ vec3 finiteOrZero(vec3 c) {
 
 void main() {
   vec3 col = finiteOrZero(texture(uInput, vUv).rgb);
-  AtmoPixel p = atmoPixel(vUv);
+  AtmoPixel p = atmoPixel(ivec2(gl_FragCoord.xy));
   if (p.kind == ATMO_NONE) {
     gl_FragColor = vec4(col, 1.0);
     return;

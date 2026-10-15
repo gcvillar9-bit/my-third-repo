@@ -52,3 +52,117 @@ test(
     expect(stats.calls).toBeLessThanOrEqual(150);
   },
 );
+
+/**
+ * Planet stripe regression (owner report: screen-aligned stripes on Earth from ~18,000 km on medium).
+ * Medium marches the atmosphere at half resolution and upsamples it; ultra marches every pixel. Over
+ * the lit disc of earth-now (Earth from 3 radii), the medium - ultra luminance difference is averaged
+ * per row and per column, high-passed by a 31 px moving mean, and its RMS taken relative to the disc
+ * mean: stripes and grids show up there, while smooth differences and per-pixel texture detail do not.
+ * Measured here (rows / columns): 12.5% / 2.5% before the fix (the half-resolution march fetched
+ * depth on the corner between four pixels), 0.40% / 0.36% after. The floor is the presets' surface
+ * detail (medium with a per-pixel march gives 0.39% / 0.32%), so the limit is twice the after value.
+ */
+const BANDING_LIMIT = 0.008;
+const W = 1134;
+const H = 620;
+
+/** Linear luminance of the final canvas, bottom row first (WebGL readPixels order). */
+async function frameLuminance(page: Page, quality: string, problems: string[]): Promise<number[]> {
+  page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
+  await page.goto(`?test=1&q=${quality}&b=earth-now`);
+  await page.waitForFunction(() => window.__universe !== undefined);
+  const out = await page.evaluate(async () => {
+    const u = window.__universe!;
+    await u.ready();
+    await u.renderFrames(1);
+    await u.ready();
+    await u.renderFrames(4);
+    const gl = document.querySelector('canvas')!.getContext('webgl2')!;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    const w = gl.drawingBufferWidth;
+    const h = gl.drawingBufferHeight;
+    const px = new Uint8Array(w * h * 4);
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    const Y: number[] = new Array(w * h);
+    for (let i = 0; i < w * h; i++)
+      Y[i] =
+        0.2126 * lin(px[4 * i] / 255) + 0.7152 * lin(px[4 * i + 1] / 255) + 0.0722 * lin(px[4 * i + 2] / 255);
+    return { Y, w, h, errors: u.errors() };
+  });
+  await page.screenshot({ path: `artifacts/atmosphere/earth-now-${quality}-${W}x${H}.png` });
+  expect(out.errors).toEqual([]);
+  expect([out.w, out.h]).toEqual([W, H]);
+  return out.Y;
+}
+
+/** Row and column banding of a - b over the lit disc (fractions of the disc mean luminance). */
+function banding(a: number[], b: number[]): { rows: number; cols: number; discPx: number } {
+  let max = 0;
+  for (const v of b) max = Math.max(max, v);
+  const lit = (i: number) => a[i] > 0.03 * max && b[i] > 0.03 * max;
+  // Disc mask: lit in both frames and 4 px inside the lit region (no limb or terminator edge).
+  const R = 4;
+  const mask = new Uint8Array(W * H);
+  for (let y = R; y < H - R; y++)
+    for (let x = R; x < W - R; x++) {
+      let ok = true;
+      for (let d = -R; d <= R && ok; d++) ok = lit(y * W + x + d) && lit((y + d) * W + x);
+      mask[y * W + x] = ok ? 1 : 0;
+    }
+  let sum = 0;
+  let n = 0;
+  for (let i = 0; i < W * H; i++) if (mask[i]) ((sum += b[i]), n++);
+  const rms = (lines: number, len: number, at: (l: number, k: number) => number) => {
+    const mean: number[] = [];
+    for (let l = 0; l < lines; l++) {
+      let s = 0;
+      let c = 0;
+      for (let k = 0; k < len; k++) {
+        const i = at(l, k);
+        if (mask[i]) ((s += a[i] - b[i]), c++);
+      }
+      mean.push(c >= 32 ? s / c : NaN);
+    }
+    let ss = 0;
+    let m = 0;
+    mean.forEach((v, l) => {
+      if (Number.isNaN(v)) return;
+      let s = 0;
+      let c = 0;
+      for (let d = -15; d <= 15; d++) {
+        const u = mean[l + d];
+        if (u !== undefined && !Number.isNaN(u)) ((s += u), c++);
+      }
+      ss += (v - s / c) ** 2;
+      m++;
+    });
+    return Math.sqrt(ss / Math.max(m, 1)) / (sum / Math.max(n, 1));
+  };
+  return {
+    rows: rms(H, W, (y, x) => y * W + x),
+    cols: rms(W, H, (x, y) => y * W + x),
+    discPx: n,
+  };
+}
+
+test.describe('planet stripes', () => {
+  test.use({ viewport: { width: W, height: H } });
+
+  test('earth-now on medium: half-resolution atmosphere without stripes (vs ultra)', async ({ page }) => {
+    test.setTimeout(120_000);
+    const problems: string[] = [];
+    const medium = await frameLuminance(page, 'medium', problems);
+    const ultra = await frameLuminance(page, 'ultra', problems);
+    expect(problems).toEqual([]);
+    const b = banding(medium, ultra);
+    console.log(
+      `[atmosphere] earth-now ${W}x${H} medium - ultra banding: rows ${(100 * b.rows).toFixed(3)}%, ` +
+        `columns ${(100 * b.cols).toFixed(3)}% over ${b.discPx} px`,
+    );
+    expect(b.discPx).toBeGreaterThan(40_000); // the lit half of the disc
+    expect(b.rows).toBeLessThan(BANDING_LIMIT);
+    expect(b.cols).toBeLessThan(BANDING_LIMIT);
+  });
+});
