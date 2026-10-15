@@ -76,7 +76,7 @@
       "license": "CC-BY-3.0",
       "licenseName": "Creative Commons Attribution 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
-      "attribution": "M42 wide-field image by HG731GZ, from the Stellarium deep-sky image set (nebulae/default/m42.png; credited to HG731GZ in nebulae/default/textures.json), github.com/Stellarium/stellarium. Licence: Stellarium CREDITS.md section 4.6 lists HG731GZ's images under CC BY 3.0 Unported (it names the M31 pictures; the M42 licence is inferred from the same contributor and should be confirmed), https://github.com/Stellarium/stellarium/blob/master/CREDITS.md",
+      "attribution": "M42 wide-field image by HG731GZ, from the Stellarium deep-sky image set (nebulae/default/m42.png; credited to HG731GZ in nebulae/default/textures.json), github.com/Stellarium/stellarium. Licence: CC BY 3.0 Unported per Stellarium CREDITS.md section 4.41 (\"Images of M33, M42, NGC253, NGC5566, LBN782, the Pleiades from HG731GZ\"), https://github.com/Stellarium/stellarium/blob/master/CREDITS.md",
       "copyright": [],
       "flags": [],
       "note": null,

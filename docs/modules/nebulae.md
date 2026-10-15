@@ -192,5 +192,6 @@ from behind the cloud the Trapezium shines through OMC-1 undimmed.
   the march opacity would brown the whole core too (OMC-1 behind it is opaque), so it needs the Veil's τ in front as
   a separate march output (not done).
 - The depths of the stars inside the cluster are unknown: all sit at 400 pc.
-- The licence of `m42.png` is inferred: Stellarium's `CREDITS.md` §4.6 lists HG731GZ's images under CC BY 3.0 but
-  names only M31; `textures.json` credits m42.png to HG731GZ. To be confirmed with the owner.
+- The licence of `m42.png` is CC BY 3.0: Stellarium's `CREDITS.md` §4.41 lists "Images of M33, M42, NGC253,
+  NGC5566, LBN782, the Pleiades from HG731GZ" under CC BY 3.0 Unported, and `textures.json` credits m42.png to
+  HG731GZ.
