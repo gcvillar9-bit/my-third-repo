@@ -277,11 +277,7 @@ export function march(
   iso: boolean,
   acc: MarchResult = { L: [0, 0, 0], T: [1, 1, 1], fms: [0, 0, 0] },
 ): MarchResult {
-  const cosT = dot(rd, sun);
-  const phR = iso ? 1 / (4 * PI) : phaseRayleigh(cosT);
-  const phM = iso
-    ? [1 / (4 * PI), 1 / (4 * PI), 1 / (4 * PI)]
-    : p.mieG.map((g) => phaseCornetteShanks(cosT, g));
+  const ph = phases(p, dot(rd, sun), iso);
   for (let i = 0; i < n; i++) {
     let u0 = i / n;
     let u1 = (i + 1) / n;
@@ -292,25 +288,117 @@ export function march(
       u0 *= u0;
       u1 *= u1;
     }
-    const t0 = ta + (tb - ta) * u0;
-    const t1 = ta + (tb - ta) * u1;
-    const dt = t1 - t0;
-    const t = 0.5 * (t0 + t1);
-    const P: V3 = [ro[0] + rd[0] * t, ro[1] + rd[1] * t, ro[2] + rd[2] * t];
-    const r = len(P);
-    const muS = dot(P, sun) / r;
-    const m = medium(p, r - p.bottomKm);
-    const ts = sunTransmittance(p, luts, r, muS);
-    const ms = luts.ms ? luts.ms.sample(...multiScatterUv(p, r, muS)) : [0, 0, 0];
-    for (let c = 0; c < 3; c++) {
-      const sS = m.rayS[c] + m.mieS[c];
-      const S = ts[c] * (m.rayS[c] * phR + m.mieS[c] * phM[c]) + ms[c] * sS;
-      const st = Math.exp(-m.ext[c] * dt);
-      const k = m.ext[c] > 1e-9 ? (1 - st) / m.ext[c] : dt;
-      acc.L[c] += acc.T[c] * S * k;
-      acc.fms[c] += acc.T[c] * sS * k;
-      acc.T[c] *= st;
-    }
+    marchStep(p, luts, ro, rd, sun, ta + (tb - ta) * u0, ta + (tb - ta) * u1, ph, acc);
+  }
+  return acc;
+}
+
+interface Phases {
+  r: number;
+  m: number[];
+}
+
+const phases = (p: AtmosphereParams, cosT: number, iso: boolean): Phases => ({
+  r: iso ? 1 / (4 * PI) : phaseRayleigh(cosT),
+  m: iso ? [1 / (4 * PI), 1 / (4 * PI), 1 / (4 * PI)] : p.mieG.map((g) => phaseCornetteShanks(cosT, g)),
+});
+
+/** One step over [t0, t1] (glsl atmoStep): midpoint sample, Beer-Lambert within the step. */
+function marchStep(
+  p: AtmosphereParams,
+  luts: Luts,
+  ro: V3,
+  rd: V3,
+  sun: V3,
+  t0: number,
+  t1: number,
+  ph: Phases,
+  acc: MarchResult,
+): void {
+  const dt = t1 - t0;
+  const t = 0.5 * (t0 + t1);
+  const P: V3 = [ro[0] + rd[0] * t, ro[1] + rd[1] * t, ro[2] + rd[2] * t];
+  const r = len(P);
+  const muS = dot(P, sun) / r;
+  const m = medium(p, r - p.bottomKm);
+  const ts = sunTransmittance(p, luts, r, muS);
+  const ms = luts.ms ? luts.ms.sample(...multiScatterUv(p, r, muS)) : [0, 0, 0];
+  for (let c = 0; c < 3; c++) {
+    const sS = m.rayS[c] + m.mieS[c];
+    const S = ts[c] * (m.rayS[c] * ph.r + m.mieS[c] * ph.m[c]) + ms[c] * sS;
+    const st = Math.exp(-m.ext[c] * dt);
+    const k = m.ext[c] > 1e-9 ? (1 - st) / m.ext[c] : dt;
+    acc.L[c] += acc.T[c] * S * k;
+    acc.fms[c] += acc.T[c] * sS * k;
+    acc.T[c] *= st;
+  }
+}
+
+/**
+ * Outside-view step grid (glsl/scatter.glsl atmoMarchGrid): step x of a segment covers
+ * [s(x), s(x + 1)] km from its dense end, s(x) = unitKm (GRID_A x + GRID_B x^2), unitKm = shell / 100
+ * (Earth's 100 km vertical column: 8 steps, the first 2 km). The step at the thin end is the fraction
+ * that fits (xMax is fractional), so the integral is continuous in the path length and neighbouring
+ * pixels share the grid. Past `cap` steps the grid stretches to fit, continuously.
+ */
+export const GRID_A = 0.5;
+export const GRID_B = 1.5;
+
+export interface StepGrid {
+  /** Grid coordinate of the thin end (fractional). */
+  xMax: number;
+  /** km per grid unit (shell / 100, stretched past the cap). */
+  unitKm: number;
+  /** Steps marched: ceil(xMax). */
+  n: number;
+}
+
+export function stepGrid(lenKm: number, shellKm: number, cap: number): StepGrid {
+  let unitKm = shellKm / 100;
+  const s = Math.max(lenKm, 0) / unitKm;
+  let xMax = (2 * s) / (GRID_A + Math.sqrt(GRID_A * GRID_A + 4 * GRID_B * s));
+  if (xMax > cap) {
+    unitKm *= s / (cap * (GRID_A + GRID_B * cap));
+    xMax = cap;
+  }
+  return { xMax, unitKm, n: Math.ceil(xMax - 1e-4) };
+}
+
+/** Distance (km) of grid coordinate x from the dense end. */
+export const gridDistance = (g: StepGrid, x: number): number => g.unitKm * x * (GRID_A + GRID_B * x);
+
+/**
+ * Twin of atmoMarchGrid: marches [tAnchor, tAnchor + lenKm] (dir 1, dense at the start) or
+ * [tAnchor - lenKm, tAnchor] (dir -1, dense at the end), front to back, at most `cap` steps.
+ */
+export function marchGrid(
+  p: AtmosphereParams,
+  luts: Luts,
+  ro: V3,
+  rd: V3,
+  sun: V3,
+  tAnchor: number,
+  lenKm: number,
+  dir: 1 | -1,
+  cap: number,
+  acc: MarchResult = { L: [0, 0, 0], T: [1, 1, 1], fms: [0, 0, 0] },
+): MarchResult {
+  const g = stepGrid(lenKm, p.topKm - p.bottomKm, cap);
+  const ph = phases(p, dot(rd, sun), false);
+  for (let i = 0; i < g.n; i++) {
+    const xa = dir > 0 ? i : i === 0 ? g.xMax : g.n - i;
+    const xb = dir > 0 ? Math.min(i + 1, g.xMax) : g.n - i - 1;
+    marchStep(
+      p,
+      luts,
+      ro,
+      rd,
+      sun,
+      tAnchor + dir * gridDistance(g, xa),
+      tAnchor + dir * gridDistance(g, xb),
+      ph,
+      acc,
+    );
   }
   return acc;
 }

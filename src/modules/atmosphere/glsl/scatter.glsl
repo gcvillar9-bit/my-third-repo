@@ -74,7 +74,7 @@ AtmoPixel atmoPixel(ivec2 px) {
   return p;
 }
 
-// Outside-view step grid (mirrored by model.ts gridSteps/gridDistance): step x of a segment covers
+// Outside-view step grid (twin: model.ts stepGrid/marchGrid): step x of a segment covers
 // [s(x), s(x + 1)] km from the segment's dense end (the ground or a surface, or the ray's closest
 // approach to the centre), with s(x) = u (A x + B x^2) and u = shell thickness / 100. Earth's
 // 100 km vertical column takes 8 steps, the first 2 km long; a longer path adds steps of fixed
