@@ -65,7 +65,11 @@ maps it to texel `(gl_FragCoord.xy − 0.5) / 2` (odd sizes too). The dithered s
 above). Banding (medium − ultra row/column means over the lit disc, high-passed by a 31 px moving mean, RMS / disc
 mean): owner's view at 2268×1240 1.29% → 0.12% (rows), earth-now at 1134×620 12.5% → 0.40% (the floor:
 medium's per-pixel march also gives 0.39%). The grid takes ~20–30% fewer real steps on the disc than the old
-count; `uSteps` (the work counter's bound) is unchanged. Regression test: `atmosphere.spec.ts` "planet stripes".
+count; `uSteps` (the work counter's bound) is unchanged. Regression test: `atmosphere.spec.ts` "planet stripes"
+compares medium's half-resolution march with medium's own per-pixel march (`?atmosphere.march=full`, a test-only
+override read in `index.ts` that keeps every other knob), so other modules' preset differences no longer set its
+floor: 0.125% / 0.197% (rows / columns), limit 0.4%. It is a documented exception to the 480×270 potato e2e rule:
+the 31 px high-pass needs a large disc, so it runs at 1134×620 on medium (two loads, ~33 s on SwiftShader).
 
 ## Parameters (`planets.json`, SI with `source` fields; `params.ts` converts to km)
 

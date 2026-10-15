@@ -55,22 +55,25 @@ test(
 
 /**
  * Planet stripe regression (owner report: screen-aligned stripes on Earth from ~18,000 km on medium).
- * Medium marches the atmosphere at half resolution and upsamples it; ultra marches every pixel. Over
- * the lit disc of earth-now (Earth from 3 radii), the medium - ultra luminance difference is averaged
- * per row and per column, high-passed by a 31 px moving mean, and its RMS taken relative to the disc
- * mean: stripes and grids show up there, while smooth differences and per-pixel texture detail do not.
- * Measured here (rows / columns): 12.5% / 2.5% before the fix (the half-resolution march fetched
- * depth on the corner between four pixels), 0.40% / 0.36% after. The floor is the presets' surface
- * detail (medium with a per-pixel march gives 0.39% / 0.32%), so the limit is twice the after value.
+ * Medium marches the atmosphere at half resolution and upsamples it. The reference is medium itself with a
+ * per-pixel march (the module's test-only `?atmosphere.march=full`), so only the half-resolution path differs
+ * and no other module's preset knobs (terrain error, surface detail) set the floor. Over the lit disc of
+ * earth-now (Earth from 3 radii), the half - full luminance difference is averaged per row and per column,
+ * high-passed by a 31 px moving mean, and its RMS taken relative to the disc mean: stripes and grids show up
+ * there, while smooth differences and per-pixel texture detail do not. Before the fix (depth fetched on the
+ * corner between four pixels) medium vs ultra gave 12.5% / 2.5% (rows / columns).
+ *
+ * Exception to the 480x270 potato rule (documented in docs/modules/atmosphere.md): the metric needs a large
+ * disc for its 31 px high-pass, so it runs at 1134x620 on medium; two page loads fit well inside 120 s.
  */
-const BANDING_LIMIT = 0.008;
+// Measured here: 0.125% / 0.197% (rows / columns), ~33 s for both loads; the limit is twice the worse axis.
+const BANDING_LIMIT = 0.004;
 const W = 1134;
 const H = 620;
 
 /** Linear luminance of the final canvas, bottom row first (WebGL readPixels order). */
-async function frameLuminance(page: Page, quality: string, problems: string[]): Promise<number[]> {
-  page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
-  await page.goto(`?test=1&q=${quality}&b=earth-now`);
+async function frameLuminance(page: Page, query: string): Promise<number[]> {
+  await page.goto(`?test=1&q=medium&b=earth-now${query}`);
   await page.waitForFunction(() => window.__universe !== undefined);
   const out = await page.evaluate(async () => {
     const u = window.__universe!;
@@ -91,7 +94,8 @@ async function frameLuminance(page: Page, quality: string, problems: string[]): 
         0.2126 * lin(px[4 * i] / 255) + 0.7152 * lin(px[4 * i + 1] / 255) + 0.0722 * lin(px[4 * i + 2] / 255);
     return { Y, w, h, errors: u.errors() };
   });
-  await page.screenshot({ path: `artifacts/atmosphere/earth-now-${quality}-${W}x${H}.png` });
+  const tag = query ? 'full' : 'half';
+  await page.screenshot({ path: `artifacts/atmosphere/earth-now-medium-${tag}-${W}x${H}.png` });
   expect(out.errors).toEqual([]);
   expect([out.w, out.h]).toEqual([W, H]);
   return out.Y;
@@ -150,16 +154,21 @@ function banding(a: number[], b: number[]): { rows: number; cols: number; discPx
 test.describe('planet stripes', () => {
   test.use({ viewport: { width: W, height: H } });
 
-  test('earth-now on medium: half-resolution atmosphere without stripes (vs ultra)', async ({ page }) => {
+  test('earth-now on medium: half-resolution atmosphere without stripes (vs per pixel)', async ({ page }) => {
     test.setTimeout(120_000);
+    const t0 = Date.now();
     const problems: string[] = [];
-    const medium = await frameLuminance(page, 'medium', problems);
-    const ultra = await frameLuminance(page, 'ultra', problems);
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') problems.push(`console: ${msg.text()}`);
+    });
+    page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
+    const half = await frameLuminance(page, '');
+    const full = await frameLuminance(page, '&atmosphere.march=full');
     expect(problems).toEqual([]);
-    const b = banding(medium, ultra);
+    const b = banding(half, full);
     console.log(
-      `[atmosphere] earth-now ${W}x${H} medium - ultra banding: rows ${(100 * b.rows).toFixed(3)}%, ` +
-        `columns ${(100 * b.cols).toFixed(3)}% over ${b.discPx} px`,
+      `[atmosphere] earth-now ${W}x${H} medium half - per-pixel banding: rows ${(100 * b.rows).toFixed(3)}%, ` +
+        `columns ${(100 * b.cols).toFixed(3)}% over ${b.discPx} px (${((Date.now() - t0) / 1e3).toFixed(1)} s)`,
     );
     expect(b.discPx).toBeGreaterThan(40_000); // the lit half of the disc
     expect(b.rows).toBeLessThan(BANDING_LIMIT);

@@ -117,6 +117,11 @@ export interface AtmosphereGpuDeps {
   shading: Map<string, ShadingAtmosphereUniforms>;
   /** Bodies whose static LUTs are kept current every frame. */
   requested: Set<string>;
+  /**
+   * Test-only (`?atmosphere.march=full`): march per pixel on every preset, keeping the preset's other knobs, so
+   * the stripe regression test can compare medium's half-resolution march with medium's own per-pixel march.
+   */
+  fullResMarch?: boolean;
 }
 
 /** Creates the shared shading uniforms for a body (T = 1 until its LUT is ready). */
@@ -234,7 +239,7 @@ export class AtmosphereGpu implements ScreenPass {
 
   /** The march target for this frame's preset (null: march per pixel in the composite). */
   private marchTargetFor(preset: QualityPreset): WebGLRenderTarget | null {
-    const scale = MARCH_SCALE[preset] ?? 0.5;
+    const scale = this.deps.fullResMarch ? 1 : (MARCH_SCALE[preset] ?? 0.5);
     if (scale >= 1) {
       this.marchTarget?.dispose();
       this.marchTarget = null;

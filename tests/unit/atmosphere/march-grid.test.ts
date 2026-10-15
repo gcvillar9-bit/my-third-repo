@@ -110,4 +110,57 @@ describe('outside-view march grid', () => {
     expect(Math.abs(acc.L[1] / ref.L[1] - 1)).toBeLessThan(0.03);
     expect(Math.abs(acc.T[1] / ref.T[1] - 1)).toBeLessThan(0.03);
   });
+
+  it('stays close to a converged 2000-step reference across the disc, the rim and the limb', () => {
+    const RADII: Record<string, number> = { earth: 6378137, mars: 3396190, venus: 6051800, titan: 2574730 };
+    // Bounds on the relative error of L (green), Sun 40° off the view axis: 3% for Earth, Mars and Venus, 4% for
+    // Titan's deep hazy shell. Measured when set (max over disc / limb): Earth 2.67% / 0.32%, Mars 1.15% / 0.13%,
+    // Venus 2.45% / 0.11%, Titan 1.41% / 1.03%.
+    const BOUND: Record<string, number> = { earth: 0.03, mars: 0.03, venus: 0.03, titan: 0.04 };
+    for (const id of Object.keys(RADII)) {
+      const p = paramsFromRow(
+        ATMOSPHERE_ROWS.find((r) => r.id === id)!,
+        RADII[id],
+      );
+      const lu: Luts = {
+        trans: {
+          sample: (u: number, v: number) => transmittance(p, ...transmittanceParams(p, u, v)),
+        } as unknown as Lut2D,
+        ms: null,
+      };
+      const shell = p.topKm - p.bottomKm;
+      const d = 3 * p.bottomKm;
+      const o: V3 = [0, 0, d];
+      let worstDisc = 0;
+      let worstLimb = 0;
+      // Disc: 0 to 0.999 of the disc radius.
+      const amax = Math.asin(p.bottomKm / d);
+      for (const f of [0, 0.3, 0.6, 0.8, 0.9, 0.95, 0.98, 0.99, 0.995, 0.999]) {
+        const a = Math.asin(f * Math.sin(amax));
+        const rd: V3 = [Math.sin(a), 0, -Math.cos(a)];
+        const tStart = raySphere(o, rd, p.topKm)![0];
+        const tEnd = raySphere(o, rd, p.bottomKm)![0];
+        const got = marchGrid(p, lu, o, rd, sun, tEnd, tEnd - tStart, -1, CAP).L[1];
+        const ref = march(p, lu, o, rd, sun, tStart, tEnd, 2000, true, false).L[1];
+        worstDisc = Math.max(worstDisc, Math.abs(got / ref - 1));
+      }
+      // Limb: tangent heights from just above the ground to near the top of the shell.
+      for (const h of [0.002, 0.01, 0.05, 0.1, 0.2, 0.4, 0.7, 0.9]) {
+        const s = (p.bottomKm + h * shell) / d;
+        const rd: V3 = [s, 0, -Math.sqrt(1 - s * s)];
+        const [t0, t1] = raySphere(o, rd, p.topKm)!;
+        const tc = -(o[0] * rd[0] + o[1] * rd[1] + o[2] * rd[2]);
+        const acc = marchGrid(p, lu, o, rd, sun, tc, tc - t0, -1, CAP / 2);
+        marchGrid(p, lu, o, rd, sun, tc, t1 - tc, 1, CAP / 2, acc);
+        const ref = march(p, lu, o, rd, sun, t0, tc, 2000, true, false);
+        march(p, lu, o, rd, sun, tc, t1, 2000, false, false, ref);
+        worstLimb = Math.max(worstLimb, Math.abs(acc.L[1] / ref.L[1] - 1));
+      }
+      console.log(
+        `[march-grid] ${id}: max |L/L_ref - 1| disc ${(100 * worstDisc).toFixed(2)}%, limb ${(100 * worstLimb).toFixed(2)}%`,
+      );
+      expect(worstDisc).toBeLessThan(BOUND[id]);
+      expect(worstLimb).toBeLessThan(BOUND[id]);
+    }
+  });
 });
