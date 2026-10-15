@@ -34,7 +34,8 @@ heic0601a mosaic (1280 px copy, 1.39"/px). Hand-entered rows live in `src/module
 6. **Colours.** Linear photo RGB is unmixed into three components (Hα+[NII], [OIII]+Hβ, scattered light) with a typical
    camera response per component, each kept as luminance. `orion-emission.webp` (near-lossless, so no chroma
    subsampling mixes the components) stores the observed column radiance of the three components as (L / lRef)^(1/4).
-7. **Maps** (`orion-maps.webp`, 512², lossless): R = dust optical depth τ_V of the lanes (6 × the photo's local
+7. **Maps** (`orion-maps.webp`, 512², lossless; a separate texture rather than the emission's alpha channel, because
+   browsers may premultiply image alpha on decode and lose the colour where τ is small): R = dust optical depth τ_V of the lanes (6 × the photo's local
    log-deficit against its upper envelope over ~1.5', above 0.12, only in brown-red or dark pixels inside nebular
    light; max 2), G = z displacement (high-passed log brightness), B = thickness noise (seeded fBm).
 8. **Hubble core** (`orion-core.webp`, 1024² over ±13'): registered by a similarity fit on the Trapezium (flux-weighted
@@ -72,7 +73,7 @@ every `NEB_*` constant of the GLSL comes from `nebulaGlslDefines()`.
 
 A background-layer Renderable modelled on `milkyway/galaxy.ts`:
 
-- The eight corners of the box (±ξmax·(D + zMax), z from −3.4 to 1.8 pc) are projected; the march covers only that
+- The eight corners of the box (±ξmax·(D + zMax) ≈ ±6.3 pc, z from −4.0 to 2.45 pc, a conservative bound of every layer) are projected; the march covers only that
   screen rect (the whole screen when the camera is inside the box or the box straddles the camera plane). Below 4 px
   on screen nothing runs.
 - Reduced-resolution march into a HalfFloat target: radiance of the three components (cd/m² × 1000) and the V-band
