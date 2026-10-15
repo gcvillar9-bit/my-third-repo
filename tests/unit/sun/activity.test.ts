@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { parseInstant } from '../../../src/core/time';
 import {
+  MAX_FILAMENTS,
+  MAX_REGIONS,
   MAX_SPOTS,
   SunActivity,
   activeGroups,
+  filamentAngle,
+  filamentPoints,
+  filaments,
   flareAt,
+  groupAxes,
   prominences,
   rotationPeriodDays,
   sunspotNumber,
@@ -104,7 +110,88 @@ describe('sun activity (simulated)', () => {
     expect(pr.length).toBeGreaterThanOrEqual(6);
     for (const p of pr.filter((q) => q.type === 0)) {
       expect(p.height * 696).toBeGreaterThanOrEqual(9.9);
-      expect(p.height * 696).toBeLessThanOrEqual(101);
+      expect(p.height * 696).toBeLessThanOrEqual(121);
+    }
+  });
+
+  it('groups are bipolar: a compact leading spot, a fragmented following cluster, pores', () => {
+    const groups = activeGroups(jd('2024-10-10T12:00:00Z'));
+    const big = groups.filter((g) => g.size > 0.4 && g.strength > 0.5);
+    expect(big.length).toBeGreaterThan(0);
+    for (const g of big) {
+      const [lead, ...rest] = g.spots;
+      expect(lead.penumbra).toBe(true);
+      for (const s of rest) expect(s.umbraM).toBeLessThan(lead.umbraM);
+      // Along the Joy-tilted axis: the leading spot ahead of the centre, most others behind it.
+      const { axis } = groupAxes(g);
+      const along = (d: number[]) => d.reduce((a, v, k) => a + (v - g.centre[k]) * axis[k], 0);
+      expect(along(lead.dir)).toBeGreaterThan(0);
+      expect(rest.filter((s) => along(s.dir) < 0).length).toBeGreaterThanOrEqual(2);
+    }
+    const all = groups.flatMap((g) => g.spots);
+    expect(all.some((s) => !s.penumbra)).toBe(true); // decayed / small spots are pores
+    for (const s of all) {
+      expect(s.seed).toBeGreaterThanOrEqual(0);
+      expect(s.seed).toBeLessThan(128);
+      expect(s.penumbra).toBe(s.umbraM > 1.6e6);
+    }
+  });
+
+  it('packs the visible hemisphere first when the spots outnumber the uniform slots', () => {
+    const t = jd('2024-10-10T12:00:00Z');
+    const groups = activeGroups(t);
+    expect(groups.reduce((n, g) => n + g.spots.length, 0)).toBeGreaterThan(MAX_SPOTS); // crowded
+    for (const v of [
+      [3, 0, 0],
+      [-3, 0, 0],
+      [0, 2, 1],
+    ] as [number, number, number][]) {
+      const a = new SunActivity();
+      a.update(t, v);
+      expect(a.spotCount).toBeLessThanOrEqual(MAX_SPOTS);
+      expect(a.regionCount).toBeLessThanOrEqual(MAX_REGIONS);
+      const d = Math.hypot(...v);
+      const visible = groups.filter((g) => g.centre.reduce((s, c, k) => s + c * v[k], 0) / d > 1 / d - 0.15);
+      // Every visible group whose spots fit is packed (regions carry the group centres).
+      const packed = new Set<string>();
+      for (let i = 0; i < a.regionCount; i++)
+        packed.add([0, 1, 2].map((k) => a.regions[i * 4 + k].toFixed(4)).join());
+      const missing = visible.filter(
+        (g) => !packed.has(g.centre.map((c) => Math.fround(c).toFixed(4)).join()),
+      );
+      expect(missing.length).toBeLessThanOrEqual(1);
+      // w = +/-(seed + umbra radius): integer seed < 128, radius < 0.02 R; negative for pores.
+      for (let i = 0; i < a.spotCount; i++) {
+        const w = Math.abs(a.spots[i * 4 + 3]);
+        expect(Math.floor(w)).toBeLessThan(128);
+        expect(w - Math.floor(w)).toBeGreaterThan(0);
+        expect(w - Math.floor(w)).toBeLessThan(0.02);
+      }
+    }
+  });
+
+  it('filaments are the quiescent prominences seen on the disk', () => {
+    const t = jd('2024-10-19T12:00:00Z');
+    const pr = prominences(t, activeGroups(t));
+    const fl = filaments(pr);
+    expect(fl.length).toBeGreaterThanOrEqual(8);
+    expect(fl.length).toBeLessThanOrEqual(MAX_FILAMENTS);
+    for (const f of fl) {
+      expect(f.halfLength * 696).toBeGreaterThanOrEqual(20);
+      expect(f.halfLength).toBeLessThanOrEqual(0.45);
+      expect(Math.abs(filamentAngle(f.seed))).toBeLessThanOrEqual(0.7);
+      const pts = filamentPoints(f, 5);
+      expect(pts[2][0]).toBeCloseTo(f.dir[0], 6);
+      const end = Math.acos(pts[0].reduce((a, v, k) => a + v * f.dir[k], 0));
+      expect(end).toBeCloseTo(Math.atan(0.9 * f.halfLength), 6);
+    }
+    const a = new SunActivity();
+    a.update(t);
+    expect(a.filCount).toBe(fl.length);
+    for (let i = 0; i < a.filCount; i++) {
+      const w = a.fil[i * 4 + 3];
+      expect(Math.floor(w)).toBe(fl[i].seed);
+      expect(w - Math.floor(w)).toBeCloseTo(fl[i].halfLength, 4);
     }
   });
 });

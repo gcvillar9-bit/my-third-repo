@@ -131,12 +131,14 @@
     "frameDegPerDay": 14.1844
   },
   "spots": {
-    "source": "Typical sunspot-group properties: umbra ~20-30% and penumbra ~75-85% of the quiet-Sun intensity in white light, penumbra/umbra radius ~2.4, groups 50-200 Mm long, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
+    "source": "Typical sunspot-group properties: umbra ~5-30% of the quiet-Sun intensity in white light (darker in the core and in big spots), penumbra ~75-85%, penumbra/umbra radius ~2.4, spots without a penumbra (pores) below ~1.5-2 Mm radius, groups 50-200 Mm long with a compact leading spot and a fragmented following polarity, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; Borrero & Ichimoto 2011, Living Rev. Sol. Phys. 8, 4; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
     "approximate": true,
-    "umbraIntensity": [0.3, 0.22, 0.16],
-    "penumbraIntensity": 0.8,
+    "umbraIntensity": [0.15, 0.085, 0.05],
+    "penumbraIntensity": 0.62,
     "penumbraRatio": 2.4,
     "umbraRadiusMm": [2.5, 12.5],
+    "poreMaxRadiusMm": 1.6,
+    "minSpotRadiusMm": 0.5,
     "groupLengthMm": [50, 200],
     "lifeDays": [3, 38],
     "groupsPerSsn": 0.1333,
@@ -145,19 +147,22 @@
     "facularContrast": 0.18
   },
   "prominences": {
-    "source": "Prominences 10-100 Mm tall, H-alpha (656.3 nm) dominated, brighter than the inner corona in totality (~1e-5 of the disk); quiescent ones live weeks at filament latitudes 15-55 deg (Parenti 2014, Living Rev. Sol. Phys. 11, 1). Brightness factors are approximate",
+    "source": "Prominences 10-120 Mm tall (a few reach higher), H-alpha (656.3 nm) dominated, brighter than the inner corona in totality (~1e-5-1e-4 of the disk); quiescent ones live weeks at filament latitudes 15-55 deg and are seen against the disk as dark filaments a few times longer than they are tall (Parenti 2014, Living Rev. Sol. Phys. 11, 1; Mackay et al. 2010, Space Sci. Rev. 151, 333). Counts and brightness factors are approximate",
     "approximate": true,
-    "brightness": 3e-5,
+    "brightness": 4e-5,
     "chromosphereBrightness": 1.2e-5,
-    "colour": [1.0, 0.3, 0.42],
-    "heightMm": [10, 100],
+    "colour": [1.0, 0.22, 0.34],
+    "heightMm": [10, 120],
     "quiescentLatDeg": [15, 55],
-    "halphaBrightness": 0.3
+    "perSeries": [4, 4],
+    "maxLoops": 8,
+    "halphaBrightness": 0.8
   },
   "halpha": {
-    "source": "Look of narrowband H-alpha full-disk photos (deep red-orange disk, mild limb darkening); not physical exposure, luminance matched to the white-light disk mean",
+    "source": "Look of narrowband H-alpha full-disk photos (deep red-orange disk, mild limb darkening, dark filaments, bright plage); not physical exposure: the disk-mean luminance is luminanceScale times the white-light disk mean so the red channel stays below clipping",
     "approximate": true,
-    "colour": [1.0, 0.15, 0.025],
-    "limb": [0.6, 0.4]
+    "colour": [1.0, 0.075, 0.012],
+    "limb": [0.6, 0.4],
+    "luminanceScale": 0.28
   }
 }

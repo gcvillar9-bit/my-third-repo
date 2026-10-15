@@ -26,8 +26,8 @@ uniform vec3 uBaumP;      // Baumbach exponents p_i
 uniform float uShellR;    // shell radius, solar radii
 uniform float uCoronaOn;  // 0 in the H-alpha view (the white-light corona is hidden)
 uniform float uHalpha;
-uniform vec4 uProm[16];   // prominence anchors (dir, world axes; type 0 hedgerow / 1 loops)
-uniform vec4 uPromB[16];  // (height, half-width along the limb, seed, intensity), solar radii
+uniform vec4 uProm[32];   // prominence anchors (dir, world axes; type 0 hedgerow / 1 loops)
+uniform vec4 uPromB[32];  // (height, half-width along the limb, seed, intensity), solar radii
 uniform int uPromCount;
 uniform vec3 uPromL;      // cd/m2 per channel of a prominence of unit field (physical, pink)
 uniform vec3 uHaPromL;    // same in the H-alpha view (relative to the H-alpha disk)
@@ -52,12 +52,46 @@ float coronaNoise(vec3 x) {
     f.z);
 }
 
+// Active-region loop system in (u, y) units: several strands with their own footpoints, heights and
+// lean, each wiggling and varying in thickness and brightness along the arch (knots and gaps), brighter
+// legs, and faint vertical threads (coronal rain) under the arches.
+float promLoops(float u, float y, float seed) {
+  float b = 0.0;
+  float env = 0.0;
+  for (int k = 0; k < 6; k++) {
+    float fk = float(k);
+    float h1 = coronaHash(vec3(seed * 71.0, fk, 1.0));
+    float h2 = coronaHash(vec3(seed * 53.0, fk, 2.0));
+    float h3 = coronaHash(vec3(seed * 37.0, fk, 3.0));
+    float c = (h1 - 0.5) * 0.7;              // arch centre along the limb
+    float w = 0.45 + 0.5 * h2;               // half-span between the footpoints
+    float ht = 0.4 + 0.6 * h3;               // apex height
+    float lean = (h2 - 0.5) * 0.6;
+    float uu = (u - c - lean * y) / w;
+    float yy = y / ht;
+    float e = length(vec2(uu, yy));
+    float s = atan(yy, uu);                  // 0..pi from one footpoint to the other
+    float wig = 0.07 * (coronaNoise(vec3(s * 3.0 + fk * 5.3, seed * 19.0, 1.0)) - 0.5);
+    float th = 0.025 + 0.045 * coronaNoise(vec3(s * 2.5 + fk * 2.1, seed * 13.0, 4.0));
+    float t = (e - 1.0 + wig) / th;
+    float along = coronaNoise(vec3(s * 5.0 + fk * 3.7, seed * 29.0, 7.0));
+    float br = (0.25 + 1.4 * along * along) * (1.0 + 0.6 * (1.0 - sin(clamp(s, 0.0, 3.1416))));
+    b += exp(-t * t) * br * (1.0 - 0.08 * fk);
+    env = max(env, 1.0 - smoothstep(0.85, 1.05, e));
+  }
+  float rain = smoothstep(0.55, 0.85, coronaNoise(vec3(u * 34.0, y * 1.6, seed * 41.0)));
+  return b + 0.35 * env * rain * (1.0 - 0.6 * y);
+}
+
 // Prominences above the limb: each anchor is projected onto the sky plane; (u, y) are the angle along
 // the limb in half-widths and the height in prominence heights. An anchor behind the limb by depth
 // hides the base of its prominence; one well in front is seen on the disk (as a filament) instead.
 float promField(vec3 q, float h, vec3 n, float rOverD) {
   float sum = 0.0;
-  for (int i = 0; i < 16; i++) {
+  vec3 qs = q - dot(q, n) * n; // q on the sky plane (q itself leans towards the camera)
+  float qsl = length(qs);
+  vec3 qp = qsl > 1e-6 ? qs / qsl : q;
+  for (int i = 0; i < 32; i++) {
     if (i >= uPromCount) break;
     vec4 A = uProm[i];
     vec4 B = uPromB[i];
@@ -72,6 +106,7 @@ float promField(vec3 q, float h, vec3 n, float rOverD) {
     float apl = length(ap);
     if (apl < 1e-3) continue;
     ap /= apl;
+    if (dot(ap, qp) < cos(min(1.5 * W, 3.0))) continue; // cheap cull before the atan
     float u = atan(dot(cross(ap, q), n), dot(ap, q)) / W;
     if (abs(u) > 1.5) continue;
     float y = hh / H;
@@ -85,13 +120,7 @@ float promField(vec3 q, float h, vec3 n, float rOverD) {
       float knots = coronaNoise(vec3(u * 14.0, y * 9.0, B.z * 3.0));
       b = env * (0.1 + 2.2 * thr * thr * (0.4 + thr2) * (0.6 + 0.8 * knots));
     } else {
-      for (int k = 0; k < 3; k++) {
-        float fk = float(k);
-        float e = length(vec2(u * (1.0 + 0.22 * fk) + 0.1 * fk, y * (1.0 + 0.3 * fk)));
-        float t = (e - 1.0 + 0.06 * (coronaNoise(vec3(u * 6.0, fk, B.z * 30.0)) - 0.5)) / 0.06;
-        b += exp(-t * t) * (1.0 - 0.25 * fk);
-      }
-      b *= 0.9 + 0.4 * coronaNoise(vec3(u * 15.0, y * 15.0, B.z * 20.0));
+      b = promLoops(u, y, B.z);
     }
     sum += b * vis * B.w;
   }

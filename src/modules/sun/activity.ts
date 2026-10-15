@@ -9,15 +9,21 @@
 import data from './sun-data.json';
 
 const DEG = Math.PI / 180;
+type V3 = [number, number, number];
 const JD_J2000 = 2_451_545;
 const R_SUN = 6.957e8;
 const YEAR_DAYS = 365.25;
 
-export const MAX_SPOTS = 48;
+export const MAX_SPOTS = 64;
 export const MAX_REGIONS = data.spots.maxGroups;
-export const MAX_PROMINENCES = 16;
-/** Filament pattern bucket, days (filaments re-form, and the old ones vanish, every bucket). */
-export const FILAMENT_BUCKET_DAYS = 13;
+export const MAX_PROMINENCES = 32;
+/** On-disk H-alpha filaments (the quiescent prominences seen against the disk). */
+export const MAX_FILAMENTS = 24;
+/**
+ * Leading and following polarity centres sit at +/-POLE_U region radii along the group axis (the shader's
+ * pore field and flare ribbons assume it).
+ */
+export const POLE_U = 0.5;
 
 export const jdToYear = (jd: number): number => 2000 + (jd - JD_J2000) / YEAR_DAYS;
 
@@ -95,12 +101,6 @@ export function rotationRateDegPerDay(latRad: number): number {
 export const rotationPeriodDays = (latRad: number): number => 360 / rotationRateDegPerDay(latRad);
 /** Drift rate relative to the `sun.fixed` frame (IAU W-dot), deg/day. */
 export const driftDegPerDay = (latRad: number): number => rotationRateDegPerDay(latRad) - ROT.frameDegPerDay;
-/** Shader coefficients (A - frame, B, C), deg/day: drift = x + y s^2 + z s^4. */
-export const DRIFT_COEFFS: readonly [number, number, number] = [
-  ROT.aDegPerDay - ROT.frameDegPerDay,
-  ROT.bDegPerDay,
-  ROT.cDegPerDay,
-];
 
 // --- Deterministic randomness -------------------------------------------------------------------
 
@@ -149,8 +149,12 @@ const MEAN_LIFE = SP.lifeDays[0] + (SP.lifeDays[1] - SP.lifeDays[0]) / 3; // siz
 export interface Spot {
   /** Unit direction, body-fixed (sun.fixed) axes. */
   dir: [number, number, number];
-  /** Umbra radius, m (the penumbra reaches penumbraRatio times further). */
+  /** Umbra radius, m (the penumbra reaches about penumbraRatio times further). */
   umbraM: number;
+  /** False for a pore (a small umbra-like spot without a penumbra). */
+  penumbra: boolean;
+  /** 0..127 shape seed (outline, filament twist, light bridge), stable over the spot's life. */
+  seed: number;
 }
 
 export interface SpotGroup {
@@ -182,18 +186,6 @@ const dirOf = (latDeg: number, lonDeg: number): [number, number, number] => {
   const lo = lonDeg * DEG;
   return [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)];
 };
-
-function offsetDir(
-  c: [number, number, number],
-  axis: [number, number, number],
-  ang: number,
-): [number, number, number] {
-  const x = c[0] + axis[0] * ang;
-  const y = c[1] + axis[1] * ang;
-  const z = c[2] + axis[2] * ang;
-  const l = Math.hypot(x, y, z);
-  return [x / l, y / l, z / l];
-}
 
 /** Flare brightness of a group at `jd` (deterministic per hour bucket; minutes to ~3 h long). */
 export function flareAt(id: number, size: number, jd: number): number {
@@ -271,39 +263,80 @@ export function activeGroups(jd: number): SpotGroup[] {
     }
   }
   out.sort((a, b) => b.size * b.strength - a.size * a.strength);
-  for (const g of out) {
-    const lo = g.lonDeg * DEG;
-    const la = g.latDeg * DEG;
-    const east: [number, number, number] = [-Math.sin(lo), Math.cos(lo), 0];
-    const north: [number, number, number] = [
-      -Math.sin(la) * Math.cos(lo),
-      -Math.sin(la) * Math.sin(lo),
-      Math.cos(la),
-    ];
-    const ti = g.tiltDeg * DEG;
-    const s = Math.sign(g.latDeg);
-    const axis: [number, number, number] = [0, 1, 2].map(
-      (k) => Math.cos(ti) * east[k] - s * Math.sin(ti) * north[k],
-    ) as [number, number, number];
-    const half = (0.375 * g.lengthM * (0.6 + 0.4 * Math.min(1, g.strength * 2))) / R_SUN;
-    const ru = (SP.umbraRadiusMm[0] + (SP.umbraRadiusMm[1] - SP.umbraRadiusMm[0]) * g.size) * 1e6;
-    g.spots.push({ dir: offsetDir(g.centre, axis, half), umbraM: ru * Math.sqrt(g.strength) });
-    g.spots.push({ dir: offsetDir(g.centre, axis, -half), umbraM: 0.7 * ru * g.strength });
-    if (g.size > 0.35)
-      g.spots.push({ dir: offsetDir(g.centre, axis, -0.25 * half), umbraM: 0.35 * ru * g.strength });
-  }
+  for (const g of out) g.spots = groupSpots(g);
   return out;
 }
 
-// --- Prominences ----------------------------------------------------------------------------------
+/** Unit vectors of a group's frame: the Joy-tilted axis (following -> leading) and the across direction. */
+export function groupAxes(g: SpotGroup): { axis: V3; across: V3 } {
+  const lo = g.lonDeg * DEG;
+  const la = g.latDeg * DEG;
+  const east: V3 = [-Math.sin(lo), Math.cos(lo), 0];
+  const north: V3 = [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)];
+  const ti = g.tiltDeg * DEG;
+  const s = Math.sign(g.latDeg);
+  const axis = [0, 1, 2].map((k) => Math.cos(ti) * east[k] - s * Math.sin(ti) * north[k]) as V3;
+  const c = g.centre;
+  const across: V3 = [
+    c[1] * axis[2] - c[2] * axis[1],
+    c[2] * axis[0] - c[0] * axis[2],
+    c[0] * axis[1] - c[1] * axis[0],
+  ];
+  return { axis, across };
+}
+
+/** Half the leading-following separation, solar radii (the group spreads as it grows). */
+export const groupHalfLength = (g: SpotGroup): number =>
+  (0.375 * g.lengthM * (0.6 + 0.4 * Math.min(1, g.strength * 2))) / R_SUN;
+
+/**
+ * The resolved spots of a bipolar group: a compact leading spot (longest lived), a following spot that
+ * decays first with a few fragments around it, a leading satellite and middle spots in big groups. Spots
+ * below `poreMaxRadiusMm` lose their penumbra (pores); the many smaller pores are procedural (shader).
+ */
+export function groupSpots(g: SpotGroup): Spot[] {
+  const { axis, across } = groupAxes(g);
+  const half = groupHalfLength(g);
+  const ru = (SP.umbraRadiusMm[0] + (SP.umbraRadiusMm[1] - SP.umbraRadiusMm[0]) * g.size) * 1e6;
+  const r = rng(hashInt(g.id * 977 + 5));
+  const spots: Spot[] = [];
+  const add = (du: number, dv: number, umbraM: number, force = false) => {
+    if (umbraM < SP.minSpotRadiusMm * 1e6 && !force) return;
+    const x = g.centre.map((v, k) => v + (axis[k] * du + across[k] * dv) * half);
+    const l = Math.hypot(...x);
+    spots.push({
+      dir: [x[0] / l, x[1] / l, x[2] / l],
+      umbraM,
+      penumbra: umbraM > SP.poreMaxRadiusMm * 1e6,
+      seed: hashInt(g.id * 31 + spots.length) % 128,
+    });
+  };
+  const st = g.strength;
+  // Leading spot: compact and longest lived, always first (the sunspot bookmark aims at it).
+  add(1 + 0.08 * (r() - 0.5), 0.1 * (r() - 0.5), ru * Math.sqrt(st), true);
+  // Following polarity: a main spot and fragments scattered around it.
+  add(-0.92 + 0.12 * (r() - 0.5), 0.2 * (r() - 0.5), (0.5 + 0.25 * r()) * ru * st);
+  const nf = g.size > 0.08 ? 1 + Math.floor(r() * (1.5 + 3 * g.size)) : 0;
+  for (let i = 0; i < nf; i++) {
+    const a = r() * 2 * Math.PI;
+    const d = 0.12 + 0.22 * r();
+    add(-0.92 + d * Math.cos(a), 0.8 * d * Math.sin(a), (0.16 + 0.24 * r()) * ru * st);
+  }
+  // A satellite behind the leading spot, and spots in the middle of big groups.
+  if (g.size > 0.22) add(0.72 - 0.15 * r(), 0.25 * (r() - 0.5), (0.18 + 0.14 * r()) * ru * Math.sqrt(st));
+  if (g.size > 0.4) add(-0.15 + 0.4 * (r() - 0.5), 0.3 * (r() - 0.5), (0.14 + 0.16 * r()) * ru * st);
+  return spots;
+}
+
+// --- Prominences and filaments --------------------------------------------------------------------
 
 export interface Prominence {
   /** Unit anchor direction, body-fixed. */
-  dir: [number, number, number];
+  dir: V3;
   /** Height and half-width along the limb, solar radii. */
   height: number;
   halfWidth: number;
-  /** 0 = quiescent hedgerow, 1 = active-region loop. */
+  /** 0 = quiescent hedgerow, 1 = active-region loops. */
   type: 0 | 1;
   seed: number;
   /** 0..1 fade (birth / disappearance). */
@@ -313,7 +346,11 @@ export interface Prominence {
 const PR = data.prominences;
 const Q_BUCKET = 24;
 
-/** Prominence anchors at `jd`: quiescent ones on filament latitudes plus loops over big groups. */
+/**
+ * Prominence anchors at `jd`: quiescent ones at filament latitudes (two staggered series that re-form
+ * every 24 days, drifting with the differential rotation; their number follows the cycle) plus loop
+ * systems over big groups. A quiescent prominence seen against the disk is a filament (see filaments()).
+ */
 export function prominences(jd: number, groups: readonly SpotGroup[]): Prominence[] {
   const out: Prominence[] = [];
   const ssn = sunspotNumber(jd);
@@ -324,7 +361,7 @@ export function prominences(jd: number, groups: readonly SpotGroup[]): Prominenc
     const tau = jd - start;
     const fade = smoothstep(0, 2, tau) * (1 - smoothstep(Q_BUCKET - 2, Q_BUCKET, tau));
     const r = rng(hashInt(k * 2 + series + 99_991));
-    const n = 3 + Math.round(2 * Math.min(1.5, ssn / 160));
+    const n = PR.perSeries[0] + Math.round(PR.perSeries[1] * Math.min(1.5, ssn / 160));
     for (let i = 0; i < n; i++) {
       const lat =
         (r() < 0.5 ? -1 : 1) *
@@ -343,9 +380,11 @@ export function prominences(jd: number, groups: readonly SpotGroup[]): Prominenc
       });
     }
   }
+  let loops = 0;
   for (const g of groups) {
-    if (out.length >= MAX_PROMINENCES) break;
+    if (loops >= PR.maxLoops) break;
     if (g.size < 0.3 || g.strength < 0.3) continue;
+    loops++;
     out.push({
       dir: g.centre,
       height: (0.3 * g.lengthM) / R_SUN,
@@ -358,11 +397,58 @@ export function prominences(jd: number, groups: readonly SpotGroup[]): Prominenc
   return out.slice(0, MAX_PROMINENCES);
 }
 
+export interface Filament {
+  /** Unit centre direction, body-fixed. */
+  dir: V3;
+  /** Half-length along the disk, solar radii. */
+  halfLength: number;
+  /** 0..255 shape seed (sinuosity, width, barbs; the shader derives the orientation from it too). */
+  seed: number;
+  intensity: number;
+}
+
+/** Long-axis angle from local east (rad), mostly east-west; photosphere.glsl computes the same. */
+export const filamentAngle = (seed: number): number => (((seed * 0.618034) % 1) - 0.5) * 1.4;
+
+/**
+ * On-disk H-alpha filaments: the quiescent prominences seen from above (long, thin, sinuous dark
+ * ribbons, a few times longer than the prominence is tall).
+ */
+export function filaments(proms: readonly Prominence[]): Filament[] {
+  return proms
+    .filter((p) => p.type === 0 && p.intensity > 0)
+    .slice(0, MAX_FILAMENTS)
+    .map((p) => ({
+      dir: p.dir,
+      halfLength: Math.min(0.45, Math.max(p.halfWidth * 1.4, 2.2 * p.height)),
+      seed: Math.floor(p.seed * 256) % 256,
+      intensity: p.intensity,
+    }));
+}
+
+/** `n` unit directions along a filament's long axis (for framing views on it). */
+export function filamentPoints(f: Filament, n = 7): V3[] {
+  const A = f.dir;
+  const el = Math.hypot(A[0], A[1]) || 1;
+  const e: V3 = [-A[1] / el, A[0] / el, 0];
+  const nn: V3 = [A[1] * e[2] - A[2] * e[1], A[2] * e[0] - A[0] * e[2], A[0] * e[1] - A[1] * e[0]];
+  const a = filamentAngle(f.seed);
+  const ax = [0, 1, 2].map((k) => Math.cos(a) * e[k] + Math.sin(a) * nn[k]);
+  const out: V3[] = [];
+  for (let i = 0; i < n; i++) {
+    const u = n === 1 ? 0 : (2 * i) / (n - 1) - 1;
+    const x = A.map((v, k) => v + ax[k] * u * 0.9 * f.halfLength);
+    const l = Math.hypot(...x);
+    out.push([x[0] / l, x[1] / l, x[2] / l]);
+  }
+  return out;
+}
+
 // --- Uniform packing --------------------------------------------------------------------------------
 
 /** Shared per-frame activity state (photosphere and corona read the same arrays). */
 export class SunActivity {
-  /** (dir.xyz body-fixed, umbra radius in solar radii). */
+  /** (dir.xyz body-fixed, +/-(seed + umbra radius in solar radii); negative for a pore). */
   readonly spots = new Float32Array(MAX_SPOTS * 4);
   spotCount = 0;
   /** (centre.xyz, radius in solar radii) and (tilt rad signed, strength, flare, seed). */
@@ -373,47 +459,81 @@ export class SunActivity {
   readonly prom = new Float32Array(MAX_PROMINENCES * 4);
   readonly promB = new Float32Array(MAX_PROMINENCES * 4);
   promCount = 0;
-  /** Filament field: (seed, days since bucket start, fade, 0). */
-  readonly filament = [0, 0, 0, 0];
+  /** Filaments: (dir.xyz * intensity, seed + half-length): integer part 0..255, fraction in radii. */
+  readonly fil = new Float32Array(MAX_FILAMENTS * 4);
+  filCount = 0;
   groups: SpotGroup[] = [];
   private jd = NaN;
+  private viewer: V3 | null = null;
+  private packedFor = '';
 
-  update(jd: number): void {
-    if (jd === this.jd) return;
-    this.jd = jd;
-    const groups = (this.groups = activeGroups(jd));
+  /**
+   * Recomputes the activity for `jd`. `viewer` (body-fixed camera position in solar radii) only matters
+   * when the spots outnumber the uniform slots: groups on the visible hemisphere are packed first.
+   */
+  update(jd: number, viewer?: V3 | null): void {
+    if (viewer !== undefined) this.viewer = viewer;
+    if (jd !== this.jd) {
+      this.jd = jd;
+      this.groups = activeGroups(jd);
+      const pr = prominences(jd, this.groups);
+      this.prom.fill(0);
+      this.promB.fill(0);
+      pr.forEach((p, i) => {
+        this.prom.set([...p.dir, p.type], i * 4);
+        this.promB.set([p.height, p.halfWidth, p.seed, p.intensity], i * 4);
+      });
+      this.promCount = pr.length;
+      const fl = filaments(pr);
+      this.fil.fill(0);
+      fl.forEach((f, i) => {
+        const k = Math.max(f.intensity, 1e-3);
+        this.fil.set(
+          [f.dir[0] * k, f.dir[1] * k, f.dir[2] * k, f.seed + Math.min(f.halfLength, 0.999)],
+          i * 4,
+        );
+      });
+      this.filCount = fl.length;
+      this.packedFor = '';
+    }
+    this.pack();
+  }
+
+  private pack(): void {
+    const groups = this.groups;
+    const total = groups.reduce((n, g) => n + g.spots.length, 0);
+    const v = this.viewer;
+    const crowded = total > MAX_SPOTS || groups.length > MAX_REGIONS;
+    // Re-pack only when the jd changed, or the viewer moved enough to matter for a crowded Sun.
+    const key = crowded && v ? v.map((x) => Math.round(x * 20)).join(',') : 'all';
+    if (key === this.packedFor) return;
+    this.packedFor = key;
+    let order = groups;
+    if (crowded && v) {
+      const d = Math.hypot(...v);
+      const horizon = 1 / Math.max(d, 1.0001) - 0.15;
+      const seen = (g: SpotGroup) =>
+        (g.centre[0] * v[0] + g.centre[1] * v[1] + g.centre[2] * v[2]) / d > horizon;
+      order = [...groups.filter(seen), ...groups.filter((g) => !seen(g))];
+    }
     this.spots.fill(0);
     this.regions.fill(0);
     this.regionsB.fill(0);
     let ns = 0;
     let nr = 0;
-    for (const g of groups) {
+    for (const g of order) {
       if (nr >= MAX_REGIONS) break;
       if (ns + g.spots.length > MAX_SPOTS) continue;
       for (const s of g.spots) {
-        this.spots.set([...s.dir, s.umbraM / R_SUN], ns * 4);
+        // w = +/-(seed + umbra radius in radii): the radius stays below 0.02, the seed below 128.
+        this.spots.set([...s.dir, (s.penumbra ? 1 : -1) * (s.seed + s.umbraM / R_SUN)], ns * 4);
         ns++;
       }
-      const rad = (0.5 * g.lengthM + SP.umbraRadiusMm[1] * 2e6) / R_SUN;
-      this.regions.set([...g.centre, rad * (0.6 + 0.4 * Math.sqrt(g.strength))], nr * 4);
+      this.regions.set([...g.centre, groupHalfLength(g) / POLE_U], nr * 4);
       this.regionsB.set([Math.sign(g.latDeg) * g.tiltDeg * DEG, g.strength, g.flare, g.seed], nr * 4);
       nr++;
     }
     this.spotCount = ns;
     this.regionCount = nr;
-    const pr = prominences(jd, groups);
-    this.prom.fill(0);
-    this.promB.fill(0);
-    pr.forEach((p, i) => {
-      this.prom.set([...p.dir, p.type], i * 4);
-      this.promB.set([p.height, p.halfWidth, p.seed, p.intensity], i * 4);
-    });
-    this.promCount = pr.length;
-    const k = Math.floor(jd / FILAMENT_BUCKET_DAYS);
-    const tau = jd - k * FILAMENT_BUCKET_DAYS;
-    this.filament[0] = (hashInt(k) % 1000) / 10;
-    this.filament[1] = tau;
-    this.filament[2] =
-      smoothstep(0, 1, tau) * (1 - smoothstep(FILAMENT_BUCKET_DAYS - 1, FILAMENT_BUCKET_DAYS, tau));
   }
 }

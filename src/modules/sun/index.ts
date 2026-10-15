@@ -7,11 +7,11 @@
  * follow the solar cycle and differential rotation, and the 'sun.filter' setting (Off / H-alpha).
  * See docs/modules/sun.md.
  */
-import type { ModuleContext, UniverseModule } from '../../core/contracts';
+import type { InfoCard, ModuleContext, UniverseModule } from '../../core/contracts';
 import { quat, qrotate, vec3 } from '../../core/math64';
 import { SUN_TEFF } from '../../core/photometry';
 import { parseInstant } from '../../core/time';
-import { SunActivity, activeGroups, prominences } from './activity';
+import { SunActivity, activeGroups } from './activity';
 import {
   HALPHA_BOOKMARK_ID,
   HALPHA_DATE,
@@ -19,10 +19,13 @@ import {
   buildHalphaBookmark,
   buildSunCloseup,
   buildSunspotBookmark,
+  pickHalphaView,
 } from './bookmarks';
 import { createCorona } from './corona';
+import { withActivity } from './info';
 import { SUN_MODULE_ID, starSurface } from './public';
 import type { SunViewSwitches } from './shading';
+import data from './sun-data.json';
 
 /** Renderable id of the Sun v1 glow quad (solar-system). */
 export const V1_GLOW_ID = 'solar-system.sun-glow';
@@ -50,8 +53,16 @@ const sun: UniverseModule = {
     if (!body) return;
     const activity = new SunActivity();
     const view: SunViewSwitches = { halpha: false };
+    const fixed = body.fixedFrame ?? 'sun.fixed';
+    const hasFixed = frames.has(fixed) && frames.has(body.frame);
     registry.setSurfaceShading(
-      starSurface(SUN_TEFF, body.radius, { bodyId: 'sun', priority: 10, activity, view }),
+      starSurface(SUN_TEFF, body.radius, {
+        bodyId: 'sun',
+        priority: 10,
+        activity,
+        view,
+        frames: hasFixed ? { body: body.frame, fixed } : undefined,
+      }),
     );
     if (registry.renderables().some((r) => r.id === V1_GLOW_ID)) registry.removeRenderable(V1_GLOW_ID);
     registry.addRenderable(
@@ -74,7 +85,6 @@ const sun: UniverseModule = {
     });
 
     const bookmarks = [buildSunCloseup(body.radius)];
-    const fixed = body.fixedFrame ?? 'sun.fixed';
     if (frames.has(fixed)) {
       const toSun = (jd: number) => {
         const q = frames.orientation(fixed, jd, quat());
@@ -87,35 +97,63 @@ const sun: UniverseModule = {
       };
       const jdSpots = parseInstant(SUNSPOT_DATE)!;
       const g = activeGroups(jdSpots)[0];
-      if (g)
-        bookmarks.push(buildSunspotBookmark(body.radius, jdSpots, g.centre, g.spots[0].dir, toSun(jdSpots)));
+      if (g && g.spots.length > 1) {
+        const [lead, follow] = g.spots;
+        const sep = Math.acos(
+          Math.min(
+            1,
+            lead.dir.reduce((s, v, k) => s + v * follow.dir[k], 0),
+          ),
+        );
+        const span = sep * body.radius + 2 * data.spots.penumbraRatio * (lead.umbraM + follow.umbraM) * 0.5;
+        bookmarks.push(
+          buildSunspotBookmark(body.radius, jdSpots, lead.dir, follow.dir, span, toSun(jdSpots)),
+        );
+      }
+      // H-alpha: a tall quiescent prominence on the limb, framed so filaments and plage show on the disk.
       const jdHa = parseInstant(HALPHA_DATE)!;
-      const tall = prominences(jdHa, activeGroups(jdHa))
-        .filter((p) => p.type === 0 && p.intensity > 0.9)
-        .sort((a, b) => b.height - a.height)[0];
-      if (tall) {
+      const pick = pickHalphaView(jdHa);
+      if (pick) {
         const m = toSun(jdHa);
-        bookmarks.push(buildHalphaBookmark(body.radius, jdHa, m(tall.dir), m([0, 0, 1])));
+        bookmarks.push(buildHalphaBookmark(body.radius, jdHa, m(pick.anchor), m([0, 0, 1]), pick.side));
       }
     }
     registry.addBookmarks(bookmarks);
 
-    // Reaching an H-alpha bookmark (palette, tour, URL) switches the filter on, like constellation lines.
-    const override = (ctx.env.params as URLSearchParams).get(SUN_FILTER_SETTING);
+    // The Sun's info card comes from solar-system; decorate it in place (keeping the provider order) so the
+    // simulated activity is labelled as such.
+    const ss = registry.infoProviders().find((p) => p.id === 'solar-system');
+    if (ss) {
+      const base = ss.info.bind(ss);
+      ss.info = async (id: string): Promise<InfoCard | null> => {
+        const card = await base(id);
+        if (id !== 'sun' || !card) return card;
+        return withActivity(card, ctx.clock.jd, view.halpha ? 'halpha' : 'off');
+      };
+    }
+
+    // Arriving at an H-alpha bookmark (palette, tour, URL) switches the filter on, like constellation lines.
+    // Only the arrival does: the filter can then be switched off in Settings while staying there. An explicit
+    // ?sun.filter= wins over the initial bookmark.
+    const params = ctx.env.params as URLSearchParams;
+    const override = params.get(SUN_FILTER_SETTING);
+    const startAt = FILTER_BOOKMARKS.includes(initialBookmark(ctx) ?? '');
     if (override === 'halpha' || override === 'off') ui.settings.set(SUN_FILTER_SETTING, override);
-    else if (FILTER_BOOKMARKS.includes(initialBookmark(ctx) ?? ''))
-      ui.settings.set(SUN_FILTER_SETTING, 'halpha');
+    else if (startAt) ui.settings.set(SUN_FILTER_SETTING, 'halpha');
+    let atFilterBookmark = startAt;
     const p = vec3();
     ctx.camera.subscribe(() => {
       if (ctx.camera.traveling) return;
       const st = ctx.camera.getState();
+      let at = false;
       for (const id of FILTER_BOOKMARKS) {
         const bm = registry.bookmark(id);
         if (!bm || !frames.has(st.frame)) continue;
         frames.convertPoint(st.frame, st.local, bm.frame, ctx.clock.jd, p);
-        const d = Math.hypot(p.x - bm.pos.x, p.y - bm.pos.y, p.z - bm.pos.z);
-        if (d < 1e-6 * body.radius) ui.settings.set(SUN_FILTER_SETTING, 'halpha');
+        if (Math.hypot(p.x - bm.pos.x, p.y - bm.pos.y, p.z - bm.pos.z) < 1e-6 * body.radius) at = true;
       }
+      if (at && !atFilterBookmark) ui.settings.set(SUN_FILTER_SETTING, 'halpha');
+      atFilterBookmark = at;
     });
   },
 };
