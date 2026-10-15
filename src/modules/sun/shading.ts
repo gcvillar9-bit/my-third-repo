@@ -23,6 +23,11 @@ import {
 } from './photometry';
 
 const R_SUN = 6.957e8;
+/**
+ * Sun radius in pixels below which the simulated activity is neither updated nor drawn (spots, prominences
+ * and helmet streamers are sub-pixel; this keeps a distant Sun free of per-frame activity work).
+ */
+export const ACTIVITY_MIN_PX = 2;
 
 export interface StarSurfaceOptions {
   /** Body id the shading applies to (default 'sun'). */
@@ -125,6 +130,13 @@ export function starSurface(teff: number, radius: number, opts: StarSurfaceOptio
       if (fr) {
         // Camera position relative to the star's centre, body-fixed axes, radii.
         view.toCamera(fr.body, ORIGIN, rel);
+        if (R / Math.max(Math.hypot(rel.x, rel.y, rel.z), 1) / view.pixelAngle < ACTIVITY_MIN_PX) {
+          uniforms.uSpotCount.value = 0;
+          uniforms.uRegionCount.value = 0;
+          uniforms.uFilCount.value = 0;
+          uniforms.uHalpha.value = opts.view?.halpha ? 1 : 0;
+          return;
+        }
         qrotateInv(rel, view.frameQuat(fr.fixed, q), rel);
         viewer[0] = -rel.x / R;
         viewer[1] = -rel.y / R;

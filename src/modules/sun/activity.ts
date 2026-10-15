@@ -48,9 +48,15 @@ const SHAPE_PEAK = shape(X_PEAK);
 
 export interface Cycle {
   n: number;
+  /** Smoothed minimum that starts the cycle (decimal year; also starts the butterfly). */
   minYear: number;
+  /** Smoothed maximum (display value). */
   maxYear: number;
+  /** Amplitude: the smoothed sunspot number at the peak of the fitted shape. */
   maxSsn: number;
+  /** Start and timescale of the fitted Hathaway shape, years. */
+  t0Year: number;
+  bYears: number;
 }
 
 const ROWS = data.cycle.rows;
@@ -59,16 +65,20 @@ const PERIOD = data.cycle.periodYears;
 /** Cycle `n` (table row, or the generic cycle repeated every `periodYears` outside the table). */
 export function cycle(n: number): Cycle {
   const row = ROWS.find((r) => r.cycle === n);
-  if (row) return { n, minYear: row.minYear, maxYear: row.maxYear, maxSsn: row.maxSsn };
+  if (row) {
+    const { minYear, maxYear, maxSsn, t0Year, bYears } = row;
+    return { n, minYear, maxYear, maxSsn, t0Year, bYears };
+  }
+  const G = data.cycle.generic;
   const ref = n < ROWS[0].cycle ? ROWS[0] : ROWS[ROWS.length - 1];
   const minYear = ref.minYear + (n - ref.cycle) * PERIOD;
-  return { n, minYear, maxYear: minYear + data.cycle.generic.riseYears, maxSsn: data.cycle.generic.maxSsn };
+  const t0Year = minYear + G.t0OffsetYears;
+  return { n, minYear, maxYear: t0Year + X_PEAK * G.bYears, maxSsn: G.maxSsn, t0Year, bYears: G.bYears };
 }
 
-/** Smoothed sunspot number contributed by cycle `c` at decimal `year`. */
+/** Smoothed sunspot number contributed by cycle `c` at decimal `year` (its own fitted shape). */
 export function cycleSsn(c: Cycle, year: number): number {
-  const b = (c.maxYear - c.minYear) / X_PEAK;
-  return (c.maxSsn * shape((year - c.minYear) / b)) / SHAPE_PEAK;
+  return (c.maxSsn * shape((year - c.t0Year) / c.bYears)) / SHAPE_PEAK;
 }
 
 /** The cycles that can contribute at `year` (the current one, its two predecessors, the next). */
@@ -146,14 +156,28 @@ const smoothstep = (a: number, b: number, x: number): number => {
 const SP = data.spots;
 const MEAN_LIFE = SP.lifeDays[0] + (SP.lifeDays[1] - SP.lifeDays[0]) / 3; // size = u^2, E[u^2] = 1/3
 
+/**
+ * 'pore': a small umbra-like spot without a penumbra. 'embedded': an umbra inside a bigger spot's penumbra
+ * (same polarity), sharing it. 'partial': a one-sided penumbra (umbra radius between poreMaxRadiusMm and
+ * fullPenumbraMinRadiusMm). 'full': a whole penumbra (neighbouring ones merge into a common penumbra).
+ */
+export type SpotKind = 'pore' | 'embedded' | 'partial' | 'full';
+/** Shader codes of the kinds (photosphere.glsl SPOT_*). */
+export const SPOT_KIND_CODE: Record<SpotKind, number> = { pore: 0, embedded: 1, partial: 2, full: 3 };
+/** Shape seeds per spot (the packed integer part is 32 * (kind code + 4 * following) + seed). */
+export const SPOT_SEEDS = 32;
+
 export interface Spot {
   /** Unit direction, body-fixed (sun.fixed) axes. */
   dir: [number, number, number];
   /** Umbra radius, m (the penumbra reaches about penumbraRatio times further). */
   umbraM: number;
-  /** False for a pore (a small umbra-like spot without a penumbra). */
+  /** True when the spot draws a penumbra of its own ('partial' or 'full'). */
   penumbra: boolean;
-  /** 0..127 shape seed (outline, filament twist, light bridge), stable over the spot's life. */
+  kind: SpotKind;
+  /** Leading polarity (compact, round spots) or following (elongated along the group axis). */
+  leading: boolean;
+  /** 0..31 shape seed (outline, filament twist, light bridge), stable over the spot's life. */
   seed: number;
 }
 
@@ -289,10 +313,53 @@ export function groupAxes(g: SpotGroup): { axis: V3; across: V3 } {
 export const groupHalfLength = (g: SpotGroup): number =>
   (0.375 * g.lengthM * (0.6 + 0.4 * Math.min(1, g.strength * 2))) / R_SUN;
 
+/** Outer penumbra radius of a spot of umbra radius `umbraM` with a penumbra, solar radii. */
+const penumbraR = (umbraM: number): number => (SP.penumbraRatio * umbraM) / R_SUN;
+/** Embedded umbrae sit within this fraction of their parent's penumbra radius. */
+const EMBED_FRACTION = 0.72;
+
+/**
+ * Sorts out overlapping spots of one polarity (the spots' order is kept): a spot within reach of a bigger
+ * spot's penumbra (their penumbra radii touch) that is small or already inside it becomes an umbra
+ * embedded in that penumbra, pulled inside it if needed. A big spot just outside keeps its penumbra (the
+ * shader merges the two into a common penumbra). Lone spots get a full penumbra above
+ * `fullPenumbraMinRadiusMm`, a one-sided one above `poreMaxRadiusMm` and none (a pore) below.
+ */
+export function classifySpots(spots: Spot[]): void {
+  const full = SP.fullPenumbraMinRadiusMm * 1e6;
+  const pore = SP.poreMaxRadiusMm * 1e6;
+  const order = spots.map((_, i) => i).sort((a, b) => spots[b].umbraM - spots[a].umbraM);
+  const done: Spot[] = [];
+  for (const i of order) {
+    const s = spots[i];
+    s.kind = s.umbraM > full ? 'full' : s.umbraM > pore ? 'partial' : 'pore';
+    for (const p of done) {
+      if (p.leading !== s.leading || (p.kind !== 'full' && p.kind !== 'partial')) continue;
+      const dist = Math.hypot(...[0, 1, 2].map((k) => s.dir[k] - p.dir[k]));
+      const Rp = penumbraR(p.umbraM);
+      const Rs = s.kind === 'pore' ? s.umbraM / R_SUN : penumbraR(s.umbraM);
+      if (dist >= Rp + Rs) continue;
+      if (s.kind === 'full' && dist >= Rp) continue; // big neighbour: a common penumbra (shader)
+      s.kind = 'embedded';
+      // Pull it inside the parent's penumbra, clear of the parent's umbra where there is room.
+      const target = Math.min(dist, Math.max(EMBED_FRACTION * Rp, (p.umbraM * 1.15 + s.umbraM) / R_SUN));
+      if (target < dist && dist > 1e-12) {
+        const x = [0, 1, 2].map((k) => p.dir[k] + ((s.dir[k] - p.dir[k]) * target) / dist);
+        const l = Math.hypot(...x);
+        s.dir = [x[0] / l, x[1] / l, x[2] / l];
+      }
+      break;
+    }
+    s.penumbra = s.kind === 'full' || s.kind === 'partial';
+    done.push(s);
+  }
+}
+
 /**
  * The resolved spots of a bipolar group: a compact leading spot (longest lived), a following spot that
- * decays first with a few fragments around it, a leading satellite and middle spots in big groups. Spots
- * below `poreMaxRadiusMm` lose their penumbra (pores); the many smaller pores are procedural (shader).
+ * decays first with a few fragments around it, a leading satellite and middle spots in big groups, sorted
+ * out by classifySpots (pores, one-sided penumbrae, umbrae embedded in a common penumbra); the many
+ * smaller pores are procedural (shader).
  */
 export function groupSpots(g: SpotGroup): Spot[] {
   const { axis, across } = groupAxes(g);
@@ -307,8 +374,10 @@ export function groupSpots(g: SpotGroup): Spot[] {
     spots.push({
       dir: [x[0] / l, x[1] / l, x[2] / l],
       umbraM,
-      penumbra: umbraM > SP.poreMaxRadiusMm * 1e6,
-      seed: hashInt(g.id * 31 + spots.length) % 128,
+      penumbra: false,
+      kind: 'pore',
+      leading: du > 0,
+      seed: hashInt(g.id * 31 + spots.length) % SPOT_SEEDS,
     });
   };
   const st = g.strength;
@@ -325,8 +394,13 @@ export function groupSpots(g: SpotGroup): Spot[] {
   // A satellite behind the leading spot, and spots in the middle of big groups.
   if (g.size > 0.22) add(0.72 - 0.15 * r(), 0.25 * (r() - 0.5), (0.18 + 0.14 * r()) * ru * Math.sqrt(st));
   if (g.size > 0.4) add(-0.15 + 0.4 * (r() - 0.5), 0.3 * (r() - 0.5), (0.14 + 0.16 * r()) * ru * st);
+  classifySpots(spots);
   return spots;
 }
+
+/** Packed `w` of a spot: 32 * (kind code + 4 * following) + seed + umbra radius in solar radii. */
+export const packSpotW = (s: Spot): number =>
+  SPOT_SEEDS * (SPOT_KIND_CODE[s.kind] + (s.leading ? 0 : 4)) + s.seed + s.umbraM / R_SUN;
 
 // --- Prominences and filaments --------------------------------------------------------------------
 
@@ -446,9 +520,14 @@ export function filamentPoints(f: Filament, n = 7): V3[] {
 
 // --- Uniform packing --------------------------------------------------------------------------------
 
+/** Activity is recomputed at most once per sim minute (spots drift ~2 km per minute). */
+export const ACTIVITY_STEP_DAYS = 1 / 1440;
+/** The JD the activity is evaluated at for a frame at `jd` (start of its sim minute). */
+export const activityJd = (jd: number): number => Math.floor(jd / ACTIVITY_STEP_DAYS) * ACTIVITY_STEP_DAYS;
+
 /** Shared per-frame activity state (photosphere and corona read the same arrays). */
 export class SunActivity {
-  /** (dir.xyz body-fixed, +/-(seed + umbra radius in solar radii); negative for a pore). */
+  /** (dir.xyz body-fixed, packSpotW: 32 * (kind + 4 * following) + seed + umbra radius in solar radii). */
   readonly spots = new Float32Array(MAX_SPOTS * 4);
   spotCount = 0;
   /** (centre.xyz, radius in solar radii) and (tilt rad signed, strength, flare, seed). */
@@ -468,31 +547,44 @@ export class SunActivity {
   private packedFor = '';
 
   /**
-   * Recomputes the activity for `jd`. `viewer` (body-fixed camera position in solar radii) only matters
-   * when the spots outnumber the uniform slots: groups on the visible hemisphere are packed first.
+   * Recomputes the activity for `jd` (evaluated at activityJd(jd), so at most once per sim minute).
+   * `viewer` (body-fixed camera position in solar radii) only matters when the spots outnumber the uniform
+   * slots: groups on the visible hemisphere are packed first.
    */
   update(jd: number, viewer?: V3 | null): void {
     if (viewer !== undefined) this.viewer = viewer;
-    if (jd !== this.jd) {
-      this.jd = jd;
-      this.groups = activeGroups(jd);
-      const pr = prominences(jd, this.groups);
-      this.prom.fill(0);
-      this.promB.fill(0);
-      pr.forEach((p, i) => {
-        this.prom.set([...p.dir, p.type], i * 4);
-        this.promB.set([p.height, p.halfWidth, p.seed, p.intensity], i * 4);
-      });
+    const t = activityJd(jd);
+    if (t !== this.jd) {
+      this.jd = t;
+      this.groups = activeGroups(t);
+      const pr = prominences(t, this.groups);
+      const P = this.prom;
+      const PB = this.promB;
+      P.fill(0);
+      PB.fill(0);
+      for (let i = 0; i < pr.length; i++) {
+        const p = pr[i];
+        P[i * 4] = p.dir[0];
+        P[i * 4 + 1] = p.dir[1];
+        P[i * 4 + 2] = p.dir[2];
+        P[i * 4 + 3] = p.type;
+        PB[i * 4] = p.height;
+        PB[i * 4 + 1] = p.halfWidth;
+        PB[i * 4 + 2] = p.seed;
+        PB[i * 4 + 3] = p.intensity;
+      }
       this.promCount = pr.length;
       const fl = filaments(pr);
-      this.fil.fill(0);
-      fl.forEach((f, i) => {
+      const F = this.fil;
+      F.fill(0);
+      for (let i = 0; i < fl.length; i++) {
+        const f = fl[i];
         const k = Math.max(f.intensity, 1e-3);
-        this.fil.set(
-          [f.dir[0] * k, f.dir[1] * k, f.dir[2] * k, f.seed + Math.min(f.halfLength, 0.999)],
-          i * 4,
-        );
-      });
+        F[i * 4] = f.dir[0] * k;
+        F[i * 4 + 1] = f.dir[1] * k;
+        F[i * 4 + 2] = f.dir[2] * k;
+        F[i * 4 + 3] = f.seed + Math.min(f.halfLength, 0.999);
+      }
       this.filCount = fl.length;
       this.packedFor = '';
     }
@@ -501,11 +593,13 @@ export class SunActivity {
 
   private pack(): void {
     const groups = this.groups;
-    const total = groups.reduce((n, g) => n + g.spots.length, 0);
+    let total = 0;
+    for (const g of groups) total += g.spots.length;
     const v = this.viewer;
     const crowded = total > MAX_SPOTS || groups.length > MAX_REGIONS;
     // Re-pack only when the jd changed, or the viewer moved enough to matter for a crowded Sun.
-    const key = crowded && v ? v.map((x) => Math.round(x * 20)).join(',') : 'all';
+    const key =
+      crowded && v ? `${Math.round(v[0] * 20)},${Math.round(v[1] * 20)},${Math.round(v[2] * 20)}` : 'all';
     if (key === this.packedFor) return;
     this.packedFor = key;
     let order = groups;
@@ -521,16 +615,29 @@ export class SunActivity {
     this.regionsB.fill(0);
     let ns = 0;
     let nr = 0;
+    const S = this.spots;
+    const RG = this.regions;
+    const RB = this.regionsB;
     for (const g of order) {
       if (nr >= MAX_REGIONS) break;
       if (ns + g.spots.length > MAX_SPOTS) continue;
       for (const s of g.spots) {
-        // w = +/-(seed + umbra radius in radii): the radius stays below 0.02, the seed below 128.
-        this.spots.set([...s.dir, (s.penumbra ? 1 : -1) * (s.seed + s.umbraM / R_SUN)], ns * 4);
+        // w = 32 * (kind + 4 * following) + seed + umbra radius: the radius stays below 0.02, the
+        // integer part below 256 (float32 keeps the radius to ~1e-5 radii).
+        S[ns * 4] = s.dir[0];
+        S[ns * 4 + 1] = s.dir[1];
+        S[ns * 4 + 2] = s.dir[2];
+        S[ns * 4 + 3] = packSpotW(s);
         ns++;
       }
-      this.regions.set([...g.centre, groupHalfLength(g) / POLE_U], nr * 4);
-      this.regionsB.set([Math.sign(g.latDeg) * g.tiltDeg * DEG, g.strength, g.flare, g.seed], nr * 4);
+      RG[nr * 4] = g.centre[0];
+      RG[nr * 4 + 1] = g.centre[1];
+      RG[nr * 4 + 2] = g.centre[2];
+      RG[nr * 4 + 3] = groupHalfLength(g) / POLE_U;
+      RB[nr * 4] = Math.sign(g.latDeg) * g.tiltDeg * DEG;
+      RB[nr * 4 + 1] = g.strength;
+      RB[nr * 4 + 2] = g.flare;
+      RB[nr * 4 + 3] = g.seed;
       nr++;
     }
     this.spotCount = ns;

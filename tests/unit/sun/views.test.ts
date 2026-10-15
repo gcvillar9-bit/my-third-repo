@@ -8,9 +8,13 @@ import {
   MAX_PROMINENCES,
   MAX_REGIONS,
   MAX_SPOTS,
+  POLE_U,
+  SPOT_KIND_CODE,
+  SPOT_SEEDS,
   activeGroups,
   filamentPoints,
   filaments,
+  groupAxes,
   prominences,
 } from '../../../src/modules/sun/activity';
 import {
@@ -112,15 +116,64 @@ describe('sun views and labels', () => {
     expect(r).toBeGreaterThan(8 * g);
   });
 
-  it('GLSL arrays and twins match activity.ts', () => {
+  it('GLSL arrays, loop bounds and twins match activity.ts', () => {
     const ph = GLSL('photosphere.glsl');
-    expect(ph).toContain(`uniform vec4 uSpot[${MAX_SPOTS}];`);
-    expect(ph).toContain(`for (int i = 0; i < ${MAX_SPOTS}; i++)`);
-    expect(ph).toContain(`uniform vec4 uRegion[${MAX_REGIONS}];`);
-    expect(ph).toContain(`uniform vec4 uFil[${MAX_FILAMENTS}];`);
+    expect(ph).toContain(`#define SUN_MAX_SPOTS ${MAX_SPOTS}\n`);
+    expect(ph).toContain(`#define SUN_MAX_REGIONS ${MAX_REGIONS}\n`);
+    expect(ph).toContain(`#define SUN_MAX_FILAMENTS ${MAX_FILAMENTS}\n`);
+    expect(ph).toContain('uniform vec4 uSpot[SUN_MAX_SPOTS];');
+    expect(ph).toContain('uniform vec4 uRegion[SUN_MAX_REGIONS];');
+    expect(ph).toContain('uniform vec4 uRegionB[SUN_MAX_REGIONS];');
+    expect(ph).toContain('uniform vec4 uFil[SUN_MAX_FILAMENTS];');
+    // Every loop over the arrays uses the defines (no stray literal bounds).
+    const loops = [...ph.matchAll(/for \(int i = 0; i < (\w+); i\+\+\)/g)].map((m) => m[1]);
+    expect(loops.length).toBeGreaterThanOrEqual(4);
+    for (const b of loops) expect(b).toMatch(/^SUN_MAX_(SPOTS|REGIONS|FILAMENTS)$/);
     expect(ph).toContain('(fract(k * 0.618034) - 0.5) * 1.4'); // filamentAngle()
+    // Spot codes (packSpotW) and the polarity centres of the pore field (+/-POLE_U, following a bit closer).
+    for (const [kind, code] of Object.entries(SPOT_KIND_CODE))
+      expect(ph).toContain(`#define SPOT_${kind.toUpperCase()} ${code}.0`);
+    expect(ph).toContain(`float code = floor(k / ${SPOT_SEEDS}.0);`);
+    expect(ph).toContain(`(un.x - ${POLE_U}) / 0.11`);
+    expect(ph).toContain(`(un.x + ${POLE_U - 0.02}) / 0.18`);
     const co = GLSL('corona.glsl');
     expect(co).toContain(`uniform vec4 uProm[${MAX_PROMINENCES}];`);
-    expect(co).toContain(`for (int i = 0; i < ${MAX_PROMINENCES}; i++)`);
+    const coLoops = [...co.matchAll(/for \(int i = 0; i < (\w+); i\+\+\)/g)].map((m) => m[1]);
+    expect(coLoops.length).toBeGreaterThanOrEqual(2);
+    for (const b of coLoops) expect(b).toBe(String(MAX_PROMINENCES));
+  });
+
+  it('GLSL never raises a possibly negative base to a constant power (undefined in GLSL ES)', () => {
+    for (const f of ['photosphere.glsl', 'corona.glsl']) {
+      expect(GLSL(f)).not.toMatch(/pow\([^;]*,\s*2\.0\)/);
+    }
+  });
+
+  it('sunRegionLocal (GLSL) matches groupAxes(): axis towards the leading spot, Joy tilt sign', () => {
+    const t = parseInstant(SUNSPOT_DATE)!;
+    const groups = activeGroups(t);
+    const north = groups.find((g) => g.latDeg > 12)!;
+    const south = groups.find((g) => g.latDeg < -12)!;
+    for (const g of [north, south]) {
+      // JS transcription of the shader: e = normalize(z x c), n = c x e, ax = cos(t) e - sin(t) n with
+      // t = sign(lat) * tilt (activity.ts packs regionsB.x that way).
+      const c = g.centre;
+      const el = Math.hypot(c[0], c[1]);
+      const e: V3 = [-c[1] / el, c[0] / el, 0];
+      const n = cross(c, e);
+      const tt = Math.sign(g.latDeg) * g.tiltDeg * (Math.PI / 180);
+      const ax = [0, 1, 2].map((k) => Math.cos(tt) * e[k] - Math.sin(tt) * n[k]) as V3;
+      const across = cross(c, ax);
+      const ref = groupAxes(g);
+      for (let k = 0; k < 3; k++) {
+        expect(ax[k]).toBeCloseTo(ref.axis[k], 9);
+        expect(across[k]).toBeCloseTo(ref.across[k], 9);
+      }
+      // Joy's law: the leading (prograde, +axis) end is nearer the equator.
+      expect(Math.abs(ax[2])).toBeGreaterThan(0);
+      expect(Math.sign(ax[2])).toBe(-Math.sign(g.latDeg));
+      const lead = g.spots[0];
+      expect(dot(lead.dir.map((v, k) => v - c[k]) as V3, ax)).toBeGreaterThan(0);
+    }
   });
 });

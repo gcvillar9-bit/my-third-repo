@@ -7,6 +7,8 @@ import { expect, test, type Page } from '@playwright/test';
  * fragmented following cluster on the other side, near-black umbrae, pores).
  * sun-halpha-prominences: H-alpha filter on, deep red-orange limb across the lower half with filaments
  * and plage on the disk, a hedgerow prominence above it; the Settings select switches it off and on.
+ * eclipse-2027-luxor (eclipses module): reached from the H-alpha view, the filter switched on by arrival
+ * goes back off, so totality shows the white-light corona.
  */
 type RGB = [number, number, number];
 const lum = ([r, g, b]: RGB) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -65,9 +67,10 @@ test(
   { tag: '@smoke' },
   async ({ page }) => {
     const problems: string[] = [];
-    const { probe, errors } = await open(page, 'sun-sunspots', problems);
+    const { probe, stats, errors } = await open(page, 'sun-sunspots', problems);
     expect(errors).toEqual([]);
     expect(problems).toEqual([]);
+    expect(stats.calls).toBeLessThanOrEqual(150);
     const samples: { v: number; x: number }[] = [];
     for (let y = 10; y < 270; y += 10)
       for (let x = 10; x < 480; x += 10) samples.push({ v: lum(await probe(x, y, 2, 2)), x });
@@ -87,9 +90,10 @@ test('sun-halpha-prominences: red disk with filaments and plage, prominence abov
   page,
 }) => {
   const problems: string[] = [];
-  const { probe, errors } = await open(page, 'sun-halpha-prominences', problems);
+  const { probe, stats, errors } = await open(page, 'sun-halpha-prominences', problems);
   expect(errors).toEqual([]);
   expect(problems).toEqual([]);
+  expect(stats.calls).toBeLessThanOrEqual(150);
   const disk = await probe(200, 250, 80, 15);
   expect(lum(disk)).toBeGreaterThan(0.05);
   expect(disk[0]).toBeGreaterThan(3 * disk[2]); // R >> B
@@ -125,15 +129,50 @@ test('sun-halpha-prominences: the Solar filter setting switches H-alpha off and 
   const at = [100, 215, 60, 20] as const; // disk, left of the settings panel
   const red = await probe(...at);
   expect(red[0]).toBeGreaterThan(3 * red[2]);
+  const sky = lum(await probe(0, 0, 40, 20));
   await filter.selectOption('off');
   await page.evaluate(() => window.__universe!.renderFrames(4));
   const white = await probe(...at);
   expect(lum(white)).toBeGreaterThan(0.05);
   expect(white[0]).toBeLessThan(1.5 * white[2]); // white light
+  // Pre-exposed: the prominence above the limb vanishes next to the white-light disk.
+  const above = lum(await probe(225, 60, 30, 20));
+  expect(above).toBeLessThan(2 * sky + 0.004);
   await filter.selectOption('halpha');
   await page.evaluate(() => window.__universe!.renderFrames(4));
   const again = await probe(...at);
   expect(again[0]).toBeGreaterThan(3 * again[2]);
+  expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);
+  expect(problems).toEqual([]);
+});
+
+test('sun-halpha-prominences then eclipse-2027-luxor: the arrival filter goes back off for totality', async ({
+  page,
+}) => {
+  const problems: string[] = [];
+  const { probe, errors } = await open(page, 'sun-halpha-prominences', problems, '&ui=1');
+  expect(errors).toEqual([]);
+  await page.locator('.cz-topbar button[title="Settings"]').click();
+  const filter = page.locator('.cz-setting', { hasText: 'Solar filter' }).locator('select');
+  await expect(filter).toHaveValue('halpha');
+  await page.evaluate(async () => {
+    await window.__universe!.goto('eclipse-2027-luxor');
+    await window.__universe!.ready();
+    await window.__universe!.renderFrames(4);
+  });
+  await expect(filter).toHaveValue('off');
+  // The white-light corona around the Moon (eclipses.spec ring samples), not a red H-alpha ring.
+  const centre = await probe(234, 129, 12, 12);
+  const ring = [
+    await probe(219, 132, 6, 6),
+    await probe(255, 132, 6, 6),
+    await probe(237, 114, 6, 6),
+    await probe(237, 150, 6, 6),
+  ];
+  const mean = [0, 1, 2].map((k) => ring.reduce((a, c) => a + c[k], 0) / ring.length) as RGB;
+  expect(lum(mean)).toBeGreaterThan(0.05);
+  expect(Math.min(...ring.map(lum))).toBeGreaterThan(2 * lum(centre));
+  expect(mean[0]).toBeLessThan(1.6 * mean[2]);
   expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);
   expect(problems).toEqual([]);
 });

@@ -71,42 +71,53 @@
     "networkContrast": 0.03
   },
   "cycle": {
-    "source": "Smoothed monthly sunspot number minima/maxima from SILSO (WDC-SILSO, Royal Observatory of Belgium), cycle shape from Hathaway, Wilson & Reichmann (1994), Sol. Phys. 151, 177: R ~ x^3/(exp(x^2) - c), c = 0.71. Cycle 25 maximum and cycle 26 are estimates; cycles outside the table repeat the generic row every periodYears",
+    "source": "Sunspot number from SILSO (WDC-SILSO, Royal Observatory of Belgium): minYear, maxYear and maxSsn are the 13-month smoothed minima and maxima (display values; minYear also starts the butterfly). Cycle shape from Hathaway, Wilson & Reichmann (1994), Sol. Phys. 151, 177: R = maxSsn * s((t - t0Year) / bYears) / max(s), s(x) = x^3/(exp(x^2) - c), c = 0.71, with t0Year and bYears least-squares fitted to the SILSO annual means 1986-2025 and the smoothed minima (2.2 in Dec 2008, 1.8 in Dec 2019). Cycle 25 after 2025 and cycle 26 are estimates; cycles outside the table repeat the generic row every periodYears",
     "approximate": true,
     "shapeC": 0.71,
     "periodYears": 11.0,
     "generic": {
-      "riseYears": 4.4,
+      "t0OffsetYears": -0.1,
+      "bYears": 4.2,
       "maxSsn": 140
     },
     "rows": [
       {
         "cycle": 22,
         "minYear": 1986.7,
-        "maxYear": 1989.9,
+        "t0Year": 1986.2,
+        "bYears": 3.9,
+        "maxYear": 1989.6,
         "maxSsn": 214
       },
       {
         "cycle": 23,
         "minYear": 1996.6,
+        "t0Year": 1996.1,
+        "bYears": 4.5,
         "maxYear": 2001.9,
         "maxSsn": 180
       },
       {
         "cycle": 24,
         "minYear": 2008.9,
+        "t0Year": 2009.15,
+        "bYears": 3.85,
         "maxYear": 2014.3,
         "maxSsn": 116
       },
       {
         "cycle": 25,
         "minYear": 2019.9,
+        "t0Year": 2020.05,
+        "bYears": 4.1,
         "maxYear": 2024.8,
         "maxSsn": 160
       },
       {
         "cycle": 26,
         "minYear": 2030.9,
+        "t0Year": 2030.8,
+        "bYears": 4.2,
         "maxYear": 2035.3,
         "maxSsn": 130,
         "predicted": true
@@ -131,13 +142,14 @@
     "frameDegPerDay": 14.1844
   },
   "spots": {
-    "source": "Typical sunspot-group properties: umbra ~5-30% of the quiet-Sun intensity in white light (darker in the core and in big spots), penumbra ~75-85% (penumbraIntensity is set lower, 0.52, a display choice so it reads grey next to the granulated photosphere after tone mapping), penumbra/umbra radius ~2.4, spots without a penumbra (pores) below ~1.5-2 Mm radius, groups 50-200 Mm long with a compact leading spot and a fragmented following polarity, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; Borrero & Ichimoto 2011, Living Rev. Sol. Phys. 8, 4; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
+    "source": "Typical sunspot-group properties: umbra ~5-30% of the quiet-Sun intensity in white light (darker in the core and in big spots; umbraIntensity per channel follows 4000 K / 5800 K blackbody ratios), penumbra ~75-85% (penumbraIntensity 0.7 is the mean of high-contrast bright and dark filaments, a little below the measured range so it still reads after tone mapping), penumbra/umbra radius ~2.4, spots without a penumbra (pores) below ~1.5-2 Mm radius, partial (one-sided) penumbrae up to ~2.5 Mm, neighbouring umbrae of one polarity sharing a common penumbra, groups 50-200 Mm long with a compact leading spot and a fragmented following polarity, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; Borrero & Ichimoto 2011, Living Rev. Sol. Phys. 8, 4; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
     "approximate": true,
-    "umbraIntensity": [0.15, 0.085, 0.05],
-    "penumbraIntensity": 0.52,
+    "umbraIntensity": [0.095, 0.075, 0.062],
+    "penumbraIntensity": 0.7,
     "penumbraRatio": 2.4,
     "umbraRadiusMm": [2.5, 12.5],
     "poreMaxRadiusMm": 1.6,
+    "fullPenumbraMinRadiusMm": 2.5,
     "minSpotRadiusMm": 0.5,
     "groupLengthMm": [50, 200],
     "lifeDays": [3, 38],
@@ -147,11 +159,11 @@
     "facularContrast": 0.18
   },
   "prominences": {
-    "source": "Prominences 10-120 Mm tall (a few reach higher), H-alpha (656.3 nm) dominated, brighter than the inner corona in totality (~1e-5-1e-4 of the disk); quiescent ones live weeks at filament latitudes 15-55 deg and are seen against the disk as dark filaments a few times longer than they are tall (Parenti 2014, Living Rev. Sol. Phys. 11, 1; Mackay et al. 2010, Space Sci. Rev. 151, 333). Counts and brightness factors are approximate",
+    "source": "Prominences 10-120 Mm tall (a few reach higher), H-alpha (656.3 nm) dominated, a few times brighter than the inner corona in totality (~1e-5 of the disk; colour: H-alpha with H-beta and Ca II, little green); quiescent ones live weeks at filament latitudes 15-55 deg and are seen against the disk as dark filaments a few times longer than they are tall (Parenti 2014, Living Rev. Sol. Phys. 11, 1; Mackay et al. 2010, Space Sci. Rev. 151, 333). Counts and brightness factors are approximate",
     "approximate": true,
-    "brightness": 4e-5,
-    "chromosphereBrightness": 1.2e-5,
-    "colour": [1.0, 0.22, 0.34],
+    "brightness": 5e-6,
+    "chromosphereBrightness": 2e-6,
+    "colour": [1.0, 0.1, 0.24],
     "heightMm": [10, 120],
     "quiescentLatDeg": [15, 55],
     "perSeries": [4, 4],

@@ -4,20 +4,31 @@ import {
   MAX_FILAMENTS,
   MAX_REGIONS,
   MAX_SPOTS,
+  SPOT_KIND_CODE,
+  SPOT_SEEDS,
   SunActivity,
   activeGroups,
+  activityJd,
+  classifySpots,
+  driftDegPerDay,
   filamentAngle,
   filamentPoints,
   filaments,
   flareAt,
   groupAxes,
+  packSpotW,
   prominences,
   rotationPeriodDays,
   sunspotNumber,
+  type Spot,
 } from '../../../src/modules/sun/activity';
+import data from '../../../src/modules/sun/sun-data.json';
 
 const DEG = Math.PI / 180;
+const R = 6.957e8;
 const jd = (iso: string) => parseInstant(iso)!;
+/** JD of a decimal year (the activity model's own year scale). */
+const jdYear = (y: number) => 2_451_545 + (y - 2000) * 365.25;
 
 /** Mean number of live groups sampled every 5 days over `days` from `iso`. */
 function meanGroups(iso: string, days = 120): number {
@@ -38,12 +49,29 @@ function meanBirthLat(from: string, days: number): number {
 }
 
 describe('sun activity (simulated)', () => {
-  it('sunspot number follows the cycle: ~160 in late 2024, low at the minima', () => {
+  it('sunspot number follows the cycle: ~160 in late 2024, near zero at the SILSO minima', () => {
     expect(sunspotNumber(jd('2024-10-15T00:00:00Z'))).toBeGreaterThan(140);
     expect(sunspotNumber(jd('2024-10-15T00:00:00Z'))).toBeLessThan(175);
-    expect(sunspotNumber(jd('2019-12-15T00:00:00Z'))).toBeLessThan(25);
+    // Smoothed minima: 2.2 in Dec 2008, 1.8 in Dec 2019; annual means 21.7 (2017) and 7.0 (2018).
+    expect(sunspotNumber(jdYear(2019.96))).toBeLessThan(6);
+    expect(sunspotNumber(jdYear(2008.96))).toBeLessThan(8);
+    expect(sunspotNumber(jdYear(2018.0))).toBeLessThan(25);
+    expect(sunspotNumber(jdYear(2017.0))).toBeLessThan(40);
+    let min = Infinity;
+    let at = 0;
+    for (let y = 2018.5; y < 2021.5; y += 0.01) {
+      const v = sunspotNumber(jdYear(y));
+      if (v < min) [min, at] = [v, y];
+    }
+    expect(Math.abs(at - 2019.96)).toBeLessThan(0.3);
     expect(sunspotNumber(jd('2030-12-01T00:00:00Z'))).toBeLessThan(25);
     expect(sunspotNumber(jd('1950-01-01T00:00:00Z'))).toBeGreaterThanOrEqual(0);
+  });
+
+  it('a spotless Sun is common at minimum', () => {
+    let spotless = 0;
+    for (let t = 0; t < 120; t += 5) if (activeGroups(jdYear(2019.8) + t).length === 0) spotless++;
+    expect(spotless).toBeGreaterThan(5);
   });
 
   it('more spot groups near maximum than at minimum', () => {
@@ -64,11 +92,29 @@ describe('sun activity (simulated)', () => {
         expect(Math.abs(g.latDeg)).toBeLessThanOrEqual(40);
   });
 
+  it('drift relative to sun.fixed: prograde at the equator, ~0 near 16 deg, retrograde at 30 deg', () => {
+    expect(driftDegPerDay(0)).toBeGreaterThan(0.1);
+    expect(Math.abs(driftDegPerDay(16 * DEG))).toBeLessThan(0.05);
+    expect(driftDegPerDay(30 * DEG)).toBeLessThan(-0.3);
+    expect(driftDegPerDay(-30 * DEG)).toBeCloseTo(driftDegPerDay(30 * DEG), 12);
+  });
+
   it('differential rotation: ~25 d at the equator, ~33-36 d at 75 deg', () => {
     expect(rotationPeriodDays(0)).toBeGreaterThan(24.5);
     expect(rotationPeriodDays(0)).toBeLessThan(25.5);
     expect(rotationPeriodDays(75 * DEG)).toBeGreaterThan(33);
     expect(rotationPeriodDays(75 * DEG)).toBeLessThan(36);
+  });
+
+  it('activity is evaluated once per sim minute', () => {
+    const t = jd('2024-10-10T06:00:00Z');
+    expect(activityJd(t)).toBeLessThanOrEqual(t);
+    expect(t - activityJd(t)).toBeLessThan(1 / 1440);
+    const a = new SunActivity();
+    const b = new SunActivity();
+    a.update(activityJd(t));
+    b.update(activityJd(t) + 0.5 / 1440);
+    expect([...a.spots]).toEqual([...b.spots]);
   });
 
   it('is deterministic in sim time and fits the uniform budget', () => {
@@ -129,12 +175,66 @@ describe('sun activity (simulated)', () => {
       expect(rest.filter((s) => along(s.dir) < 0).length).toBeGreaterThanOrEqual(2);
     }
     const all = groups.flatMap((g) => g.spots);
-    expect(all.some((s) => !s.penumbra)).toBe(true); // decayed / small spots are pores
+    expect(all.some((s) => s.kind === 'pore')).toBe(true); // decayed / small spots are pores
+    expect(all.some((s) => s.kind === 'partial')).toBe(true);
+    expect(all.some((s) => s.kind === 'embedded')).toBe(true);
     for (const s of all) {
       expect(s.seed).toBeGreaterThanOrEqual(0);
-      expect(s.seed).toBeLessThan(128);
-      expect(s.penumbra).toBe(s.umbraM > 1.6e6);
+      expect(s.seed).toBeLessThan(SPOT_SEEDS);
+      expect(s.penumbra).toBe(s.kind === 'full' || s.kind === 'partial');
+      if (s.kind === 'full') expect(s.umbraM).toBeGreaterThan(data.spots.fullPenumbraMinRadiusMm * 1e6);
+      if (s.kind === 'partial') {
+        expect(s.umbraM).toBeGreaterThan(data.spots.poreMaxRadiusMm * 1e6);
+        expect(s.umbraM).toBeLessThanOrEqual(data.spots.fullPenumbraMinRadiusMm * 1e6);
+      }
     }
+  });
+
+  it('neighbouring spots of one polarity share a penumbra instead of stacking discs', () => {
+    const pen = (s: Spot) => (data.spots.penumbraRatio * s.umbraM) / R;
+    const dist = (a: Spot, b: Spot) => Math.hypot(...[0, 1, 2].map((k) => a.dir[k] - b.dir[k]));
+    let embedded = 0;
+    for (let t = 0; t < 60; t += 3)
+      for (const g of activeGroups(jd('2024-09-01T00:00:00Z') + t)) {
+        const own = g.spots.filter((s) => s.penumbra);
+        for (const s of g.spots) {
+          if (s.kind === 'embedded') {
+            // Inside a bigger penumbral spot of the same polarity.
+            const parent = own.find(
+              (p) => p.leading === s.leading && p.umbraM > s.umbraM && dist(s, p) < pen(p),
+            );
+            expect(parent).toBeDefined();
+            embedded++;
+          }
+          // No small spot keeps a penumbra of its own inside a bigger spot's penumbra.
+          for (const p of own)
+            if (p !== s && s.penumbra && p.leading === s.leading && p.umbraM > s.umbraM)
+              expect(dist(s, p)).toBeGreaterThanOrEqual(pen(p) * 0.999);
+        }
+      }
+    expect(embedded).toBeGreaterThan(10);
+  });
+
+  it('classifySpots: a satellite on the rim is pulled into the common penumbra', () => {
+    const at = (x: number): [number, number, number] => [Math.cos(x), Math.sin(x), 0];
+    const mk = (x: number, umbraMm: number, leading = true): Spot => ({
+      dir: at(x),
+      umbraM: umbraMm * 1e6,
+      penumbra: false,
+      kind: 'pore',
+      leading,
+      seed: 1,
+    });
+    const lead = mk(0, 10);
+    const sat = mk((10 * 2.4 * 1.05e6) / R, 2); // just outside the leader's penumbra
+    const lone = mk(0.2, 2); // far away: a one-sided penumbra
+    const big = mk((10 * 2.4 * 1.1e6) / R, 6); // big neighbour: keeps its penumbra (common penumbra)
+    const other = mk((10 * 2.4 * 0.5e6) / R, 2, false); // other polarity: not embedded
+    const spots = [lead, sat, lone, big, other];
+    classifySpots(spots);
+    expect(spots.map((s) => s.kind)).toEqual(['full', 'embedded', 'partial', 'full', 'partial']);
+    expect(Math.acos(sat.dir[0]) * R).toBeLessThan(10 * 2.4 * 1e6 * 0.75);
+    expect(lead.dir).toEqual(at(0));
   });
 
   it('packs the visible hemisphere first when the spots outnumber the uniform slots', () => {
@@ -160,14 +260,24 @@ describe('sun activity (simulated)', () => {
         (g) => !packed.has(g.centre.map((c) => Math.fround(c).toFixed(4)).join()),
       );
       expect(missing.length).toBeLessThanOrEqual(1);
-      // w = +/-(seed + umbra radius): integer seed < 128, radius < 0.02 R; negative for pores.
+      // w = 32 * (kind + 4 * following) + seed + umbra radius: integer part < 256, radius < 0.02 R.
       for (let i = 0; i < a.spotCount; i++) {
-        const w = Math.abs(a.spots[i * 4 + 3]);
-        expect(Math.floor(w)).toBeLessThan(128);
+        const w = a.spots[i * 4 + 3];
+        expect(Math.floor(w)).toBeLessThan(256);
         expect(w - Math.floor(w)).toBeGreaterThan(0);
         expect(w - Math.floor(w)).toBeLessThan(0.02);
       }
     }
+    // The packed code decodes back (float32) to the spot's kind, polarity, seed and radius.
+    for (const g of groups.slice(0, 8))
+      for (const s of g.spots) {
+        const w = Math.fround(packSpotW(s));
+        const k = Math.floor(w);
+        expect(k % SPOT_SEEDS).toBe(s.seed);
+        expect(Math.floor(k / SPOT_SEEDS) % 4).toBe(SPOT_KIND_CODE[s.kind]);
+        expect(Math.floor(k / SPOT_SEEDS) >= 4).toBe(!s.leading);
+        expect(Math.abs(w - k - s.umbraM / R)).toBeLessThan(2e-5);
+      }
   });
 
   it('filaments are the quiescent prominences seen on the disk', () => {

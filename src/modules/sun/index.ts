@@ -7,8 +7,8 @@
  * follow the solar cycle and differential rotation, and the 'sun.filter' setting (Off / H-alpha).
  * See docs/modules/sun.md.
  */
-import type { InfoCard, ModuleContext, UniverseModule } from '../../core/contracts';
-import { quat, qrotate, vec3 } from '../../core/math64';
+import type { Bookmark, InfoCard, ModuleContext, UniverseModule } from '../../core/contracts';
+import { quat, qrotate, v3len, vec3 } from '../../core/math64';
 import { SUN_TEFF } from '../../core/photometry';
 import { parseInstant } from '../../core/time';
 import { SunActivity, activeGroups } from './activity';
@@ -33,6 +33,8 @@ export const V1_GLOW_ID = 'solar-system.sun-glow';
 export const SUN_FILTER_SETTING = 'sun.filter';
 /** Bookmarks that switch the H-alpha filter on when reached. */
 const FILTER_BOOKMARKS = [HALPHA_BOOKMARK_ID];
+/** A filter switched on by arrival goes back off beyond this distance from the Sun's centre, radii. */
+export const FILTER_AUTO_OFF_RADII = 10;
 
 type V3 = [number, number, number];
 
@@ -121,9 +123,10 @@ const sun: UniverseModule = {
     registry.addBookmarks(bookmarks);
 
     // The Sun's info card comes from solar-system; decorate it in place (keeping the provider order) so the
-    // simulated activity is labelled as such.
+    // simulated activity is labelled as such. A temporary shim until the registry has a hook for adding to
+    // another module's card (docs/requests/sun.md); it does nothing if the provider is missing.
     const ss = registry.infoProviders().find((p) => p.id === 'solar-system');
-    if (ss) {
+    if (ss && typeof ss.info === 'function') {
       const base = ss.info.bind(ss);
       ss.info = async (id: string): Promise<InfoCard | null> => {
         const card = await base(id);
@@ -133,27 +136,58 @@ const sun: UniverseModule = {
     }
 
     // Arriving at an H-alpha bookmark (palette, tour, URL) switches the filter on, like constellation lines.
-    // Only the arrival does: the filter can then be switched off in Settings while staying there. An explicit
-    // ?sun.filter= wins over the initial bookmark.
+    // Only the arrival does: the filter can then be switched off in Settings while staying there. The filter
+    // is a physical change (no white-light corona, H-alpha-lit prominences), so a filter switched on by
+    // arrival goes back off when the camera leaves the Sun (beyond FILTER_AUTO_OFF_RADII) or arrives at
+    // another bookmark, unless the user has changed it since. An explicit ?sun.filter= wins over the initial
+    // bookmark and is never undone.
     const params = ctx.env.params as URLSearchParams;
     const override = params.get(SUN_FILTER_SETTING);
     const startAt = FILTER_BOOKMARKS.includes(initialBookmark(ctx) ?? '');
+    let autoOn = false;
+    let ours = false;
+    const setFilter = (v: 'off' | 'halpha') => {
+      ours = true;
+      try {
+        ui.settings.set(SUN_FILTER_SETTING, v);
+      } finally {
+        ours = false;
+      }
+      autoOn = v === 'halpha';
+    };
+    ui.settings.subscribe(SUN_FILTER_SETTING, () => {
+      if (!ours) autoOn = false; // the user took over
+    });
     if (override === 'halpha' || override === 'off') ui.settings.set(SUN_FILTER_SETTING, override);
-    else if (startAt) ui.settings.set(SUN_FILTER_SETTING, 'halpha');
+    else if (startAt) setFilter('halpha');
     let atFilterBookmark = startAt;
     const p = vec3();
+    const atBookmark = (bm: Bookmark, frame: string, local: { x: number; y: number; z: number }): boolean => {
+      if (!frames.has(bm.frame)) return false;
+      frames.convertPoint(frame, local, bm.frame, ctx.clock.jd, p);
+      return Math.hypot(p.x - bm.pos.x, p.y - bm.pos.y, p.z - bm.pos.z) < 1e-6 * body.radius;
+    };
     ctx.camera.subscribe(() => {
       if (ctx.camera.traveling) return;
       const st = ctx.camera.getState();
-      let at = false;
-      for (const id of FILTER_BOOKMARKS) {
+      if (!frames.has(st.frame)) return;
+      const at = FILTER_BOOKMARKS.some((id) => {
         const bm = registry.bookmark(id);
-        if (!bm || !frames.has(st.frame)) continue;
-        frames.convertPoint(st.frame, st.local, bm.frame, ctx.clock.jd, p);
-        if (Math.hypot(p.x - bm.pos.x, p.y - bm.pos.y, p.z - bm.pos.z) < 1e-6 * body.radius) at = true;
+        return !!bm && atBookmark(bm, st.frame, st.local);
+      });
+      if (at && !atFilterBookmark) setFilter('halpha');
+      else if (!at && autoOn) {
+        const other = registry.bookmarks().some((bm) => atBookmark(bm, st.frame, st.local));
+        if (other) setFilter('off');
       }
-      if (at && !atFilterBookmark) ui.settings.set(SUN_FILTER_SETTING, 'halpha');
       atFilterBookmark = at;
+    });
+    const rel = vec3();
+    const ORIGIN = vec3();
+    ctx.render.onBeforeFrame((v) => {
+      if (!autoOn || !frames.has(body.frame)) return;
+      v.toCamera(body.frame, ORIGIN, rel);
+      if (v3len(rel) > FILTER_AUTO_OFF_RADII * body.radius) setFilter('off');
     });
   },
 };

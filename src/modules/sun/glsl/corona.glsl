@@ -1,7 +1,9 @@
 // sun: corona shell. A back-faced sphere of uShellR solar radii around the Sun; each fragment takes
 // its view ray's impact parameter p (closest approach to the Sun's centre, solar radii) and outputs
-// the Baumbach K+F brightness B(p) (about 1e-6 of the disk), shaped by streamers that depend only
-// on the direction of closest approach (so every structure is radial). Physically pre-exposed:
+// the Baumbach K+F brightness B(p) (about 1e-6 of the disk), shaped by structures that depend only
+// on the direction of closest approach (so every structure is radial): the cycle's Ludendorff flattening
+// (streamers crowd the equator at minimum, rounder at maximum), helmet streamers over the filament
+// channels and active regions (the prominence anchors), and fainter fine rays. Physically pre-exposed:
 // invisible next to the photosphere or a daylight sky, it appears when the disk is occluded
 // (totality) or at very low exposure. The Moon and the disk itself occlude it through log depth.
 // Prominences and the chromospheric fringe ride on the same shell near the limb (pink, H-alpha
@@ -32,6 +34,8 @@ uniform int uPromCount;
 uniform vec3 uPromL;      // cd/m2 per channel of a prominence of unit field (physical, pink)
 uniform vec3 uHaPromL;    // same in the H-alpha view (relative to the H-alpha disk)
 uniform float uChromo;    // chromosphere / spicule fringe relative to a prominence
+uniform float uPixAngle;  // radians per pixel (fades sub-pixel prominence threads)
+uniform float uRound;     // 0 at solar minimum (flattened corona) .. 1 near maximum (round), from the SSN
 varying vec3 vViewPos;
 
 float coronaHash(vec3 p) {
@@ -83,6 +87,40 @@ float promLoops(float u, float y, float seed) {
   return b + 0.35 * env * rain * (1.0 - 0.6 * y);
 }
 
+// Quiescent hedgerow in (u, y) units: a sheet of fine vertical threads (three octaves, each faded out once
+// a pixel spans one, aaU = pixel footprint in u), a ragged top, tapered ends, dark voids, and legs (barbs)
+// down to the chromosphere with arches between them.
+float promHedgerow(float u, float y, float seed, float aaU) {
+  float top = 0.85 + 0.35 * (coronaNoise(vec3(u * 3.0 + seed * 31.0, 1.0, 2.0)) - 0.5) +
+    0.15 * (coronaNoise(vec3(u * 13.0, 0.0, seed * 5.0)) - 0.5);
+  float taper = abs(u) + 0.6 * y * y + 0.2 * (coronaNoise(vec3(u * 2.0, y * 2.0, seed * 11.0)) - 0.5);
+  float env = (1.0 - smoothstep(0.55, 1.0, taper)) * (1.0 - smoothstep(0.65 * top, top, y));
+  env *= mix(1.0, smoothstep(0.35, 0.7, coronaNoise(vec3(u * 4.0, 0.0, seed * 9.0))), 1.0 - smoothstep(0.0, 0.35, y));
+  if (env <= 0.0) return 0.0;
+  float thr = 0.0;
+  float wsum = 0.0;
+  float amp = 1.0;
+  float fq = 40.0;
+  for (int o = 0; o < 3; o++) {
+    float fo = float(o);
+    float w = amp * (1.0 - smoothstep(0.25, 0.5, aaU * fq));
+    float t = coronaNoise(vec3(u * fq + seed * 50.0 + fo * 17.0, y * 1.5, seed * 13.0 + fo * 5.0));
+    thr += w * t * t + (amp - w) * 0.29; // an unresolved octave keeps its mean
+    wsum += amp;
+    fq *= 2.3;
+    amp *= 0.8;
+  }
+  thr /= wsum;
+  float thr2 = coronaNoise(vec3(u * 9.0 + seed * 9.0, y * 5.0, 5.0));
+  float knots = coronaNoise(vec3(u * 14.0, y * 9.0, seed * 3.0));
+  // Dark gaps between thread bundles (tall and narrow) and a few bubbles low in the sheet.
+  float gaps = smoothstep(0.6, 0.8, coronaNoise(vec3(u * 11.0, y * 1.4, seed * 7.0)));
+  float bubble = smoothstep(0.66, 0.82, coronaNoise(vec3(u * 6.0, y * 4.0, seed * 3.0 + 9.0))) *
+    (1.0 - smoothstep(0.25, 0.55, y));
+  float voids = 1.0 - 0.45 * gaps - 0.5 * bubble;
+  return env * voids * (0.1 + 2.2 * thr * (0.4 + thr2) * (0.6 + 0.8 * knots));
+}
+
 // Prominences above the limb: each anchor is projected onto the sky plane; (u, y) are the angle along
 // the limb in half-widths and the height in prominence heights. An anchor behind the limb by depth
 // hides the base of its prominence; one well in front is seen on the disk (as a filament) instead.
@@ -112,13 +150,7 @@ float promField(vec3 q, float h, vec3 n, float rOverD) {
     float y = hh / H;
     float b = 0.0;
     if (A.w < 0.5) {
-      // Hedgerow: a ragged-topped sheet of fine vertical threads with knots and gaps.
-      float top = 0.85 + 0.35 * (coronaNoise(vec3(u * 3.0 + B.z * 31.0, 1.0, 2.0)) - 0.5);
-      float env = (1.0 - smoothstep(0.55, 1.0, abs(u) + 0.35 * y * y)) * (1.0 - smoothstep(0.65 * top, top, y));
-      float thr = coronaNoise(vec3(u * 26.0 + B.z * 50.0, y * 1.2, B.z * 13.0));
-      float thr2 = coronaNoise(vec3(u * 9.0 + B.z * 9.0, y * 5.0, 5.0));
-      float knots = coronaNoise(vec3(u * 14.0, y * 9.0, B.z * 3.0));
-      b = env * (0.1 + 2.2 * thr * thr * (0.4 + thr2) * (0.6 + 0.8 * knots));
+      b = promHedgerow(u, y, B.z, uPixAngle / (rOverD * W));
     } else {
       b = promLoops(u, y, B.z);
     }
@@ -132,15 +164,19 @@ void main() {
   float tc = dot(uSunCenter, d);
   vec3 c = d * max(tc, 0.0) - uSunCenter; // Sun centre -> closest point of the ray (or the camera)
   float p = length(c) / uSunRadius;
-  if (p < 1.0 || p > uShellR) discard;
+  // The shell overlaps the disk a little: the tessellated disk's silhouette chords fall inside the true
+  // sphere, and the disk depth-occludes the shell everywhere it does cover.
+  if (p < 0.985 || p > uShellR) discard;
   vec3 q = c / (p * uSunRadius);
   vec3 Lp = vec3(0.0);
-  float h = p - 1.0;
+  float h = max(p - 1.0, 0.0);
   if (h < 0.2 && (uPromCount > 0 || uChromo > 0.0)) {
     float D = length(uSunCenter) / uSunRadius;
     float f = promField(q, h, uSunCenter / (D * uSunRadius), 1.0 / D);
     f += uChromo * exp(-h / 0.006) * (0.5 + coronaNoise(q * 900.0));
-    Lp = (uHalpha > 0.5 ? uHaPromL : uPromL) * f;
+    // White light: a soft knee keeps a prominence within a few times the inner corona (no clipping into a
+    // white bead) while its threads still show.
+    Lp = uHalpha > 0.5 ? uHaPromL * f : uPromL * 1.6 * (1.0 - exp(-f / 1.6));
   }
   if (uCoronaOn < 0.5) {
     if (h >= 0.2) discard;
@@ -148,12 +184,28 @@ void main() {
     LOG_DEPTH_FRAGMENT();
     return;
   }
-  float B = dot(uBaumA, pow(vec3(p), -uBaumP));
+  float B = dot(uBaumA, pow(vec3(max(p, 1.0)), -uBaumP));
   float lat = dot(q, uSunPole);
-  float eq = 1.0 - lat * lat;            // cos^2(latitude): streamers crowd the equator
+  float eq = 1.0 - lat * lat;            // cos^2(latitude)
+  float eq4 = eq * eq * eq * eq;
+  float shape = mix(0.2 + 0.8 * eq4, 1.0, uRound);
+  // Helmet streamers: broad over their anchor's position angle at the base, narrowing into stalks, seen
+  // where the anchor lies near the plane of the sky.
+  vec3 n = uSunCenter / length(uSunCenter);
+  float sig2 = 0.09 / (p * p) + 0.012;
+  float hel = 0.0;
+  for (int i = 0; i < 32; i++) {
+    if (i >= uPromCount) break;
+    vec3 A = uProm[i].xyz;
+    vec3 ap = A - dot(A, n) * n;
+    float l2 = dot(ap, ap);
+    if (l2 < 0.04) continue;
+    hel += l2 * uPromB[i].w * exp(-2.0 * (1.0 - dot(ap, q) * inversesqrt(l2)) / sig2);
+  }
+  shape *= 0.55 + 0.6 * min(hel, 2.0);
   float rays = 0.6 * coronaNoise(q * 7.0) + 0.4 * coronaNoise(q * 29.0);
-  float shape = mix(0.35, 1.0, eq * eq) * (0.45 + 1.1 * rays);
-  shape *= 1.0 + 0.9 * eq * eq * (p - 1.0); // equatorial streamers fall off more slowly
+  shape *= 0.7 + 0.6 * rays;
+  shape *= 1.0 + 0.9 * eq * eq * h;       // equatorial streamers fall off more slowly
   float halfRay = tc > 0.0 ? 1.0 : 0.5;     // the camera sits inside the corona looking away
   float edge = 1.0 - smoothstep(0.6 * uShellR, uShellR, p);
   vec3 L = uCoronaL * B * shape * halfRay * edge + Lp;
