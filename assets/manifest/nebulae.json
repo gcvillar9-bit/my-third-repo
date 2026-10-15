@@ -1,0 +1,45 @@
+{
+  "module": "nebulae",
+  "assets": [
+    {
+      "id": "stellarium_m42",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/nebulae/default/m42.png",
+      "file": "stellarium_m42.png",
+      "license": "CC-BY-3.0",
+      "attribution": "M42 wide-field image by HG731GZ, from the Stellarium deep-sky image set (nebulae/default/m42.png), github.com/Stellarium/stellarium",
+      "outputs": [
+        "data/nebulae/orion-emission.webp",
+        "data/nebulae/orion-maps.webp",
+        "data/nebulae/orion-meta.json"
+      ],
+      "sha256": "c4c74f4234ec3033f30acbe72df6669ea9071933f4479c8bd59194d689177fc6",
+      "bytes": 942734
+    },
+    {
+      "id": "stellarium_textures",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/nebulae/default/textures.json",
+      "file": "stellarium_textures.json",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Stellarium deep-sky image index (nebulae/default/textures.json): sky corners of m42.png, Stellarium contributors",
+      "outputs": ["data/nebulae/orion-meta.json"],
+      "sha256": "75bbf1e0f0df37a600852f4923b2bb0b466a7ff5a5865d551d4e7b686baf6071",
+      "bytes": 267603
+    },
+    {
+      "id": "hubble_m42",
+      "url": "https://raw.githubusercontent.com/xirong/xirong.github.io/master/space/textures/deep-sky/orion_m42.jpg",
+      "file": "hubble_orion_m42.jpg",
+      "license": "CC-BY-4.0",
+      "attribution": "NASA, ESA, M. Robberto (STScI/ESA) and the HST Orion Treasury Project Team (ESA/Hubble heic0601a; NASA imagery public domain), 1280 px copy mirrored in xirong/xirong.github.io",
+      "outputs": ["data/nebulae/orion-core.webp"],
+      "sha256": "19d882d02d16cc8b4458b9a311b67abfebaba2891bca06a41f2c513eb0f05fd0",
+      "bytes": 216171
+    },
+    {
+      "id": "openngc_m42_m43",
+      "license": "reference",
+      "attribution": "OpenNGC (Mattia Verga, CC BY-SA 4.0), database_files/NGC.csv rows NGC1976 (M42) and NGC1982 (M43): positions, sizes and V magnitudes, hand-entered in src/modules/nebulae/orion.json",
+      "outputs": []
+    }
+  ]
+}

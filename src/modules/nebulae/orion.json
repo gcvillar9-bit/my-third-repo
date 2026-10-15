@@ -1,0 +1,236 @@
+{
+  "id": "m42",
+  "source": "Hand-entered rows; every value carries its own source. Geometry values are model choices guided by the cited papers and are approximate.",
+  "distance": {
+    "pc": 400,
+    "approximate": true,
+    "source": "Adopted 400 pc: Menten et al. 2007, A&A 474, 515 (414 ± 7 pc, VLBA parallax); Kounkel et al. 2017, ApJ 834, 142 (388 ± 5 pc); Großschedl et al. 2018, A&A 619, A106 (Gaia DR2, ~400 pc)"
+  },
+  "center": {
+    "name": "θ¹ Ori C",
+    "raDeg": 83.818583,
+    "decDeg": -5.389667,
+    "source": "SIMBAD HD 37022 (ICRS J2000: 05 35 16.46, -05 23 22.8)"
+  },
+  "field": {
+    "halfWidthDeg": 0.9,
+    "emissionPixels": 1024,
+    "mapPixels": 512,
+    "corePixels": 1024,
+    "source": "Build choice: a gnomonic square centred on θ¹ Ori C that stays inside the Stellarium image footprint"
+  },
+  "catalogue": [
+    {
+      "id": "NGC1976",
+      "messier": "M42",
+      "name": "Orion Nebula",
+      "raDeg": 83.818667,
+      "decDeg": -5.389667,
+      "majArcmin": 90,
+      "minArcmin": 60,
+      "vMag": 4.0,
+      "source": "OpenNGC NGC.csv row NGC1976 (CC BY-SA 4.0)"
+    },
+    {
+      "id": "NGC1982",
+      "messier": "M43",
+      "name": "De Mairan's Nebula",
+      "raDeg": 83.88075,
+      "decDeg": -5.267472,
+      "majArcmin": 20,
+      "minArcmin": 15,
+      "vMag": 9.0,
+      "source": "OpenNGC NGC.csv row NGC1982 (CC BY-SA 4.0)"
+    }
+  ],
+  "photometry": {
+    "totalV": 4.0,
+    "totalApertureArcmin": 30,
+    "totalSource": "OpenNGC NGC1976 V = 4.0, integrated inside 30' of θ¹ Ori C (M43 excluded)",
+    "coreMuV": 16.5,
+    "coreRadiusArcmin": 0.5,
+    "coreSource": "Approximate peak V surface brightness of the Huygens region (16-17 mag/arcsec², e.g. O'Dell 2001, ARA&A 39, 99), measured as the brightest 0.5' radius disk",
+    "m43V": 9.0,
+    "m43ApertureArcmin": 4.0,
+    "m43Source": "OpenNGC NGC1982 V = 9.0 (check only, ±0.7 mag)",
+    "approximate": true
+  },
+  "geometry": {
+    "bowl": {
+      "z0Pc": 0.2,
+      "depthPc": 1.6,
+      "scalePc": 1.5,
+      "source": "Main ionization front ~0.2 pc behind θ¹ Ori C, concave towards Earth: Wen & O'Dell 1995, ApJ 438, 784; O'Dell 2001, ARA&A 39, 99",
+      "approximate": true
+    },
+    "bar": {
+      "distancePc": 0.23,
+      "paDeg": 60,
+      "risePc": 0.25,
+      "widthPc": 0.12,
+      "source": "Orion Bar: the ionization front seen edge-on ~2' (0.23 pc) SE of θ¹ Ori C, running NE-SW (PA ~60°): O'Dell 2001; Wen & O'Dell 1995",
+      "approximate": true
+    },
+    "sheet": {
+      "thicknessCorePc": 0.1,
+      "thicknessOuterPc": 1.0,
+      "outerRadiusPc": 4.0,
+      "displacement": 0.5,
+      "thicknessNoise": 0.4,
+      "source": "Emitting layer ~0.1 pc thick near θ¹ Ori C (Wen & O'Dell 1995), thickening outwards; noise amplitudes are model choices",
+      "approximate": true
+    },
+    "m43": {
+      "radiusPc": 0.6,
+      "source": "M43 as an H II sphere ionized by NU Ori (Simón-Díaz et al. 2011, A&A 530, A57); ~10' across at 400 pc",
+      "approximate": true
+    },
+    "veil": {
+      "zPc": -2.0,
+      "halfThicknessPc": 0.3,
+      "baseAv": 0.8,
+      "baseRadiusPc": 2.0,
+      "maxTau": 2.0,
+      "source": "Orion's Veil: a neutral foreground layer ~1-3 pc in front of θ¹ Ori C with A_V ~ 1-2 mag (O'Dell 2001; Abel et al. 2019, ApJ 881, 130)",
+      "approximate": true
+    },
+    "omc": {
+      "gapPc": 0.3,
+      "halfThicknessPc": 0.25,
+      "tau": 8,
+      "innerRadiusPc": 3.0,
+      "outerRadiusPc": 6.0,
+      "source": "OMC-1 and the Orion A molecular cloud behind the ionization front (opaque in V): O'Dell 2001",
+      "approximate": true
+    },
+    "extinctionRatios": {
+      "halpha": 0.8,
+      "oiii": 1.1,
+      "scattered": 1.15,
+      "source": "A_λ/A_V for R_V ≈ 5.5 (Orion's flat extinction law): Cardelli et al. 1989, ApJ 345, 245, at 656, 500 and ~470 nm",
+      "approximate": true
+    }
+  },
+  "stars": [
+    {
+      "id": "theta1-ori-a",
+      "name": "θ¹ Ori A",
+      "aliases": ["Theta1 Orionis A", "V1016 Ori", "HD 37020", "41 Ori A"],
+      "hip": 26220,
+      "raDeg": 83.815958,
+      "decDeg": -5.387306,
+      "v": 6.73,
+      "bv": 0.02,
+      "teff": 30000,
+      "radiusRsun": 6.0,
+      "massMsun": 16,
+      "spectral": "B0.5V",
+      "source": "SIMBAD HD 37020 (position, V, B-V); Simón-Díaz et al. 2006, A&A 448, 351 (Teff); radius and mass approximate"
+    },
+    {
+      "id": "theta1-ori-b",
+      "name": "θ¹ Ori B",
+      "aliases": ["Theta1 Orionis B", "BM Ori", "HD 37021", "41 Ori B"],
+      "hip": null,
+      "raDeg": 83.817208,
+      "decDeg": -5.385222,
+      "v": 7.96,
+      "bv": 0.1,
+      "teff": 20000,
+      "radiusRsun": 5.1,
+      "massMsun": 6.3,
+      "spectral": "B2V (eclipsing, BM Ori)",
+      "source": "SIMBAD HD 37021 (position, V); Windemuth et al. 2013, ApJ 768, 67 (BM Ori primary mass and radius); Teff and B-V approximate"
+    },
+    {
+      "id": "theta1-ori-c",
+      "name": "θ¹ Ori C",
+      "aliases": ["Theta1 Orionis C", "HD 37022", "41 Ori C"],
+      "hip": 26221,
+      "raDeg": 83.818583,
+      "decDeg": -5.389667,
+      "v": 5.13,
+      "bv": 0.02,
+      "teff": 39000,
+      "radiusRsun": 9.9,
+      "massMsun": 33,
+      "spectral": "O7Vp",
+      "source": "SIMBAD HD 37022 (position, V, B-V); Simón-Díaz et al. 2006, A&A 448, 351 (Teff 39 kK, log L 5.31, mass)"
+    },
+    {
+      "id": "theta1-ori-d",
+      "name": "θ¹ Ori D",
+      "aliases": ["Theta1 Orionis D", "HD 37023", "41 Ori D"],
+      "hip": 26224,
+      "raDeg": 83.821917,
+      "decDeg": -5.387944,
+      "v": 6.7,
+      "bv": 0.07,
+      "teff": 32000,
+      "radiusRsun": 6.0,
+      "massMsun": 17,
+      "spectral": "B0.5V",
+      "source": "SIMBAD HD 37023 (position, V, B-V); Simón-Díaz et al. 2006 (Teff); radius and mass approximate"
+    },
+    {
+      "id": "theta1-ori-e",
+      "name": "θ¹ Ori E",
+      "aliases": ["Theta1 Orionis E", "41 Ori E"],
+      "hip": null,
+      "raDeg": 83.815708,
+      "decDeg": -5.386083,
+      "v": 11.1,
+      "bv": 0.9,
+      "teff": 5600,
+      "radiusRsun": 6.0,
+      "massMsun": 2.8,
+      "spectral": "G2IV (double-lined binary)",
+      "source": "SIMBAD θ¹ Ori E (position); Herbig & Griffin 2006, AJ 132, 1763 (V, spectral type); Morales-Calderón et al. 2012, ApJ 753, 149 (masses); radius and B-V approximate"
+    },
+    {
+      "id": "theta2-ori-a",
+      "name": "θ² Ori A",
+      "aliases": ["Theta2 Orionis A", "HD 37041", "43 Ori"],
+      "hip": 26235,
+      "raDeg": 83.845417,
+      "decDeg": -5.416056,
+      "v": 5.02,
+      "bv": -0.09,
+      "teff": 31000,
+      "radiusRsun": 7.4,
+      "massMsun": 25,
+      "spectral": "O9.5IV",
+      "source": "SIMBAD HD 37041 (position, V, B-V); Simón-Díaz et al. 2006 (Teff); radius and mass approximate"
+    },
+    {
+      "id": "nu-ori",
+      "name": "NU Ori",
+      "aliases": ["HD 37061", "M43 ionizing star"],
+      "hip": null,
+      "raDeg": 83.880667,
+      "decDeg": -5.267389,
+      "v": 6.83,
+      "bv": 0.19,
+      "teff": 31000,
+      "radiusRsun": 5.5,
+      "massMsun": 14,
+      "spectral": "B0.5V",
+      "source": "SIMBAD HD 37061 (position, V, B-V); Simón-Díaz et al. 2011, A&A 530, A57 (Teff); radius and mass approximate"
+    }
+  ],
+  "registration": {
+    "maxResidualPx": 3,
+    "stars": [
+      { "name": "ι Ori (Hatysa)", "raDeg": 83.85826, "decDeg": -5.9099, "v": 2.75 },
+      { "name": "HYG 3624", "raDeg": 84.14872, "decDeg": -6.06475, "v": 5.71 },
+      { "name": "HYG 5181", "raDeg": 84.36399, "decDeg": -5.93839, "v": 6.03 },
+      { "name": "HYG 5962", "raDeg": 84.47244, "decDeg": -4.81403, "v": 6.16 },
+      { "name": "HYG 4822", "raDeg": 84.65822, "decDeg": -6.57396, "v": 5.96 },
+      { "name": "HYG 6540", "raDeg": 83.84298, "decDeg": -4.42432, "v": 6.24 },
+      { "name": "HYG 12401", "raDeg": 83.60034, "decDeg": -4.80434, "v": 6.8 },
+      { "name": "HYG 9470", "raDeg": 84.06261, "decDeg": -5.64792, "v": 6.56 }
+    ],
+    "coreStars": ["theta1-ori-a", "theta1-ori-c", "theta1-ori-d", "theta2-ori-a", "nu-ori"],
+    "source": "Hipparcos J2000 positions via HYG v4.1 (CC BY-SA 4.0) and SIMBAD"
+  }
+}
