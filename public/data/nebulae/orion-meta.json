@@ -15,7 +15,7 @@
   "emission": {
     "file": "data/nebulae/orion-emission.webp",
     "encodeExp": 4,
-    "lRef": 0.017022570595145226,
+    "lRef": 0.01784920133650303,
     "components": [
       "halpha",
       "oiii",
@@ -88,8 +88,8 @@
     }
   },
   "calibration": {
-    "gamma": 2.57948,
-    "a": 0.005445677972286479,
+    "gamma": 8.42595,
+    "a": 0.000003454836379450789,
     "skyRgb": [
       0.003509,
       0.002684,

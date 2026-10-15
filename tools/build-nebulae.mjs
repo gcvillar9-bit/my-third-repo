@@ -514,6 +514,16 @@ export const muFromLuminance = (L) => -2.5 * Math.log10((L * ARCSEC * ARCSEC) / 
 export const luminanceFromMu = (mu) => (LUX_MAG0 * 10 ** (-0.4 * mu)) / (ARCSEC * ARCSEC);
 
 /**
+ * Inverse of the photo's stretch, up to the scale a: L / a as a function of the log of the (dome-reconstructed)
+ * linear photo luminance and the stretch parameter p. NEBULAE_TRANSFER=power: Y^p; asinh (default): sinh(p·v)
+ * with v = Y^(1/2.2) the display-encoded luminance, the inverse of the asinh stretch of astro images.
+ */
+const TRANSFER = process.env.NEBULAE_TRANSFER ?? 'asinh';
+export const transfer = (logY, p) =>
+  TRANSFER === 'power' ? Math.exp(p * logY) : Math.sinh(p * Math.exp(logY / 2.2));
+const TRANSFER_RANGE = TRANSFER === 'power' ? [1, 6] : [0.2, 40];
+
+/**
  * Photometric calibration L = a · (Y · e^{g·shape})^γ of the photo luminance Y. The photo's clipped Huygens
  * region is a plateau; its true brightness rises towards the inside as a dome, e^{g·shape} with
  * shape = d - d²/(2·dMax) (d = depth inside the plateau). Three unknowns (a, γ, g), three catalogue numbers:
@@ -549,12 +559,12 @@ export function fitCalibration({ Y, shape, N, omega, inTotal, inM43, coreSigma, 
   for (let i = 0; i < N * N; i++) logY[i] = Math.log(Math.max(Y[i], 1e-9));
   const total = (g, gs) => {
     let t = 0;
-    for (let i = 0; i < N * N; i++) if (inTotal[i]) t += Math.exp(g * (logY[i] + gs * shape[i]));
+    for (let i = 0; i < N * N; i++) if (inTotal[i]) t += transfer(logY[i] + gs * shape[i], g);
     return t * omega;
   };
   const m43 = (g, gs) => {
     let t = 0;
-    for (let i = 0; i < N * N; i++) if (inM43[i]) t += Math.exp(g * (logY[i] + gs * shape[i]));
+    for (let i = 0; i < N * N; i++) if (inM43[i]) t += transfer(logY[i] + gs * shape[i], g);
     return t * omega;
   };
   const core = (g, gs) => {
@@ -562,7 +572,7 @@ export function fitCalibration({ Y, shape, N, omega, inTotal, inM43, coreSigma, 
     for (let j = 0; j < bh; j++)
       for (let i = 0; i < bw; i++) {
         const k = (j + y0) * N + i + x0;
-        p[j * bw + i] = Math.exp(g * (logY[k] + gs * shape[k]));
+        p[j * bw + i] = transfer(logY[k] + gs * shape[k], g);
       }
     const b = gaussBlur(p, bw, bh, coreSigma);
     let mx = 0;
@@ -589,8 +599,7 @@ export function fitCalibration({ Y, shape, N, omega, inTotal, inM43, coreSigma, 
     return { gs, r: m43(g, gs) / total(g, gs) };
   };
   const want = m43Lux / totalLux;
-  let lo = 1;
-  let hi = 6;
+  let [lo, hi] = TRANSFER_RANGE;
   for (let i = 0; i < 26; i++) {
     const mid = 0.5 * (lo + hi);
     if (m43Ratio(mid).r > want) lo = mid;
@@ -824,7 +833,8 @@ async function main() {
   });
   const { gamma, a, slope } = fit;
   const L = new Float32Array(N * N);
-  for (let i = 0; i < N * N; i++) L[i] = a * (Y[i] * Math.exp(slope * dome.shape[i])) ** gamma;
+  for (let i = 0; i < N * N; i++)
+    L[i] = a * transfer(Math.log(Math.max(Y[i], 1e-9)) + slope * dome.shape[i], gamma);
   const measure = (mask) => {
     let t = 0;
     for (let i = 0; i < N * N; i++) if (mask[i]) t += L[i] * omega;

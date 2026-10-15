@@ -68,6 +68,13 @@ export interface CustomStar {
   /** Sun-centred ICRS position at J2000, pc. */
   positionPc: Vec3d;
   source?: string;
+  /**
+   * stars.bin index of the same star when HYG has it at a wrong distance (e.g. the 100 kpc no-parallax
+   * placeholder): its catalogue point is hidden while this star is promoted. Default -1.
+   */
+  hygIndex?: number;
+  /** Observed B-V for the sprite colour (default: the HYG value when hygIndex is set, else none). */
+  bv?: number | null;
 }
 
 interface Group {
@@ -201,8 +208,8 @@ export class Promoter {
             teff: c.teff,
             radius: c.radius,
             absMag: c.absMag,
-            bv: null,
-            hygIndex: -1,
+            bv: c.bv ?? (c.hygIndex !== undefined && c.hygIndex >= 0 ? this.cat.bv(c.hygIndex) : null),
+            hygIndex: c.hygIndex ?? -1,
             massMsun: c.massMsun,
             approximate: true,
             source: c.source,
@@ -211,6 +218,7 @@ export class Promoter {
         frames: [this.singleFrame(frame, at, 1000 * AU)],
       };
       this.groups.set(c.id, g);
+      if (c.hygIndex !== undefined && c.hygIndex >= 0) this.byIndex.set(c.hygIndex, g);
     }
     this.hold(g, owner);
     return g.stars[0].frame;

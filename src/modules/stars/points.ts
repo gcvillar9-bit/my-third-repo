@@ -56,7 +56,7 @@ export interface StarPoints extends Renderable {
 }
 
 /** Most star indices `setHidden` accepts. */
-export const HIDE_MAX = 4;
+export const HIDE_MAX = 8;
 
 /** Shared star-sprite material (HYG points and promoted-star sprites use the same photometry). */
 function starMaterial(shared: SharedUniforms, bvMin: number, bvStep: number) {
@@ -77,7 +77,7 @@ function starMaterial(shared: SharedUniforms, bvMin: number, bvStep: number) {
   };
   // cosmos:no-depth (background layer: stars are drawn at infinity without depth, DESIGN 3.2)
   const material = new ShaderMaterial({
-    vertexShader: `${RTE_GLSL}\n${BLACKBODY_GLSL}\n${vertexBody}`,
+    vertexShader: `#define HIDE_MAX ${HIDE_MAX}\n${RTE_GLSL}\n${BLACKBODY_GLSL}\n${vertexBody}`,
     fragmentShader,
     uniforms,
     blending: AdditiveBlending,

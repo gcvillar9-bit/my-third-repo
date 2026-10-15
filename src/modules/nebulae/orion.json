@@ -66,8 +66,8 @@
     "bar": {
       "distancePc": 0.23,
       "paDeg": 60,
-      "risePc": 0.3,
-      "widthPc": 0.04,
+      "risePc": 0.25,
+      "widthPc": 0.12,
       "source": "Orion Bar: the ionization front seen edge-on ~2' (0.23 pc) SE of θ¹ Ori C, running NE-SW (PA ~60°): O'Dell 2001; Wen & O'Dell 1995",
       "approximate": true
     },
