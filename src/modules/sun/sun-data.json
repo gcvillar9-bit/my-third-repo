@@ -131,10 +131,10 @@
     "frameDegPerDay": 14.1844
   },
   "spots": {
-    "source": "Typical sunspot-group properties: umbra ~5-30% of the quiet-Sun intensity in white light (darker in the core and in big spots), penumbra ~75-85%, penumbra/umbra radius ~2.4, spots without a penumbra (pores) below ~1.5-2 Mm radius, groups 50-200 Mm long with a compact leading spot and a fragmented following polarity, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; Borrero & Ichimoto 2011, Living Rev. Sol. Phys. 8, 4; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
+    "source": "Typical sunspot-group properties: umbra ~5-30% of the quiet-Sun intensity in white light (darker in the core and in big spots), penumbra ~75-85% (penumbraIntensity is set lower, 0.52, a display choice so it reads grey next to the granulated photosphere after tone mapping), penumbra/umbra radius ~2.4, spots without a penumbra (pores) below ~1.5-2 Mm radius, groups 50-200 Mm long with a compact leading spot and a fragmented following polarity, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; Borrero & Ichimoto 2011, Living Rev. Sol. Phys. 8, 4; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
     "approximate": true,
     "umbraIntensity": [0.15, 0.085, 0.05],
-    "penumbraIntensity": 0.62,
+    "penumbraIntensity": 0.52,
     "penumbraRatio": 2.4,
     "umbraRadiusMm": [2.5, 12.5],
     "poreMaxRadiusMm": 1.6,

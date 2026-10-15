@@ -140,14 +140,14 @@ vec4 sunSpots(vec3 d, float aa) {
     float k = floor(w);
     float ru = w - k;
     bool pore = sp.w < 0.0;
+    vec3 dv = d - sp.xyz;
+    float d2 = dot(dv, dv);
+    float edge = 1.3 * (pore ? ru : 1.1 * ru * uPenRatio) + aa; // cull before anything costly
+    if (ru <= 0.0 || d2 > edge * edge) continue;
     vec3 A;
     vec3 B;
     spotSeed(k, A, B);
     float rp = pore ? ru : ru * uPenRatio * (1.0 + 0.1 * A.x);
-    vec3 dv = d - sp.xyz;
-    float d2 = dot(dv, dv);
-    float edge = 1.3 * rp + aa;
-    if (ru <= 0.0 || d2 > edge * edge) continue;
     float r = sqrt(d2);
     vec3 e1 = normalize(cross(vec3(0.0, 0.0, 1.0), sp.xyz));
     vec3 e2 = cross(sp.xyz, e1);
