@@ -18,8 +18,6 @@ to the largest structures in the universe and back home. Or press `/` and type a
   lines and correct brightness when seen as points of light.
 - A granulated, limb-darkened Sun with a corona; solar and lunar eclipses, with a finder that puts you on the ground
   at totality.
-- A living Sun (labelled "simulated"): sunspot groups, faculae, prominences and filaments that follow the 11-year
-  cycle and differential rotation, and an H-alpha solar filter (Settings > Sky).
 - The asteroid and Kuiper belts: up to 400,000 bodies on GPU Kepler orbits (Kirkwood gaps, Hildas, Trojans,
   plutinos).
 
