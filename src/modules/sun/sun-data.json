@@ -142,10 +142,10 @@
     "frameDegPerDay": 14.1844
   },
   "spots": {
-    "source": "Typical sunspot-group properties: umbra ~5-30% of the quiet-Sun intensity in white light (darker in the core and in big spots; umbraIntensity per channel follows 4000 K / 5800 K blackbody ratios), penumbra ~75-85% (penumbraIntensity 0.7 is the mean of high-contrast bright and dark filaments, a little below the measured range so it still reads after tone mapping), penumbra/umbra radius ~2.4, spots without a penumbra (pores) below ~1.5-2 Mm radius, partial (one-sided) penumbrae up to ~2.5 Mm, neighbouring umbrae of one polarity sharing a common penumbra, groups 50-200 Mm long with a compact leading spot and a fragmented following polarity, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; Borrero & Ichimoto 2011, Living Rev. Sol. Phys. 8, 4; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
+    "source": "Typical sunspot-group properties: umbra ~5-30% of the quiet-Sun intensity in white light (darker in the core and in big spots; umbraIntensity per channel follows 4000 K / 5800 K blackbody ratios), penumbra ~75-85% with dark lanes ~0.6 between bright filaments and grains of at most ~0.95, filaments ~150-250 km wide, hundreds around a big spot (penumbraIntensity 0.61 is the radiance mean, set below the measured value because the AgX tone mapping compresses ratios near the photosphere roughly as a 0.6 power, so the image shows ~0.75), penumbra/umbra radius ~2.4, spots without a penumbra (pores) below ~1.5-2 Mm radius, partial (one-sided) penumbrae up to ~2.5 Mm, neighbouring umbrae of one polarity sharing a common penumbra, groups 50-200 Mm long with a compact leading spot and a fragmented following polarity, Joy's-law tilt ~0.5 x latitude, Gnevyshev-Waldmeier linear area decay over days to weeks; SSN = 10 G + N, so groups on the whole Sun ~ SSN / 7.5 (Solanki 2003, Astron. Astrophys. Rev. 11, 153; Borrero & Ichimoto 2011, Living Rev. Sol. Phys. 8, 4; van Driel-Gesztelyi & Green 2015, Living Rev. Sol. Phys. 12, 1)",
     "approximate": true,
     "umbraIntensity": [0.095, 0.075, 0.062],
-    "penumbraIntensity": 0.7,
+    "penumbraIntensity": 0.61,
     "penumbraRatio": 2.4,
     "umbraRadiusMm": [2.5, 12.5],
     "poreMaxRadiusMm": 1.6,

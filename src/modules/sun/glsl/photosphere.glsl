@@ -102,27 +102,117 @@ vec2 sunRot(float a) {
   return vec2(cos(a), sin(a));
 }
 
-// Penumbral filaments: value noise on circles of the polar angle (n bundles around at the first octave,
-// then 2.13x finer each), stretched along the radial coordinate x so they are long and thin, and
-// contrast-shaped into bright/dark alternation. Each octave fades out well before a pixel spans one
-// (no shimmer while zooming or as spots rotate) and finer octaves weigh less; a lone surviving octave is
-// not boosted, so an unresolved penumbra tends to its mean (about -0.5..0.5).
-float penumbraFilaments(vec2 cs, float x, float n, float seed, float aaAng) {
-  float sum = 0.0;
-  float wsum = 0.0;
-  float k = n / 6.2831853;
-  float amp = 1.0;
-  for (int o = 0; o < 4; o++) {
-    float fo = float(o);
-    float w = amp * (1.0 - smoothstep(0.25, 0.6, aaAng * k));
-    if (w <= 0.0) break;
-    float v = sunVNoise(vec3(cs * k, x * (1.3 + 0.9 * fo) + seed + 7.1 * fo));
-    sum += w * (smoothstep(0.3, 0.7, v) - 0.5);
-    wsum += w;
-    k *= 2.13;
-    amp *= 0.8;
+// Penumbral filaments (white light): thin bright filaments of constant physical width on a darker
+// background. Filaments sit in levels of angular sectors around the spot, one filament per sector with a
+// random centre (slightly wiggly), start radius and end: level A (N sectors, PEN_SP0 apart at the umbra
+// radius) starts at the umbra boundary, level B (N, half a sector over) switches in at 1-2 umbra radii and
+// level C (2N, between both) beyond 2, so the width stays put while their number grows outwards (hundreds
+// around a big spot) instead of widening into wedges. Each starts in a bright penumbral grain.
+#define PEN_HW 2.99e-4  // half support of one filament, solar radii (0.21 Mm; FWHM ~0.25 Mm)
+#define PEN_SP0 6.47e-4 // level-A spacing at the umbra radius, solar radii (0.45 Mm)
+
+// One level: u = sector coordinate (N sectors around), r = distance from the spot centre, x = normalised
+// penumbra radius (0 umbra edge, 1 outer edge), rho = r / umbra radius; st = start range (rho), en = end
+// range (x). Returns (brightness 0..~1, grain coverage, outer-edge extension in x). Lines thinner than
+// ~1.5 px are widened at constant area, and a level fades to its mean once it is under ~2 px per filament
+// (no shimmer when zooming or as spots rotate; an unresolved penumbra keeps its mean).
+vec3 penLevel(float u, float N, float r, float x, float rho, vec2 st, vec2 en, float lv, float seed,
+               float aa) {
+  float sp = 6.2831853 * r / N;
+  float hw = max(PEN_HW, 1.2 * aa);
+  float fade = smoothstep(0.3, 0.6, 1.2 * aa / sp);
+  float fadeG = smoothstep(0.3, 0.6, 0.8 * aa / sp); // grains: sparser and wider than the filaments
+  float pAct = clamp((rho - st.x) / (st.y - st.x), 0.0, 1.0) *
+    clamp((en.y - 0.06 - x) / (en.y - en.x), 0.0, 1.0);
+  float mean = 1.2 * PEN_HW / sp * 0.875 * (1.0 - 0.15 * clamp(x, 0.0, 1.0)) * pAct;
+  vec3 res = vec3(0.0);
+  float j0 = floor(u);
+  float side = u - j0 < 0.5 ? -1.0 : 1.0;
+  // The pixel's sector and the nearer neighbour (centres stay 0.2 sectors inside theirs, widths <= 0.65);
+  // none once faded. Work is skipped through loop trip counts: software rasterisers run untaken branches.
+  int nt = (lv < 0.5 ? fadeG : fade) < 1.0 ? 2 : 0;
+  for (int t = 0; t < nt; t++) {
+    float j = j0 + float(t) * side;
+    vec3 h = starHash3(vec3(mod(j, N), lv * 17.0 + 3.0, seed));
+    float h4 = fract(h.x * 13.7 + h.z * 5.3);
+    float s0 = mix(st.x, st.y, h.y);
+    float e0 = mix(en.x, en.y, h.z);
+    // Cheap smooth waves (parabolic, no transcendentals): a slight wiggle and brightness along the length.
+    float wv = fract(x * 0.95 + h4);
+    float wl = fract(rho * 1.75 + h.y);
+    float c = j + 0.5 + 0.4 * (h.x - 0.5) + 0.2 * (4.0 * wv * (1.0 - wv) - 0.5);
+    float dp = abs(u - c) * sp;
+    float a = (rho - s0 - 0.04) / 0.05;
+    float head = clamp(1.0 - 0.25 * a * a, 0.0, 1.0);
+    head *= head;
+    head *= head; // ~exp(-a^2)
+    float w = min(hw * (1.0 + 0.6 * head), 0.65 * sp);
+    float prof = 1.0 - smoothstep(0.2 * w, w, dp);
+    float on = smoothstep(s0 - 0.02, s0 + 0.03, rho);
+    float along = on * (1.0 - smoothstep(e0 - 0.12, e0, x));
+    float amp = (0.75 + 0.25 * h4) * (1.0 - 0.15 * clamp(x, 0.0, 1.0)) *
+      (1.0 + 0.3 * (4.0 * wl * (1.0 - wl) - 0.667));
+    float pa = prof * along * PEN_HW / hw;
+    res.x += pa * mix(amp, 1.0, head);
+    if (lv < 0.5) {
+      // Grain: a rounded blob about 0.4 Mm wide around the head (area-conserving below ~1.5 px).
+      float wg = min(max(PEN_HW, 0.8 * aa), 0.65 * sp);
+      res.y = max(res.y, (1.0 - smoothstep(0.3 * wg, wg, dp)) * head * on * min(1.0, PEN_HW / wg));
+    }
+    // Fingers into the granulation (the filament with its dark surroundings), near the outer edge only.
+    if (x > 0.75) res.z = max(res.z, (1.0 - smoothstep(0.4 * sp, 0.7 * sp, dp)) * on * max(e0 - 1.0, 0.0));
   }
-  return sum / max(wsum, 0.8);
+  return vec3(mix(res.x, mean, fade), res.y * (1.0 - fadeG), res.z * (1.0 - fade));
+}
+
+// Bundles of filaments: 2D value noise periodic over M cells around the spot (ub) by the radial z.
+float penBundles(float ub, float M, float z, float seed) {
+  vec2 i = floor(vec2(ub, z));
+  vec2 f = vec2(ub, z) - i;
+  f = f * f * (3.0 - 2.0 * f);
+  float i0 = mod(i.x, M);
+  float i1 = mod(i.x + 1.0, M);
+  float a = mix(starHash3(vec3(i0, i.y, seed)).x, starHash3(vec3(i1, i.y, seed)).x, f.x);
+  float b = mix(starHash3(vec3(i0, i.y + 1.0, seed)).x, starHash3(vec3(i1, i.y + 1.0, seed)).x, f.x);
+  return mix(a, b, f.y);
+}
+
+// Penumbra of one spot at this pixel: (filament brightness 0..1, grain coverage, outer-edge extension in
+// penumbra widths: filaments running on into the granulation and brighter bundles reaching further).
+// g = (umbra radius Ri, outer radius Ro, r, base umbra radius ru), h = (cos, sin of the polar angle,
+// seed k (-1 - k: an embedded umbra, no grains), twist). Zero outside the deepest grains and longest fingers.
+vec3 penField(vec4 g, vec4 h, float aa) {
+  float r = g.z;
+  float x = clamp((r - g.x) / (g.y - g.x), -0.3, 1.3);
+  float rho = r / g.w;
+  // Levels A (heads at the umbra edge, some intruding into it as grains), B and C (further out); none
+  // outside the deepest grains and the longest fingers, where the field is exactly zero.
+  int nl = rho <= g.x / g.w - 0.1 || x >= 1.25 ? 0 : (rho > 1.97 ? 3 : (rho > 0.97 ? 2 : 1));
+  vec3 res = vec3(0.0);
+  for (int once = 0; once < min(nl, 1); once++) {
+    float k = h.z < 0.0 ? -1.0 - h.z : h.z;
+    float xc = clamp(x, 0.0, 1.0);
+    // Slightly curved filaments: the polar angle twists a little with the radius.
+    float beta = 0.1 * h.w * xc + 0.015 * sin(xc * 4.0 + k);
+    vec2 ct = vec2(h.x * cos(beta) - h.y * sin(beta), h.x * sin(beta) + h.y * cos(beta));
+    float N = max(12.0, floor(6.2831853 * g.w / PEN_SP0));
+    float uA = atan(ct.y, ct.x) * N / 6.2831853;
+    vec3 fl = vec3(0.0);
+    for (int l = 0; l < nl; l++) {
+      vec2 st = l == 0 ? g.x / g.w + vec2(-0.07, 0.12) : (l == 1 ? vec2(1.0, 2.0) : vec2(2.0, 4.0));
+      vec2 en = l == 0 ? vec2(0.85, 1.1) : (l == 1 ? vec2(0.88, 1.1) : vec2(0.9, 1.1));
+      float ul = l == 0 ? uA : (l == 1 ? uA + 0.5 : 2.0 * uA);
+      vec3 fb = penLevel(ul, l == 2 ? 2.0 * N : N, r, x, rho, st, en, float(l), k, aa);
+      fl = vec3(fl.x + fb.x, max(fl.y, fb.y), max(fl.z, fb.z));
+    }
+    // Bundles: brighter and darker groups of filaments a few sectors wide, changing along the radius.
+    float M = max(4.0, floor(N / 3.0));
+    float bun = (penBundles(uA * M / N, M, xc * 1.6, k + 101.0) - 0.5) *
+      (1.0 - smoothstep(0.2, 0.5, aa * M / (6.2831853 * r))) * (1.0 - smoothstep(1.1, 1.25, x));
+    res = vec3(min(fl.x * (1.0 + 0.6 * bun), 1.0), h.z < 0.0 ? 0.0 : fl.y,
+               fl.z * smoothstep(0.75, 0.85, x) + 0.1 * bun);
+  }
+  return res;
 }
 
 // Spot k's outline coefficients (stable per spot: the seed rides in the integer part of uSpot.w).
@@ -150,18 +240,14 @@ vec3 sunPoreI(float scale) {
 // Sunspots and pores: rgb = intensity multiplier, a = coverage (granulation is suppressed under it),
 // umb = umbra coverage. aa = pixel footprint, radians. The spots are merged with a smooth union of their
 // normalised penumbra distances s = (r - Ri) / (Ro - Ri), so neighbouring umbrae share one irregular common
-// penumbra whose filaments cross over softly (no circle seams). Spots below a pixel fade to their area.
+// penumbra (no circle seams) whose filaments come from the nearest umbra. Spots below a pixel fade to their
+// area.
 vec4 sunSpots(vec3 d, float aa, out float umb) {
   float esum = 0.0;   // sum of exp(-6 s): smooth minimum of the normalised distances
-  float s1 = 9.0;     // best two normalised distances and their filament values
+  float s1 = 9.0;     // best two normalised distances; the nearest one's penField arguments
   float s2 = 9.0;
-  float f1 = 0.0;
-  float f2 = 0.0;
-  float x1 = 1.0;     // radial coordinate in the nearest penumbra
-  float g1 = 0.0;     // its penumbral grains
-  float ew = 0.1;     // its outer edge width and pixel footprint, s units
-  float ea = 0.0;
-  float af = 1.0;     // its area factor (spots below a pixel)
+  vec4 G1 = vec4(0.0, 1.0, 9.0, 1.0); // (Ri, Ro, r, ru): far outside until a spot is found
+  vec4 H1 = vec4(0.0);
   float um = 0.0;
   vec3 umI = uUmbra;
   float poreP = 0.0;
@@ -219,45 +305,36 @@ vec4 sunSpots(vec3 d, float aa, out float umb) {
     }
     float rp = ru * (embedded ? SPOT_EMBED_RATIO : uPenRatio * (1.0 + 0.1 * A.x));
     float Ri = ru * (1.0 + 0.2 * spotWobble(cs, B.zxy, A.yzx)); // umbra boundary
-    // Outer penumbra boundary: irregular (low harmonics plus a little noise).
-    float Ro = rp * (1.0 + 0.30 * spotWobble(cs, A, B) + 0.06 * (sunVNoise(vec3(cs * 7.0, k)) - 0.5));
-    if (partial) {
+    // Outer penumbra boundary: irregular (low harmonics plus a little noise, which cannot matter beyond
+    // 1.5 penumbra radii, where the coverage is 0).
+    float rn = 0.5;
+    for (int ni = 0; ni < (r < 1.5 * rp + 3.0 * aa ? 1 : 0); ni++) rn = sunVNoise(vec3(cs * 7.0, k));
+    float Ro = rp * (1.0 + 0.30 * spotWobble(cs, A, B) + 0.06 * (rn - 0.5));
+    for (int pi = 0; pi < (partial ? 1 : 0); pi++) {
       // One-sided penumbra: a sector of 120-200 deg.
       float c = cos(1.05 + 0.7 * fract(A.y * 7.3));
       float sec = smoothstep(c - 0.25, c + 0.25, dot(cs, sunRot(6.2831853 * fract(B.x * 5.1))));
       Ro = mix(Ri, Ro, sec);
     }
     Ro = max(Ro, 1.02 * Ri);
-    float x = clamp((r - Ri) / (Ro - Ri), 0.0, 1.0);
-    // Slightly curved filaments: the polar angle twists a little with the radius.
-    float beta = 0.1 * B.x * x + 0.015 * sin(x * 4.0 + k);
-    vec2 ct = vec2(cs.x * cos(beta) - cs.y * sin(beta), cs.x * sin(beta) + cs.y * cos(beta));
-    float n = max(24.0, 6.2831853 * rp * 696.0 / 1.2);              // bundles ~1.2 Mm apart at the edge
-    float f = penumbraFilaments(ct, x, n, k * 0.37, aa / max(r, 0.4 * ru));
-    // Bright filament heads poke out into the granulation.
-    float Rf = max(Ro * (1.0 + 0.06 * f * smoothstep(0.6, 1.0, x)), 1.02 * Ri);
-    float s = (r - Ri) / (Rf - Ri);
+    // The filaments are shaded once after this loop, for the nearest penumbra only.
+    float s = (r - Ri) / (Ro - Ri);
     esum += exp(-6.0 * max(s, -4.0));
-    // Bright penumbral grains at the inner filament heads, intruding a little into the umbra.
-    float grains = embedded ? 0.0 : smoothstep(0.06, 0.3, f) * (1.0 - smoothstep(0.0, 0.35, x));
+    vec4 G = vec4(Ri, Ro, r, ru);
+    vec4 H = vec4(cs, embedded ? -1.0 - k : k, B.x);
     if (s < s1) {
       s2 = s1;
-      f2 = f1;
       s1 = s;
-      f1 = f;
-      x1 = x;
-      g1 = grains;
-      ew = 0.06 * rp / (Rf - Ri);
-      ea = aa / (Rf - Ri);
-      af = min(1.0, Ro * Ro / aa2);
-    } else if (s < s2) {
-      s2 = s;
-      f2 = f;
+      G1 = G;
+      H1 = H;
+    } else {
+      s2 = min(s2, s);
     }
     // Umbra (max over spots): near black, darker core, lighter in small spots; umbral dots once resolved;
     // a granular light bridge across some big umbrae.
-    float u = 1.0 - smoothstep(Ri * (0.95 - 0.05 * grains) - aa, Ri * (1.03 - 0.04 * grains) + aa, r);
-    if (ru > 0.008 && fract(A.z * 13.7) > 0.35) {
+    float u = 1.0 - smoothstep(Ri * 0.96 - aa, Ri * 1.03 + aa, r);
+    // (Trip-count guards: software rasterisers execute untaken if-blocks, but skip loops nobody enters.)
+    for (int bi = 0; bi < (ru > 0.008 && fract(A.z * 13.7) > 0.35 && u > 0.0 ? 1 : 0); bi++) {
       // Granular, slightly curved, of varying width, across the umbra from one side of the penumbra.
       vec2 bd = sunRot(B.y * 3.1415927);
       float along = dot(lp, vec2(-bd.y, bd.x)) / Ri;
@@ -267,7 +344,7 @@ vec4 sunSpots(vec3 d, float aa, out float umb) {
       u *= 1.0 - 0.8 * bridge * (0.55 + 0.45 * sunVNoise(vec3(lp / 0.0012, k + 3.0)));
     }
     u *= min(1.0, Ri * Ri / aa2);
-    if (u > um) {
+    for (int di = 0; di < (u > um ? 1 : 0); di++) {
       um = u;
       float core = smoothstep(0.0, 0.9, r / Ri);
       umI = uUmbra * mix(1.3, 1.0, smoothstep(0.003, 0.012, ru)) * mix(0.40, 0.90, core);
@@ -278,11 +355,21 @@ vec4 sunSpots(vec3 d, float aa, out float umb) {
   vec3 mul = vec3(1.0);
   float pen = 0.0;
   if (esum > 0.0) {
-    float sU = -log(esum) / 6.0;
-    pen = (1.0 - smoothstep(1.0 - ew, 1.0 + ea, sU)) * af;
-    // Where two penumbrae meet their filaments cross over (no seam along either circle).
-    float f = mix(f1, f2, 0.5 * (1.0 - smoothstep(0.0, 0.15, s2 - s1)));
-    float penI = uPenumbra * (1.0 + 0.8 * f + 0.12 * g1) * mix(0.92, 1.05, smoothstep(0.1, 0.7, x1));
+    // Filaments of the nearest penumbra. Where two penumbrae meet, their filaments converge on a narrow soft
+    // seam (no circle seams; shading only the nearest keeps the per-pixel cost of the old filaments).
+    vec3 F1 = penField(G1, H1, aa);
+    float f = mix(F1.x, 0.35, 0.5 * (1.0 - smoothstep(0.0, 0.06, s2 - s1)));
+    // Its ragged outer edge replaces its smooth one in the union.
+    float sr = s1 / (1.0 + F1.z);
+    esum += exp(-6.0 * max(sr, -4.0)) - exp(-6.0 * max(s1, -4.0));
+    float sU = -log(max(esum, 1e-30)) / 6.0;
+    float span = (G1.y - G1.x) * (1.0 + F1.z);
+    float rp1 = G1.w * (H1.z < 0.0 ? SPOT_EMBED_RATIO : uPenRatio);
+    pen = (1.0 - smoothstep(1.0 - 0.035 * rp1 / span, 1.0 + aa / span, sU)) * min(1.0, G1.y * G1.y / aa2);
+    // Bright penumbral grains at its inner filament heads cut into its umbra.
+    um *= 1.0 - F1.y;
+    // Dark lanes 0.66 and the brightest filaments and grains 1.42 of the mean penumbra (uPenumbra).
+    float penI = uPenumbra * (0.66 + 0.76 * f);
     pen = max(pen, um);
     mul = mix(vec3(1.0), mix(vec3(penI), umI, um), pen);
   }
