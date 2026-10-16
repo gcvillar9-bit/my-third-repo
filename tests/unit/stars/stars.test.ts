@@ -112,10 +112,18 @@ describe('Milky Way panorama orientation', () => {
 
   it('the band in the texture lines up with bright HYG stars of the Milky Way', async () => {
     const img = await sharp(`${ROOT}public/textures/stars/milkyway_diffuse_2k.webp`)
-      .greyscale()
+      .removeAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
-    const { width, height } = img.info;
+    const { width, height, channels } = img.info;
+    // The tiers are sRGB-encoded linear values (tools/build-stars.mjs): decode to the linear 0-255 scale.
+    const lin = (c: number) => 255 * (c <= 10.31475 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4);
+    const grey = new Float32Array(width * height);
+    for (let i = 0; i < grey.length; i++)
+      grey[i] =
+        0.2126 * lin(img.data[i * channels]) +
+        0.7152 * lin(img.data[i * channels + 1]) +
+        0.0722 * lin(img.data[i * channels + 2]);
     const at = (u: number, v: number) => {
       const x = Math.min(width - 1, Math.floor(u * width));
       const y = Math.min(height - 1, Math.floor((1 - v) * height));
@@ -123,7 +131,7 @@ describe('Milky Way panorama orientation', () => {
       for (let dy = -3; dy <= 3; dy++)
         for (let dx = -3; dx <= 3; dx++) {
           const yy = Math.max(0, Math.min(height - 1, y + dy));
-          s += img.data[yy * width + ((x + dx + width) % width)];
+          s += grey[yy * width + ((x + dx + width) % width)];
         }
       return s / 49;
     };

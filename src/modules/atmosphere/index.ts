@@ -28,6 +28,7 @@ const atmosphere: UniverseModule = {
       exposure: render.uniforms.uExposure,
       shading,
       requested,
+      fullResMarch: (ctx.env.params as URLSearchParams).get('atmosphere.march') === 'full',
     });
     for (const row of ATMOSPHERE_ROWS) {
       const body = registry.body(row.id);

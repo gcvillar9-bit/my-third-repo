@@ -142,15 +142,42 @@ vec2 skyViewUv(float r, float h, bool intersectGround, float vzc, float lvc) {
   return vec2(toSubUv(u, 192.0), toSubUv(v, 108.0));
 }
 
+// One raymarch step over [t0, t1] (sampled at its midpoint, Beer-Lambert within the step):
+// single scattering (+ multiple scattering from the MS LUT when uMsOn > 0.5) accumulated into L,
+// T (throughput) and fms.
+void atmoStep(vec3 ro, vec3 rd, vec3 sun, float t0, float t1, float phR, vec3 phM,
+              inout vec3 L, inout vec3 T, inout vec3 fms) {
+  float dt = t1 - t0;
+  vec3 P = ro + rd * (0.5 * (t0 + t1));
+  float r = length(P);
+  float muS = dot(P, sun) / r;
+  AtmoMedium m = atmoMedium(r - uAtmoBottom);
+  vec3 ts = sunTransmittance(r, muS);
+  vec3 ms = uMsOn > 0.5 ? texture(uMsLut, multiScatterUv(r, muS)).rgb : vec3(0.0);
+  vec3 sS = m.rayS + m.mieS;
+  vec3 S = ts * (m.rayS * phR + m.mieS * phM) + ms * sS;
+  vec3 st = exp(-m.ext * dt);
+  vec3 k = mix(vec3(dt), (1.0 - st) / max(m.ext, vec3(1e-9)), step(vec3(1e-9), m.ext));
+  L += T * S * k;
+  fms += T * sS * k;
+  T *= st;
+}
+
+// Phase functions of a view ray (isotropic for the multi-scattering LUT pass).
+float atmoPhaseR(float cosT, bool iso) { return iso ? 1.0 / (4.0 * ATMO_PI) : phaseRayleigh(cosT); }
+vec3 atmoPhaseM(float cosT, bool iso) {
+  return iso ? vec3(1.0 / (4.0 * ATMO_PI))
+             : vec3(phaseCornetteShanks(cosT, uMieG.r), phaseCornetteShanks(cosT, uMieG.g),
+                    phaseCornetteShanks(cosT, uMieG.b));
+}
+
 // Single scattering (+ multiple scattering from the MS LUT when uMsOn > 0.5) along [ta, tb];
 // quadratic steps dense at ta (or at tb). Accumulates into L, T (throughput) and fms.
 void atmoMarch(vec3 ro, vec3 rd, vec3 sun, float ta, float tb, int n, bool denseAtB, bool iso,
                inout vec3 L, inout vec3 T, inout vec3 fms) {
   float cosT = dot(rd, sun);
-  float phR = iso ? 1.0 / (4.0 * ATMO_PI) : phaseRayleigh(cosT);
-  vec3 phM = iso ? vec3(1.0 / (4.0 * ATMO_PI))
-                 : vec3(phaseCornetteShanks(cosT, uMieG.r), phaseCornetteShanks(cosT, uMieG.g),
-                        phaseCornetteShanks(cosT, uMieG.b));
+  float phR = atmoPhaseR(cosT, iso);
+  vec3 phM = atmoPhaseM(cosT, iso);
   float fn = float(max(n, 1));
   for (int i = 0; i < 128; i++) {
     if (i >= n) break;
@@ -163,22 +190,7 @@ void atmoMarch(vec3 ro, vec3 rd, vec3 sun, float ta, float tb, int n, bool dense
       u0 *= u0;
       u1 *= u1;
     }
-    float t0 = mix(ta, tb, u0);
-    float t1 = mix(ta, tb, u1);
-    float dt = t1 - t0;
-    vec3 P = ro + rd * (0.5 * (t0 + t1));
-    float r = length(P);
-    float muS = dot(P, sun) / r;
-    AtmoMedium m = atmoMedium(r - uAtmoBottom);
-    vec3 ts = sunTransmittance(r, muS);
-    vec3 ms = uMsOn > 0.5 ? texture(uMsLut, multiScatterUv(r, muS)).rgb : vec3(0.0);
-    vec3 sS = m.rayS + m.mieS;
-    vec3 S = ts * (m.rayS * phR + m.mieS * phM) + ms * sS;
-    vec3 st = exp(-m.ext * dt);
-    vec3 k = mix(vec3(dt), (1.0 - st) / max(m.ext, vec3(1e-9)), step(vec3(1e-9), m.ext));
-    L += T * S * k;
-    fms += T * sS * k;
-    T *= st;
+    atmoStep(ro, rd, sun, mix(ta, tb, u0), mix(ta, tb, u1), phR, phM, L, T, fms);
   }
 }
 #endif

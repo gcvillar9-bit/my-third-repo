@@ -55,6 +55,9 @@ export interface PromotedStar {
   massMsun?: number;
   approximate: boolean;
   source?: string;
+  labelPriority?: number;
+  /** The promoting module describes this star itself (info() returns null for it). */
+  ownInfo?: boolean;
 }
 
 /** A custom (non-HYG) star, e.g. an exoplanet host fainter than HYG. */
@@ -68,6 +71,17 @@ export interface CustomStar {
   /** Sun-centred ICRS position at J2000, pc. */
   positionPc: Vec3d;
   source?: string;
+  /**
+   * stars.bin index of the same star when HYG has it at a wrong distance (e.g. the 100 kpc no-parallax
+   * placeholder): its catalogue point is hidden while this star is promoted. Default -1.
+   */
+  hygIndex?: number;
+  /** Observed B-V for the sprite colour (default: the HYG value when hygIndex is set, else none). */
+  bv?: number | null;
+  /** Label declutter priority of the body (default 45). */
+  labelPriority?: number;
+  /** The promoting module has its own (sourced) info card for this star: no generic 'Star (promoted)' card. */
+  ownInfo?: boolean;
 }
 
 interface Group {
@@ -201,16 +215,19 @@ export class Promoter {
             teff: c.teff,
             radius: c.radius,
             absMag: c.absMag,
-            bv: null,
-            hygIndex: -1,
+            bv: c.bv ?? (c.hygIndex !== undefined && c.hygIndex >= 0 ? this.cat.bv(c.hygIndex) : null),
+            hygIndex: c.hygIndex ?? -1,
             massMsun: c.massMsun,
             approximate: true,
             source: c.source,
+            labelPriority: c.labelPriority,
+            ownInfo: c.ownInfo,
           },
         ],
         frames: [this.singleFrame(frame, at, 1000 * AU)],
       };
       this.groups.set(c.id, g);
+      if (c.hygIndex !== undefined && c.hygIndex >= 0) this.byIndex.set(c.hygIndex, g);
     }
     this.hold(g, owner);
     return g.stars[0].frame;
@@ -332,7 +349,7 @@ export class Promoter {
       teff: s.teff,
       absMag: s.absMag,
       influenceRadius: f?.influenceRadius ?? 1000 * AU,
-      labelPriority: 45,
+      labelPriority: s.labelPriority ?? 45,
     };
   }
 
@@ -519,7 +536,7 @@ export class Promoter {
   /** Info card for promoted stars that the stars module does not describe (no HYG name row). */
   info(id: string): InfoCard | null {
     const s = this.star(id);
-    if (!s || s.hygIndex >= 0) return null;
+    if (!s || s.hygIndex >= 0 || s.ownInfo) return null;
     return {
       title: s.name,
       subtitle: 'Star (promoted)',

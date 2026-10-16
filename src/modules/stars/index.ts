@@ -19,7 +19,7 @@ import {
   createSearchProvider,
   starBookmarks,
 } from './providers';
-import { bindHideStars, hiddenStars, resolveCatalog } from './public';
+import { bindHideStars, bindPanoramaHole, hiddenStars, resolveCatalog } from './public';
 
 const STARS_BIN = 'data/stars/stars.bin';
 const NAMES_JSON = 'data/stars/names.json';
@@ -62,8 +62,8 @@ const starsModule: UniverseModule = {
     void ctx.assets
       .track(
         ctx.assets.texture(`textures/stars/milkyway_diffuse_${tier}.webp`, {
-          colorSpace: 'linear',
-          mipmaps: false,
+          colorSpace: 'srgb',
+          mipmaps: true,
         }),
         'stars.milkyway',
       )
@@ -72,6 +72,8 @@ const starsModule: UniverseModule = {
         milkyWay.visible = milkyWayOn;
         milkyWay.gain = milkyWayGain;
         registry.addRenderable(milkyWay);
+        const layer = milkyWay;
+        bindPanoramaHole((h) => layer.setHole(h));
       })
       .catch((e: unknown) => console.error('[stars] Milky Way panorama failed to load', e));
 

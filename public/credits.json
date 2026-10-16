@@ -70,6 +70,66 @@
       "licenseText": null
     },
     {
+      "module": "nebulae",
+      "id": "stellarium_m42",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/nebulae/default/m42.png",
+      "license": "CC-BY-3.0",
+      "licenseName": "Creative Commons Attribution 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "M42 wide-field image by HG731GZ, from the Stellarium deep-sky image set (nebulae/default/m42.png; credited to HG731GZ in nebulae/default/textures.json), github.com/Stellarium/stellarium. Licence: CC BY 3.0 Unported per Stellarium CREDITS.md section 4.41 (\"Images of M33, M42, NGC253, NGC5566, LBN782, the Pleiades from HG731GZ\"), https://github.com/Stellarium/stellarium/blob/master/CREDITS.md",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": [
+        "data/nebulae/orion-emission.webp",
+        "data/nebulae/orion-maps.webp",
+        "data/nebulae/orion-meta.json"
+      ],
+      "licenseText": null
+    },
+    {
+      "module": "nebulae",
+      "id": "stellarium_textures",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/nebulae/default/textures.json",
+      "license": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "attribution": "Stellarium deep-sky image index (nebulae/default/textures.json): sky corners of m42.png, Stellarium contributors",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/nebulae/orion-meta.json"],
+      "licenseText": null
+    },
+    {
+      "module": "nebulae",
+      "id": "hubble_m42",
+      "url": "https://raw.githubusercontent.com/xirong/xirong.github.io/master/space/textures/deep-sky/orion_m42.jpg",
+      "license": "CC-BY-4.0",
+      "licenseName": "Creative Commons Attribution 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "NASA, ESA, M. Robberto (STScI/ESA) and the HST Orion Treasury Project Team: ESA/Hubble heic0601a, https://esahubble.org/images/heic0601a/ (the upstream source; CC BY 4.0, NASA imagery public domain). Downloaded as a 1280 px copy mirrored in xirong/xirong.github.io; the sha256 pins those bytes, registration on the Trapezium, θ² Ori A and NU Ori confirms the field",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/nebulae/orion-core.webp"],
+      "licenseText": null
+    },
+    {
+      "module": "nebulae",
+      "id": "openngc_m42_m43",
+      "url": null,
+      "license": "reference",
+      "licenseName": "Published reference data (facts, cited)",
+      "licenseUrl": null,
+      "attribution": "OpenNGC (Mattia Verga, CC BY-SA 4.0), database_files/NGC.csv rows NGC1976 (M42) and NGC1982 (M43): positions, sizes and V magnitudes, hand-entered in src/modules/nebulae/orion.json",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": [],
+      "licenseText": null
+    },
+    {
       "module": "solar-system",
       "id": "earth_day_4096",
       "url": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_day_4096.jpg",

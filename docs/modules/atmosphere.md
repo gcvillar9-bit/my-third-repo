@@ -23,7 +23,7 @@ over any geometry provider (sphere today, terrain from P2-A):
   geometry nearer than `apMaxKm` uses the aerial-perspective atlas (two-slice lerp, half-texel clamp per tile,
   linear fade in the first slice); farther geometry is raymarched;
 - camera outside: per-pixel raymarch from the shell entry to min(depth, ground, exit), split at the closest
-  approach to the centre with quadratic steps towards it (fine sampling where limb rays are densest);
+  approach to the centre, on a fixed step grid measured from the dense end (see **Steps**);
 - `out = input · T + L · E☉ · exposure`, clamped to 6e4. Bodies with `sunTransmittanceInPost` (all but Earth,
   whose shading applies it itself) also get their surface pixels multiplied by the Sun transmittance at the hit
   point, which makes the Gale ground dim and red at sunset.
@@ -38,9 +38,12 @@ geometry (≤ 0.6% from physical on Mars).
 4 px (`space.ts`). The pass is inactive (skipped by the host) otherwise.
 
 **Steps** from `knobs.atmosphereSteps` (8/12/24/48/48 for potato…ultra since P4-P): sky-view `clamp(2k, 24, 64)`,
-aerial cap `clamp(k, 8, 32)` (slice i uses `2(i+1)`), raymarch `clamp(k + 16, 24, 48)`. Outside views take
-`path / (shell / 8)` steps (8…max), the fractional part dithered per pixel (interleaved gradient noise) so step
-changes do not band towards the limb.
+aerial cap `clamp(k, 8, 32)` (slice i uses `2(i+1)`), raymarch `clamp(k + 16, 24, 48)`. Outside views march a
+fixed grid from each segment's dense end (the ground or a surface, or the closest approach of a limb ray):
+step x covers `[s(x), s(x+1)]` with `s(x) = u·(0.5x + 1.5x²)` km, `u = shell / 100` (Earth's vertical column:
+8 steps, the first 2 km). The step at the thin end is the fraction that fits, so the integral is continuous in
+the path length and neighbouring pixels share the grid; past the raymarch count (half each for the two halves
+of a limb ray) the grid stretches to fit, continuously. TS twin: `model.ts` `stepGrid`/`marchGrid`.
 
 **Reduced-resolution march (P4-P).** The raymarch branch (every pixel in the shell when the camera is outside,
 e.g. the default earth-dawn-400km view, which ran ~15 fps on the owner's laptop) runs in a separate pass at
@@ -51,6 +54,22 @@ the four nearest texels with the same end type, weighted bilinear × 1/(1 + (Δp
 such neighbour marches itself. Work on medium at 1280×720 (pixels × steps): 10.1M for earth-dawn-400km against
 44M for the old full-resolution composite (48 steps); budgets in `tests/e2e/perf.spec.ts`. The same pass serves
 Mars, Venus and Titan; when the camera is inside an atmosphere the march only covers geometry beyond `apMaxKm`.
+
+**Planet stripe fix (follow-up 4).** The owner saw screen-aligned stripes on Earth from ~18,000 km on medium.
+Cause: texel (i, j) of the half-resolution march took its ray and `texture(uDepth, vUv)` at the corner between
+four full-resolution pixels, so nearest sampling picked one of them depending on float rounding, in runs of rows
+and columns. The ray end then moved by half a pixel's depth change (kilometres on a tilted disc) into or out of
+the densest air, about 4% of L per km. Now both passes address integer pixels: the march fetches depth at
+`(2i, 2j)` with `texelFetch` and casts the ray through that pixel's centre; the composite uses its own pixel and
+maps it to texel `(gl_FragCoord.xy − 0.5) / 2` (odd sizes too). The dithered step count went too (the fixed grid
+above). Banding (medium − ultra row/column means over the lit disc, high-passed by a 31 px moving mean, RMS / disc
+mean): owner's view at 2268×1240 1.29% → 0.12% (rows), earth-now at 1134×620 12.5% → 0.40% (the floor:
+medium's per-pixel march also gives 0.39%). The grid takes ~20–30% fewer real steps on the disc than the old
+count; `uSteps` (the work counter's bound) is unchanged. Regression test: `atmosphere.spec.ts` "planet stripes"
+compares medium's half-resolution march with medium's own per-pixel march (`?atmosphere.march=full`, a test-only
+override read in `index.ts` that keeps every other knob), so other modules' preset differences no longer set its
+floor: 0.125% / 0.197% (rows / columns), limit 0.4%. It is a documented exception to the 480×270 potato e2e rule:
+the 31 px high-pass needs a large disc, so it runs at 1134×620 on medium (two loads, ~33 s on SwiftShader).
 
 ## Parameters (`planets.json`, SI with `source` fields; `params.ts` converts to km)
 
@@ -99,7 +118,7 @@ sets through +3° (`sun-search.ts`, computed at init from the frame tree), looki
 
 - Sun transmittance in post applies to every surface pixel inside the shell (terrain reaches tens of km on Mars).
 - A camera below the bottom sphere is lifted radially to bottom + 1 m for the LUT, sky-view and composite uniforms; aerial-perspective rays are no longer clipped at the bottom sphere.
-- Outside views march `clamp(ceil(path / (thickness / 8)), 8, uSteps)` steps per pixel (the disc takes ~8, limb rays the full count).
+- Outside views march `clamp(ceil(path / (thickness / 8)), 8, uSteps)` steps per pixel (the disc takes ~8, limb rays the full count). Replaced in follow-up 4 by the fixed step grid.
 - The composite replaces NaN/Inf input and output pixels with 0: one bad pixel near the Sun used to black out the whole frame through the bloom mip chain.
 - `mars-gale-sunset` uses walk mode, so the eye stands 1.7 m above the drawn crater floor.
 - `public.ts` also exports `findSunCrossing`, `sunElevation` and `siteDirection`.

@@ -1,0 +1,18 @@
+{
+  "source": "Stellarium nebulae/default/textures.json entry of m42.png (sha256 75bbf1e0… in assets/manifest/nebulae.json); image 1024 x 1024 px",
+  "imageUrl": "m42.png",
+  "width": 1024,
+  "height": 1024,
+  "worldCoords": [
+    [86.083, -7.122],
+    [82.8645, -7.5215],
+    [82.4686, -4.3286],
+    [85.6746, -3.9321]
+  ],
+  "textureCoords": [
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [0, 1]
+  ]
+}
