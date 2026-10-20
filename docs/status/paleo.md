@@ -19,9 +19,8 @@ Backup of the pre-change state: branch `backup-before-deep-time` (0650d37). Work
 
 - Steps 3, 5, 6 (paleo maps, `src/modules/paleo/`, bookmarks, e2e) and the Earth GLSL hooks (`EARTH_PALEO`,
   `uEarthCloudMap`), which land with their first consumer. Allow `zenodo.org`, `www.ngdc.noaa.gov` and
-  `www.ncei.noaa.gov` in the environment's network settings (still proxy 403 on 2026-10-20). Then
-  `tests/unit/tools/manifest.test.ts` must also accept those hosts. Plan: `/root/.claude/plans/i-want-to-make-snazzy-cocke.md`
-  (session-local; the steps are summarised in the PR/commit history).
+  `www.ncei.noaa.gov` in the environment's network settings (still proxy 403 on 2026-10-20); then
+  `tests/unit/tools/manifest.test.ts` must also accept those hosts.
 
 ## Gaps and notes
 
