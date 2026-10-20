@@ -117,7 +117,7 @@ describe('time', () => {
     expect(inside.inside).toBe(true);
     const outside = c.validity(JD_J2000 + 20_000 * 365.25).find((s) => s.range.id === 'core.planets')!;
     expect(outside.inside).toBe(false);
-    expect(outside.range.beyond).toBe('frozen');
+    expect(outside.range.beyond).toBe('approximate');
     expect(() => c.setTime('garbage')).toThrow();
   });
 });

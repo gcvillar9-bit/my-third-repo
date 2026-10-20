@@ -77,8 +77,10 @@ export const STANDARD_VALIDITY: readonly ValidityRange[] = [
     model: 'astronomy-engine (VSOP87 / ELP)',
     jdMin: JD_J2000 - YEARS(1e4),
     jdMax: JD_J2000 + YEARS(1e4),
-    beyond: 'frozen',
-    source: 'astronomy-engine documented accuracy window; planets freeze beyond ±10 kyr',
+    beyond: 'approximate',
+    source:
+      'astronomy-engine documented accuracy window ±10 kyr; beyond it time folds onto 2000 ± 2 yr, so day, ' +
+      'night and seasons continue but planet positions, day length and the Moon are modern',
   },
   {
     id: 'core.stars.proper-motion',

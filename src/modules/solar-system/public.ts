@@ -23,4 +23,4 @@ export {
   OBLIQUITY_J2000,
 } from './kepler';
 export type { Conic, Mat3 } from './kepler';
-export { SolarEphemeris, EPHEMERIS_HALF_RANGE_DAYS } from './ephemeris';
+export { SolarEphemeris, EPHEMERIS_HALF_RANGE_DAYS, FOLD_PERIOD_DAYS, foldJd } from './ephemeris';

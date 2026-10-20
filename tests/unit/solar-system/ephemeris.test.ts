@@ -2,12 +2,22 @@ import { readFileSync } from 'node:fs';
 import { AstroTime, BaryState, Body as AeBody, GeoMoon, JupiterMoons } from 'astronomy-engine';
 import { describe, expect, it } from 'vitest';
 import { FrameTreeImpl, addStandardFrames } from '../../../src/core/frames';
-import { qrotate, quat, v3cross, v3dot, v3len, v3normalize, v3sub, vec3 } from '../../../src/core/math64';
+import {
+  qrotate,
+  qrotateInv,
+  quat,
+  v3cross,
+  v3dot,
+  v3len,
+  v3normalize,
+  v3sub,
+  vec3,
+} from '../../../src/core/math64';
 import { parseInstant } from '../../../src/core/time';
 import { AU, JD_J2000 } from '../../../src/core/units';
 import type { BodiesFile, BodyRow } from '../../../src/modules/solar-system/data';
 import { gmSI } from '../../../src/modules/solar-system/data';
-import { SolarEphemeris } from '../../../src/modules/solar-system/ephemeris';
+import { FOLD_PERIOD_DAYS, SolarEphemeris, foldJd } from '../../../src/modules/solar-system/ephemeris';
 import { buildFrameDefs, fixedFrameId } from '../../../src/modules/solar-system/frames';
 import {
   KeplerOrbit,
@@ -140,12 +150,47 @@ describe('solar-system ephemeris', () => {
     expect(n).toBeGreaterThanOrEqual(26);
   });
 
-  it('freezes positions beyond J2000 ± 10 kyr', () => {
+  it('folds time beyond J2000 ± 10 kyr onto J2000 ± 2 yr', () => {
+    expect(foldJd(JD)).toBe(JD);
+    const ma66 = JD_J2000 - 66e6 * 365.25 + 0.3;
+    for (const jd of [JD_J2000 + 4e6, JD_J2000 - 4e6 - 0.25, ma66]) {
+      const f = foldJd(jd);
+      expect(Math.abs(f - JD_J2000)).toBeLessThanOrEqual(FOLD_PERIOD_DAYS / 2);
+      expect(foldJd(f)).toBe(f);
+      // Whole days only: the time of day carries on (to float64 resolution at 66 Ma, ~4e-6 d).
+      const frac = (x: number) => x - Math.floor(x);
+      expect(Math.abs(frac(f) - frac(jd))).toBeLessThan(1e-5);
+    }
+    // Positions repeat every fold period, so they stay finite and move with time.
     const far = JD_J2000 + 4e6;
     const a = eph.positionAt('mars', far, vec3());
-    const b = eph.positionAt('mars', far + 1000, vec3());
+    const b = eph.positionAt('mars', far + FOLD_PERIOD_DAYS, vec3());
+    const c = eph.positionAt('mars', far + 100, vec3());
     expect(v3len(v3sub(vec3(), a, b))).toBe(0);
-    expect(Number.isFinite(a.x)).toBe(true);
+    expect(v3len(v3sub(vec3(), a, c))).toBeGreaterThan(1e9);
+  });
+
+  it('keeps day and night turning at 66 Ma and holds still in fast warp', () => {
+    const e2 = new SolarEphemeris(rows);
+    const sunInEarth = (jd: number) => {
+      const s = v3normalize(vec3(), e2.relative('earth', 'sun', jd, vec3()));
+      return qrotateInv(vec3(), e2.orientationAt('earth', jd, quat()), s);
+    };
+    const jd = JD_J2000 - 66e6 * 365.25;
+    const a = sunInEarth(jd);
+    const b = sunInEarth(jd + 0.25);
+    // Six hours later the Sun has moved ~90° around Earth's axis (body-fixed frame).
+    const ang = Math.acos(Math.max(-1, Math.min(1, v3dot(a, b)))) / DEG;
+    expect(ang).toBeGreaterThan(80);
+    expect(ang).toBeLessThan(100);
+    e2.setFoldHold(() => true);
+    const h1 = sunInEarth(jd + 17);
+    const h2 = sunInEarth(jd + 4321.5);
+    expect(v3len(v3sub(vec3(), h1, h2))).toBe(0);
+    // The hold never touches the real ephemeris window.
+    const n1 = e2.positionAt('mars', JD, vec3());
+    const n2 = e2.positionAt('mars', JD + 100, vec3());
+    expect(v3len(v3sub(vec3(), n1, n2))).toBeGreaterThan(1e9);
   });
 });
 

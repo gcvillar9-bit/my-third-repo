@@ -51,7 +51,7 @@ Within a stage, passes run by ascending `order`. The host ping-pongs HalfFloat t
 
 - `FrameDef` / `FrameTree`: add or remove frames. `relative(a, b)` returns the vector between frame origins and `delta(a, aLocal, b, bLocal)` the vector between points; both walk to the lowest common ancestor and return world axes. Also `convertPoint`, `orientation`, `toWorldDir`/`fromWorldDir`, `findAnchor` (deepest influence sphere, 10% hysteresis) and `toCamera`.
 - `SimClock`: TT `jd`, `rate` (sim s per real s), `WARP_LADDER` steps, pause and resume, `setTime(JD | Date | ISO)`, `setNow`, UTC↔TT conversion and `validity(jd)`. Only the app loop calls `tick`.
-- `ValidityRange` / `ValidityStatus`: the time-validity badges, e.g. planets ±10 kyr then `frozen`.
+- `ValidityRange` / `ValidityStatus`: the time-validity badges, e.g. planets ±10 kyr then `approximate` (folded time).
 
 **Things in the world**
 

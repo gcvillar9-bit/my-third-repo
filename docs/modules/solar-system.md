@@ -13,8 +13,11 @@ The Sun, 8 planets, the Moon, 25 other moons, Pluto/Charon, Ceres, Vesta, Eris, 
 | Io, Europa, Ganymede, Callisto | `JupiterMoons`                                                                 | `jupiter`                                      |
 | Everything else                | `KeplerOrbit` from `elements` (Newton solver, residual < 1e-12 up to e = 0.99) | `elements.center` (`sun`, `ssb` or the planet) |
 
-- All positions are ICRF axes, metres, float64. Time is clamped to J2000 ± 10 kyr (the engine's `core.planets`
-  validity): beyond it every position and orientation is frozen.
+- All positions are ICRF axes, metres, float64. Time is used as given within J2000 ± 10 kyr (the engine's
+  `core.planets` validity). Beyond it `foldJd` folds time onto J2000 ± 2 yr with a 1461-day period (4 Julian years,
+  a whole number of days), so day, night and seasons keep turning in deep time while positions repeat every 4 years
+  (`approximate`). The ±10 kyr seam jumps once. Above `FOLD_HOLD_RATE` (1e6 s/s) folded time holds still instead of
+  strobing day and night every frame; the real ±10 kyr window is never held.
 - `<id>.fixed`: astronomy-engine `RotationAxis` for the Sun, Moon, planets and Pluto; IAU leading terms
   (`ra0 + raRate·T`, `dec0 + decRate·T`, `w0 + wdot·d`) for the rest. Body→ICRF = Rz(90°+α)·Rx(90°−δ)·Rz(W).
   Triton (locked, no pole): +x towards Neptune, +z along the orbit normal. Eris, Haumea, Makemake: ecliptic pole and

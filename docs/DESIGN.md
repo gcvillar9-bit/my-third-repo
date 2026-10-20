@@ -206,7 +206,7 @@ Every frame node has `positionAt(jd, out)`, an optional `orientationAt`, and an 
 - `SimClock` holds the Julian Date in TT as Float64. astronomy-engine handles UT/ΔT.
 - Warp ladder: pause, ±1, 60, 3600, 86400, 2.6e6, 3.15e7, 3.15e9, 3.15e11, 1e13 (1e13 is about 300 kyr/s).
 - A validity badge shows which model is active:
-  - Planets use astronomy-engine within ±10 kyr and are frozen beyond that.
+  - Planets use astronomy-engine within ±10 kyr. Beyond that time folds onto 2000 ± 2 yr (4-year period), so day and night continue; positions are approximate.
   - Stellar proper motion is linear up to ±1 Myr.
   - Galactic rotation is used beyond that.
 

@@ -7,8 +7,9 @@
  * - Orientation: astronomy-engine RotationAxis where it exists, else IAU leading terms from the
  *   row; tidally locked bodies without a pole face their parent; no data → ecliptic pole, no spin.
  *
- * All vectors are ICRF/J2000 axes in metres (velocities m/s). Times are JD TT, clamped to
- * J2000 ± 10 kyr (the `core.planets` validity range: positions are frozen beyond it).
+ * All vectors are ICRF/J2000 axes in metres (velocities m/s). Times are JD TT. Inside J2000 ± 10 kyr
+ * (the `core.planets` validity range) they are used as given; beyond it they fold onto J2000 ± 2 yr
+ * (foldJd), so day, night and seasons continue in deep time while positions repeat every 4 years.
  */
 import {
   AstroTime,
@@ -43,10 +44,23 @@ import { ECLIPTIC_POLE, KeplerOrbit, elementsFrameMatrix } from './kepler';
 
 const DEG = Math.PI / 180;
 const AU_PER_DAY = AU / DAY;
-/** Ephemerides are frozen outside J2000 ± this many days (core.planets validity). */
+/** Ephemerides are used as given within J2000 ± this many days (core.planets validity). */
 export const EPHEMERIS_HALF_RANGE_DAYS = (10_000 * JULIAN_YEAR) / DAY;
-export const clampJd = (jd: number): number =>
-  Math.min(JD_J2000 + EPHEMERIS_HALF_RANGE_DAYS, Math.max(JD_J2000 - EPHEMERIS_HALF_RANGE_DAYS, jd));
+/**
+ * Beyond the window, time folds onto J2000 ± 2 yr with this period: 4 Julian years, a whole number
+ * of days, so the time of day and the Julian day of the year carry on. The ±10 kyr seam jumps once.
+ */
+export const FOLD_PERIOD_DAYS = 1461;
+/** Warp (sim s per real s) above which folded time holds still instead of strobing day and night. */
+export const FOLD_HOLD_RATE = 1e6;
+
+/** JD the ephemerides evaluate for `jd`: itself inside the window, folded onto J2000 ± 2 yr beyond. */
+export function foldJd(jd: number): number {
+  const d = jd - JD_J2000;
+  if (Math.abs(d) <= EPHEMERIS_HALF_RANGE_DAYS) return jd;
+  const off = ((d % FOLD_PERIOD_DAYS) + FOLD_PERIOD_DAYS) % FOLD_PERIOD_DAYS;
+  return JD_J2000 + (off >= FOLD_PERIOD_DAYS / 2 ? off - FOLD_PERIOD_DAYS : off);
+}
 
 const AE_BODIES: Record<string, AeBody> = {
   sun: AeBody.Sun,
@@ -98,6 +112,9 @@ export class SolarEphemeris {
   private sunVel = vec3();
   private jmJd = NaN;
   private jm: ReturnType<typeof JupiterMoons> | null = null;
+  // fast-warp hold of folded time
+  private holdFold: () => boolean = () => false;
+  private heldJd = NaN;
 
   constructor(rows: readonly BodyRow[]) {
     this.rows = rows;
@@ -152,6 +169,24 @@ export class SolarEphemeris {
     return e;
   }
 
+  /** While `hold` returns true, folded (deep) time stays at the instant the hold began. */
+  setFoldHold(hold: () => boolean): void {
+    this.holdFold = hold;
+    this.heldJd = NaN;
+  }
+
+  /** foldJd plus the fast-warp hold; idempotent, so re-entrant calls with a folded jd are no-ops. */
+  private ephemerisJd(jd: number): number {
+    const folded = foldJd(jd);
+    if (folded === jd) return jd;
+    if (!this.holdFold()) {
+      this.heldJd = NaN;
+      return folded;
+    }
+    if (Number.isNaN(this.heldJd)) this.heldJd = folded;
+    return this.heldJd;
+  }
+
   private time(jd: number): AstroTime {
     if (jd !== this.tJd) {
       this.tJd = jd;
@@ -172,7 +207,7 @@ export class SolarEphemeris {
   /** State relative to parentFrame(id), ICRF axes (m, m/s). */
   stateAt(id: string, jdIn: number, pos: Vec3d, vel?: Vec3d): Vec3d {
     const e = this.entry(id);
-    const jd = clampJd(jdIn);
+    const jd = this.ephemerisJd(jdIn);
     switch (e.source) {
       case 'sun':
         this.sunState(jd);
@@ -223,7 +258,7 @@ export class SolarEphemeris {
   /** Rotation taking body-fixed vectors into ICRF (the `<id>.fixed` frame's orientation). */
   orientationAt(id: string, jdIn: number, out: Quatd): Quatd {
     const e = this.entry(id);
-    const jd = clampJd(jdIn);
+    const jd = this.ephemerisJd(jdIn);
     const rot = e.row.rotation;
     const d = jd - JD_J2000;
     const T = d / 36525;
