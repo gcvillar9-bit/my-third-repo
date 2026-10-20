@@ -46,6 +46,8 @@ const eclipses: UniverseModule = {
     const luxor = buildLuxorBookmark(frames, earth);
     if (luxor) registry.addBookmarks([luxor]);
 
+    // Eclipse searches need real planet positions, so they only run inside the ephemeris window.
+    const searchable = () => clock.validity().find((v) => v.range.id === 'core.planets')?.inside ?? true;
     // Searches are cached per sim day (a few ms each).
     let solar: { day: number; e: SolarEclipse } | null = null;
     let lunar: { day: number; e: LunarEclipse } | null = null;
@@ -60,6 +62,7 @@ const eclipses: UniverseModule = {
       return lunar.e;
     };
     const solarBookmark = (): Bookmark | string => {
+      if (!searchable()) return 'sun';
       const e = nextSolar();
       const [lat, lon] =
         e.latDeg !== undefined && e.lonDeg !== undefined
@@ -80,6 +83,7 @@ const eclipses: UniverseModule = {
       );
     };
     const lunarBookmark = (): Bookmark | string => {
+      if (!searchable()) return 'moon';
       const e = nextLunar();
       const [lat, lon] = subPoint(frames, earth, 'moon', e.peakJd);
       return (
@@ -135,6 +139,12 @@ const eclipses: UniverseModule = {
     registry.addInfo({
       id: ECLIPSES_MODULE_ID,
       info(id: string): InfoCard | null {
+        if ((id === NEXT_SOLAR_ID || id === NEXT_LUNAR_ID) && !searchable())
+          return {
+            title: id === NEXT_SOLAR_ID ? 'Next solar eclipse' : 'Next lunar eclipse',
+            subtitle: 'After the current sim time',
+            facts: [{ label: 'Search', value: 'only within 10,000 years of 2000', source: SOURCE }],
+          };
         if (id === NEXT_SOLAR_ID) {
           const e = nextSolar();
           const facts: InfoCard['facts'] = [

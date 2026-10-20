@@ -3,20 +3,19 @@
  * eclipses. Times are JD TT in and out (the app's clock), converted through UTC for the library.
  */
 import {
-  MakeTime,
   Observer,
   SearchGlobalSolarEclipse,
   SearchLocalSolarEclipse,
   SearchLunarEclipse,
   type AstroTime,
 } from 'astronomy-engine';
-import { jdUtcToMs, ttToUtc } from '../../core/time';
+import { astroTimeFromTt } from '../../core/time';
 import { JD_J2000 } from '../../core/units';
 
 /** JD TT of an astronomy-engine time. */
 export const jdOf = (t: AstroTime): number => JD_J2000 + t.tt;
 /** astronomy-engine time of a JD TT. */
-export const astroTimeOf = (jdTt: number): AstroTime => MakeTime(new Date(jdUtcToMs(ttToUtc(jdTt))));
+export const astroTimeOf = (jdTt: number): AstroTime => astroTimeFromTt(jdTt - JD_J2000);
 
 export interface SolarEclipse {
   kind: string;

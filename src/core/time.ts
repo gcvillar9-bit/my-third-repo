@@ -12,13 +12,32 @@ const DATE_LIMIT_MS = 8.64e15;
 /** Clock range: J2000 ± 1e9 Julian years (beyond that the clock pauses at the bound). */
 export const JD_LIMIT = (1e9 * JULIAN_YEAR) / DAY;
 
+/**
+ * Cap on the fixed-point passes in astroTimeFromTt. astronomy-engine's AstroTime.FromTerrestrialTime
+ * loops until |err| < 1e-12 d with no cap, which float64 cannot always reach (whole bands of deep
+ * time and a day near 3743 BCE never converge, hanging the tab). Each pass shrinks the error by
+ * dΔT/dt (below 0.2 inside the clock range), so 50 passes reach float64 resolution everywhere.
+ */
+const TT_TO_UT_PASSES = 50;
+
+/** astronomy-engine time for a TT offset from J2000 in days (bounded FromTerrestrialTime). */
+export function astroTimeFromTt(ttDays: number): AstroTime {
+  let time = new AstroTime(ttDays);
+  for (let i = 0; i < TT_TO_UT_PASSES; i++) {
+    const err = ttDays - time.tt;
+    if (Math.abs(err) < 1e-12) break;
+    time = time.AddDays(err);
+  }
+  return time;
+}
+
 /** UTC JD → TT JD. */
 export function utcToTt(jdUtc: JD): JD {
   return new AstroTime(jdUtc - JD_J2000).tt + JD_J2000;
 }
 /** TT JD → UTC JD. */
 export function ttToUtc(jdTt: JD): JD {
-  return AstroTime.FromTerrestrialTime(jdTt - JD_J2000).ut + JD_J2000;
+  return astroTimeFromTt(jdTt - JD_J2000).ut + JD_J2000;
 }
 /** ΔT = TT − UT in seconds at a UTC JD. */
 export function deltaT(jdUtc: JD): number {
@@ -36,8 +55,14 @@ export function parseInstant(t: string): JD | null {
   return Number.isFinite(ms) ? utcToTt(ms / MS_PER_DAY + JD_UNIX_EPOCH) : null;
 }
 
+/** Days from the Unix epoch a JS Date can reach, plus a margin for ΔT (about 8 yr at the limit). */
+const DATE_RANGE_TT_DAYS = DATE_LIMIT_MS / MS_PER_DAY + 10 * 366;
+/** False when a TT JD is certainly outside the JS Date range (skips the TT → UT solve there). */
+const nearDateRange = (jdTt: JD): boolean => Math.abs(jdTt - JD_UNIX_EPOCH) < DATE_RANGE_TT_DAYS;
+
 /** ISO-8601 UTC text for a TT JD (null outside the Date range). */
 export function jdToIso(jdTt: JD): string | null {
+  if (!nearDateRange(jdTt)) return null;
   const ms = jdUtcToMs(ttToUtc(jdTt));
   return Math.abs(ms) < DATE_LIMIT_MS ? new Date(ms).toISOString() : null;
 }
@@ -112,6 +137,8 @@ export interface SimClockOptions {
 export class SimClockImpl implements SimClock {
   readonly warpLadder = WARP_LADDER;
   private _jd: JD;
+  /** Days lost to float64 rounding in tick, carried into the next one (deep time: 0.33 s steps at 66 Ma). */
+  private _carry = 0;
   private _rate: number;
   private _paused = false;
   private listeners = new Set<() => void>();
@@ -175,6 +202,7 @@ export class SimClockImpl implements SimClock {
     else jd = parseInstant(t);
     if (jd === null || !Number.isFinite(jd)) throw new Error(`clock: cannot parse time '${String(t)}'`);
     this._jd = Math.min(JD_J2000 + JD_LIMIT, Math.max(JD_J2000 - JD_LIMIT, jd));
+    this._carry = 0;
     this.emit();
   }
 
@@ -185,17 +213,21 @@ export class SimClockImpl implements SimClock {
   tick(dtReal: number): number {
     if (this._paused || !(dtReal > 0)) return 0;
     const dtSim = this._rate * dtReal;
-    const next = this._jd + dtSim / DAY;
+    const step = dtSim / DAY + this._carry;
+    const next = this._jd + step;
     if (Math.abs(next - JD_J2000) > JD_LIMIT) {
       this._jd = JD_J2000 + Math.sign(next - JD_J2000) * JD_LIMIT;
+      this._carry = 0;
       this.pause();
       return 0;
     }
+    this._carry = step - (next - this._jd);
     this._jd = next;
     return dtSim;
   }
 
   toDate(jd: JD = this._jd): Date | null {
+    if (!nearDateRange(jd)) return null;
     const ms = jdUtcToMs(ttToUtc(jd));
     return Math.abs(ms) < DATE_LIMIT_MS ? new Date(ms) : null;
   }

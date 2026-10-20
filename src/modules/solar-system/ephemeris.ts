@@ -35,6 +35,7 @@ import {
   v3sub,
   vec3,
 } from '../../core/math64';
+import { astroTimeFromTt } from '../../core/time';
 import { AU, DAY, JD_J2000, JULIAN_YEAR } from '../../core/units';
 import type { BodyRow } from './data';
 import { gmSI } from './data';
@@ -91,7 +92,7 @@ export class SolarEphemeris {
   private entries = new Map<string, Entry>();
   // per-jd caches
   private tJd = NaN;
-  private t: AstroTime = AstroTime.FromTerrestrialTime(0);
+  private t: AstroTime = astroTimeFromTt(0);
   private sunJd = NaN;
   private sunPos = vec3();
   private sunVel = vec3();
@@ -154,7 +155,7 @@ export class SolarEphemeris {
   private time(jd: number): AstroTime {
     if (jd !== this.tJd) {
       this.tJd = jd;
-      this.t = AstroTime.FromTerrestrialTime(jd - JD_J2000);
+      this.t = astroTimeFromTt(jd - JD_J2000);
     }
     return this.t;
   }
