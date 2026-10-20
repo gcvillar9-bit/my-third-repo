@@ -1,5 +1,13 @@
 import { readFileSync } from 'node:fs';
-import { AstroTime, BaryState, Body as AeBody, GeoMoon, JupiterMoons } from 'astronomy-engine';
+import {
+  AstroTime,
+  BaryState,
+  Body as AeBody,
+  GeoMoon,
+  JupiterMoons,
+  Observer,
+  ObserverVector,
+} from 'astronomy-engine';
 import { describe, expect, it } from 'vitest';
 import { FrameTreeImpl, addStandardFrames } from '../../../src/core/frames';
 import { qrotate, quat, v3cross, v3dot, v3len, v3normalize, v3sub, vec3 } from '../../../src/core/math64';
@@ -161,6 +169,51 @@ describe('solar-system rotation', () => {
     expect(Math.acos(Math.min(1, v3dot(x0, x1))) / DEG).toBeLessThan(0.05);
     const x2 = axis('earth', JD + 0.25, [1, 0, 0]);
     expect(Math.abs(v3dot(x0, x2))).toBeLessThan(0.03); // a quarter turn later
+  });
+
+  // Before J2000 the pole of date lies on the far side of the J2000 pole (RA ~12h): RotationAxis-based
+  // Earth spun the prime meridian 180 deg off there (night-lights bookmark in daylight with ?t=1990).
+  const EARTH_DATES = [
+    '1800-01-01T00:00:00Z',
+    '1990-01-01T00:00:00Z',
+    '1999-12-31T00:00:00Z',
+    '2000-01-02T00:00:00Z',
+    '2026-01-01T00:00:00Z',
+    '2100-06-01T12:00:00Z',
+  ];
+
+  it("turns Earth's prime meridian with the IERS Earth Rotation Angle before and after J2000", () => {
+    for (const iso of EARTH_DATES) {
+      const jd = parseInstant(iso)!;
+      const ut = AstroTime.FromTerrestrialTime(jd - JD_J2000).ut;
+      const f = (0.779057273264 + 1.00273781191135448 * ut) % 1;
+      const era = 360 * (f < 0 ? f + 1 : f);
+      const x = axis('earth', jd, [1, 0, 0]);
+      const diff = ((Math.atan2(x.y, x.x) / DEG - era + 540) % 360) - 180;
+      expect(Math.abs(diff), iso).toBeLessThan(0.02);
+    }
+  });
+
+  it("matches astronomy-engine's observer geodesy (ObserverVector)", () => {
+    for (const iso of EARTH_DATES) {
+      const jd = parseInstant(iso)!;
+      const t = AstroTime.FromTerrestrialTime(jd - JD_J2000);
+      for (const [lat, lon] of [
+        [0, 0],
+        [0, 90],
+        [90, 0],
+      ]) {
+        const o = ObserverVector(t, new Observer(lat, lon, 0), false);
+        const want = v3normalize(vec3(), vec3(o.x, o.y, o.z));
+        const c = Math.cos(lat * DEG);
+        const got = axis('earth', jd, [
+          c * Math.cos(lon * DEG),
+          c * Math.sin(lon * DEG),
+          Math.sin(lat * DEG),
+        ]);
+        expect(Math.acos(Math.min(1, v3dot(want, got))) / DEG, `${iso} ${lat},${lon}`).toBeLessThan(0.001);
+      }
+    }
   });
 
   it('points the Moon and Triton prime meridians at their planets', () => {

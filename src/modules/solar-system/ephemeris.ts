@@ -4,8 +4,9 @@
  * - Sun, planets, Pluto: astronomy-engine HelioState + the Sun's barycentric state (= BaryState).
  * - Moon: GeoMoonState (geocentric). Galilean moons: JupiterMoons (jovicentric).
  * - Everything else: KeplerOrbit from `elements`, relative to `elements.center`.
- * - Orientation: astronomy-engine RotationAxis where it exists, else IAU leading terms from the
- *   row; tidally locked bodies without a pole face their parent; no data → ecliptic pole, no spin.
+ * - Orientation: Earth from GAST + nutation/precession (earthQuat); astronomy-engine RotationAxis
+ *   for the other bodies where it exists, else IAU leading terms from the row; tidally locked bodies
+ *   without a pole face their parent; no data → ecliptic pole, no spin.
  *
  * All vectors are ICRF/J2000 axes in metres (velocities m/s). Times are JD TT, clamped to
  * J2000 ± 10 kyr (the `core.planets` validity range: positions are frozen beyond it).
@@ -17,6 +18,8 @@ import {
   HelioState,
   JupiterMoons,
   RotationAxis,
+  Rotation_EQD_EQJ,
+  SiderealTime,
 } from 'astronomy-engine';
 import type { StateVector } from 'astronomy-engine';
 import { SSB_FRAME, type FrameId, type Quatd, type Vec3d } from '../../core/contracts';
@@ -84,6 +87,23 @@ export function poleQuat(alpha: number, delta: number, W: number, out: Quatd): Q
   const qd = qfromAxisAngle(quat(), vec3(1, 0, 0), Math.PI / 2 - delta);
   const qw = qfromAxisAngle(quat(), vec3(0, 0, 1), W);
   return qnormalize(out, qmul(out, qmul(out, qa, qd), qw));
+}
+
+/**
+ * Earth body-fixed → ICRF: the true equator and equinox of date spun by GAST, then nutation and
+ * precession back to J2000 (astronomy-engine's ObserverVector geodesy; polar motion ignored).
+ * Not RotationAxis: its pole RA jumps by 12 h across J2000 (the pole of date passes the J2000 pole)
+ * while its spin does not, so poleQuat put the prime meridian 180 deg off for every date before 2000.
+ */
+export function earthQuat(t: AstroTime, out: Quatd): Quatd {
+  const r = Rotation_EQD_EQJ(t).rot; // RotateVector: the EQJ image of EQD axis i is r[i]
+  const g = SiderealTime(t) * 15 * DEG;
+  const c = Math.cos(g);
+  const s = Math.sin(g);
+  const x = [c * r[0][0] + s * r[1][0], c * r[0][1] + s * r[1][1], c * r[0][2] + s * r[1][2]];
+  const y = [c * r[1][0] - s * r[0][0], c * r[1][1] - s * r[0][1], c * r[1][2] - s * r[0][2]];
+  const z = r[2];
+  return qnormalize(out, qfromMatrix(out, [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]]));
 }
 
 export class SolarEphemeris {
@@ -223,6 +243,7 @@ export class SolarEphemeris {
   orientationAt(id: string, jdIn: number, out: Quatd): Quatd {
     const e = this.entry(id);
     const jd = clampJd(jdIn);
+    if (id === 'earth') return earthQuat(this.time(jd), out);
     const rot = e.row.rotation;
     const d = jd - JD_J2000;
     const T = d / 36525;

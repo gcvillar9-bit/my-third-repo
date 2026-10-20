@@ -15,8 +15,11 @@ The Sun, 8 planets, the Moon, 25 other moons, Pluto/Charon, Ceres, Vesta, Eris, 
 
 - All positions are ICRF axes, metres, float64. Time is clamped to J2000 ± 10 kyr (the engine's `core.planets`
   validity): beyond it every position and orientation is frozen.
-- `<id>.fixed`: astronomy-engine `RotationAxis` for the Sun, Moon, planets and Pluto; IAU leading terms
+- `<id>.fixed`: astronomy-engine `RotationAxis` for the Sun, Moon, planets other than Earth, and Pluto; IAU leading terms
   (`ra0 + raRate·T`, `dec0 + decRate·T`, `w0 + wdot·d`) for the rest. Body→ICRF = Rz(90°+α)·Rx(90°−δ)·Rz(W).
+  `earth.fixed` = `Rotation_EQD_EQJ` · Rz(GAST) (`earthQuat`, the same geodesy as `ObserverVector`): `RotationAxis(Earth)`
+  reports a pole RA near 0h after J2000 and near 12h before it, while its spin is continuous, which put the prime
+  meridian 180° off for every date before 2000.
   Triton (locked, no pole): +x towards Neptune, +z along the orbit normal. Eris, Haumea, Makemake: ecliptic pole and
   spin from `periodHours`. Himalia, Nereid, Hyperion: ecliptic pole, no spin. All of these are approximate.
 - `<id>.sunview` (bookmarked bodies only): origin at the body, +x towards the Sun, +z towards ecliptic north,

@@ -121,6 +121,18 @@ describe('earth bookmarks', () => {
     const fwd = qrotate(vec3(), b.quat!, vec3(0, 0, -1));
     expect(v3dot(fwd, up)).toBeCloseTo(-1, 9);
   });
+
+  it('keeps the night-lights site in darkness at its own instant and at a locked ?t= before J2000', () => {
+    const rows = (JSON.parse(readFileSync('public/data/solar-system/bodies.json', 'utf8')) as BodiesFile)
+      .bodies;
+    const frames = new FrameTreeImpl();
+    addStandardFrames(frames);
+    for (const f of buildFrameDefs(new SolarEphemeris(rows), SUNVIEW_BODIES)) frames.addFrame(f);
+    const b = byId.get('earth-night-lights')!;
+    for (const iso of ['2026-01-01T00:00:00Z', '1990-01-01T00:00:00Z', '1800-01-01T00:00:00Z']) {
+      expect(sunElevation(frames, 'earth.fixed', b.pos, parseInstant(iso)!) / DEG, iso).toBeLessThan(-18);
+    }
+  });
 });
 
 describe('earth shading and clouds', () => {

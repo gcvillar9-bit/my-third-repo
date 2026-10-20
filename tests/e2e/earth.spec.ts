@@ -69,6 +69,18 @@ test('earth-night-lights: warm city lights on the night side', async ({ page }) 
   expect(stats.calls).toBeLessThanOrEqual(150);
 });
 
+test('earth-night-lights with a locked ?t= before J2000: still Europe at night', async ({ page }) => {
+  // ?t= locks the clock, so the bookmark's own instant is skipped; earth.fixed used to be spun 180 deg
+  // before 2000, which put the camera over the sunlit Pacific (an all-white frame at EV -1).
+  const problems: string[] = [];
+  const { probe, errors } = await open(page, 'earth-night-lights', problems, '&t=1990-01-01T00:00:00Z');
+  expect(errors).toEqual([]);
+  expect(problems).toEqual([]);
+  const centre = await probe(160, 95, 160, 80);
+  expect(lum(centre)).toBeLessThan(0.05); // night side, not daylight
+  expect(lum(centre)).toBeGreaterThan(0.004); // city lights, not a black frame
+});
+
 test('earth-limb-400km: blue atmosphere band over the sunlit limb', async ({ page }) => {
   const problems: string[] = [];
   const { probe, stats, errors } = await open(page, 'earth-limb-400km', problems);
