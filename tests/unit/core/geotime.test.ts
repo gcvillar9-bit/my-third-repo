@@ -41,6 +41,8 @@ describe('geologic time', () => {
     expect(formatAge(21e3)).toBe('21.0 ka');
     expect(formatAge(66e6)).toBe('66.0 Ma');
     expect(formatAge(1e9)).toBe('1.00 Ga');
+    expect(formatAge(999_960)).toBe('1.0 Ma');
+    expect(formatAge(999.96e6)).toBe('1.00 Ga');
   });
 
   it('converts years before 1950 straight to TT', () => {
@@ -89,6 +91,32 @@ describe('parseUserInstant', () => {
     expect(parseUserInstant('2026-01-01', NOW)).toBe(parseInstant('2026-01-01'));
     expect(parseUserInstant('dinosaurs', NOW)).toBeNull();
     expect(parseUserInstant('', NOW)).toBeNull();
+  });
+
+  it('snaps typed years beyond the planet window onto the view phase', () => {
+    for (const text of ['10000 BC', '50000 BC', '-50000', '-150000', '15000', '200000 BC', '12 ka']) {
+      const jd = parseUserInstant(text, NOW) as number;
+      expect(typeof jd, text).toBe('number');
+      expect(Math.abs(frac(jd) - frac(NOW)), text).toBeLessThan(1e-6);
+      const ph = (((NOW - jd) % PHASE_PERIOD_DAYS) + PHASE_PERIOD_DAYS) % PHASE_PERIOD_DAYS;
+      expect(Math.min(ph, PHASE_PERIOD_DAYS - ph), text).toBeLessThan(1e-6);
+    }
+    // Negative integers are astronomical years at any size, not JDs.
+    expect(yearsBeforePresent(parseUserInstant('-150000', NOW) as number)).toBeCloseTo(151950, -1);
+  });
+
+  it('reads dates with a space as UTC and rejects loose text', () => {
+    const utc = (ms: number) => utcToTt(ms / 86400000 + 2440587.5);
+    expect(parseUserInstant('2026-01-01 12:00', NOW)).toBeCloseTo(utc(Date.UTC(2026, 0, 1, 12)), 8);
+    expect(parseUserInstant('2026-01-01T12:00', NOW)).toBeCloseTo(utc(Date.UTC(2026, 0, 1, 12)), 8);
+    expect(parseUserInstant('2026-01-01 12:00 UTC', NOW)).toBeCloseTo(utc(Date.UTC(2026, 0, 1, 12)), 8);
+    for (const text of ['3.2', '66.5', '0.5', 'June 15 2026', 'JD 1e400', `${'9'.repeat(400)} Ma`, '1e400'])
+      expect(parseUserInstant(text, NOW), text).toBeNull();
+  });
+
+  it('keeps fractional years ago exact near the present', () => {
+    expect(parseUserInstant('1.5 years ago', NOW)).toBeCloseTo(NOW - 1.5 * 365.25, 8);
+    expect(parseUserInstant('0.5 years ago', NOW)).toBeCloseTo(NOW - 0.5 * 365.25, 8);
   });
 
   it('offers presets it can parse', () => {

@@ -1,5 +1,5 @@
 /** Pure HUD / time-bar formatting (unit-tested). */
-import { DEEP_TIME_YEARS, formatAge, geologicPlace, yearsBeforePresent } from '../core/geotime';
+import { formatAge, geologicPlace, isDeepPast, yearsBeforePresent } from '../core/geotime';
 import { AU, C, DAY, formatDistance, formatSpeed, JD_J2000, JULIAN_YEAR, KPC, LY, MPC } from '../core/units';
 
 export { formatDistance, formatSpeed };
@@ -41,12 +41,13 @@ export function formatRate(rate: number): string {
 }
 
 /**
- * UTC text for a Date ('2026-01-01 12:34:56 UTC', '500 BC 03-15 12:00 UTC'); deep time (10 ka BP and
- * older) as an age and geologic unit from TT ('≈ 66.0 Ma · Late Cretaceous'); far future as a year.
+ * UTC text for a Date ('2026-01-01 12:34:56 UTC', '500 BC 03-15 12:00 UTC'); the deep past (before
+ * J2000 − 10 kyr, where the scene shows folded time) as an age and geologic unit from TT
+ * ('≈ 66.0 Ma · Late Cretaceous'); far future as a year.
  */
 export function formatInstant(date: Date | null, jdTt: number): string {
-  const bp = yearsBeforePresent(jdTt);
-  if (bp >= DEEP_TIME_YEARS) {
+  if (isDeepPast(jdTt)) {
+    const bp = yearsBeforePresent(jdTt);
     const place = geologicPlace(bp);
     return `≈ ${formatAge(bp)}${place ? ` · ${place.label}` : ''}`;
   }

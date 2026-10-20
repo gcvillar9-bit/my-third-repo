@@ -7,7 +7,7 @@
  */
 import type { JD } from './contracts';
 import geotime from './geotime.json';
-import { dateToJdUtc, jdToIso, parseInstant, utcToTt } from './time';
+import { dateToJdUtc, foldJd, insidePlanetsWindow, jdToIso, parseInstant, utcToTt } from './time';
 import { DAY, JD_J2000, JULIAN_YEAR } from './units';
 
 const YEAR_DAYS = JULIAN_YEAR / DAY;
@@ -18,8 +18,11 @@ export const JD_PRESENT_BP = JD_J2000 - 50 * YEAR_DAYS;
  * number of days), so jumping to '66 Ma' keeps the time of day and the season of the view.
  */
 export const PHASE_PERIOD_DAYS = 4 * YEAR_DAYS;
-/** Ages at least this many years BP are shown and typed as deep time ('≈ 21.0 ka · Pleistocene'). */
-export const DEEP_TIME_YEARS = 10_000;
+/**
+ * Deep time: before J2000 − 10 kyr, where the planet ephemerides fold (core time.ts foldJd). The time
+ * bar shows an age there ('≈ 21.0 ka · Pleistocene'), and typed instants snap onto the view's phase.
+ */
+export const isDeepPast = (jd: JD): boolean => jd < JD_J2000 && !insidePlanetsWindow(jd);
 
 export const yearsBeforePresent = (jd: JD): number => (JD_PRESENT_BP - jd) / YEAR_DAYS;
 export const jdFromYearsBP = (yearsBP: number): JD => JD_PRESENT_BP - yearsBP * YEAR_DAYS;
@@ -80,8 +83,9 @@ export function geologicPlace(yearsBP: number): GeoPlace | null {
 /** Age text: '21.0 ka', '66.0 Ma', '1.00 Ga'. */
 export function formatAge(yearsBP: number): string {
   const a = Math.abs(yearsBP);
-  if (a < 1e6) return `${(yearsBP / 1e3).toFixed(1)} ka`;
-  if (a < 1e9) return `${(yearsBP / 1e6).toFixed(1)} Ma`;
+  // Units chosen after rounding, so 999,960 years reads '1.0 Ma', not '1000.0 ka'.
+  if (a < 999_950) return `${(yearsBP / 1e3).toFixed(1)} ka`;
+  if (a < 999_950_000) return `${(yearsBP / 1e6).toFixed(1)} Ma`;
   return `${(yearsBP / 1e9).toFixed(2)} Ga`;
 }
 
@@ -94,7 +98,7 @@ export interface EraPreset {
 /** Suggestions in the time bar's date field. */
 export const ERA_PRESETS: readonly EraPreset[] = [
   { value: 'now', label: 'Today' },
-  { value: '1 ka', label: '1,000 years ago' },
+  { value: '1000 years ago', label: '1,000 years ago' },
   { value: '21 ka', label: 'Last Glacial Maximum' },
   { value: '3.2 Ma', label: '"Lucy", Australopithecus afarensis' },
   { value: '66 Ma', label: 'End of the dinosaurs' },
@@ -112,13 +116,23 @@ export function snapToPhase(targetJd: JD, nowJd: JD): JD {
   return targetJd - mod(targetJd - nowJd, PHASE_PERIOD_DAYS);
 }
 
-/** JD TT of an astronomical year (0 = 1 BC) at the month, day and time of `nowJd` (Jan 1 noon in deep time). */
+/** A typed target: as given inside the planet window, snapped onto the view's phase beyond it. */
+const settle = (jd: JD, nowJd: JD): JD => (insidePlanetsWindow(jd) ? jd : snapToPhase(jd, nowJd));
+
+/**
+ * JD TT of an astronomical year (0 = 1 BC) at the month, day and time the view shows (the fold of
+ * `nowJd` in deep time). Years whose instant falls beyond the planet window snap onto the view's
+ * phase instead: there the scene shows folded time, and UTC (ΔT, Gregorian dates) has no meaning.
+ */
 function atYear(year: number, nowJd: JD): JD {
-  if (Math.abs(year) > 270_000) return snapToPhase(jdFromYearsBP(1950 - year), nowJd);
-  const iso = jdToIso(nowJd);
-  const d = iso ? new Date(iso) : new Date(Date.UTC(2000, 0, 1, 12));
-  d.setUTCFullYear(year);
-  return utcToTt(dateToJdUtc(d));
+  const iso = Math.abs(year) <= 270_000 ? jdToIso(foldJd(nowJd)) : null;
+  if (iso) {
+    const d = new Date(iso);
+    d.setUTCFullYear(year);
+    const jd = utcToTt(dateToJdUtc(d));
+    if (insidePlanetsWindow(jd)) return jd;
+  }
+  return snapToPhase(jdFromYearsBP(1950 - year), nowJd);
 }
 
 const UNIT_YEARS: Record<string, number> = {
@@ -130,13 +144,23 @@ const UNIT_YEARS: Record<string, number> = {
   billion: 1e9,
 };
 
+/** Larger magnitudes than any reachable year (the clock stops at ±1e9 yr) are JDs, as share links write them. */
+const MAX_TYPED_YEAR = 1.1e9;
+
 /**
  * Parses what a person types into the time bar, relative to the current instant `nowJd`:
  * '66 Ma', '66Ma', '66 mya', '21 ka', '1.2 Ga', '3 million years ago', '500 years ago', '500 BC',
- * 'AD 1066', '1066', '-2999' (astronomical year), 'JD 2451545', ISO-8601, a bare JD above 1e5, 'now'.
- * Returns JD TT, 'now', or null when the text is not understood.
+ * 'AD 1066', '1066', '-2999' and '-150000' (astronomical years), 'JD 2451545', a bare JD (positive
+ * above 1e5, or a decimal above 1e5 in magnitude), ISO dates with 'T' or a space ('2026-01-01 12:00',
+ * always UTC), 'now'. Other text (including bare small decimals such as '3.2') is not understood.
+ * Returns a finite JD TT, 'now', or null.
  */
 export function parseUserInstant(text: string, nowJd: JD): JD | 'now' | null {
+  const r = parseTyped(text, nowJd);
+  return r === 'now' || r === null || Number.isFinite(r) ? r : null;
+}
+
+function parseTyped(text: string, nowJd: JD): JD | 'now' | null {
   const s = text.trim().replace(/(\d)[,_](?=\d{3}(\D|$))/g, '$1');
   if (/^now$/i.test(s)) return 'now';
   let m = /^jd\s*([-+]?\d+(?:\.\d*)?(?:e[-+]?\d+)?)$/i.exec(s);
@@ -145,18 +169,28 @@ export function parseUserInstant(text: string, nowJd: JD): JD | 'now' | null {
     /^(\d+(?:\.\d+)?)\s*(?:(k|m|g)(?:a|yr|ya)|(thousand|million|billion)\s+years?)(?:\s*(?:ago|bp))?$/i.exec(
       s,
     );
-  if (m) return snapToPhase(jdFromYearsBP(Number(m[1]) * UNIT_YEARS[(m[2] ?? m[3]).toLowerCase()]), nowJd);
+  if (m) {
+    const bp = Number(m[1]) * UNIT_YEARS[(m[2] ?? m[3]).toLowerCase()];
+    const jd = jdFromYearsBP(bp);
+    if (!insidePlanetsWindow(jd)) return snapToPhase(jd, nowJd);
+    return Number.isInteger(bp) ? atYear(1950 - bp, nowJd) : jd;
+  }
   m = /^(\d+(?:\.\d+)?)\s*years?\s+ago$/i.exec(s);
   if (m) {
     const years = Number(m[1]);
-    const iso = years < DEEP_TIME_YEARS ? jdToIso(nowJd) : null;
-    if (iso && Number.isInteger(years)) return atYear(new Date(iso).getUTCFullYear() - years, nowJd);
-    return snapToPhase(nowJd - years * YEAR_DAYS, nowJd);
+    const target = nowJd - years * YEAR_DAYS;
+    if (!insidePlanetsWindow(target)) return snapToPhase(target, nowJd);
+    const iso = jdToIso(nowJd);
+    return iso && Number.isInteger(years) ? atYear(new Date(iso).getUTCFullYear() - years, nowJd) : target;
   }
   m = /^(\d+)\s*(?:bc|bce|b\.c\.)$/i.exec(s);
   if (m) return atYear(1 - Number(m[1]), nowJd);
   m = /^(?:(?:ad|ce)\s*(\d+)|(\d+)\s*(?:ad|ce))$/i.exec(s);
   if (m) return atYear(Number(m[1] ?? m[2]), nowJd);
-  if (/^[-+]?\d+$/.test(s) && Math.abs(Number(s)) < 1e5) return atYear(Number(s), nowJd);
-  return parseInstant(s);
+  if (/^-\d+$/.test(s)) return Number(s) >= -MAX_TYPED_YEAR ? atYear(Number(s), nowJd) : Number(s);
+  if (/^\+?\d+$/.test(s)) return Number(s) < 1e5 ? atYear(Number(s), nowJd) : Number(s);
+  if (/^[-+]?\d*\.\d+$/.test(s)) return Math.abs(Number(s)) > 1e5 ? Number(s) : null;
+  m = /^((?:[-+]\d{6}|\d{4})-\d{2}-\d{2})(?:[ t](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?))?\s*(?:z|utc)?$/i.exec(s);
+  if (m) return settle(parseInstant(m[2] ? `${m[1]}T${m[2]}Z` : m[1]) ?? NaN, nowJd);
+  return null;
 }

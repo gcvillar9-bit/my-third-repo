@@ -72,14 +72,33 @@ export function jdToIso(jdTt: JD): string | null {
 
 const YEARS = (y: number) => (y * JULIAN_YEAR) / DAY;
 
+/** Planet ephemerides are used as given within J2000 ± this many days (the core.planets range). */
+export const PLANETS_WINDOW_DAYS = YEARS(1e4);
+/**
+ * Beyond the window, time folds onto J2000 ± 2 yr with this period: 4 Julian years, a whole number
+ * of days, so the time of day and the Julian day of the year carry on. The ±10 kyr seam jumps once.
+ */
+export const FOLD_PERIOD_DAYS = 1461;
+
+/** True when the planet ephemerides are used as given at `jd` (J2000 ± 10 kyr). */
+export const insidePlanetsWindow = (jd: JD): boolean => Math.abs(jd - JD_J2000) <= PLANETS_WINDOW_DAYS;
+
+/** JD the ephemerides evaluate for `jd`: itself inside the window, folded onto J2000 ± 2 yr beyond. */
+export function foldJd(jd: JD): JD {
+  if (insidePlanetsWindow(jd)) return jd;
+  const d = jd - JD_J2000;
+  const off = ((d % FOLD_PERIOD_DAYS) + FOLD_PERIOD_DAYS) % FOLD_PERIOD_DAYS;
+  return JD_J2000 + (off >= FOLD_PERIOD_DAYS / 2 ? off - FOLD_PERIOD_DAYS : off);
+}
+
 /** Model validity ranges from DESIGN 3.2 (registered by boot). */
 export const STANDARD_VALIDITY: readonly ValidityRange[] = [
   {
     id: 'core.planets',
     appliesTo: 'planets',
     model: 'astronomy-engine (VSOP87 / ELP)',
-    jdMin: JD_J2000 - YEARS(1e4),
-    jdMax: JD_J2000 + YEARS(1e4),
+    jdMin: JD_J2000 - PLANETS_WINDOW_DAYS,
+    jdMax: JD_J2000 + PLANETS_WINDOW_DAYS,
     beyond: 'approximate',
     source:
       'astronomy-engine documented accuracy window ±10 kyr; beyond it time folds onto 2000 ± 2 yr, so day, ' +

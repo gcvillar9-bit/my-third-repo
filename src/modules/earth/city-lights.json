@@ -1,5 +1,5 @@
 {
-  "about": "Brightness of the city-lights night map at a date, as a fraction of the map (NASA Black Marble, about 2012). World electricity generation stands in for outdoor lighting: a rough proxy, so the UI marks it approximate. Before the first public electric lighting systems there are no lights; the map's geography stays modern (historical cities are a later phase).",
+  "about": "Brightness of the city-lights night map at a date, as a fraction of the map (NASA Black Marble, about 2012). World electricity generation stands in for outdoor lighting: a rough proxy (approximate; only the rendered brightness uses it, no value is shown in the UI). Before the first public electric lighting systems there are no lights; the map's geography stays modern (historical cities are a later phase).",
   "rows": [
     {
       "year": 1880,

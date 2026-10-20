@@ -187,6 +187,14 @@ describe('solar-system ephemeris', () => {
     const h1 = sunInEarth(jd + 17);
     const h2 = sunInEarth(jd + 4321.5);
     expect(v3len(v3sub(vec3(), h1, h2))).toBe(0);
+    // A pause (hold predicate false, clock jd unchanged) keeps the held instant until time moves.
+    let warping = true;
+    e2.setFoldHold(() => warping);
+    const p1 = sunInEarth(jd + 17);
+    warping = false;
+    expect(v3len(v3sub(vec3(), sunInEarth(jd + 17), p1))).toBe(0);
+    expect(v3len(v3sub(vec3(), sunInEarth(jd + 17.25), p1))).toBeGreaterThan(0.5);
+    e2.setFoldHold(() => true);
     // The hold never touches the real ephemeris window.
     const n1 = e2.positionAt('mars', JD, vec3());
     const n2 = e2.positionAt('mars', JD + 100, vec3());

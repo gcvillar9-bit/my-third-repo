@@ -36,8 +36,8 @@ import {
   v3sub,
   vec3,
 } from '../../core/math64';
-import { astroTimeFromTt } from '../../core/time';
-import { AU, DAY, JD_J2000, JULIAN_YEAR } from '../../core/units';
+import { FOLD_PERIOD_DAYS, PLANETS_WINDOW_DAYS, astroTimeFromTt, foldJd } from '../../core/time';
+import { AU, DAY, JD_J2000 } from '../../core/units';
 import type { BodyRow } from './data';
 import { gmSI } from './data';
 import { ECLIPTIC_POLE, KeplerOrbit, elementsFrameMatrix } from './kepler';
@@ -45,22 +45,10 @@ import { ECLIPTIC_POLE, KeplerOrbit, elementsFrameMatrix } from './kepler';
 const DEG = Math.PI / 180;
 const AU_PER_DAY = AU / DAY;
 /** Ephemerides are used as given within J2000 ± this many days (core.planets validity). */
-export const EPHEMERIS_HALF_RANGE_DAYS = (10_000 * JULIAN_YEAR) / DAY;
-/**
- * Beyond the window, time folds onto J2000 ± 2 yr with this period: 4 Julian years, a whole number
- * of days, so the time of day and the Julian day of the year carry on. The ±10 kyr seam jumps once.
- */
-export const FOLD_PERIOD_DAYS = 1461;
+export const EPHEMERIS_HALF_RANGE_DAYS = PLANETS_WINDOW_DAYS;
+export { FOLD_PERIOD_DAYS, foldJd };
 /** Warp (sim s per real s) above which folded time holds still instead of strobing day and night. */
 export const FOLD_HOLD_RATE = 1e6;
-
-/** JD the ephemerides evaluate for `jd`: itself inside the window, folded onto J2000 ± 2 yr beyond. */
-export function foldJd(jd: number): number {
-  const d = jd - JD_J2000;
-  if (Math.abs(d) <= EPHEMERIS_HALF_RANGE_DAYS) return jd;
-  const off = ((d % FOLD_PERIOD_DAYS) + FOLD_PERIOD_DAYS) % FOLD_PERIOD_DAYS;
-  return JD_J2000 + (off >= FOLD_PERIOD_DAYS / 2 ? off - FOLD_PERIOD_DAYS : off);
-}
 
 const AE_BODIES: Record<string, AeBody> = {
   sun: AeBody.Sun,
@@ -115,6 +103,8 @@ export class SolarEphemeris {
   // fast-warp hold of folded time
   private holdFold: () => boolean = () => false;
   private heldJd = NaN;
+  /** Last jd answered with the held instant (the clock's, while it warps). */
+  private heldFor = NaN;
 
   constructor(rows: readonly BodyRow[]) {
     this.rows = rows;
@@ -173,17 +163,25 @@ export class SolarEphemeris {
   setFoldHold(hold: () => boolean): void {
     this.holdFold = hold;
     this.heldJd = NaN;
+    this.heldFor = NaN;
   }
 
-  /** foldJd plus the fast-warp hold; idempotent, so re-entrant calls with a folded jd are no-ops. */
+  /**
+   * foldJd plus the fast-warp hold; idempotent, so re-entrant calls with a folded jd are no-ops.
+   * The hold outlives a pause (rate 0) until time moves on, so every reader of the paused instant
+   * (frame cache, info cards, orbit lines) sees the same held positions.
+   */
   private ephemerisJd(jd: number): number {
     const folded = foldJd(jd);
     if (folded === jd) return jd;
     if (!this.holdFold()) {
+      if (jd === this.heldFor) return this.heldJd;
       this.heldJd = NaN;
+      this.heldFor = NaN;
       return folded;
     }
     if (Number.isNaN(this.heldJd)) this.heldJd = folded;
+    this.heldFor = jd;
     return this.heldJd;
   }
 
