@@ -30,10 +30,22 @@ vec3 earthWaterNormal(SurfaceInput s, float strength) {
   return normalize(nB + strength * g);
 }
 
+#ifdef EARTH_PALEO
+// Deep-time hooks, defined by the paleo module's glsl appended after this file (its priority-20
+// wrapper of this shading). Without EARTH_PALEO the shading is exactly today's Earth.
+void earthPaleoSurface(SurfaceInput s, inout vec3 day, inout vec3 night, inout float ocean);
+float earthPaleoWater(vec2 uv, float ocean);
+#endif
+
 // Terrain detail bands (albedo noise and normal perturbation) apply on land only: the sea is level.
 #define SURFACE_DETAIL_MASK 1
 float surfaceDetailMask(SurfaceInput s) {
-  return uEarthHasMaps > 0.5 ? 1.0 - step(0.5, earthEquirect(uEarthSpec, s.uv).r) : 1.0;
+  if (uEarthHasMaps < 0.5) return 1.0;
+  float ocean = step(0.5, earthEquirect(uEarthSpec, s.uv).r);
+#ifdef EARTH_PALEO
+  ocean = earthPaleoWater(s.uv, ocean);
+#endif
+  return 1.0 - ocean;
 }
 
 vec3 shadeSurface(SurfaceInput s) {
@@ -46,6 +58,9 @@ vec3 shadeSurface(SurfaceInput s) {
     night = earthEquirect(uEarthNight, uv).rgb;
     ocean = earthEquirect(uEarthSpec, uv).r;
   }
+#ifdef EARTH_PALEO
+  earthPaleoSurface(s, day, night, ocean);
+#endif
   float mu0g = dot(s.up, s.sunDir);
   // Sun through the atmosphere at this point, then through the cloud layer above it.
   vec3 Tsun = atmoSunTransmittance(uEarthRadiusKm + s.height * 0.001, mu0g);

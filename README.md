@@ -28,6 +28,9 @@ to the largest structures in the universe and back home. Or press `/` and type a
 - Seamless terrain from orbit to the ground on every rocky planet and moon: real Moon, Mars and Earth elevation plus
   procedural craters, dunes, ridges and calderas. Walk mode with real gravity and jumping.
 - Physically based atmospheres (Earth, Mars, Venus, Titan): blue Earth skies, blue Martian sunsets.
+- Deep-time Earth: type an age in the time bar (`21 ka`, `66 Ma`, `250 Ma`) and Earth follows: ice-age sea levels
+  and ice sheets, then drifting continents, seas, deserts, forests and bare rock before land plants from the
+  PALEOMAP maps (0–540 Ma, approximate). Day and night keep turning; city lights fade out before ~1880.
 - A hero Earth with ocean glint, city lights, clouds and cloud shadows.
 - Gas giants with drifting cloud bands, the Great Red Spot and moon-shadow transits; Saturn's and Uranus's rings at
   true radii with backlit glow and shadows both ways.

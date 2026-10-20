@@ -1,0 +1,37 @@
+{
+  "about": "Bookmark sites (today's latitude/longitude grid, on which the PaleoDEM maps are drawn in paleo-coordinates). Hand-entered after checking the maps; tests re-check them against the data.",
+  "sites": [
+    {
+      "id": "earth-pangaea-250ma",
+      "ageMa": 250,
+      "latDeg": -22.5,
+      "lonDeg": -9.5,
+      "season": "december",
+      "source": "PaleoDEM 250 Ma: land in every direction for 3 cells (interior Pangaea, about 3450 km from the sea); open South Atlantic today"
+    },
+    {
+      "id": "earth-seaway-90ma",
+      "ageMa": 90,
+      "latDeg": 48.5,
+      "lonDeg": -98.5,
+      "season": "june",
+      "source": "PaleoDEM 90 Ma: sea in every direction for 2 cells (Western Interior Seaway); land today. The 65 and 70 Ma maps show no seaway"
+    },
+    {
+      "id": "earth-lgm-21ka",
+      "ageMa": 0.021,
+      "latDeg": 58,
+      "lonDeg": -88,
+      "season": "june",
+      "source": "Laurentide ice dome over Hudson Bay at the Last Glacial Maximum (hand-entered margins, src/modules/paleo/data/lgm-ice.json); global sea level about -121 m (Bintanja & van de Wal 2008)"
+    },
+    {
+      "id": "earth-dusk-66ma",
+      "ageMa": 66,
+      "latDeg": 45.5,
+      "lonDeg": -95.5,
+      "season": "march",
+      "source": "Late Cretaceous Laramidia/Appalachia region on the PaleoDEM 65-70 Ma maps; the Sun is setting, to show day and night still turn in deep time"
+    }
+  ]
+}

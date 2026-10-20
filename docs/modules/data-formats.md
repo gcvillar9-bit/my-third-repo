@@ -247,3 +247,18 @@ Pluto-relative, with `a = 19 595.764 km`, the sum of both barycentric semi-major
 `outputs[]` (public paths). An entry without `url` is a cited reference that is never downloaded. Downloads use
 `curl -fsSL --retry 3` into `.cache/raw/<module>/`. Git LFS files must use `media.githubusercontent.com`; an LFS
 pointer is rejected.
+
+## Deep time (`data/paleo/`, `textures/paleo/`; built by `tools/build-paleo.mjs`)
+
+- `dem/<age>.png` (109 files, `000`…`540`): PaleoDEM elevation, 360 × 180 cells (centres at half degrees, north row
+  first), 8-bit grey, sqrt-companded: `e = sign(v − 128) · ((|v − 128|) / 127)² · elevationScaleM` (128 = 0 m; land is
+  `v ≥ 128`). Coast distances are derived at load time (`src/modules/paleo/fields.ts`).
+- `quaternary.png`: 1080 × 540 RGB, north row first. R = today's seabed depth in metres (ETOPO5 4 × 4 block mean; 0
+  land, 255 deeper than 254 m). G = global sea-level drop (m) at which the cell is ice-covered (0 ice today, 255
+  never). B unused.
+- `modern_moisture.png`: 360 × 180 grey, north row first: `1 + 254 m` for today's effective moisture of a land cell
+  (from its Blue Marble colour), 0 = not used.
+- `textures/paleo/land_fill_1k.webp`: the Blue Marble day map (1024 × 512) with land colours pushed into the sea.
+- `index.json`: `dem` (path pattern, size, ages, `elevationScaleM`), `quaternary`, `biomes` (sRGB samples with their
+  boxes), `moisture` (target classes), `climate.rows` (`ageMa`, `gmstC`, `stage`), `vegetation` (rows with sources),
+  `seaLevel` (`metres` relative to today every `stepKa`, 0–3000 ka). Every block carries a `source`.

@@ -30,7 +30,10 @@ describe('asset manifests', () => {
       expect(a.license, a.id).toBeTruthy();
       expect(a.attribution, a.id).toBeTruthy();
       if (!a.url) continue; // reference entry
-      expect(a.url, a.id).toMatch(/^https:\/\/(raw|media)\.githubusercontent\.com\//);
+      // GitHub, plus the deep-time data hosts (paleo module): Zenodo and NOAA.
+      expect(a.url, a.id).toMatch(
+        /^https:\/\/((raw|media)\.githubusercontent\.com|zenodo\.org|www\.ngdc\.noaa\.gov|www\.ncei\.noaa\.gov)\//,
+      );
       expect(a.sha256, a.id).toMatch(/^[0-9a-f]{64}$/);
       expect(a.bytes, a.id).toBeGreaterThan(0);
       if (a.licenseSidecar) {

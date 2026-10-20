@@ -1,0 +1,20 @@
+{
+  "about": "Ages (Ma) at which land vegetation changes the look of continents in the paleo biome classifier. Hand-entered; the transitions were gradual, so the classifier fades over a few Myr. Approximate.",
+  "rows": [
+    {
+      "id": "land-plants",
+      "ageMa": 470,
+      "source": "Earliest land-plant spores (cryptospores), Middle Ordovician: Wellman, Osterloff & Mohiuddin 2003, Nature 425, 282-285"
+    },
+    {
+      "id": "forests",
+      "ageMa": 385,
+      "source": "Earliest forests (Gilboa, Middle Devonian): Stein et al. 2007, Nature 446, 904-907"
+    },
+    {
+      "id": "grasslands",
+      "ageMa": 20,
+      "source": "Spread of grass-dominated habitats in the Miocene: Strömberg 2011, Annu. Rev. Earth Planet. Sci. 39, 517-544"
+    }
+  ]
+}

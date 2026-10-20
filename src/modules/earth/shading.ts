@@ -28,6 +28,7 @@ export function createEarthUniforms(body: Body): Record<string, IUniform> {
     uEarthWorldToBody: { value: new Matrix3() },
     uEarthRadiusKm: { value: body.radius / 1000 },
     uEarthCloudAltKm: { value: CLOUD_ALTITUDE_M / 1000 },
+    uEarthCloudZonal: { value: 0 },
   };
 }
 

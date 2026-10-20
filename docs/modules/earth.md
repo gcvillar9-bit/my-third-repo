@@ -71,3 +71,12 @@ above and day right brighter than night left; warm city lights over Europe; limb
 - Cloud shell: 64 segments on every preset.
 - New fixed-instant bookmark `earth-sunrise-400km` (orbital sunrise over the Atlantic from 40N 80W, 2026-03-20, Sun 7.8° above the limb, EV 11). City lights are too faint for that exposure; see `earth-night-lights`.
 - `earth-dawn-400km` is the default start (`src/app/boot.ts`); the 400 km views set `lookAt: 'earth'` so Earth is the HUD target.
+
+## Deep-time hooks (paleo)
+
+- `glsl/shading-earth.glsl` declares `earthPaleoSurface` (called after the map samples, may change day, night and
+  ocean) and `earthPaleoWater` (used by `surfaceDetailMask`) under `#ifdef EARTH_PALEO`. The paleo module's
+  priority-20 wrapper defines them and sets the define; without it the shading is unchanged.
+- `uEarthCloudZonal` (shared uniform, default 0): `earthCloudDensity` mixes today's cloud map with
+  `earthZonalClouds` (equatorial convergence, clear subtropics, storm tracks, continental-scale noise) by this weight,
+  so the cloud shell and the ground cloud shadows stay consistent in deep time. See docs/modules/paleo.md.
