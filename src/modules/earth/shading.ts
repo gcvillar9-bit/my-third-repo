@@ -9,6 +9,7 @@ import { quat, v3len, vec3 } from '../../core/math64';
 import { NOISE_GLSL } from '../../render/chunks/index';
 import { ATMOSPHERE_TRANSMITTANCE_GLSL, type ShadingAtmosphereUniforms } from '../atmosphere/public';
 import { CITY_LUMINANCE } from '../solar-system/public';
+import { cityLightFraction, yearOfJd } from './city-lights';
 import earthCommonGlsl from './glsl/earth-common.glsl?raw';
 import shadingGlsl from './glsl/shading-earth.glsl?raw';
 import type { EarthTextures } from './textures';
@@ -84,6 +85,7 @@ export function createEarthShading(deps: EarthShadingDeps): SurfaceShading {
       view.frameQuat(body.fixedFrame ?? body.frame, q);
       setWorldToBody(shared.uEarthWorldToBody.value as Matrix3, q);
       uniforms.uEarthTime.value = view.timeReal;
+      uniforms.uEarthCityLuminance.value = CITY_LUMINANCE * cityLightFraction(yearOfJd(view.jd));
     },
   };
 }

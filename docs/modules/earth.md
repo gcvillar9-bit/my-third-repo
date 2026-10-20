@@ -25,6 +25,10 @@ same GLSL serves the sphere provider and the P2-A terrain provider.
   `detailOrigin[3] + localPos/10`, triplanar on the body-fixed normal, faded in below ~6 m per pixel.
 - **City lights:** night map × `CITY_LUMINANCE` × `1 − smoothstep(−0.15, 0.1, μ0)` (on from a Sun elevation of
   about +6° down to −9°), dimmed 80% under clouds. Physically invisible at daylight EVs.
+- **City lights through time (`city-lights.ts`, `city-lights.json`):** `uEarthCityLuminance` is scaled each frame by
+  `cityLightFraction(year)`: 0 before the first electric street lighting (~1880), then piecewise linear on world
+  electricity generation as a proxy (1950 ≈ 4%, 1990 ≈ 52%) up to 1 at the night map's epoch (2012). Approximate;
+  the map's geography stays modern (historical cities are a later phase). Dinosaurs no longer see Europe lit up.
 - Aerial perspective is not applied here; the atmosphere pass adds it to every pixel.
 
 ## Cloud shell (`clouds.ts`)
