@@ -107,7 +107,10 @@ describe('time', () => {
     expect(c.rate).toBe(-1);
     c.setRate(1e13);
     c.warpStep(1);
-    expect(c.rate).toBe(1e13);
+    expect(c.rate).toBe(3.15576e13);
+    c.setRate(3.15576e14);
+    c.warpStep(1);
+    expect(c.rate).toBe(3.15576e14);
     c.setTime('2026-01-01T00:00:00Z');
     expect(c.toDate()!.toISOString()).toBe('2026-01-01T00:00:00.000Z');
     c.setNow();

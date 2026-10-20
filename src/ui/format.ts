@@ -1,4 +1,5 @@
 /** Pure HUD / time-bar formatting (unit-tested). */
+import { DEEP_TIME_YEARS, formatAge, geologicPlace, yearsBeforePresent } from '../core/geotime';
 import { AU, C, DAY, formatDistance, formatSpeed, JD_J2000, JULIAN_YEAR, KPC, LY, MPC } from '../core/units';
 
 export { formatDistance, formatSpeed };
@@ -21,7 +22,7 @@ export function formatLightTime(d: number): string {
   return `${f(y / 1e9)} Gyr`;
 }
 
-/** Time rate (sim s per real s) as text: 'paused', '1 s/s', '1 h/s', '1 day/s', '317 kyr/s'. */
+/** Time rate (sim s per real s) as text: 'paused', '1 s/s', '1 h/s', '1 day/s', '317 kyr/s', '10 Myr/s'. */
 export function formatRate(rate: number): string {
   if (rate === 0) return 'paused';
   const a = Math.abs(rate);
@@ -34,16 +35,29 @@ export function formatRate(rate: number): string {
   else if (a < 2.5e6) s = `${f(a / DAY)} day/s`;
   else if (a < 3e7) s = `${f(a / 2.6e6)} month/s`;
   else if (a < 3e10) s = `${f(a / JULIAN_YEAR)} yr/s`;
-  else s = `${f(a / JULIAN_YEAR / 1e3)} kyr/s`;
+  else if (a < 3e13) s = `${f(a / JULIAN_YEAR / 1e3)} kyr/s`;
+  else s = `${f(a / JULIAN_YEAR / 1e6)} Myr/s`;
   return sign + s;
 }
 
-/** UTC text for a Date, or an approximate year for instants outside the Date range. */
+/**
+ * UTC text for a Date ('2026-01-01 12:34:56 UTC', '500 BC 03-15 12:00 UTC'); deep time (10 ka BP and
+ * older) as an age and geologic unit from TT ('≈ 66.0 Ma · Late Cretaceous'); far future as a year.
+ */
 export function formatInstant(date: Date | null, jdTt: number): string {
+  const bp = yearsBeforePresent(jdTt);
+  if (bp >= DEEP_TIME_YEARS) {
+    const place = geologicPlace(bp);
+    return `≈ ${formatAge(bp)}${place ? ` · ${place.label}` : ''}`;
+  }
   if (date && Number.isFinite(date.getTime())) {
     const iso = date.toISOString();
     const y = date.getUTCFullYear();
-    if (y >= 0 && y <= 9999) return `${iso.slice(0, 10)} ${iso.slice(11, 19)} UTC`;
+    if (y >= 1 && y <= 9999) return `${iso.slice(0, 10)} ${iso.slice(11, 19)} UTC`;
+    if (y < 1) {
+      const t = iso.indexOf('T');
+      return `${1 - y} BC ${iso.slice(t - 5, t)} ${iso.slice(t + 1, t + 6)} UTC`;
+    }
     return `${iso.slice(0, iso.indexOf('T'))} UTC`;
   }
   const year = 2000 + ((jdTt - JD_J2000) * DAY) / JULIAN_YEAR;

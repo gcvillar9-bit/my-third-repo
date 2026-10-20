@@ -1,0 +1,121 @@
+{
+  "about": "Base ages (Ma) of geologic time units for labels. Hand-entered from the ICS International Chronostratigraphic Chart v2024/12 (Cohen, Finney, Gibbard & Fan 2013, updated; www.stratigraphy.org); not re-checked against the PDF in this build, so treat ages near a boundary as approximate. Each unit runs from its base up to the base of the next younger unit of the same rank. 'approximate' marks ages the chart gives as '~'.",
+  "units": [
+    { "name": "Holocene", "rank": "epoch", "baseMa": 0.0117, "source": "ICS chart v2024/12" },
+    { "name": "Pleistocene", "rank": "epoch", "baseMa": 2.58, "source": "ICS chart v2024/12" },
+    { "name": "Pliocene", "rank": "epoch", "baseMa": 5.333, "source": "ICS chart v2024/12" },
+    { "name": "Miocene", "rank": "epoch", "baseMa": 23.04, "source": "ICS chart v2024/12" },
+    { "name": "Oligocene", "rank": "epoch", "baseMa": 33.9, "source": "ICS chart v2024/12" },
+    { "name": "Eocene", "rank": "epoch", "baseMa": 56.0, "source": "ICS chart v2024/12" },
+    { "name": "Paleocene", "rank": "epoch", "baseMa": 66.0, "source": "ICS chart v2024/12" },
+    { "name": "Late Cretaceous", "rank": "epoch", "baseMa": 100.5, "source": "ICS chart v2024/12" },
+    {
+      "name": "Early Cretaceous",
+      "rank": "epoch",
+      "baseMa": 143.1,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    { "name": "Late Jurassic", "rank": "epoch", "baseMa": 161.5, "source": "ICS chart v2024/12" },
+    { "name": "Middle Jurassic", "rank": "epoch", "baseMa": 174.7, "source": "ICS chart v2024/12" },
+    { "name": "Early Jurassic", "rank": "epoch", "baseMa": 201.4, "source": "ICS chart v2024/12" },
+    {
+      "name": "Late Triassic",
+      "rank": "epoch",
+      "baseMa": 237,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    {
+      "name": "Middle Triassic",
+      "rank": "epoch",
+      "baseMa": 247.2,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    { "name": "Early Triassic", "rank": "epoch", "baseMa": 251.902, "source": "ICS chart v2024/12" },
+    { "name": "Lopingian", "rank": "epoch", "baseMa": 259.51, "source": "ICS chart v2024/12" },
+    { "name": "Guadalupian", "rank": "epoch", "baseMa": 274.4, "source": "ICS chart v2024/12" },
+    { "name": "Cisuralian", "rank": "epoch", "baseMa": 298.9, "source": "ICS chart v2024/12" },
+    { "name": "Pennsylvanian", "rank": "epoch", "baseMa": 323.4, "source": "ICS chart v2024/12 (subperiod)" },
+    {
+      "name": "Mississippian",
+      "rank": "epoch",
+      "baseMa": 358.86,
+      "source": "ICS chart v2024/12 (subperiod)"
+    },
+    { "name": "Late Devonian", "rank": "epoch", "baseMa": 382.31, "source": "ICS chart v2024/12" },
+    { "name": "Middle Devonian", "rank": "epoch", "baseMa": 393.47, "source": "ICS chart v2024/12" },
+    { "name": "Early Devonian", "rank": "epoch", "baseMa": 419.62, "source": "ICS chart v2024/12" },
+    { "name": "Pridoli", "rank": "epoch", "baseMa": 422.7, "source": "ICS chart v2024/12" },
+    { "name": "Ludlow", "rank": "epoch", "baseMa": 426.7, "source": "ICS chart v2024/12" },
+    { "name": "Wenlock", "rank": "epoch", "baseMa": 432.9, "source": "ICS chart v2024/12" },
+    { "name": "Llandovery", "rank": "epoch", "baseMa": 443.1, "source": "ICS chart v2024/12" },
+    { "name": "Late Ordovician", "rank": "epoch", "baseMa": 458.2, "source": "ICS chart v2024/12" },
+    { "name": "Middle Ordovician", "rank": "epoch", "baseMa": 471.3, "source": "ICS chart v2024/12" },
+    { "name": "Early Ordovician", "rank": "epoch", "baseMa": 486.85, "source": "ICS chart v2024/12" },
+    {
+      "name": "Furongian",
+      "rank": "epoch",
+      "baseMa": 497,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    {
+      "name": "Miaolingian",
+      "rank": "epoch",
+      "baseMa": 506.5,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    {
+      "name": "Cambrian Series 2",
+      "rank": "epoch",
+      "baseMa": 521,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    { "name": "Terreneuvian", "rank": "epoch", "baseMa": 538.8, "source": "ICS chart v2024/12" },
+    { "name": "Quaternary", "rank": "period", "baseMa": 2.58, "source": "ICS chart v2024/12" },
+    { "name": "Neogene", "rank": "period", "baseMa": 23.04, "source": "ICS chart v2024/12" },
+    { "name": "Paleogene", "rank": "period", "baseMa": 66.0, "source": "ICS chart v2024/12" },
+    {
+      "name": "Cretaceous",
+      "rank": "period",
+      "baseMa": 143.1,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    { "name": "Jurassic", "rank": "period", "baseMa": 201.4, "source": "ICS chart v2024/12" },
+    { "name": "Triassic", "rank": "period", "baseMa": 251.902, "source": "ICS chart v2024/12" },
+    { "name": "Permian", "rank": "period", "baseMa": 298.9, "source": "ICS chart v2024/12" },
+    { "name": "Carboniferous", "rank": "period", "baseMa": 358.86, "source": "ICS chart v2024/12" },
+    { "name": "Devonian", "rank": "period", "baseMa": 419.62, "source": "ICS chart v2024/12" },
+    { "name": "Silurian", "rank": "period", "baseMa": 443.1, "source": "ICS chart v2024/12" },
+    { "name": "Ordovician", "rank": "period", "baseMa": 486.85, "source": "ICS chart v2024/12" },
+    { "name": "Cambrian", "rank": "period", "baseMa": 538.8, "source": "ICS chart v2024/12" },
+    {
+      "name": "Ediacaran",
+      "rank": "period",
+      "baseMa": 635,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    {
+      "name": "Cryogenian",
+      "rank": "period",
+      "baseMa": 720,
+      "approximate": true,
+      "source": "ICS chart v2024/12"
+    },
+    { "name": "Tonian", "rank": "period", "baseMa": 1000, "source": "ICS chart v2024/12" },
+    { "name": "Stenian", "rank": "period", "baseMa": 1200, "source": "ICS chart v2024/12" },
+    { "name": "Cenozoic", "rank": "era", "baseMa": 66.0, "source": "ICS chart v2024/12" },
+    { "name": "Mesozoic", "rank": "era", "baseMa": 251.902, "source": "ICS chart v2024/12" },
+    { "name": "Paleozoic", "rank": "era", "baseMa": 538.8, "source": "ICS chart v2024/12" },
+    { "name": "Neoproterozoic", "rank": "era", "baseMa": 1000, "source": "ICS chart v2024/12" },
+    { "name": "Mesoproterozoic", "rank": "era", "baseMa": 1600, "source": "ICS chart v2024/12" },
+    { "name": "Phanerozoic", "rank": "eon", "baseMa": 538.8, "source": "ICS chart v2024/12" },
+    { "name": "Proterozoic", "rank": "eon", "baseMa": 2500, "source": "ICS chart v2024/12" }
+  ]
+}

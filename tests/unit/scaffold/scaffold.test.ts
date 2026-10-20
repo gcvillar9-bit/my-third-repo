@@ -32,7 +32,7 @@ describe('scaffold', () => {
     expect(CAMERA_FAR).toBe(1e27);
     expect(QUALITY_PRESETS).toEqual(['potato', 'low', 'medium', 'high', 'ultra']);
     expect(WARP_LADDER[0]).toBe(0);
-    expect(WARP_LADDER.at(-1)).toBe(1e13);
+    expect(WARP_LADDER.at(-1)).toBe(3.15576e14);
     for (let i = 1; i < WARP_LADDER.length; i++) expect(WARP_LADDER[i]).toBeGreaterThan(WARP_LADDER[i - 1]);
     expect(SURFACE_INPUT_GLSL).toContain('struct SurfaceInput');
     expect(SURFACE_INPUT_GLSL).toContain(`#define SURFACE_DETAIL_BANDS ${SURFACE_DETAIL_BANDS}`);

@@ -46,10 +46,13 @@ export function deltaT(jdUtc: JD): number {
 export const dateToJdUtc = (d: Date): JD => d.getTime() / MS_PER_DAY + JD_UNIX_EPOCH;
 export const jdUtcToMs = (jdUtc: JD): number => (jdUtc - JD_UNIX_EPOCH) * MS_PER_DAY;
 
-/** Parses an ISO-8601 instant (UTC when no zone is given) or a bare JD (TT) number. */
+/**
+ * Parses an ISO-8601 instant (UTC when no zone is given) or a bare JD (TT) number with |JD| > 1e5
+ * (negative JDs are the deep past, as share links write them).
+ */
 export function parseInstant(t: string): JD | null {
   const s = t.trim();
-  if (/^-?\d+(\.\d+)?$/.test(s) && Number(s) > 1e5) return Number(s);
+  if (/^-?\d+(\.\d+)?$/.test(s) && Math.abs(Number(s)) > 1e5) return Number(s);
   const iso = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(s) ? `${s}Z` : s;
   const ms = Date.parse(iso);
   return Number.isFinite(ms) ? utcToTt(ms / MS_PER_DAY + JD_UNIX_EPOCH) : null;
@@ -119,7 +122,7 @@ export function validityBadges(statuses: readonly ValidityStatus[]): ValidityBad
   }));
 }
 
-/** Signed warp ladder: -1e13 … -1, 0, 1 … 1e13. */
+/** Signed warp ladder: -10 Myr/s … -1, 0, 1 … 10 Myr/s. */
 export const SIGNED_LADDER: readonly number[] = [
   ...WARP_LADDER.slice(1)
     .map((r) => -r)

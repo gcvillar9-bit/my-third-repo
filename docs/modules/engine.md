@@ -15,7 +15,9 @@ Core services, render pipeline, camera and app shell. Contracts: `src/core/contr
 ## Time (`src/core/time.ts`)
 
 - `SimClock` holds JD TT as float64; UTC ↔ TT uses astronomy-engine ΔT (Espenak-Meeus, about 75 s in 2026).
-- Warp: `warpStep(±1)` walks the signed ladder −1e13 … −1, 0, 1 … 1e13. The clock is clamped to J2000 ± 1e9 yr.
+- Warp: `warpStep(±1)` walks the signed ladder −10 Myr/s … −1, 0, 1 … 10 Myr/s (top steps 1e13, 3.15576e13, 3.15576e14). The clock is clamped to J2000 ± 1e9 yr.
+- Deep time: `tick` carries the float64 rounding remainder, so real-time rates still advance where one JD step exceeds a frame (0.33 s at 66 Ma). TT → UT uses `astroTimeFromTt`, a capped version of astronomy-engine's solver (whose own loop never returns for some instants), and `toDate` / `jdToIso` return null outside the Date range without converting. `parseInstant` accepts negative JDs (|JD| > 1e5) so deep-past share links round-trip.
+- `src/core/geotime.ts`: years BP (present = 1950.0) ↔ JD TT, `geologicPlace(yearsBP)` from the ICS chart rows in `geotime.json` (hand-entered, `source` on each row), `ERA_PRESETS`, and `parseUserInstant(text, nowJd)` for the time bar ('66 Ma', '21 ka', '3 million years ago', '500 BC', 'AD 1066', '1066', 'JD n', ISO, 'now'). Typed ages snap back by at most 4 years onto the current time of day and season; typed years keep the current month, day and time.
 - Boot registers `STANDARD_VALIDITY` (`core.planets` ±10 kyr then approximate: the solar-system ephemeris folds deep time onto 2000 ± 2 yr, `core.stars.proper-motion` ±1 Myr, `core.galactic-rotation`). `validityBadges(clock.validity())` gives badge text and state for the time bar.
 - Test mode: time defaults to `2026-01-01T00:00:00Z` (`TEST_DEFAULT_TIME`) unless `?t=` is set; a bookmark `jd: 'now'` is ignored under `?test=1`.
 

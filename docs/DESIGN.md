@@ -141,7 +141,7 @@ assets/manifest/       <module>.json   (per-module asset manifest fragments: url
 tools/lib/             curl fetch + sha256 verify, sharp helpers, binary writers, radix-2 FFT   (frozen after P1)
 tools/                 fetch-assets.mjs, build-credits.mjs, size-guard.mjs, gen-bluenoise.mjs, build-<module>.mjs
 public/textures/<module>/  public/data/<module>/  public/credits.json
-src/core/              math64, frames, time, photometry, units, cosmology-constants, contracts.ts, discover.ts,
+src/core/              math64, frames, time, geotime, photometry, units, cosmology-constants, contracts.ts, discover.ts,
                        workers.ts, assets.ts, quality.ts, budget.ts
 src/render/            renderer.ts, passes.ts, exposure.ts, screenpass-host.ts, post.ts,
                        chunks/{depth,rte,noise,blackbody,shadows,phase}.glsl
@@ -204,7 +204,8 @@ Every frame node has `positionAt(jd, out)`, an optional `orientationAt`, and an 
 
 **Time.**
 - `SimClock` holds the Julian Date in TT as Float64. astronomy-engine handles UT/ΔT.
-- Warp ladder: pause, ±1, 60, 3600, 86400, 2.6e6, 3.15e7, 3.15e9, 3.15e11, 1e13 (1e13 is about 300 kyr/s).
+- Warp ladder: pause, ±1, 60, 3600, 86400, 2.6e6, 3.15e7, 3.15e9, 3.15e11, 1e13 (about 300 kyr/s), 3.15576e13 and 3.15576e14 (exactly 1 and 10 Myr/s, for deep time).
+- Deep time (`src/core/geotime.ts`): ages in years before 1950.0 convert straight to TT (never through UTC, whose ΔT extrapolation is meaningless there); the time bar shows `≈ 66.0 Ma · Late Cretaceous` from the ICS chart (`geotime.json`) and parses typed ages, years and BC dates.
 - A validity badge shows which model is active:
   - Planets use astronomy-engine within ±10 kyr. Beyond that time folds onto 2000 ± 2 yr (4-year period), so day and night continue; positions are approximate.
   - Stellar proper motion is linear up to ±1 Myr.
