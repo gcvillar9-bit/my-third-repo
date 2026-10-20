@@ -1,5 +1,5 @@
 {
-  "about": "Deep-time Earth data built by tools/build-paleo.mjs; formats in docs/modules/paleo.md. Approximate.",
+  "about": "Deep-time Earth data built by tools/build-paleo.mjs; formats in docs/modules/data-formats.md. Approximate.",
   "dem": {
     "path": "data/paleo/dem/{age}.png",
     "width": 360,

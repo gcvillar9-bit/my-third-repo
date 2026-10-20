@@ -113,8 +113,17 @@ describe('paleo fields', () => {
         expect(then, s.id).toBeGreaterThanOrEqual(128);
         expect(now, s.id).toBeLessThan(128);
       } else {
-        expect(then, s.id).toBeLessThan(128);
-        expect(now, s.id).toBeGreaterThanOrEqual(128);
+        // A shallow sea between two land masses, closed by 70 Ma.
+        const m90 = grey(90);
+        const e = decodeElevation(then, index.dem.elevationScaleM);
+        expect(e, s.id).toBeLessThan(0);
+        expect(e, s.id).toBeGreaterThan(-600);
+        const landWithin = (dir: number) =>
+          [1, 2, 3, 4, 5, 6].some((k) => m90[cell(s.latDeg, s.lonDeg + dir * k)] >= 128);
+        expect(landWithin(-1), `${s.id} west`).toBe(true);
+        expect(landWithin(1), `${s.id} east`).toBe(true);
+        expect(grey(70)[cell(s.latDeg, s.lonDeg)], s.id).toBeGreaterThanOrEqual(128);
+        expect(now, s.id).toBeLessThan(256);
       }
     }
   });

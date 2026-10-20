@@ -49,7 +49,7 @@ before land plants). Cross-module API: `src/modules/paleo/public.ts`. Depends on
 ## Data (`tools/build-paleo.mjs`, `assets/manifest/paleo.json`)
 
 Run `node tools/fetch-assets.mjs paleo && node tools/build-paleo.mjs && pnpm credits` (never the full
-`pnpm assets:build`). Formats are in `docs/modules/data-formats.md`. Total about 2.9 MB, nothing on the boot path;
+`pnpm assets:build`). Formats are in `docs/modules/data-formats.md`. Total about 2.7 MB, nothing on the boot path;
 everything loads the first time the clock is in the past.
 
 - PALEOMAP PaleoDEMs (Scotese & Wright 2018, CC BY 4.0, Zenodo 10.5281/zenodo.5460860): 109 maps, 0–540 Ma.
@@ -63,22 +63,23 @@ everything loads the first time the clock is in the past.
 ## Bookmarks (`bookmarks.ts`, sites in `sites.json`)
 
 Numeric JDs in `earth.fixed`; each date is moved by whole fold periods onto a season, and the Sun is placed with the
-folded ephemeris.
+folded ephemeris. Sites are on the maps' grid, which is in PALEOMAP paleo-coordinates (at 90 Ma North America lies about
+30° east of today), so a site names a place on the old globe.
 
-| Id                    | View                                                                                             | EV  |
-| --------------------- | ------------------------------------------------------------------------------------------------ | --- |
-| `earth-pangaea-250ma` | Whole disc centred on 22.5 S 9.5 W at midday: interior Pangaea where the South Atlantic is today | 15  |
-| `earth-seaway-90ma`   | Whole disc centred on 48.5 N 98.5 W: the Western Interior Seaway (not in the 65/70 Ma maps)      | 15  |
-| `earth-lgm-21ka`      | Whole disc centred on 58 N 88 W: the Laurentide ice sheet, exposed shelves                       | 15  |
-| `earth-dusk-66ma`     | On the ground (walk) facing the Sun 8° up, time at 6 h/s: the Sun sets within seconds            | 12  |
+| Id                    | View                                                                                                                                                | EV  |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `earth-pangaea-250ma` | Whole disc centred on 22.5 S 9.5 W at midday: interior Pangaea where the South Atlantic is today                                                    | 15  |
+| `earth-seaway-90ma`   | Whole disc centred on 40.5 N 63.5 W (paleo-coordinates): the Western Interior Seaway between Laramidia and Appalachia (closed in the 65/70 Ma maps) | 15  |
+| `earth-lgm-21ka`      | Whole disc centred on 58 N 88 W: the Laurentide ice sheet, exposed shelves                                                                          | 15  |
+| `earth-dusk-66ma`     | On the ground (walk) facing the Sun 8° up, time at 1 h/s: the Sun sets within a few seconds                                                         | 12  |
 
 ## Tests
 
 Unit (`tests/unit/paleo`): map count and sources, bracketing, sea level at 21 ka, climate and vegetation, regimes,
 field decoding and symmetric coast distances, bookmark sites against the maps, the moisture fit (Amazon/Congo wet,
 Sahara/Australia dry), bake orientation and water alpha, the wrapper (defines, uniform names, idle today), fold
-alignment. E2E (`tests/e2e/paleo.spec.ts`): Pangaea land redder than the ocean around it, the seaway water with land
-to the north, the LGM ice dome brighter than the disc around it, and the 66 Ma sunset going dark with no city lights;
+alignment. E2E (`tests/e2e/paleo.spec.ts`): Pangaea land redder than the ocean around it, the seaway brighter than
+the land either side, the LGM ice dome brighter than the disc around it, and the 66 Ma sunset going dark with no city lights;
 all with no errors, at most 150 draw calls and 60 programs.
 
 ## Known gaps

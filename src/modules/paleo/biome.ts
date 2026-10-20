@@ -293,7 +293,8 @@ export function bakeSurface(inp: BakeInput, out = new Uint8Array(inp.width * inp
         const step = cellDeg * 0.5;
         const dzE = (blend(a.elev, b.elev, lat, lon + step / Math.max(0.2, cl)) - elev) / (step * 111);
         const dzN = (blend(a.elev, b.elev, lat + step, lon) - elev) / (step * 111);
-        const shade = 1 + Math.max(-0.3, Math.min(0.3, 0.012 * (dzN * 0.7 - dzE * 0.7)));
+        // Slopes facing the north-west (ground rising to the east and south) are lit.
+        const shade = 1 + Math.max(-0.3, Math.min(0.3, 0.012 * 0.7 * (dzE - dzN)));
         const tint = 1 + 0.07 * n;
         c = [c[0] * shade * tint, c[1] * shade * tint, c[2] * shade * tint];
       } else {

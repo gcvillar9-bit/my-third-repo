@@ -74,12 +74,12 @@ export function buildPaleoBookmarks(
         pos: v3scale(vec3(), up, radius + 2),
         quat: qlookRotation(quat(), vec3(c * h.x + sn * up.x, c * h.y + sn * up.y, c * h.z + sn * up.z), up),
         jd,
-        rate: 21600,
+        rate: 3600,
         ev: 12,
         mode: 'walk',
         lookTarget:
-          'Standing on the ground 66 million years ago facing the Sun 8 deg up in a bright sky; with time at 6 h/s ' +
-          'the Sun sets and the sky goes dark within a few seconds.',
+          'Standing on the ground 66 million years ago facing the Sun 8 deg up in a bright sky; with time at 1 h/s ' +
+          'the Sun sets within a few seconds and the night that follows has no city lights.',
       });
       continue;
     }
@@ -94,7 +94,7 @@ export function buildPaleoBookmarks(
       s.id === 'earth-pangaea-250ma'
         ? 'The supercontinent Pangaea filling the sunlit disc, a dry interior around the centre where the South Atlantic is today.'
         : s.id === 'earth-seaway-90ma'
-          ? 'North America split by a shallow sea running north-south through the centre of the disc.'
+          ? 'A narrow shallow sea running north-south through the centre of the disc between two halves of North America (Laramidia to the west, Appalachia to the east).'
           : 'An ice sheet covering Canada down to the Great Lakes, with exposed continental shelves along the coasts.';
     out.push({
       id: s.id,

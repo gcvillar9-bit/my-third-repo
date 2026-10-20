@@ -10,7 +10,7 @@ Backup of the pre-change state: branch `backup-before-deep-time` (0650d37). Work
 - City lights fade out before ~1880.
 - Paleo module (docs/modules/paleo.md): ice-age sea level and ice sheets (7 ka – 3 Ma) over today's imagery; a
   synthetic surface baked from the PALEOMAP maps (0–540 Ma) with a moisture model fitted to today's Earth; zonal
-  clouds; four bookmarks and e2e checks (Pangaea, seaway, LGM ice, 66 Ma sunset). Data 2.9 MB, lazy.
+  clouds; four bookmarks and e2e checks (Pangaea, seaway, LGM ice, 66 Ma sunset). Data 2.7 MB, lazy.
 - Two adversarial reviews; the first one's 20 upheld findings fixed in 5da930f.
 
 ## Not done (plan steps 8 and 9, and later phases)

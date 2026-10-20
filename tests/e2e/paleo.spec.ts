@@ -37,10 +37,13 @@ async function open(page: Page, bookmark: string, problems: string[]) {
   return { probe };
 }
 
-// The disc is centred on the site; probes: the centre, and the disc left and right of it.
+// The disc (radius ~77 px) is centred on the site; probes: the centre, and the disc left and right of it.
 const CENTRE: Box = [210, 115, 60, 40];
 const LEFT: Box = [180, 128, 14, 14];
 const RIGHT: Box = [286, 128, 14, 14];
+// At 250 Ma these fall on the ocean either side of Pangaea (checked against the 250 Ma map's screenshot).
+const PANTHALASSA: Box = [168, 128, 20, 14];
+const TETHYS: Box = [294, 128, 16, 14];
 
 test(
   'paleo earth-pangaea-250ma: land where the South Atlantic is today',
@@ -48,19 +51,26 @@ test(
   async ({ page }) => {
     const { probe } = await open(page, 'earth-pangaea-250ma', []);
     const centre = await probe(...CENTRE);
-    const ocean = (redness(await probe(...LEFT)) + redness(await probe(...RIGHT))) / 2;
-    // Today this spot is open ocean (blue); at 250 Ma it is the dry interior of Pangaea.
+    const west = redness(await probe(...PANTHALASSA));
+    const east = redness(await probe(...TETHYS));
+    // On today's grid this spot is the South Atlantic; at 250 Ma it is the dry interior of Pangaea,
+    // with ocean either side.
+    expect(west).toBeLessThan(0.65);
+    expect(east).toBeLessThan(0.65);
     expect(redness(centre)).toBeGreaterThan(0.75);
-    expect(redness(centre)).toBeGreaterThan(1.5 * ocean);
+    expect(redness(centre)).toBeGreaterThan(1.4 * Math.max(west, east));
   },
 );
 
-test('paleo earth-seaway-90ma: a sea across today’s Great Plains', async ({ page }) => {
+test('paleo earth-seaway-90ma: a seaway between two halves of North America', async ({ page }) => {
   const { probe } = await open(page, 'earth-seaway-90ma', []);
-  const centre = await probe(230, 125, 20, 20);
-  const north = await probe(233, 80, 14, 14);
-  expect(redness(centre)).toBeLessThan(0.65); // water, where the Dakotas are land today
-  expect(redness(north)).toBeGreaterThan(redness(centre) + 0.3); // land to the north
+  // About 1 px per degree here: the 10-degree channel spans x 235-245, with land either side.
+  const channel = await probe(236, 129, 6, 8);
+  const west = await probe(225, 129, 8, 8);
+  const east = await probe(249, 129, 8, 8);
+  // Bright shallow water between darker, forested land masses.
+  expect(lum(channel)).toBeGreaterThan(1.4 * lum(west));
+  expect(lum(channel)).toBeGreaterThan(1.4 * lum(east));
 });
 
 test('paleo earth-lgm-21ka: ice sheet over Canada', async ({ page }) => {
@@ -75,11 +85,12 @@ test('paleo earth-lgm-21ka: ice sheet over Canada', async ({ page }) => {
 test('paleo earth-dusk-66ma: the Sun sets in deep time and the night has no city lights', async ({
   page,
 }) => {
+  // The warm-up frames run the clock for 9 minutes at 1 h/s: the Sun is still about 6 deg up.
   const { probe } = await open(page, 'earth-dusk-66ma', []);
   const SKY: Box = [140, 20, 200, 40];
   expect(lum(await probe(...SKY))).toBeGreaterThan(0.03);
-  // 6 h/s for 20 frames (1/3 s): two hours later the Sun is far below the horizon.
-  await page.evaluate(() => window.__universe!.renderFrames(20));
+  // 1 h/s for 120 frames (2 s): two hours later the Sun is far below the horizon.
+  await page.evaluate(() => window.__universe!.renderFrames(120));
   await page.screenshot({ path: 'artifacts/paleo/earth-dusk-66ma-night.png' });
   expect(lum(await probe(...SKY))).toBeLessThan(0.002);
   expect(lum(await probe(0, 0, 480, 270))).toBeLessThan(0.003);

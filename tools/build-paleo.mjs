@@ -9,7 +9,8 @@
  *   sqrt-companded, e = sign(v - 128) * ((|v - 128|) / 127)^2 * ELEV_SCALE_M (128 = 0 m, land >= 0 m).
  *   Coast distances are derived at runtime (src/modules/paleo/fields.ts): stored they tripled the size.
  * - quaternary.png (1080 x 540 RGB, north row first) for ice ages (7 ka - 3 Ma):
- *     R  modern seabed depth in metres (ETOPO5 4 x 4 block mean): 0 land, 1..254 m, 255 deeper
+ *     R  modern seabed depth in metres (ETOPO5 4 x 4 block mean): 0 land or a lake not connected to the
+ *        ocean (Caspian, Black Sea), 1..254 m, 255 deeper
  *     G  global sea-level drop (m) at which the cell is ice-covered: 0 ice today (Natural Earth),
  *        1..254 grown from hand-entered LGM sheets (src/modules/paleo/data/lgm-ice.json), 255 never
  * - textures/paleo/land_fill_1k.webp: the Blue Marble day map with land colours pushed into the sea,
@@ -45,7 +46,7 @@ const QH = 540;
 const DEG = Math.PI / 180;
 
 // ------------------------------------------------------------------------------------------------
-// Encodings (mirrored by src/modules/paleo/data.ts through index.json)
+// Encodings (decoded by src/modules/paleo/fields.ts decodeElevation; scale in index.json)
 
 export const encodeElevation = (e) =>
   e === 0
@@ -399,6 +400,46 @@ async function main() {
       q[(y * QW + x) * 3] = e >= 0 ? 0 : Math.min(255, Math.max(1, Math.round(-e)));
       q[(y * QW + x) * 3 + 1] = 255;
     }
+  // Only seabed connected to the ocean can be exposed by a global sea-level fall: flood-fill the
+  // water from ocean seeds (8-neighbour, longitude wrap) and clear R elsewhere, so lakes below sea
+  // level (Caspian, Ladoga) never drain. Straits narrower than a cell are bridged by seeding the
+  // Mediterranean and Red seas; the Black Sea is left out (an isolated lake at the glacial maximum).
+  const OCEAN_SEEDS = [
+    [0, -150],
+    [0, -30],
+    [-20, 80],
+    [85, 0],
+    [-60, 0],
+    [35, 18],
+    [20, 38.5],
+  ];
+  const reached = new Uint8Array(QW * QH);
+  const stack = [];
+  for (const [lat, lon] of OCEAN_SEEDS) {
+    const k = Math.floor(((90 - lat) * QH) / 180) * QW + Math.floor(((lon + 180) * QW) / 360);
+    if (q[k * 3] === 0) throw new Error(`ocean seed ${lat},${lon} is on land`);
+    stack.push(k);
+  }
+  while (stack.length) {
+    const k = stack.pop();
+    if (reached[k] || q[k * 3] === 0) continue;
+    reached[k] = 1;
+    const y = Math.floor(k / QW);
+    const x = k % QW;
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++) {
+        const yy = y + dy;
+        if ((dx || dy) && yy >= 0 && yy < QH) stack.push(yy * QW + ((x + dx + QW) % QW));
+      }
+  }
+  let lakes = 0;
+  for (let k = 0; k < QW * QH; k++)
+    if (q[k * 3] > 0 && !reached[k]) {
+      q[k * 3] = 0;
+      lakes++;
+    }
+  console.log(`[paleo] ${lakes} lake texels below sea level kept as lakes`);
+
   const lgm = JSON.parse(readFileSync(join(DATA_DIR, 'lgm-ice.json'), 'utf8'));
   const qLat = (y) => 90 - ((y + 0.5) * 180) / QH;
   const qLon = (x) => -180 + ((x + 0.5) * 360) / QW;
@@ -496,7 +537,7 @@ async function main() {
   const vegetation = JSON.parse(readFileSync(join(DATA_DIR, 'vegetation.json'), 'utf8')).rows;
   const index = {
     about:
-      'Deep-time Earth data built by tools/build-paleo.mjs; formats in docs/modules/paleo.md. Approximate.',
+      'Deep-time Earth data built by tools/build-paleo.mjs; formats in docs/modules/data-formats.md. Approximate.',
     dem: {
       path: 'data/paleo/dem/{age}.png',
       width: W,

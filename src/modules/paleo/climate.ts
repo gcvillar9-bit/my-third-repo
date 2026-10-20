@@ -46,7 +46,7 @@ export interface Regime {
   synthetic: number;
   /** Global sea-level drop below today, m (>= 0); drives exposed shelves and ice-age ice. */
   seaDropM: number;
-  /** Weight of the ice-age overlay (0 outside 7 ka - 3 Ma). */
+  /** Weight of the ice-age overlay: 0 below 3.5 ka, 1 from 7 ka, fading out with the synthetic surface by 5 Ma. */
   quaternary: number;
 }
 

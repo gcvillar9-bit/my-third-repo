@@ -1,7 +1,7 @@
 /**
  * Per-slice fields derived from a PaleoDEM elevation map (360 x 180 cells, north row first): metres,
  * a signed coast distance and the distance to the sea against the prevailing wind. Pure and
- * three-free (bake worker and tests). Formats: docs/modules/paleo.md.
+ * three-free (bake worker and tests). Formats: docs/modules/data-formats.md.
  */
 
 export const DEM_W = 360;

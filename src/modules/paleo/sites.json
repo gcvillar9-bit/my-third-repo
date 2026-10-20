@@ -1,5 +1,5 @@
 {
-  "about": "Bookmark sites (today's latitude/longitude grid, on which the PaleoDEM maps are drawn in paleo-coordinates). Hand-entered after checking the maps; tests re-check them against the data.",
+  "about": "Bookmark sites on the latitude/longitude grid of the maps. PaleoDEM maps are in PALEOMAP paleo-coordinates (continents where they were, e.g. North America about 30 degrees east of today at 90 Ma), so a site names a place on the old globe, not a modern place. Hand-entered after checking the maps; tests re-check them.",
   "sites": [
     {
       "id": "earth-pangaea-250ma",
@@ -12,10 +12,10 @@
     {
       "id": "earth-seaway-90ma",
       "ageMa": 90,
-      "latDeg": 48.5,
-      "lonDeg": -98.5,
+      "latDeg": 40.5,
+      "lonDeg": -63.5,
       "season": "june",
-      "source": "PaleoDEM 90 Ma: sea in every direction for 2 cells (Western Interior Seaway); land today. The 65 and 70 Ma maps show no seaway"
+      "source": "PaleoDEM 90 Ma (paleo-coordinates): shallow sea in a channel about 10 cells wide with land within 6 cells to the west (Laramidia) and the east (Appalachia): the Western Interior Seaway, centred south of the mid-latitude storm-track clouds; land on the 70 Ma map"
     },
     {
       "id": "earth-lgm-21ka",
