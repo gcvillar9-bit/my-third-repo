@@ -9,7 +9,6 @@ import {
   formatSpeed,
   frameLabel,
   logScaleFraction,
-  toDatetimeLocal,
 } from '../../../src/ui/format';
 import { bodyPriority, declutter, occluded, project, type LabelBox } from '../../../src/ui/labels';
 import { bodyEntry, bookmarkEntry, SearchIndex } from '../../../src/ui/search';
@@ -149,7 +148,6 @@ describe('HUD unit formatting', () => {
     expect(formatInstant(null, 2433282.5 - 365.25 * 21e3)).toBe('≈ 21.0 ka · Pleistocene');
     expect(formatInstant(null, 2433282.5 - 365.25 * 255e6)).toBe('≈ 255.0 Ma · Permian');
     expect(formatInstant(new Date('-000499-03-15T12:00:00Z'), 0)).toBe('500 BC 03-15 12:00 UTC');
-    expect(toDatetimeLocal(d)).toBe('2026-01-01T12:34');
     expect(logScaleFraction(1)).toBe(0);
     expect(logScaleFraction(1e27)).toBe(1);
     expect(logScaleFraction(1e9)).toBeCloseTo(1 / 3, 9);

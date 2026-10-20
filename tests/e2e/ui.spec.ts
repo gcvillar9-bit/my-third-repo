@@ -53,3 +53,42 @@ test(
     expect(problems).toEqual([]);
   },
 );
+
+test('ui time bar: typed deep-time and BC dates jump the clock', async ({ page }) => {
+  const problems: string[] = [];
+  page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
+  await page.goto('?test=1&q=potato&ui=1&b=orion-from-earth');
+  await page.waitForFunction(() => window.__universe !== undefined);
+  await page.evaluate(() => window.__universe!.ready());
+  await page.evaluate(() => window.__universe!.renderFrames(2));
+
+  const date = page.locator('.cz-timebar .cz-date');
+  const input = page.locator('.cz-timebar .cz-date-input');
+  await date.click();
+  await expect(input).toBeFocused();
+  await expect(page.locator('#cz-era-presets option')).toHaveCount(10);
+  await input.fill('250 Ma');
+  await input.press('Enter');
+  await expect(input).toHaveCount(0);
+  await page.evaluate(() => window.__universe!.renderFrames(2));
+  await expect(date).toContainText('≈ 250.0 Ma · Early Triassic');
+
+  await date.click();
+  await input.fill('500 BC');
+  await input.press('Enter');
+  await page.evaluate(() => window.__universe!.renderFrames(2));
+  await expect(date).toContainText('500 BC');
+
+  // Unreadable text keeps the field open with a warning; Escape closes it without a jump.
+  await date.click();
+  await input.fill('the day the dinosaurs died');
+  await input.press('Enter');
+  await expect(page.locator('.cz-toast')).toContainText('Cannot read the date');
+  await input.press('Escape');
+  await expect(input).toHaveCount(0);
+  await expect(date).toContainText('500 BC');
+
+  await page.screenshot({ path: 'artifacts/ui/timebar-deep-time.png' });
+  expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);
+  expect(problems).toEqual([]);
+});

@@ -15,7 +15,6 @@ import {
   formatSpeed,
   frameLabel,
   logScaleFraction,
-  toDatetimeLocal,
 } from './format';
 import { CONSTELLATIONS_SETTING, LINE_BOOKMARKS } from '../modules/starsystems/public';
 import { TOUR_ENTRY_PREFIX, tours } from '../modules/tours/public';
@@ -45,7 +44,6 @@ export interface TimeData {
   text: string;
   rate: string;
   paused: boolean;
-  dateValue: string;
   badges: ValidityBadge[];
 }
 
@@ -78,7 +76,7 @@ export class UiController {
   readonly caption = signal<string | null>(null);
   readonly toasts = signal<Toast[]>([]);
   readonly hud = signal<HudData>(EMPTY_HUD);
-  readonly time = signal<TimeData>({ text: '', rate: '', paused: false, dateValue: '', badges: [] });
+  readonly time = signal<TimeData>({ text: '', rate: '', paused: false, badges: [] });
   readonly settingsVersion = signal(0);
   readonly search: SearchIndex;
   private toastSeq = 0;
@@ -220,7 +218,6 @@ export class UiController {
       text: formatInstant(date, clock.jd),
       rate: formatRate(clock.rate),
       paused: clock.paused || clock.rate === 0,
-      dateValue: toDatetimeLocal(date),
       badges: validityBadges(clock.validity()),
     };
   }

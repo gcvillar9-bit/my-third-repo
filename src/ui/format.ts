@@ -64,14 +64,6 @@ export function formatInstant(date: Date | null, jdTt: number): string {
   return `year ${Math.abs(year) >= 1e6 ? year.toExponential(2).replace('e+', 'e') : Math.round(year)}`;
 }
 
-/** Value for <input type="datetime-local"> (UTC wall time) or '' outside 0..9999. */
-export function toDatetimeLocal(date: Date | null): string {
-  if (!date) return '';
-  const y = date.getUTCFullYear();
-  if (y < 0 || y > 9999) return '';
-  return date.toISOString().slice(0, 16);
-}
-
 /** Decades shown by the log scale bar: 1 m … 1e27 m. */
 export const LOG_SCALE_MIN = 0;
 export const LOG_SCALE_MAX = 27;
