@@ -253,42 +253,80 @@ export interface BakeInput {
   height: number;
 }
 
+/** Climate of one cell (land or sea), shared by the bake and the climate map so they agree. */
+interface Cell {
+  land: boolean;
+  elev: number;
+  /** Temperature at the surface (land: at altitude, with noise), C. */
+  tC: number;
+  /** Sea-level temperature, C (sea ice). */
+  t0: number;
+  /** Moisture 0..1 (land). */
+  m: number;
+  /** Large-scale noise -1..1 (tint). */
+  n: number;
+}
+
+type CellInput = Pick<BakeInput, 'a' | 'b' | 'w' | 'gmstC' | 'moistureWeights'> & {
+  /** Observed moisture (modern_moisture.png, 1 + 254 m per land cell, 0 unused) used where set. */
+  observed?: Uint8Array;
+};
+
+function cellSampler(inp: CellInput) {
+  const { a, b, w, gmstC } = inp;
+  const blend = (fa: Float32Array, fb: Float32Array, lat: number, lon: number) =>
+    w <= 0 ? sampleField(fa, lat, lon) : sampleField(fa, lat, lon) * (1 - w) + sampleField(fb, lat, lon) * w;
+  const sampler = (lat: number, lon: number, px: number, py: number, pz: number): Cell => {
+    const elev = blend(a.elev, b.elev, lat, lon);
+    // Coast: blended signed distance plus a noise warp of about a third of a cell.
+    const coast = blend(a.coastKm, b.coastKm, lat, lon) + 45 * sphereNoise(px, py, pz, 24, 3);
+    const n = sphereNoise(px, py, pz, 9, 3);
+    const t0 = temperatureC(lat, 0, gmstC);
+    if (coast <= 0) return { land: false, elev, tC: t0, t0, m: 1, n };
+    const tC = temperatureC(lat, elev, gmstC) + 1.5 * n;
+    let m: number;
+    const ok =
+      inp.observed?.[
+        Math.min(DEM_H - 1, Math.max(0, Math.floor(90 - lat))) * DEM_W +
+          Math.min(DEM_W - 1, Math.floor(lon + 180))
+      ];
+    if (ok) m = (ok - 1) / 254;
+    else {
+      const sea: Maritime = {
+        coastKm: coast,
+        seaWestKm: blend(a.seaWestKm, b.seaWestKm, lat, lon),
+        seaEastKm: blend(a.seaEastKm, b.seaEastKm, lat, lon),
+        barrierWestM: blend(a.barrierWestM, b.barrierWestM, lat, lon),
+        barrierEastM: blend(a.barrierEastM, b.barrierEastM, lat, lon),
+      };
+      m = moisture(inp.moistureWeights, lat, sea, tC) + 0.05 * n;
+    }
+    return { land: true, elev, tC, t0, m, n };
+  };
+  return { sampler, blend };
+}
+
 /**
  * Bakes the synthetic surface into RGBA8, rows from the south (v = 0) to match Earth's equirect uv:
  * rgb = sRGB albedo, a = 255 open water (glint, level sea) else 0.
  */
 export function bakeSurface(inp: BakeInput, out = new Uint8Array(inp.width * inp.height * 4)): Uint8Array {
-  const { a, b, w, gmstC, veg, palette: p, width, height } = inp;
+  const { a, b, veg, palette: p, width, height } = inp;
   const DEG = Math.PI / 180;
   const cellDeg = 360 / DEM_W;
-  const blend = (fa: Float32Array, fb: Float32Array, lat: number, lon: number) =>
-    w <= 0 ? sampleField(fa, lat, lon) : sampleField(fa, lat, lon) * (1 - w) + sampleField(fb, lat, lon) * w;
+  const { sampler, blend } = cellSampler(inp);
   for (let y = 0; y < height; y++) {
     const lat = -90 + ((y + 0.5) * 180) / height;
     const cl = Math.cos(lat * DEG);
     const sl = Math.sin(lat * DEG);
     for (let x = 0; x < width; x++) {
       const lon = -180 + ((x + 0.5) * 360) / width;
-      const px = cl * Math.cos(lon * DEG);
-      const py = cl * Math.sin(lon * DEG);
-      const pz = sl;
-      const elev = blend(a.elev, b.elev, lat, lon);
-      // Coast: blended signed distance plus a noise warp of about a third of a cell.
-      const coast = blend(a.coastKm, b.coastKm, lat, lon) + 45 * sphereNoise(px, py, pz, 24, 3);
-      const n = sphereNoise(px, py, pz, 9, 3);
-      const t0 = temperatureC(lat, 0, gmstC);
+      const cell = sampler(lat, lon, cl * Math.cos(lon * DEG), cl * Math.sin(lon * DEG), sl);
+      const { elev, n } = cell;
       let c: Rgb;
       let water = 0;
-      if (coast > 0) {
-        const tC = temperatureC(lat, elev, gmstC) + 1.5 * n;
-        const sea: Maritime = {
-          coastKm: coast,
-          seaWestKm: blend(a.seaWestKm, b.seaWestKm, lat, lon),
-          seaEastKm: blend(a.seaEastKm, b.seaEastKm, lat, lon),
-          barrierWestM: blend(a.barrierWestM, b.barrierWestM, lat, lon),
-          barrierEastM: blend(a.barrierEastM, b.barrierEastM, lat, lon),
-        };
-        c = landColour(p, tC, moisture(inp.moistureWeights, lat, sea, tC) + 0.05 * n, elev, veg);
+      if (cell.land) {
+        c = landColour(p, cell.tC, cell.m, elev, veg);
         // Hillshade from the elevation gradient, light from the north-west.
         const step = cellDeg * 0.5;
         const dzE = (blend(a.elev, b.elev, lat, lon + step / Math.max(0.2, cl)) - elev) / (step * 111);
@@ -300,7 +338,7 @@ export function bakeSurface(inp: BakeInput, out = new Uint8Array(inp.width * inp
       } else {
         const depth = Math.min(elev, -1);
         c = mix(p['deep-ocean'], p.shelf, smooth(-2500, -120, depth));
-        const ice = smooth(-6, -10, t0);
+        const ice = smooth(-6, -10, cell.t0);
         c = mix(c, p['sea-ice'] ?? p.ice, ice);
         water = 1 - ice;
       }
@@ -309,6 +347,43 @@ export function bakeSurface(inp: BakeInput, out = new Uint8Array(inp.width * inp
       out[k + 1] = Math.max(0, Math.min(255, Math.round(c[1])));
       out[k + 2] = Math.max(0, Math.min(255, Math.round(c[2])));
       out[k + 3] = Math.round(water * 255);
+    }
+  }
+  return out;
+}
+
+/** Surface kinds of the climate map (byte 0). */
+export const SURFACE = { sea: 0, land: 1, landIce: 2, seaIce: 3 } as const;
+
+/**
+ * Climate map for life at ground level, RGBA8 rows from the south like the bake: R = SURFACE kind,
+ * G = temperature + 60 C, B = moisture * 255, A = elevation / 40 m + 128 (clamped). Land ice where the
+ * landColour ice blend passes one half (about -10.5 C).
+ */
+export function climateMap(inp: CellInput & { width: number; height: number }): Uint8Array {
+  const { width, height } = inp;
+  const out = new Uint8Array(width * height * 4);
+  const DEG = Math.PI / 180;
+  const { sampler } = cellSampler(inp);
+  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  for (let y = 0; y < height; y++) {
+    const lat = -90 + ((y + 0.5) * 180) / height;
+    const cl = Math.cos(lat * DEG);
+    const sl = Math.sin(lat * DEG);
+    for (let x = 0; x < width; x++) {
+      const lon = -180 + ((x + 0.5) * 360) / width;
+      const c = sampler(lat, lon, cl * Math.cos(lon * DEG), cl * Math.sin(lon * DEG), sl);
+      const k = (y * width + x) * 4;
+      out[k] = c.land
+        ? c.tC < -10.5
+          ? SURFACE.landIce
+          : SURFACE.land
+        : c.t0 < -8
+          ? SURFACE.seaIce
+          : SURFACE.sea;
+      out[k + 1] = clamp(c.tC + 60);
+      out[k + 2] = clamp(c.m * 255);
+      out[k + 3] = clamp(c.elev / 40 + 128);
     }
   }
   return out;

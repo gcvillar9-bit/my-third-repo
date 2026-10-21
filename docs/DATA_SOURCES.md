@@ -69,6 +69,18 @@ All three downloads are sha256-pinned in `assets/manifest/nebulae.json` and proc
 The Batchelor et al. (2019) ice-margin shapefiles (OSF 7jen3) state no licence, so they are not redistributed;
 the LGM outlines are hand-entered instead. Deep-time hosts: zenodo.org, www.ngdc.noaa.gov, www.ncei.noaa.gov.
 
+## Life at ground level (life)
+
+| Source                                                                                                   | Licence                    | Used for                                                     |
+| -------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------ |
+| The Paleobiology Database (paleobiodb.org) occurrence API v1.2, PALEOMAP paleo-coordinates, October 2026 | CC BY 4.0                  | `data/life/occurrences.json` (species ranges by fossil find) |
+| Hand-entered ranges of hominins, humans, apes and living animals (`src/modules/life/species.json`)       | Cited facts (row `source`) | Ranges with time windows                                     |
+| Plants by era and biome (`src/modules/life/flora.json`)                                                  | Cited facts (row `source`) | Plant mixes and densities                                    |
+
+Creature and plant models are procedural (this repository); no third-party models are used. The PBDB API answer
+is not byte-stable (it embeds its timing), so the derived snapshot is committed and `tools/build-life.mjs`
+caches the raw responses (host: paleobiodb.org).
+
 ## Licence notes
 
 - App code is MIT. Data keeps its upstream licence. CC BY-SA-derived binaries (`stars.bin`, `names.json`) stay

@@ -56,6 +56,34 @@
       "licenseText": null
     },
     {
+      "module": "life",
+      "id": "pbdb_occurrences",
+      "url": null,
+      "license": "CC-BY-4.0",
+      "licenseName": "Creative Commons Attribution 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "The Paleobiology Database (paleobiodb.org), occurrence data API v1.2, snapshot of October 2026; paleo-coordinates from the PALEOMAP model (C.R. Scotese)",
+      "copyright": [],
+      "flags": [],
+      "note": "Fossil occurrences per species row in src/modules/life/species.json (query in its 'pbdb' field), merged per 0.5 degree cell; the API response is not byte-stable, so tools/build-life.mjs caches it in .cache/raw/life and the derived snapshot is committed",
+      "outputs": ["data/life/occurrences.json"],
+      "licenseText": null
+    },
+    {
+      "module": "life",
+      "id": "life_species_ranges",
+      "url": null,
+      "license": "reference",
+      "licenseName": "Published reference data (facts, cited)",
+      "licenseUrl": null,
+      "attribution": "Hand-entered ranges of hominins, humans, apes and some living animals (Smithsonian Human Origins; IUCN Red List; Zeder 2008; Clarkson et al. 2017; Higham et al. 2014; Rizal et al. 2020; Zhang et al. 2024; Barnett et al. 2009), each row with its source in src/modules/life/species.json; creature and plant models are procedural (this repository)",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": [],
+      "licenseText": null
+    },
+    {
       "module": "milkyway",
       "id": "celestia_globulars",
       "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/globulars.dsc",

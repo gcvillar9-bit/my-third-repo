@@ -19,6 +19,10 @@ before land plants). Cross-module API: `src/modules/paleo/public.ts`. Depends on
   (`zonal-clouds.ts`, a port of `gnoise`) into `uEarthCloudZonalMap` (1024×512 R8) before the first bake: one
   lookup per pixel instead of noise, so present-day Earth costs the same as before this module.
 - City lights fade out before electric lighting in the earth module itself (`earth/city-lights.ts`).
+- Climate for other modules (`public.ts` `paleoClimate(jd)`, `sampleClimate`): a 720×360 RGBA map (surface kind,
+  temperature, moisture, elevation) from the same per-cell model as the bake (`biome.ts` `climateMap`), so the life
+  module's animals stand on the painted land. Since 2.6 Ma it uses today's maps and observed moisture, cooled with
+  the ice-age sea level (6 C at the LGM), exposed shelves as land and the drawn ice sheets as ice. Cached per era.
 
 ## Looks by age (`climate.ts` `regimeAt`, years before 1950)
 

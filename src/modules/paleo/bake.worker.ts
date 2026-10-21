@@ -6,7 +6,7 @@
  */
 import { expose, transfer } from 'comlink';
 import { decode } from 'fast-png';
-import { bakeSurface, fitMoisture, paletteFrom, type Palette } from './biome';
+import { bakeSurface, climateMap, fitMoisture, paletteFrom, type Palette } from './biome';
 import type { BiomeRow, Vegetation } from './climate';
 import { sliceFields, type SliceFields } from './fields';
 import { bakeZonalClouds } from './zonal-clouds';
@@ -31,9 +31,22 @@ export interface PaleoBakeRequest {
   veg: Vegetation;
 }
 
+export interface PaleoClimateRequest {
+  a: number;
+  b: number;
+  w: number;
+  gmstC: number;
+  /** Use today's observed moisture (modern_moisture.png) where it is set. */
+  observed: boolean;
+  width: number;
+  height: number;
+}
+
 export interface PaleoBakeApi {
   init(cfg: PaleoBakeConfig): Promise<void>;
   bake(req: PaleoBakeRequest): Promise<Uint8Array>;
+  /** Climate map for life at ground level (biome.ts climateMap), rows from the south. */
+  climate(req: PaleoClimateRequest): Promise<Uint8Array>;
   /** R8 zonal cloud cover, rows from the south. */
   clouds(width: number, height: number): Promise<Uint8Array>;
 }
@@ -42,6 +55,7 @@ const CACHE = 6;
 let cfg: PaleoBakeConfig | null = null;
 let palette: Palette | null = null;
 let weights: number[] | null = null;
+let observed: Uint8Array | null = null;
 const cache = new Map<number, Promise<SliceFields>>();
 
 async function fetchGrey(url: string): Promise<Uint8Array> {
@@ -73,6 +87,7 @@ const api: PaleoBakeApi = {
     palette = paletteFrom(c.biomes);
     const [today, target] = await Promise.all([fields(0), fetchGrey(c.moistureUrl)]);
     weights = fitMoisture(today, target, c.todayGmstC);
+    observed = target;
   },
   async bake(req) {
     if (!cfg || !palette || !weights) throw new Error('paleo: bake before init');
@@ -87,6 +102,21 @@ const api: PaleoBakeApi = {
       moistureWeights: weights,
       width: cfg.width,
       height: cfg.height,
+    });
+    return transfer(out, [out.buffer]);
+  },
+  async climate(req) {
+    if (!cfg || !weights) throw new Error('paleo: climate before init');
+    const [a, b] = await Promise.all([fields(req.a), fields(req.b)]);
+    const out = climateMap({
+      a,
+      b,
+      w: req.w,
+      gmstC: req.gmstC,
+      moistureWeights: weights,
+      observed: req.observed ? (observed ?? undefined) : undefined,
+      width: req.width,
+      height: req.height,
     });
     return transfer(out, [out.buffer]);
   },

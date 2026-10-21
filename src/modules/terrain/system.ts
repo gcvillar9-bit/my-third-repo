@@ -258,6 +258,11 @@ export class TerrainSystem {
     };
   }
 
+  /** See terrainHeightAt (public.ts); never creates a manager. */
+  heightAt(bodyId: string, dir: Vec3d): number | null {
+    return this.managers.get(bodyId)?.heightAt(dir) ?? null;
+  }
+
   stats(): TerrainStats {
     let tiles = 0;
     let leaves = 0;

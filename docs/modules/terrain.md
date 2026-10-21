@@ -2,7 +2,8 @@
 
 Cube-sphere quadtree terrain for every planet, dwarf, moon and minor body (not the gas giants), the mesh-identical
 ground used by collision, and walk mode. Code: `src/modules/terrain/**`, `src/camera/walk.ts` (+ hooks in
-`src/camera/controller.ts`). Public API: `src/modules/terrain/public.ts`.
+`src/camera/controller.ts`). Public API: `src/modules/terrain/public.ts` (including `terrainHeightAt(bodyId, dir)`,
+the ground height of the finest grid, used by the life module to stand plants and animals on the drawn ground).
 
 ## Quadtree (`cube.ts`, `patch.ts`, `select.ts`)
 

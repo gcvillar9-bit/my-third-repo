@@ -1,0 +1,457 @@
+{
+  "about": "Plants at ground level by era (rows from the youngest; fromMa..toMa, ages in Ma) and biome. Each mix lists [plant kind, weight] (kit/plants.ts); 'density' is plants per 100 m2 by biome (tufts and trees together; trees are kept to larger distances). Hand-entered after the cited syntheses, approximate: the plants are stylised stand-ins for the dominant groups of the time.",
+  "density": {
+    "rainforest": 3.0,
+    "forest": 2.2,
+    "taiga": 1.8,
+    "savanna": 1.6,
+    "grassland": 2.4,
+    "steppe": 1.4,
+    "desert": 0.12,
+    "tundra": 1.2
+  },
+  "eras": [
+    {
+      "fromMa": 20,
+      "toMa": 0,
+      "label": "grasslands and modern forests",
+      "mix": {
+        "rainforest": [
+          ["broadleaf", 5],
+          ["palm", 2],
+          ["treeFern", 1],
+          ["fern", 2]
+        ],
+        "forest": [
+          ["broadleaf", 5],
+          ["birch", 1.5],
+          ["conifer", 2],
+          ["shrub", 1],
+          ["fern", 1]
+        ],
+        "taiga": [
+          ["conifer", 7],
+          ["birch", 2],
+          ["shrub", 1]
+        ],
+        "savanna": [
+          ["grass", 8],
+          ["broadleaf", 0.7],
+          ["shrub", 1.5]
+        ],
+        "grassland": [
+          ["grass", 9],
+          ["shrub", 1]
+        ],
+        "steppe": [
+          ["grass", 7],
+          ["shrub", 2],
+          ["deadShrub", 1]
+        ],
+        "desert": [
+          ["deadShrub", 7],
+          ["cactus", 1],
+          ["grass", 2]
+        ],
+        "tundra": [
+          ["grass", 4],
+          ["shrub", 3],
+          ["moss", 3]
+        ]
+      },
+      "source": "Strömberg 2011 (grass-dominated habitats from about 20 Ma); modern biomes (Olson et al. 2001)"
+    },
+    {
+      "fromMa": 66,
+      "toMa": 20,
+      "label": "Paleogene forests, no open grasslands yet",
+      "mix": {
+        "rainforest": [
+          ["broadleaf", 5],
+          ["palm", 3],
+          ["treeFern", 1],
+          ["fern", 2]
+        ],
+        "forest": [
+          ["broadleaf", 5],
+          ["conifer", 2],
+          ["palm", 1],
+          ["shrub", 1],
+          ["fern", 1]
+        ],
+        "taiga": [
+          ["conifer", 6],
+          ["broadleaf", 2],
+          ["shrub", 2]
+        ],
+        "savanna": [
+          ["shrub", 4],
+          ["broadleaf", 1],
+          ["fern", 3]
+        ],
+        "grassland": [
+          ["shrub", 4],
+          ["fern", 4],
+          ["broadleaf", 0.5]
+        ],
+        "steppe": [
+          ["shrub", 5],
+          ["deadShrub", 2],
+          ["fern", 2]
+        ],
+        "desert": [
+          ["deadShrub", 8],
+          ["shrub", 2]
+        ],
+        "tundra": [
+          ["shrub", 4],
+          ["fern", 3],
+          ["moss", 3]
+        ]
+      },
+      "source": "Paleogene vegetation: angiosperm-dominated forests, palms to high latitudes in the Eocene (Willis & McElwain 2014, The Evolution of Plants)"
+    },
+    {
+      "fromMa": 100,
+      "toMa": 66,
+      "label": "Late Cretaceous: flowering plants, conifers, ferns",
+      "mix": {
+        "rainforest": [
+          ["broadleaf", 3],
+          ["palm", 2],
+          ["araucaria", 2],
+          ["treeFern", 1.5],
+          ["fern", 2]
+        ],
+        "forest": [
+          ["broadleaf", 3],
+          ["araucaria", 2],
+          ["conifer", 2],
+          ["cycad", 1],
+          ["fern", 2]
+        ],
+        "taiga": [
+          ["conifer", 5],
+          ["ginkgo", 2],
+          ["fern", 2]
+        ],
+        "savanna": [
+          ["fern", 5],
+          ["shrub", 2],
+          ["cycad", 1.5],
+          ["broadleaf", 0.6]
+        ],
+        "grassland": [
+          ["fern", 6],
+          ["shrub", 2],
+          ["cycad", 1]
+        ],
+        "steppe": [
+          ["fern", 3],
+          ["shrub", 4],
+          ["deadShrub", 2]
+        ],
+        "desert": [
+          ["deadShrub", 7],
+          ["cycad", 2]
+        ],
+        "tundra": [
+          ["fern", 4],
+          ["shrub", 3],
+          ["moss", 3]
+        ]
+      },
+      "source": "Late Cretaceous floras: angiosperm rise with conifer and fern ground cover, fern 'prairies' in open land (Wing & Boucher 1998; Willis & McElwain 2014)"
+    },
+    {
+      "fromMa": 201,
+      "toMa": 100,
+      "label": "Jurassic and Early Cretaceous: conifers, cycads, ginkgos, ferns",
+      "mix": {
+        "rainforest": [
+          ["araucaria", 3],
+          ["treeFern", 2],
+          ["cycad", 2],
+          ["fern", 3]
+        ],
+        "forest": [
+          ["araucaria", 3],
+          ["conifer", 2],
+          ["ginkgo", 1],
+          ["cycad", 1.5],
+          ["treeFern", 1],
+          ["fern", 2]
+        ],
+        "taiga": [
+          ["conifer", 5],
+          ["ginkgo", 2],
+          ["fern", 2]
+        ],
+        "savanna": [
+          ["fern", 5],
+          ["cycad", 2],
+          ["araucaria", 0.6],
+          ["calamites", 1]
+        ],
+        "grassland": [
+          ["fern", 6],
+          ["cycad", 2],
+          ["calamites", 1]
+        ],
+        "steppe": [
+          ["fern", 3],
+          ["cycad", 3],
+          ["deadShrub", 2]
+        ],
+        "desert": [
+          ["deadShrub", 6],
+          ["cycad", 3]
+        ],
+        "tundra": [
+          ["fern", 4],
+          ["ginkgo", 1],
+          ["moss", 3]
+        ]
+      },
+      "source": "Mesozoic floras: araucarian conifers, cycads, bennettitaleans, ginkgos and fern ground cover (Morrison Formation: Gee 2011)"
+    },
+    {
+      "fromMa": 252,
+      "toMa": 201,
+      "label": "Triassic: conifers, cycads, seed ferns, horsetails",
+      "mix": {
+        "rainforest": [
+          ["conifer", 2],
+          ["treeFern", 2],
+          ["calamites", 2],
+          ["cycad", 1],
+          ["fern", 3]
+        ],
+        "forest": [
+          ["conifer", 3],
+          ["araucaria", 1.5],
+          ["cycad", 1.5],
+          ["ginkgo", 1],
+          ["calamites", 1],
+          ["fern", 2]
+        ],
+        "taiga": [
+          ["conifer", 5],
+          ["ginkgo", 2],
+          ["fern", 2]
+        ],
+        "savanna": [
+          ["fern", 4],
+          ["cycad", 2],
+          ["calamites", 1],
+          ["conifer", 0.6]
+        ],
+        "grassland": [
+          ["fern", 5],
+          ["cycad", 2],
+          ["calamites", 1]
+        ],
+        "steppe": [
+          ["fern", 2],
+          ["cycad", 2],
+          ["deadShrub", 3]
+        ],
+        "desert": [
+          ["deadShrub", 7],
+          ["cycad", 1]
+        ],
+        "tundra": [
+          ["fern", 4],
+          ["moss", 4]
+        ]
+      },
+      "source": "Triassic recovery floras (Voltzia conifers, cycads, Dicroidium seed ferns in Gondwana, Equisetites horsetails; Willis & McElwain 2014)"
+    },
+    {
+      "fromMa": 299,
+      "toMa": 252,
+      "label": "Permian: conifers, Glossopteris, tree ferns",
+      "mix": {
+        "rainforest": [
+          ["treeFern", 3],
+          ["calamites", 2],
+          ["seedFern", 2],
+          ["lycopsid", 1],
+          ["fern", 2]
+        ],
+        "forest": [
+          ["conifer", 2],
+          ["seedFern", 3],
+          ["treeFern", 1.5],
+          ["calamites", 1],
+          ["fern", 2]
+        ],
+        "taiga": [
+          ["seedFern", 4],
+          ["conifer", 2],
+          ["fern", 2]
+        ],
+        "savanna": [
+          ["fern", 4],
+          ["seedFern", 1.5],
+          ["conifer", 0.8]
+        ],
+        "grassland": [
+          ["fern", 5],
+          ["seedFern", 1],
+          ["calamites", 1]
+        ],
+        "steppe": [
+          ["fern", 2],
+          ["deadShrub", 4],
+          ["conifer", 0.5]
+        ],
+        "desert": [["deadShrub", 8]],
+        "tundra": [
+          ["fern", 3],
+          ["moss", 5]
+        ]
+      },
+      "source": "Permian floras: walchian conifers in the dry tropics, Glossopteris forests in Gondwana (Willis & McElwain 2014)"
+    },
+    {
+      "fromMa": 359,
+      "toMa": 299,
+      "label": "Carboniferous coal forests: scale trees, horsetails, tree ferns",
+      "mix": {
+        "rainforest": [
+          ["lycopsid", 4],
+          ["calamites", 3],
+          ["treeFern", 2],
+          ["seedFern", 1],
+          ["fern", 2]
+        ],
+        "forest": [
+          ["lycopsid", 3],
+          ["calamites", 2],
+          ["treeFern", 2],
+          ["seedFern", 2],
+          ["fern", 2]
+        ],
+        "taiga": [
+          ["seedFern", 3],
+          ["calamites", 2],
+          ["fern", 3]
+        ],
+        "savanna": [
+          ["fern", 4],
+          ["seedFern", 1.5],
+          ["calamites", 1]
+        ],
+        "grassland": [
+          ["fern", 5],
+          ["calamites", 1.5]
+        ],
+        "steppe": [
+          ["fern", 3],
+          ["deadShrub", 3]
+        ],
+        "desert": [
+          ["deadShrub", 6],
+          ["moss", 2]
+        ],
+        "tundra": [
+          ["fern", 2],
+          ["moss", 6]
+        ]
+      },
+      "source": "Carboniferous coal-swamp forests of Lepidodendron, Calamites and Psaronius tree ferns (DiMichele & Phillips 1994)"
+    },
+    {
+      "fromMa": 385,
+      "toMa": 359,
+      "label": "Late Devonian: the first forests",
+      "mix": {
+        "rainforest": [
+          ["lycopsid", 3],
+          ["treeFern", 2],
+          ["fern", 3],
+          ["cooksonia", 2]
+        ],
+        "forest": [
+          ["lycopsid", 2],
+          ["treeFern", 2],
+          ["fern", 3],
+          ["cooksonia", 2]
+        ],
+        "taiga": [
+          ["fern", 3],
+          ["cooksonia", 4]
+        ],
+        "savanna": [
+          ["cooksonia", 5],
+          ["fern", 3]
+        ],
+        "grassland": [
+          ["cooksonia", 6],
+          ["fern", 2]
+        ],
+        "steppe": [
+          ["cooksonia", 4],
+          ["moss", 2]
+        ],
+        "desert": [["moss", 3]],
+        "tundra": [
+          ["moss", 6],
+          ["cooksonia", 2]
+        ]
+      },
+      "source": "Late Devonian forests of Archaeopteris and cladoxylopsids (Stein et al. 2007, Gilboa); stand-ins: lycopsid and tree-fern models"
+    },
+    {
+      "fromMa": 430,
+      "toMa": 385,
+      "label": "Silurian and Early Devonian: small vascular plants",
+      "mix": {
+        "rainforest": [
+          ["cooksonia", 6],
+          ["moss", 4]
+        ],
+        "forest": [
+          ["cooksonia", 6],
+          ["moss", 4]
+        ],
+        "taiga": [
+          ["cooksonia", 4],
+          ["moss", 6]
+        ],
+        "savanna": [
+          ["cooksonia", 5],
+          ["moss", 5]
+        ],
+        "grassland": [
+          ["cooksonia", 5],
+          ["moss", 5]
+        ],
+        "steppe": [
+          ["moss", 5],
+          ["cooksonia", 2]
+        ],
+        "desert": [["moss", 2]],
+        "tundra": [["moss", 6]]
+      },
+      "source": "Early vascular plants such as Cooksonia from about 430 Ma (Edwards & Feehan 1980); paleo vegetation.json"
+    },
+    {
+      "fromMa": 470,
+      "toMa": 430,
+      "label": "Ordovician: mosses and liverworts",
+      "mix": {
+        "rainforest": [["moss", 1]],
+        "forest": [["moss", 1]],
+        "taiga": [["moss", 1]],
+        "savanna": [["moss", 1]],
+        "grassland": [["moss", 1]],
+        "steppe": [["moss", 1]],
+        "desert": [["moss", 0.2]],
+        "tundra": [["moss", 1]]
+      },
+      "source": "Earliest land plants (bryophyte-grade) from about 470 Ma (Wellman et al. 2003); none earlier"
+    }
+  ]
+}

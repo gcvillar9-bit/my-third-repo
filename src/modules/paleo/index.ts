@@ -9,7 +9,7 @@ import type { ModuleContext, UniverseModule, ValidityRange } from '../../core/co
 import { jdFromYearsBP } from '../../core/geotime';
 import { JD_J2000 } from '../../core/units';
 import { buildPaleoBookmarks } from './bookmarks';
-import { PALEO_MODULE_ID, PaleoController, createPaleoShading } from './shading';
+import { PALEO_MODULE_ID, PaleoController, createPaleoShading, setActiveController } from './shading';
 
 /** Before the oldest map the surface stays at 540 Ma. */
 export const PALEO_VALIDITY: ValidityRange = {
@@ -38,6 +38,7 @@ const paleo: UniverseModule = {
       return;
     }
     controller = new PaleoController(ctx, base.uniforms);
+    setActiveController(controller);
     registry.setSurfaceShading(createPaleoShading(base, controller));
     registry.addValidity(PALEO_VALIDITY);
     registry.addBookmarks(buildPaleoBookmarks(ctx.frames, earth.radius, earth.fixedFrame ?? 'earth.fixed'));
@@ -45,6 +46,7 @@ const paleo: UniverseModule = {
   dispose() {
     controller?.dispose();
     controller = null;
+    setActiveController(null);
   },
 };
 
