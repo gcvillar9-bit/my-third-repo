@@ -1,18 +1,24 @@
 import { readFileSync } from 'node:fs';
 import { decode } from 'fast-png';
 import { describe, expect, it } from 'vitest';
-import { yearsBeforePresent } from '../../../src/core/geotime';
+import { jdFromYearsBP, yearsBeforePresent } from '../../../src/core/geotime';
 import { FOLD_PERIOD_DAYS, foldJd } from '../../../src/core/time';
 import { JD_J2000 } from '../../../src/core/units';
 import {
+  ICE_HALF_M,
+  SURFACE,
   bakeSurface,
   fitMoisture,
+  iceAgeOverlay,
   maritimeAt,
   moisture,
   paletteFrom,
+  shelfSampler,
   temperatureC,
 } from '../../../src/modules/paleo/biome';
+import { SURFACE as PUBLIC_SURFACE, sampleClimateLand } from '../../../src/modules/paleo/public';
 import { middayNear, onFoldedDay } from '../../../src/modules/paleo/bookmarks';
+import { bakeZonalClouds, gnoise } from '../../../src/modules/paleo/zonal-clouds';
 import {
   bracketAges,
   gmstAt,
@@ -180,6 +186,165 @@ describe('paleo biomes', () => {
   });
 });
 
+describe('paleo ice-age climate map', () => {
+  /** One row of cells: kinds, and quaternary.png R (seabed depth, m) and G (ice threshold, m) per cell. */
+  const overlay = (kinds: number[], depth: number[], ice: number[], drop: number) => {
+    const data = new Uint8Array(kinds.length * 4);
+    kinds.forEach((k, i) => data.set([k, 60, 128, 128], i * 4));
+    const q = new Uint8Array(kinds.length * 2);
+    depth.forEach((d, i) => q.set([d, ice[i]], i * 2));
+    iceAgeOverlay(data, kinds.length, 1, { data: q, width: kinds.length, height: 1 }, drop);
+    return [...data.filter((_, i) => i % 4 === 0)];
+  };
+  const { sea, land, landIce, seaIce, shelf } = SURFACE;
+
+  it('marks the bared seabed as shelf, also under sea ice, and keeps deeper sea', () => {
+    expect(shelf).toBe(4);
+    expect(PUBLIC_SURFACE).toBe(SURFACE);
+    expect(overlay([sea, seaIce, sea, sea, land], [50, 40, 125, 0, 0], [0, 0, 0, 0, 0], 120)).toEqual([
+      shelf,
+      shelf,
+      sea,
+      sea,
+      land,
+    ]);
+  });
+
+  it('grows ice where the shader draws it half iced (G + 4 m of drop)', () => {
+    const g = 100;
+    const at = (drop: number) => overlay([land, sea], [0, 30], [g, g], drop);
+    // The shader's blend, so a change there cannot leave the climate map's threshold behind.
+    expect(paleoGlsl).toContain(`smoothstep(q.g, q.g + ${(2 * ICE_HALF_M).toFixed(1)}, uPaleoSeaDrop)`);
+    expect(at(g)).toEqual([land, shelf]); // drawn 0% iced
+    expect(at(g + 3)).toEqual([land, shelf]); // drawn 32%
+    expect(at(g + ICE_HALF_M)).toEqual([landIce, landIce]); // drawn 50%
+    expect(overlay([land], [0], [255], 120)).toEqual([land]); // 255: never iced
+  });
+
+  it('gives a bared shelf the climate of the nearest coast, not the sea', () => {
+    // A 6 x 2 map: dry land (G 90, B 40) west, a shelf strip, wet land (B 200) east, and sea in the
+    // south row that stays sea. Columns wrap, so cell 5 touches cell 0.
+    const w = 6;
+    const data = new Uint8Array(w * 2 * 4);
+    const row = [land, sea, sea, sea, land, sea];
+    for (let i = 0; i < w * 2; i++) data.set([i < w ? row[i] : sea, 70, 255, 128], i * 4);
+    data.set([land, 90, 40, 128], 0);
+    data.set([land, 75, 200, 128], 4 * 4);
+    const q = new Uint8Array(w * 2 * 2);
+    for (let i = 0; i < w; i++) q.set([row[i] === land ? 0 : 40, 0], i * 2);
+    for (let i = w; i < 2 * w; i++) q.set([200, 0], i * 2);
+    iceAgeOverlay(data, w, 2, { data: q, width: w, height: 2 }, 120);
+    const at = (i: number) => [...data.subarray(i * 4, i * 4 + 3)];
+    expect(at(1)).toEqual([shelf, 90, 40]); // next to the dry coast
+    expect(at(3)).toEqual([shelf, 75, 200]); // next to the wet coast
+    expect(at(5)).toEqual([shelf, 90, 40]); // across the seam from cell 0
+    expect(at(w)).toEqual([sea, 70, 255]); // the sea keeps its own
+  });
+
+  it('bares the seabed per point where the shader does (shelfSampler)', () => {
+    // The shader's test, so a change there cannot leave the per-point twin behind: exposed >= 0.5 for
+    // 0.5 <= depth < drop.
+    expect(paleoGlsl).toContain(
+      'step(0.5, q.r) * (1.0 - smoothstep(uPaleoSeaDrop - 2.0, uPaleoSeaDrop + 2.0, q.r))',
+    );
+    // 4 x 2 texels of 90 x 90 deg (centres at lon -135, -45, 45, 135 and lat -45, 45): land, a shallow
+    // sea (40 m), a sea 100 m deep and a deep one (200 m), the same in both rows.
+    const depths = [0, 40, 100, 200];
+    const q = new Uint8Array(4 * 2 * 2);
+    for (let i = 0; i < 8; i++) q[i * 2] = depths[i % 4];
+    const at = shelfSampler({ data: q, width: 4, height: 2 }, 120);
+    expect(at(45, -45)).toBe(true); // today's shallow sea at the drop
+    expect(at(-45, -135)).toBe(false); // today's land
+    expect(at(45, 135)).toBe(false); // deeper than the drop
+    expect(at(45, 45)).toBe(true);
+    // Bilinear depth between the centres: 100 m -> 200 m crosses the 120 m drop a fifth of the way.
+    expect(at(45, 45 + 0.19 * 90)).toBe(true);
+    expect(at(45, 45 + 0.21 * 90)).toBe(false);
+    // Land -> 40 m crosses the 0.5 m coast at 1/80 of the way; the latitude clamps at the poles.
+    expect(at(-89, -135 + 0.01 * 90)).toBe(false);
+    expect(at(89, -135 + 0.02 * 90)).toBe(true);
+    // Longitude wraps: halfway from the deep sea (lon 135) to the land (lon -135) is 100 m deep.
+    expect(at(45, 180)).toBe(true);
+    expect(at(45, -180)).toBe(true);
+    expect(at(45, 160)).toBe(false); // 144 m
+    // Against a port of the shader's blend at random points.
+    const rnd = new Uint8Array(36 * 18 * 2).map((_, i) => (i % 2 ? 0 : (i * 7919) % 160));
+    const drop = 60;
+    const sm = (e0: number, e1: number, x: number) => {
+      const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+      return t * t * (3 - 2 * t);
+    };
+    const test = shelfSampler({ data: rnd, width: 36, height: 18 }, drop);
+    let shelves = 0;
+    for (let k = 0; k < 2000; k++) {
+      const lat = ((k * 0.618034) % 1) * 180 - 90;
+      const lon = ((k * 0.414214) % 1) * 360 - 180;
+      const x = (lon / 360 + 0.5) * 36 - 0.5;
+      const y = Math.min(17, Math.max(0, (lat / 180 + 0.5) * 18 - 0.5));
+      const [x0, y0] = [Math.floor(x), Math.floor(y)];
+      const d = (i: number, j: number) => rnd[(Math.min(17, j) * 36 + ((i + 36) % 36)) * 2];
+      const depth =
+        (d(x0, y0) * (x0 + 1 - x) + d(x0 + 1, y0) * (x - x0)) * (y0 + 1 - y) +
+        (d(x0, y0 + 1) * (x0 + 1 - x) + d(x0 + 1, y0 + 1) * (x - x0)) * (y - y0);
+      const exposed = (depth >= 0.5 ? 1 : 0) * (1 - sm(drop - 2, drop + 2, depth));
+      if (Math.abs(depth - drop) < 1e-9) continue;
+      expect(test(lat, lon)).toBe(exposed > 0.5);
+      shelves += exposed > 0.5 ? 1 : 0;
+    }
+    expect(shelves).toBeGreaterThan(200);
+  });
+
+  it('gives modern ice-age maps the shelf test, from quaternary.png at the map drop', async () => {
+    const png = readFileSync('public/data/paleo/quaternary.png');
+    const ctx = {
+      assets: {
+        json: async () => index,
+        binary: async () => png.buffer.slice(png.byteOffset, png.byteOffset + png.byteLength),
+        texture: async () => ({}),
+        track: <T>(p: Promise<T>) => p,
+        url: (p: string) => p,
+      },
+      workers: {
+        pool: () => ({
+          call: async (name: string) =>
+            name === 'climate' ? new Uint8Array(720 * 360 * 4).fill(SURFACE.sea) : undefined,
+        }),
+      },
+      budget: { alloc: () => ({ free: () => {} }) },
+    };
+    const ctl = new PaleoController(ctx as never);
+    const lgm = await ctl.climate(jdFromYearsBP(21e3));
+    expect(lgm?.modern).toBe(true);
+    const shelfAt = lgm!.shelfAt!;
+    expect(shelfAt).toBeTypeOf('function');
+    expect(shelfAt(52.7, 1.9)).toBe(true); // Doggerland, off Great Yarmouth (about 21 m deep today)
+    expect(shelfAt(64.5, -166.5)).toBe(true); // Beringia, Seward Peninsula coast (about 17 m)
+    expect(shelfAt(48.86, 2.35)).toBe(false); // Paris: land today
+    expect(shelfAt(45, -30)).toBe(false); // the mid-Atlantic: deeper than the drop
+    // No water mask: today's land within a texel of a shallow sea passes too (the shader keeps it land).
+    expect(shelfAt(50.95, 1.86)).toBe(true); // Calais, a blended 9 m from the Strait of Dover
+    // Today, and with PALEOMAP's continents, there is no shelf test.
+    const today = await ctl.climate(jdFromYearsBP(100));
+    expect(today?.modern).toBe(true);
+    expect(today?.shelfAt).toBeUndefined();
+    const deep = await ctl.climate(jdFromYearsBP(66e6));
+    expect(deep?.modern).toBe(false);
+    expect(deep?.shelfAt).toBeUndefined();
+  });
+
+  it('treats a shelf cell as land when looking for the nearest land', () => {
+    const w = 8;
+    const data = new Uint8Array(w * 4);
+    data.set([shelf, 70, 100, 127], 3 * 4); // the eastern neighbour of the sea cell 2
+    const lon2 = ((2 + 0.5) / w) * 360 - 180;
+    const c = sampleClimateLand({ width: w, height: 1, data }, 0, lon2);
+    expect(c?.kind).toBe(shelf);
+    expect(c?.tempC).toBe(10);
+    data[3 * 4] = sea;
+    expect(sampleClimateLand({ width: w, height: 1, data }, 0, lon2)).toBeNull();
+  });
+});
+
 describe('paleo shading and bookmarks', () => {
   it('wraps the earth shading with the paleo hooks and no reserved uniforms', () => {
     const base = {
@@ -190,7 +355,7 @@ describe('paleo shading and bookmarks', () => {
       defines: { SURFACE_DETAIL_MASK: 1 },
       update: () => {},
     };
-    const ctl = new PaleoController({} as never, base.uniforms.uEarthCloudZonal);
+    const ctl = new PaleoController({} as never, base.uniforms);
     const s = createPaleoShading(base, ctl);
     expect(s.priority).toBe(PALEO_PRIORITY);
     expect(s.defines).toMatchObject({ EARTH_PALEO: 1, SURFACE_DETAIL_MASK: 1 });
@@ -205,7 +370,7 @@ describe('paleo shading and bookmarks', () => {
 
   it('stays idle (today’s look) in the present and the recent past', () => {
     const zonal = { value: 0.5 };
-    const ctl = new PaleoController({} as never, zonal);
+    const ctl = new PaleoController({} as never, { uEarthCloudZonal: zonal });
     ctl.update(JD_J2000 + 26 * 365.25);
     expect(ctl.uniforms.uPaleoMix.value).toBe(0);
     expect(ctl.uniforms.uPaleoSeaDrop.value).toBe(0);
@@ -221,6 +386,26 @@ describe('paleo shading and bookmarks', () => {
     // Midday search finds the maximum of a smooth daily curve.
     const noon = middayNear((t) => Math.cos(2 * Math.PI * (t - 0.3)), 0);
     expect(noon).toBeCloseTo(0.3, 2);
+  });
+
+  it('bakes zonal clouds: cloudy equator and storm tracks, clear subtropics', () => {
+    const w = 256;
+    const h = 128;
+    const map = bakeZonalClouds(w, h);
+    const band = (lat: number) => {
+      const y = Math.floor(((lat + 90) / 180) * h);
+      let s = 0;
+      for (let x = 0; x < w; x++) s += map[y * w + x] + map[(h - 1 - y) * w + x];
+      return s / (2 * w * 255);
+    };
+    expect(band(0.5)).toBeGreaterThan(band(24) + 0.25);
+    expect(band(55)).toBeGreaterThan(band(24) + 0.25);
+    expect(band(24)).toBeLessThan(0.2);
+    // The noise is gnoise from noise.glsl: zero on lattice points, bounded, not constant.
+    expect(gnoise(3, 4, 5)).toBe(0);
+    const v = [0.3, 1.7, 2.2, 5.9].map((t) => gnoise(t, 0.5 * t, 1.3 * t));
+    for (const x of v) expect(Math.abs(x)).toBeLessThanOrEqual(1.6);
+    expect(new Set(v).size).toBe(4);
   });
 
   it('samples fields bilinearly with longitude wrap', () => {

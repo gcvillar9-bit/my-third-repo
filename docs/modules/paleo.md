@@ -15,8 +15,28 @@ before land plants). Cross-module API: `src/modules/paleo/public.ts`. Depends on
   `earthPaleoWater` in `surfaceDetailMask`); without the define it is exactly today's Earth.
 - Clouds: `uEarthCloudZonal` (earth-common.glsl, shared by the shading and the cloud shell) fades today's cloud map
   into zonal weather bands (equatorial convergence, clear subtropics, storm tracks) as the synthetic surface takes
-  over, so clouds no longer trace today's continents.
+  over, so clouds no longer trace today's continents. The bands are baked once by the worker
+  (`zonal-clouds.ts`, a port of `gnoise`) into `uEarthCloudZonalMap` (1024×512 R8) before the first bake: one
+  lookup per pixel instead of noise, so present-day Earth costs the same as before this module.
 - City lights fade out before electric lighting in the earth module itself (`earth/city-lights.ts`).
+- Climate for other modules (`public.ts` `paleoClimate(jd)`, `sampleClimate`): a 720×360 RGBA map (surface kind,
+  temperature, moisture, elevation) from the same per-cell model as the bake (`biome.ts` `climateMap`), so the life
+  module's animals stand on the painted land. Since 2.6 Ma it uses today's maps and observed moisture, cooled with
+  the ice-age sea level (6 C at the LGM). `biome.ts` `iceAgeOverlay` matches the shader's half-points: sea and sea-ice
+  cells whose seabed is shallower than the drop become `SURFACE.shelf` (land for every purpose; it is kept apart
+  because today's terrain has no bathymetry and cannot tell the bared seabed from the sea; it takes the
+  temperature and moisture of the nearest coast, breadth-first, not the sea's), and cells whose ice
+  threshold the drop passes by 4 m (`ICE_HALF_M`, half of the shader's 8 m blend) become land ice. The drop is
+  rounded to 5 m for the cache, so the edges can sit up to 2.5 m of drop off the drawn ones. Cached per era.
+- Per-point shelf test (`ClimateMap.shelfAt(latDeg, lonDeg)`, `biome.ts` `shelfSampler`): a 0.5° cell is one
+  kind, but the shader bares the seabed per 1/3° texel, so coastal land cells hold bared seabed too. `shelfAt`
+  is true exactly where `paleo-surface.glsl` draws today's sea as bared seabed at the map's drop:
+  quaternary.png R read bilinearly like the GPU (geocentric lat/lon as the shader's uv, longitude wrapping)
+  and exposed at the shader's half-point, 0.5 m <= depth < drop. It has no water mask: inland it is false
+  (depth 0), but on today's land within a texel of a shallow sea the blended depth passes 0.5 m too, where the
+  shader (masked by today's water) keeps the land. It is set only on modern maps with a drop once the
+  quaternary data has loaded; four array reads and no allocation per call, so life can ask it per plant cell
+  before turning low ground into sea.
 
 ## Looks by age (`climate.ts` `regimeAt`, years before 1950)
 
@@ -75,12 +95,14 @@ folded ephemeris. Sites are on the maps' grid, which is in PALEOMAP paleo-coordi
 
 ## Tests
 
-Unit (`tests/unit/paleo`): map count and sources, bracketing, sea level at 21 ka, climate and vegetation, regimes,
-field decoding and symmetric coast distances, bookmark sites against the maps, the moisture fit (Amazon/Congo wet,
-Sahara/Australia dry), bake orientation and water alpha, the wrapper (defines, uniform names, idle today), fold
-alignment. E2E (`tests/e2e/paleo.spec.ts`): Pangaea land redder than the ocean around it, the seaway brighter than
-the land either side, the LGM ice dome brighter than the disc around it, and the 66 Ma sunset going dark with no city lights;
-all with no errors, at most 150 draw calls and 60 programs.
+Unit (`tests/unit/paleo`): map count and sources, bracketing, sea level at 21 ka, climate and vegetation,
+regimes, field decoding and symmetric coast distances, bookmark sites against the maps, the moisture fit
+(Amazon/Congo wet, Sahara/Australia dry), bake orientation and water alpha, the wrapper (defines, uniform
+names, idle today), fold alignment, the ice-age overlay and the per-point shelf test (against a port of the
+shader's blend, and on quaternary.png at the LGM: Doggerland and Beringia bared, Paris and the mid-Atlantic
+not). E2E (`tests/e2e/paleo.spec.ts`): Pangaea land redder than the ocean around it, the seaway brighter than
+the land either side, the LGM ice dome brighter than the disc around it, and the 66 Ma sunset going dark with
+no city lights; all with no errors, at most 150 draw calls and 60 programs.
 
 ## Known gaps
 

@@ -13,6 +13,7 @@ import type {
 import { qrotate, qrotateInv, quat, vec3 } from '../../core/math64';
 import { dirToFace, ellipsoidRadius, MAX_LEVEL, ROOT_KEYS, unpackKey } from './cube';
 import { groundRadius } from './ground';
+import type { HeightOwner } from './height-modules';
 import { PATCH_BYTES, type PatchData } from './patch';
 import { leafLevelAt, selectTree, type NodeBounds, type SelectParams } from './select';
 import type { TerrainBuildRequest } from './terrain.worker';
@@ -34,6 +35,10 @@ export const SPEC_FAILURE_LIMIT = 24;
 /** Ground level used before any tile is resident. */
 export const DEFAULT_GROUND_LEVEL = 16;
 
+/** Stamps shared by every manager: spec changes (height-function cache owner) and loaded height functions. */
+let specStamp = 0;
+let fnStamp = 0;
+
 export interface Generator {
   build(req: TerrainBuildRequest): Promise<PatchData>;
 }
@@ -43,6 +48,8 @@ export interface Tile extends PatchData {
   lastUsed: number;
   /** GPU resources created by the renderer (disposed on eviction). */
   gpu: { geometry: unknown; dispose(): void } | null;
+  /** Spec generation that built the tile (softReset rebuilds older ones in place). */
+  epoch: number;
 }
 
 export interface ManagerOptions {
@@ -76,7 +83,10 @@ export class TerrainManager {
   readonly inflight = new Set<number>();
   /** Exact bounds of every node built so far (kept after eviction; bounded). */
   private readonly known = new Map<number, NodeBounds>();
-  fn: HeightFunction | null = null;
+  private heightFn: HeightFunction | null = null;
+  private fnGeneration = 0;
+  /** Stamp of the current spec, unique across managers (see HeightOwner). */
+  private specSeq = ++specStamp;
   /** True while the terrain geometry is the active surface provider. */
   active = false;
   leaves: Tile[] = [];
@@ -99,6 +109,27 @@ export class TerrainManager {
 
   get spec(): HeightSourceSpec {
     return this.opts.spec;
+  }
+
+  /** CPU height function of the spec (collision, ground queries); null until it loads. */
+  get fn(): HeightFunction | null {
+    return this.heightFn;
+  }
+
+  set fn(f: HeightFunction | null) {
+    if (f === this.heightFn) return;
+    this.heightFn = f;
+    if (f) this.fnGeneration = ++fnStamp;
+  }
+
+  /** 0 without a height function, else a stamp that grows every time the function is replaced. */
+  get heightGeneration(): number {
+    return this.heightFn ? this.fnGeneration : 0;
+  }
+
+  /** Owner of this body's height-function loads (a newer spec evicts the older one's function). */
+  owner(): HeightOwner {
+    return { id: this.opts.bodyId, seq: this.specSeq };
   }
 
   rootsResident(): boolean {
@@ -166,6 +197,19 @@ export class TerrainManager {
     this.leaves = sel.leaves.map((k) => this.tiles.get(k)!);
     for (const k of sel.used) this.tiles.get(k)!.lastUsed = this.tick;
     this.issue(sel.requests, v.cap);
+    this.refresh();
+  }
+
+  /** Rebuilds drawn tiles of an older spec generation (after softReset); they stay drawn meanwhile. */
+  private refresh(): void {
+    const maxInflight = this.opts.test ? 2 * MAX_INFLIGHT : MAX_INFLIGHT;
+    let n = 0;
+    for (const t of this.leaves) {
+      if (t.epoch === this.epoch || this.inflight.has(t.key)) continue;
+      if (n >= SPLIT_BUDGET || this.inflight.size >= maxInflight) break;
+      this.request(t.key);
+      n++;
+    }
   }
 
   private issue(reqs: readonly { key: number }[], cap: number): void {
@@ -221,7 +265,16 @@ export class TerrainManager {
       return;
     }
     gen
-      .build({ ...id, key, a, c, spec: { workerModule: spec.workerModule, params: spec.params }, base, seed })
+      .build({
+        ...id,
+        key,
+        a,
+        c,
+        spec: { workerModule: spec.workerModule, params: spec.params },
+        owner: this.owner(),
+        base,
+        seed,
+      })
       .then(
         (data) => {
           this.inflight.delete(key);
@@ -235,7 +288,10 @@ export class TerrainManager {
             for (const t of this.tiles.values()) this.known.set(t.key, t.bounds);
           }
           this.known.set(key, bounds);
-          this.tiles.set(key, { ...data, bounds, lastUsed: this.tick, gpu: null });
+          // A rebuilt tile (softReset) replaces the drawn one in place.
+          const old = this.tiles.get(key);
+          old?.gpu?.dispose();
+          this.tiles.set(key, { ...data, bounds, lastUsed: old?.lastUsed ?? this.tick, gpu: null, epoch });
           this.dirty = true;
           this.account();
           if (this.opts.test) this.select();
@@ -278,6 +334,21 @@ export class TerrainManager {
     this.dirty = true;
   }
 
+  /**
+   * Parameter-only spec change (the HD terrain block moved, or HD turned on or off): keeps drawing the
+   * resident tiles and keeps the current CPU height function while the drawn tiles are rebuilt for the
+   * new spec and swapped in one by one (select -> refresh); the system replaces the function when the
+   * new one loads. Before this, every move of the HD block dropped all of Earth's tiles at once.
+   */
+  softReset(spec: HeightSourceSpec): void {
+    this.epoch++;
+    this.retry.clear();
+    this.streak = 0;
+    this.opts.spec = spec;
+    this.specSeq = ++specStamp;
+    this.dirty = true;
+  }
+
   /** Drops everything (spec change, shutdown). In-flight results are discarded. */
   reset(spec?: HeightSourceSpec): void {
     this.epoch++;
@@ -291,6 +362,7 @@ export class TerrainManager {
     this.dirty = true;
     if (spec) {
       this.opts.spec = spec;
+      this.specSeq = ++specStamp;
       this.fn = null;
     }
   }

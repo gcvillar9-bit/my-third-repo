@@ -9,6 +9,9 @@ uniform sampler2D uEarthSpec;
 uniform sampler2D uEarthWaves;
 uniform float uEarthCityLuminance; // cd/m2 of a white night-map texel
 uniform float uEarthTime;          // s
+uniform sampler2D uEarthHd;        // HD imagery block near the camera (hd-imagery.ts), sRGB
+uniform vec4 uEarthHdRect;         // its equirect uv rect: u0, v0, du, dv
+uniform float uEarthHdMix;         // 0 off .. 1 on
 
 // Water normal in body axes: two scrolling layers of the tileable wave map on the band-3 (10 m)
 // detail domain, triplanar on the body-fixed ellipsoid normal. Tiles of 32 and 64 band units divide the
@@ -57,6 +60,15 @@ vec3 shadeSurface(SurfaceInput s) {
     day = earthEquirect(uEarthDay, uv).rgb;
     night = earthEquirect(uEarthNight, uv).rgb;
     ocean = earthEquirect(uEarthSpec, uv).r;
+  }
+  // HD imagery near the ground, feathered at the block's edges (gradients outside the branch).
+  vec2 hu = vec2(fract(uv.x - uEarthHdRect.x), uv.y - uEarthHdRect.y) / uEarthHdRect.zw;
+  vec2 hdx = dFdx(hu);
+  vec2 hdy = dFdy(hu);
+  if (uEarthHdMix > 0.0 && hu.x > 0.0 && hu.x < 1.0 && hu.y > 0.0 && hu.y < 1.0) {
+    vec2 he = min(hu, 1.0 - hu);
+    float hw = uEarthHdMix * smoothstep(0.0, 0.08, min(he.x, he.y));
+    day = mix(day, textureGrad(uEarthHd, hu, hdx, hdy).rgb, hw);
   }
 #ifdef EARTH_PALEO
   earthPaleoSurface(s, day, night, ocean);

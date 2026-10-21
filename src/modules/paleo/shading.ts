@@ -19,6 +19,7 @@ import {
   NoColorSpace,
   RGBAFormat,
   RGFormat,
+  RedFormat,
   RepeatWrapping,
   SRGBColorSpace,
   UnsignedByteType,
@@ -35,8 +36,10 @@ import type {
 } from '../../core/contracts';
 import { yearsBeforePresent } from '../../core/geotime';
 import type { PaleoBakeApi, PaleoBakeRequest } from './bake.worker';
+import { iceAgeOverlay, shelfSampler } from './biome';
 import {
   QUATERNARY_START_YEARS,
+  SYNTHETIC_FROM_YEARS,
   bracketAges,
   gmstAt,
   regimeAt,
@@ -51,8 +54,55 @@ export const PALEO_PRIORITY = 20;
 export const INDEX_PATH = 'data/paleo/index.json';
 export const BAKE_W = 1024;
 export const BAKE_H = 512;
+/** Zonal cloud map (R8); 0.35 deg texels resolve the finest noise octave (about 1.4 deg). */
+export const CLOUDS_W = 1024;
+export const CLOUDS_H = 512;
 /** Blend weights between two maps are baked in these steps. */
 const BLEND_STEPS = 16;
+
+/** Climate map size (0.5 degree cells). */
+export const CLIMATE_W = 720;
+export const CLIMATE_H = 360;
+/** Global cooling at the Last Glacial Maximum, C, scaled with the sea-level drop (Tierney et al. 2020: about 6 C). */
+const LGM_COOLING_C = 6;
+const LGM_SEA_DROP_M = 121;
+
+/**
+ * Surface climate at a date for life at ground level: RGBA8 rows from the south (biome.ts climateMap: R
+ * surface kind, G temperature + 60 C, B moisture * 255, A elevation / 40 m + 128). In the ice ages it is
+ * today's map with exposed shelves as SURFACE.shelf and the drawn ice sheets as land ice (biome.ts
+ * iceAgeOverlay); before 2.6 Ma it follows the PALEOMAP maps (paleo-coordinates) like the synthetic surface.
+ */
+export interface ClimateMap {
+  key: string;
+  ageMa: number;
+  /** True while the surface shows today's continents (younger than 2.6 Ma). */
+  modern: boolean;
+  width: number;
+  height: number;
+  data: Uint8Array;
+  /**
+   * True where paleo-surface.glsl draws today's sea as bared seabed at this map's sea-level drop (its
+   * half-point: 0.5 m <= today's depth < drop, depth read bilinearly like the shader at geocentric
+   * latDeg/lonDeg, as its uv). Set only on modern maps with a drop once the quaternary data has loaded.
+   * It has no water mask, so on today's land within a texel of a shallow sea (where the shader, masked
+   * by today's water, keeps the land) it is true too. Four array reads, no allocation: cheap enough per
+   * plant cell.
+   */
+  shelfAt?: (latDeg: number, lonDeg: number) => boolean;
+}
+
+let activeController: PaleoController | null = null;
+
+/** @internal Set by the module's init. */
+export function setActiveController(c: PaleoController | null): void {
+  activeController = c;
+}
+
+/** The climate map for `jd` (cached per era), or null without the paleo data. */
+export function paleoClimate(jd: number): Promise<ClimateMap | null> {
+  return activeController ? activeController.climate(jd) : Promise.resolve(null);
+}
 
 /** A 1 x 1 placeholder so samplers are always bound. */
 function placeholder(rgba: number[]): DataTexture {
@@ -95,14 +145,26 @@ export class PaleoController {
   private budget: BudgetEntry[] = [];
   private wanted: { key: string; req: PaleoBakeRequest } | null = null;
   private bakedKey = '';
+  private clouds: Promise<void> | null = null;
+  private climateCache = new Map<string, Promise<ClimateMap | null>>();
+  private cloudTexture: DataTexture | null = null;
   private baking = false;
   private failed = false;
 
-  /** `cloudZonal` is the earth module's shared uEarthCloudZonal uniform (cloud shell and shading). */
+  private cloudZonal: IUniform | undefined;
+  private cloudMap: IUniform | undefined;
+
+  /**
+   * `earth` holds the earth module's uniforms shared by its shading and cloud shell: uEarthCloudZonal (the
+   * fade to zonal clouds) and uEarthCloudZonalMap (filled before the first bake).
+   */
   constructor(
     private ctx: Ctx,
-    private cloudZonal: IUniform | undefined,
-  ) {}
+    earth: Record<string, IUniform> = {},
+  ) {
+    this.cloudZonal = earth.uEarthCloudZonal;
+    this.cloudMap = earth.uEarthCloudZonalMap;
+  }
 
   /** Look for the instant (JD TT); called every frame by the wrapper. */
   update(jd: number): void {
@@ -235,6 +297,7 @@ export class PaleoController {
     const job = this.wanted!;
     this.baking = true;
     const done = this.ensureWorker()
+      .then(() => this.ensureClouds())
       .then(() => this.worker!.call('bake', job.req))
       .then((rgba) => {
         this.upload(rgba);
@@ -246,6 +309,102 @@ export class PaleoController {
         if (!this.failed && this.wanted && this.wanted.key !== this.bakedKey) this.bake();
       });
     this.ctx.assets.track(done, 'paleo bake');
+  }
+
+  /** See paleoClimate. */
+  async climate(jd: number): Promise<ClimateMap | null> {
+    const bp = yearsBeforePresent(jd);
+    if (this.failed) return null;
+    if (!this.index) {
+      this.loadIndex();
+      await this.indexLoad;
+      if (!this.index) return null;
+    }
+    const ix = this.index;
+    const ageMa = Math.max(0, bp / 1e6);
+    const modern = bp < SYNTHETIC_FROM_YEARS;
+    const r = regimeAt(ix, bp);
+    let a = 0;
+    let b = 0;
+    let w = 0;
+    let gmstC = gmstAt(ix, 0);
+    let seaDrop = 0;
+    if (modern) {
+      seaDrop = r.seaDropM * r.quaternary;
+      gmstC -= (LGM_COOLING_C * Math.min(seaDrop, 130)) / LGM_SEA_DROP_M;
+    } else {
+      const br = bracketAges(ix.dem.ages, ageMa);
+      w = Math.round(br.w * BLEND_STEPS) / BLEND_STEPS;
+      a = br.a;
+      b = br.b;
+      gmstC = gmstAt(ix, br.a + (br.b - br.a) * w);
+    }
+    // Sea level in 5 m steps: shelves appear and ice sheets grow with it.
+    const drop5 = Math.round(seaDrop / 5) * 5;
+    gmstC = Math.round(gmstC * 2) / 2;
+    const key = JSON.stringify({ a, b, w, gmstC, drop5, modern });
+    let p = this.climateCache.get(key);
+    if (!p) {
+      p = this.computeClimate(key, ageMa, modern, { a, b, w, gmstC }, drop5).catch((e) => {
+        console.warn('[paleo] climate map failed', e);
+        return null;
+      });
+      this.climateCache.set(key, p);
+      while (this.climateCache.size > 4) this.climateCache.delete(this.climateCache.keys().next().value!);
+    }
+    return p;
+  }
+
+  private async computeClimate(
+    key: string,
+    ageMa: number,
+    modern: boolean,
+    req: { a: number; b: number; w: number; gmstC: number },
+    seaDrop: number,
+  ): Promise<ClimateMap> {
+    await this.ensureWorker();
+    if (seaDrop > 0) this.loadIceAges();
+    const data = await this.worker!.call('climate', {
+      ...req,
+      observed: modern,
+      width: CLIMATE_W,
+      height: CLIMATE_H,
+    });
+    const map: ClimateMap = { key, ageMa, modern, width: CLIMATE_W, height: CLIMATE_H, data };
+    if (seaDrop > 0) {
+      await this.quatLoad;
+      const t = this.uniforms.uPaleoQuat.value as DataTexture;
+      const q = t.image.data as Uint8Array | undefined;
+      if (q && t.image.width > 1) {
+        const quat = { data: q, width: t.image.width, height: t.image.height };
+        iceAgeOverlay(data, CLIMATE_W, CLIMATE_H, quat, seaDrop);
+        if (modern) map.shelfAt = shelfSampler(quat, seaDrop);
+      }
+    }
+    return map;
+  }
+
+  private ensureClouds(): Promise<void> {
+    if (!this.clouds) {
+      this.clouds = this.cloudMap
+        ? this.worker!.call('clouds', CLOUDS_W, CLOUDS_H).then((r8) => {
+            const t = new DataTexture(r8, CLOUDS_W, CLOUDS_H, RedFormat, UnsignedByteType);
+            t.colorSpace = NoColorSpace;
+            t.minFilter = LinearMipmapLinearFilter;
+            t.magFilter = LinearFilter;
+            t.generateMipmaps = true;
+            t.wrapS = RepeatWrapping;
+            t.wrapT = ClampToEdgeWrapping;
+            t.needsUpdate = true;
+            this.cloudTexture = t;
+            this.cloudMap!.value = t;
+            this.budget.push(
+              this.ctx.budget.alloc(PALEO_MODULE_ID, 'zonal clouds', (CLOUDS_W * CLOUDS_H * 4) / 3),
+            );
+          })
+        : Promise.resolve();
+    }
+    return this.clouds;
   }
 
   private upload(rgba: Uint8Array): void {
@@ -275,6 +434,7 @@ export class PaleoController {
   dispose(): void {
     this.worker?.terminate();
     this.surface?.dispose();
+    this.cloudTexture?.dispose();
     (this.uniforms.uPaleoQuat.value as Texture).dispose();
     for (const b of this.budget) b.free();
   }

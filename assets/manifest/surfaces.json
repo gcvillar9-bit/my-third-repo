@@ -36,6 +36,12 @@
       "outputs": ["data/surfaces/earth_ocean_2k.png"],
       "sha256": "3a8132db56aac4e64e7fcbf2928ee970c075ac6a96b38798d0bb8be82836a4d3",
       "bytes": 430200
+    },
+    {
+      "id": "aws_terrain_tiles",
+      "license": "reference",
+      "attribution": "Terrain Tiles (Tilezen/Mapzen, AWS Open Data, Terrarium format), streamed in the browser near the ground (HD terrain). Sources: 3DEP and GMTED2010 (USGS), SRTM (NASA), ETOPO1 (NOAA), EU-DEM (produced using Copernicus data and information funded by the European Union), ArcticDEM (Polar Geospatial Center, NSF; DigitalGlobe imagery), CDEM (Natural Resources Canada, Open Government Licence - Canada), LINZ (CC BY 4.0), Geoscience Australia (CC BY 4.0), INEGI (Mexico), Environment Agency (Open Government Licence); see github.com/tilezen/joerd/blob/master/docs/attribution.md",
+      "outputs": []
     }
   ]
 }

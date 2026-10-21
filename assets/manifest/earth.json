@@ -1,0 +1,11 @@
+{
+  "module": "earth",
+  "assets": [
+    {
+      "id": "nasa_gibs_blue_marble_ng",
+      "license": "public-domain",
+      "attribution": "NASA Earth Observatory Blue Marble Next Generation (Stöckli, Vermote, Saleous, Simmon & Herring 2005), served by NASA GIBS (gibs.earthdata.nasa.gov); streamed in the browser near the ground (HD imagery)",
+      "outputs": []
+    }
+  ]
+}

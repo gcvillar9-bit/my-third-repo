@@ -2,6 +2,8 @@
  * Height module 'surface' (HeightModule, loaded by the terrain workers and the main thread through
  * import.meta.glob). Fetches the body's 16-bit height raster (and Earth's ocean mask) with
  * ctx.fetchBinary, decodes them with fast-png and composes the layers of SurfaceHeightParams.
+ * Decoded rasters are kept per path, so each new HD Earth block (a new spec with the same base
+ * rasters) decodes only its Terrarium tiles, not the 16 MB of 2k PNGs again.
  */
 import type { HeightFunction, HeightModule, HeightWorkerContext } from '../../../core/contracts';
 import { createSurfaceHeight, type SurfaceHeightParams } from '../heightfield';
@@ -9,6 +11,21 @@ import { rasterFromPng } from '../png';
 import type { Raster } from '../raster';
 import { decodeTerrarium } from '../terrarium';
 import { decode } from 'fast-png';
+
+/** Decoded base rasters by path and scale (shared, read-only); a failed load is dropped so it can retry. */
+const rasters = new Map<string, Promise<Raster>>();
+
+function loadRaster(ctx: HeightWorkerContext, path: string, offset: number, step: number): Promise<Raster> {
+  const key = `${path}|${offset}|${step}`;
+  let r = rasters.get(key);
+  if (!r) {
+    const loading = ctx.fetchBinary(path).then((b) => rasterFromPng(b, offset, step));
+    loading.catch(() => rasters.get(key) === loading && rasters.delete(key));
+    rasters.set(key, loading);
+    r = loading;
+  }
+  return r;
+}
 
 /** Fetches and decodes one Terrarium tile (blob: URLs prepared by the main thread); null on failure. */
 async function loadTerrarium(url: string | null): Promise<Float32Array | null> {
@@ -31,11 +48,9 @@ export async function create(params: unknown, ctx: HeightWorkerContext): Promise
     seed: (p.seed ^ mix) | 0,
     craters: p.craters && { ...p.craters, seed: (p.craters.seed ^ mix) | 0 },
   };
-  const load = (path: string, offset: number, step: number): Promise<Raster> =>
-    ctx.fetchBinary(path).then((b) => rasterFromPng(b, offset, step));
   const [height, ocean, hd] = await Promise.all([
-    p.raster ? load(p.raster.path, p.raster.offsetM, p.raster.stepM) : undefined,
-    p.ocean ? load(p.ocean.path, 0, 1 / 255) : undefined,
+    p.raster ? loadRaster(ctx, p.raster.path, p.raster.offsetM, p.raster.stepM) : undefined,
+    p.ocean ? loadRaster(ctx, p.ocean.path, 0, 1 / 255) : undefined,
     p.hd ? Promise.all(p.hd.urls.map(loadTerrarium)) : undefined,
   ]);
   return createSurfaceHeight(seeded, { height, ocean, hd });

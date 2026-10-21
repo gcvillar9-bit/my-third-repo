@@ -11,6 +11,7 @@ import { createCloudShell } from './clouds';
 import { createEarthShading, createEarthUniforms } from './shading';
 import { EARTH_MODULE_ID, EarthTextures } from './textures';
 import { createWaterNormalTexture } from './waves';
+import { HdImagery, createHdUniforms } from './hd-imagery';
 
 /** Fixed instant of the night-lights view (Europe around 01:00 local time). */
 export const NIGHT_JD = parseInstant('2026-01-01T00:00:00Z')!;
@@ -18,6 +19,7 @@ export const NIGHT_JD = parseInstant('2026-01-01T00:00:00Z')!;
 export const SUNRISE_FROM_JD = parseInstant('2026-03-20T00:00:00Z')!;
 
 let release: (() => void) | null = null;
+let hd: HdImagery | null = null;
 
 const earth: UniverseModule = {
   id: EARTH_MODULE_ID,
@@ -30,7 +32,30 @@ const earth: UniverseModule = {
     const atmosphere = atmosphereShadingUniforms('earth');
     requestAtmosphereLuts('earth');
     const waves = createWaterNormalTexture();
-    ctx.registry.setSurfaceShading(createEarthShading({ body, textures, shared, atmosphere, waves }));
+    // HD imagery near the ground: on from low quality up; in test mode only with ?hdimagery=1.
+    const flag = ctx.env.params.get('hdimagery');
+    const hdUniforms = createHdUniforms();
+    hd = new HdImagery(
+      {
+        assets: ctx.assets,
+        budget: ctx.budget,
+        enabled: (view) => (ctx.env.test ? flag === '1' : flag !== '0' && view.quality !== 'potato'),
+        onUnavailable: () =>
+          ctx.ui.toast('HD Earth imagery unavailable; showing the base map', { kind: 'warn' }),
+      },
+      hdUniforms,
+    );
+    const hdLayer = hd;
+    ctx.registry.setSurfaceShading(
+      createEarthShading({
+        body,
+        textures,
+        shared,
+        atmosphere,
+        waves,
+        hd: { uniforms: hdUniforms, update: (view, frame) => hdLayer.update(view, frame) },
+      }),
+    );
     ctx.registry.addRenderable(
       createCloudShell({
         body,
@@ -48,6 +73,8 @@ const earth: UniverseModule = {
     release = () => {
       textures.dispose();
       waves.dispose();
+      hd?.dispose();
+      hd = null;
     };
   },
   dispose() {

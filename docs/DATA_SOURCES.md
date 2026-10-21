@@ -69,6 +69,28 @@ All three downloads are sha256-pinned in `assets/manifest/nebulae.json` and proc
 The Batchelor et al. (2019) ice-margin shapefiles (OSF 7jen3) state no licence, so they are not redistributed;
 the LGM outlines are hand-entered instead. Deep-time hosts: zenodo.org, www.ngdc.noaa.gov, www.ncei.noaa.gov.
 
+## Life at ground level (life)
+
+| Source                                                                                                   | Licence                    | Used for                                                     |
+| -------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------ |
+| The Paleobiology Database (paleobiodb.org) occurrence API v1.2, PALEOMAP paleo-coordinates, October 2026 | CC BY 4.0                  | `data/life/occurrences.json` (species ranges by fossil find) |
+| Hand-entered ranges of hominins, humans, apes and living animals (`src/modules/life/species.json`)       | Cited facts (row `source`) | Ranges with time windows                                     |
+| Plants by era and biome (`src/modules/life/flora.json`)                                                  | Cited facts (row `source`) | Plant mixes and densities                                    |
+
+Creature and plant models are procedural (this repository); no third-party models are used. The PBDB API answer
+is not byte-stable (it embeds its timing), so the derived snapshot is committed and `tools/build-life.mjs`
+caches the raw responses (host: paleobiodb.org).
+
+## Cities and HD Earth (cities, earth)
+
+| Source                                                                                                                                        | Licence                                    | Used for                                            |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------- |
+| Historical city table, hand-entered (`src/modules/cities/history.json`: Chandler 1987, Modelski 2003, Morris 2010, Bairoch 1988, UN WUP 2018) | Cited facts (row `source`)                 | `data/cities/cities.json`, labels, towns            |
+| Natural Earth populated places 1:10m v5.1.2                                                                                                   | Public domain                              | Today's cities not in the table (from 1950)         |
+| Monuments (`src/modules/cities/monuments.json`)                                                                                               | Cited facts (row `source`)                 | Pyramids, ziggurats, temples, cathedrals and towers |
+| NASA GIBS Blue Marble Next Generation, EPSG:4326 500m tiles (fetched in the browser at runtime)                                               | NASA imagery, no restrictions; credit NASA | HD imagery near the ground                          |
+| AWS Terrarium elevation tiles (fetched in the browser at runtime, Mapzen/Tilezen sources)                                                     | Per source (credited in the app)           | HD terrain near the ground                          |
+
 ## Licence notes
 
 - App code is MIT. Data keeps its upstream licence. CC BY-SA-derived binaries (`stars.bin`, `names.json`) stay

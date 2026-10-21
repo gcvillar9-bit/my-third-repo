@@ -107,6 +107,7 @@ export function occluded(p: Vec3d, occluders: readonly Occluder[], selfId: strin
     const t = o.c.x * ux + o.c.y * uy + o.c.z * uz;
     if (t <= 0) continue;
     const c2 = o.c.x * o.c.x + o.c.y * o.c.y + o.c.z * o.c.z;
+    if (c2 <= o.r * o.r) continue; // the camera is inside (below the ground's bounding sphere)
     const d2 = c2 - t * t;
     if (d2 >= o.r * o.r) continue;
     const tHit = t - Math.sqrt(o.r * o.r - d2);
@@ -185,7 +186,8 @@ export class LabelOverlay {
       const d = Math.hypot(rel.x, rel.y, rel.z);
       const pr = Math.atan2(b.radius, d) / pxAngle;
       if (pr > 1 && b.kind !== 'galaxy' && b.kind !== 'blackhole')
-        occluders.push({ id: b.id, c: vec3(rel.x, rel.y, rel.z), r: b.radius });
+        // The polar radius: ground-level labels on an oblate body sit inside its equatorial sphere.
+        occluders.push({ id: b.id, c: vec3(rel.x, rel.y, rel.z), r: b.radius * (1 - (b.oblateness ?? 0)) });
       const emph = b.id === target || b.id === selection;
       if (pr > 0.4 * cssH && !emph) continue;
       if (!ALWAYS.has(b.kind) && !emph && d > 3000 * b.radius) continue;

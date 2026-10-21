@@ -253,42 +253,80 @@ export interface BakeInput {
   height: number;
 }
 
+/** Climate of one cell (land or sea), shared by the bake and the climate map so they agree. */
+interface Cell {
+  land: boolean;
+  elev: number;
+  /** Temperature at the surface (land: at altitude, with noise), C. */
+  tC: number;
+  /** Sea-level temperature, C (sea ice). */
+  t0: number;
+  /** Moisture 0..1 (land). */
+  m: number;
+  /** Large-scale noise -1..1 (tint). */
+  n: number;
+}
+
+type CellInput = Pick<BakeInput, 'a' | 'b' | 'w' | 'gmstC' | 'moistureWeights'> & {
+  /** Observed moisture (modern_moisture.png, 1 + 254 m per land cell, 0 unused) used where set. */
+  observed?: Uint8Array;
+};
+
+function cellSampler(inp: CellInput) {
+  const { a, b, w, gmstC } = inp;
+  const blend = (fa: Float32Array, fb: Float32Array, lat: number, lon: number) =>
+    w <= 0 ? sampleField(fa, lat, lon) : sampleField(fa, lat, lon) * (1 - w) + sampleField(fb, lat, lon) * w;
+  const sampler = (lat: number, lon: number, px: number, py: number, pz: number): Cell => {
+    const elev = blend(a.elev, b.elev, lat, lon);
+    // Coast: blended signed distance plus a noise warp of about a third of a cell.
+    const coast = blend(a.coastKm, b.coastKm, lat, lon) + 45 * sphereNoise(px, py, pz, 24, 3);
+    const n = sphereNoise(px, py, pz, 9, 3);
+    const t0 = temperatureC(lat, 0, gmstC);
+    if (coast <= 0) return { land: false, elev, tC: t0, t0, m: 1, n };
+    const tC = temperatureC(lat, elev, gmstC) + 1.5 * n;
+    let m: number;
+    const ok =
+      inp.observed?.[
+        Math.min(DEM_H - 1, Math.max(0, Math.floor(90 - lat))) * DEM_W +
+          Math.min(DEM_W - 1, Math.floor(lon + 180))
+      ];
+    if (ok) m = (ok - 1) / 254;
+    else {
+      const sea: Maritime = {
+        coastKm: coast,
+        seaWestKm: blend(a.seaWestKm, b.seaWestKm, lat, lon),
+        seaEastKm: blend(a.seaEastKm, b.seaEastKm, lat, lon),
+        barrierWestM: blend(a.barrierWestM, b.barrierWestM, lat, lon),
+        barrierEastM: blend(a.barrierEastM, b.barrierEastM, lat, lon),
+      };
+      m = moisture(inp.moistureWeights, lat, sea, tC) + 0.05 * n;
+    }
+    return { land: true, elev, tC, t0, m, n };
+  };
+  return { sampler, blend };
+}
+
 /**
  * Bakes the synthetic surface into RGBA8, rows from the south (v = 0) to match Earth's equirect uv:
  * rgb = sRGB albedo, a = 255 open water (glint, level sea) else 0.
  */
 export function bakeSurface(inp: BakeInput, out = new Uint8Array(inp.width * inp.height * 4)): Uint8Array {
-  const { a, b, w, gmstC, veg, palette: p, width, height } = inp;
+  const { a, b, veg, palette: p, width, height } = inp;
   const DEG = Math.PI / 180;
   const cellDeg = 360 / DEM_W;
-  const blend = (fa: Float32Array, fb: Float32Array, lat: number, lon: number) =>
-    w <= 0 ? sampleField(fa, lat, lon) : sampleField(fa, lat, lon) * (1 - w) + sampleField(fb, lat, lon) * w;
+  const { sampler, blend } = cellSampler(inp);
   for (let y = 0; y < height; y++) {
     const lat = -90 + ((y + 0.5) * 180) / height;
     const cl = Math.cos(lat * DEG);
     const sl = Math.sin(lat * DEG);
     for (let x = 0; x < width; x++) {
       const lon = -180 + ((x + 0.5) * 360) / width;
-      const px = cl * Math.cos(lon * DEG);
-      const py = cl * Math.sin(lon * DEG);
-      const pz = sl;
-      const elev = blend(a.elev, b.elev, lat, lon);
-      // Coast: blended signed distance plus a noise warp of about a third of a cell.
-      const coast = blend(a.coastKm, b.coastKm, lat, lon) + 45 * sphereNoise(px, py, pz, 24, 3);
-      const n = sphereNoise(px, py, pz, 9, 3);
-      const t0 = temperatureC(lat, 0, gmstC);
+      const cell = sampler(lat, lon, cl * Math.cos(lon * DEG), cl * Math.sin(lon * DEG), sl);
+      const { elev, n } = cell;
       let c: Rgb;
       let water = 0;
-      if (coast > 0) {
-        const tC = temperatureC(lat, elev, gmstC) + 1.5 * n;
-        const sea: Maritime = {
-          coastKm: coast,
-          seaWestKm: blend(a.seaWestKm, b.seaWestKm, lat, lon),
-          seaEastKm: blend(a.seaEastKm, b.seaEastKm, lat, lon),
-          barrierWestM: blend(a.barrierWestM, b.barrierWestM, lat, lon),
-          barrierEastM: blend(a.barrierEastM, b.barrierEastM, lat, lon),
-        };
-        c = landColour(p, tC, moisture(inp.moistureWeights, lat, sea, tC) + 0.05 * n, elev, veg);
+      if (cell.land) {
+        c = landColour(p, cell.tC, cell.m, elev, veg);
         // Hillshade from the elevation gradient, light from the north-west.
         const step = cellDeg * 0.5;
         const dzE = (blend(a.elev, b.elev, lat, lon + step / Math.max(0.2, cl)) - elev) / (step * 111);
@@ -300,7 +338,7 @@ export function bakeSurface(inp: BakeInput, out = new Uint8Array(inp.width * inp
       } else {
         const depth = Math.min(elev, -1);
         c = mix(p['deep-ocean'], p.shelf, smooth(-2500, -120, depth));
-        const ice = smooth(-6, -10, t0);
+        const ice = smooth(-6, -10, cell.t0);
         c = mix(c, p['sea-ice'] ?? p.ice, ice);
         water = 1 - ice;
       }
@@ -312,6 +350,144 @@ export function bakeSurface(inp: BakeInput, out = new Uint8Array(inp.width * inp
     }
   }
   return out;
+}
+
+/**
+ * Surface kinds of the climate map (byte 0). `shelf` is sea floor bared by the ice-age sea level
+ * (iceAgeOverlay): land for every purpose, kept apart because today's terrain has no bathymetry and
+ * cannot tell it from the sea.
+ */
+export const SURFACE = { sea: 0, land: 1, landIce: 2, seaIce: 3, shelf: 4 } as const;
+
+/**
+ * Climate map for life at ground level, RGBA8 rows from the south like the bake: R = SURFACE kind,
+ * G = temperature + 60 C, B = moisture * 255, A = elevation / 40 m + 128 (clamped). Land ice where the
+ * landColour ice blend passes one half (about -10.5 C).
+ */
+export function climateMap(inp: CellInput & { width: number; height: number }): Uint8Array {
+  const { width, height } = inp;
+  const out = new Uint8Array(width * height * 4);
+  const DEG = Math.PI / 180;
+  const { sampler } = cellSampler(inp);
+  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  for (let y = 0; y < height; y++) {
+    const lat = -90 + ((y + 0.5) * 180) / height;
+    const cl = Math.cos(lat * DEG);
+    const sl = Math.sin(lat * DEG);
+    for (let x = 0; x < width; x++) {
+      const lon = -180 + ((x + 0.5) * 360) / width;
+      const c = sampler(lat, lon, cl * Math.cos(lon * DEG), cl * Math.sin(lon * DEG), sl);
+      const k = (y * width + x) * 4;
+      out[k] = c.land
+        ? c.tC < -10.5
+          ? SURFACE.landIce
+          : SURFACE.land
+        : c.t0 < -8
+          ? SURFACE.seaIce
+          : SURFACE.sea;
+      out[k + 1] = clamp(c.tC + 60);
+      out[k + 2] = clamp(c.m * 255);
+      out[k + 3] = clamp(c.elev / 40 + 128);
+    }
+  }
+  return out;
+}
+
+/**
+ * Sea-level drop past an ice threshold at which paleo-surface.glsl draws the sheet half iced: its blend is
+ * smoothstep(G, G + 8 m, drop).
+ */
+export const ICE_HALF_M = 4;
+
+/**
+ * Ice ages over today's climate map (in place), matching paleo-surface.glsl at its half-points. `quat` is
+ * quaternary.png as RG8 rows from the south: R seabed depth today (m, 0 land), G the sea-level drop (m)
+ * that grows the ice sheet there (0 or 255 never). Sea and sea-ice cells whose seabed is shallower than
+ * `seaDropM` become SURFACE.shelf (the shader exposes half at depth = drop); cells whose threshold the
+ * drop passes by ICE_HALF_M become SURFACE.landIce. A shelf takes the temperature and moisture of the
+ * nearest land (the sea's own values would make every bared seabed rainforest).
+ */
+export function iceAgeOverlay(
+  data: Uint8Array,
+  width: number,
+  height: number,
+  quat: { data: Uint8Array; width: number; height: number },
+  seaDropM: number,
+): void {
+  const { data: q, width: qw, height: qh } = quat;
+  // Shelf cells still holding the sea's climate.
+  const open = new Uint8Array(width * height);
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const i = y * width + x;
+      const k = i * 4;
+      const s = (Math.floor(((y + 0.5) / height) * qh) * qw + Math.floor(((x + 0.5) / width) * qw)) * 2;
+      const depth = q[s];
+      const ice = q[s + 1];
+      if ((data[k] === SURFACE.sea || data[k] === SURFACE.seaIce) && depth > 0 && depth < seaDropM) {
+        data[k] = SURFACE.shelf;
+        open[i] = 1;
+      }
+      if (ice > 0 && ice < 255 && ice + ICE_HALF_M <= seaDropM) {
+        data[k] = SURFACE.landIce;
+        open[i] = 0;
+      }
+    }
+  // Breadth-first from the coast: each shelf cell copies the cell it was reached from (columns wrap).
+  const queue: number[] = [];
+  const step = (i: number, visit: (j: number) => void) => {
+    const x = i % width;
+    visit(i - x + ((x + 1) % width));
+    visit(i - x + ((x + width - 1) % width));
+    if (i >= width) visit(i - width);
+    if (i + width < width * height) visit(i + width);
+  };
+  for (let i = 0; i < width * height; i++) {
+    const kind = data[i * 4];
+    if (open[i] || (kind !== SURFACE.land && kind !== SURFACE.landIce)) continue;
+    let coast = false;
+    step(i, (j) => (coast ||= open[j] === 1));
+    if (coast) queue.push(i);
+  }
+  for (let h = 0; h < queue.length; h++) {
+    const i = queue[h];
+    step(i, (j) => {
+      if (!open[j]) return;
+      open[j] = 0;
+      data[j * 4 + 1] = data[i * 4 + 1];
+      data[j * 4 + 2] = data[i * 4 + 2];
+      queue.push(j);
+    });
+  }
+}
+
+/**
+ * The shader's bared-seabed test per point (paleo-surface.glsl earthPaleoIceAge) at a sea-level drop:
+ * quaternary.png R (`quat` as in iceAgeOverlay) read bilinearly like the GPU's linear filter (texel
+ * centres, longitude wraps, latitude clamps) at the point's geocentric uv, exposed at the shader's
+ * half-point: 0.5 m <= depth < drop (today's land has depth 0). Four reads, no allocation per call.
+ */
+export function shelfSampler(
+  quat: { data: Uint8Array; width: number; height: number },
+  seaDropM: number,
+): (latDeg: number, lonDeg: number) => boolean {
+  const { data: q, width: w, height: h } = quat;
+  return (latDeg, lonDeg) => {
+    const x = (lonDeg / 360 + 0.5) * w - 0.5;
+    const y = (latDeg / 180 + 0.5) * h - 0.5;
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const fx = x - xi;
+    const fy = y - yi;
+    const xa = ((xi % w) + w) % w;
+    const xb = xa + 1 === w ? 0 : xa + 1;
+    const ya = Math.max(0, Math.min(h - 1, yi)) * w;
+    const yb = Math.max(0, Math.min(h - 1, yi + 1)) * w;
+    const depth =
+      (q[(ya + xa) * 2] * (1 - fx) + q[(ya + xb) * 2] * fx) * (1 - fy) +
+      (q[(yb + xa) * 2] * (1 - fx) + q[(yb + xb) * 2] * fx) * fy;
+    return depth >= 0.5 && depth < seaDropM;
+  };
 }
 
 export { DEM_H, DEM_W };

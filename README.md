@@ -31,6 +31,17 @@ to the largest structures in the universe and back home. Or press `/` and type a
 - Deep-time Earth: type an age in the time bar (`21 ka`, `66 Ma`, `250 Ma`) and Earth follows: ice-age sea levels
   and ice sheets, then drifting continents, seas, deserts, forests and bare rock before land plants from the
   PALEOMAP maps (0–540 Ma, approximate). Day and night keep turning; city lights fade out before ~1880.
+- Life through time at ground level: walk (G) or fly low over Earth and the scene fills with the plants and animals
+  of the date, placed by fossil finds (Paleobiology Database) and habitat: Tyrannosaurus and Triceratops at 66 Ma,
+  Stegosaurus and sauropods at 150 Ma, Australopithecus at 3.2 Ma, Neanderthals and mammoths at 45 ka. Stylised
+  low-poly models that walk, graze and fly (bookmarks `life-*`, approximate).
+- Cities through history: from orbit the largest cities of the date are labelled with approximate populations (Uruk
+  in 3000 BC, Rome in AD 117, Tokyo today); on the ground towns appear in the style of their place and period
+  (mud-brick and ziggurats, Roman insulae, medieval houses and cathedrals, mosques, pagodas, step pyramids,
+  industrial terraces, modern towers) with real monuments and people in the streets (bookmarks `city-*`).
+- Near the ground today's Earth streams real detail: NASA Blue Marble imagery at about 490 m per pixel and AWS
+  Terrarium elevation (on from low quality up; `?hdimagery=0` and `?hdterrain=0` turn them off, and the "HD Earth
+  terrain" setting turns off the elevation).
 - A hero Earth with ocean glint, city lights, clouds and cloud shadows.
 - Gas giants with drifting cloud bands, the Great Red Spot and moon-shadow transits; Saturn's and Uranus's rings at
   true radii with backlit glow and shadows both ways.

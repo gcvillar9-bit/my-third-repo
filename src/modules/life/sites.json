@@ -1,0 +1,150 @@
+{
+  "about": "Walk-mode bookmarks of the life module. latDeg/lonDeg on the globe as drawn: PALEOMAP paleo-coordinates from 2.6 Ma (where fossils of the listed species cluster, from occurrences.json), modern coordinates below. The camera faces north at local midday; herds are placed by hand at east/north offsets (m) so the view always shows them (approximate, plausible by fossil range and habitat).",
+  "sites": [
+    {
+      "id": "life-trex-66ma",
+      "title": "Late Cretaceous, 66.5 million years ago: Tyrannosaurus, Triceratops and hadrosaurs",
+      "ageMa": 66.5,
+      "latDeg": 50.0,
+      "lonDeg": -79.5,
+      "season": "june",
+      "herds": [
+        {
+          "species": "ceratopsid",
+          "count": 4,
+          "east": 14,
+          "north": 40
+        },
+        {
+          "species": "tyrannosaurid",
+          "count": 1,
+          "east": -16,
+          "north": 30
+        },
+        {
+          "species": "hadrosaur",
+          "count": 6,
+          "east": 28,
+          "north": 72
+        }
+      ],
+      "source": "Hell Creek and Lance formations (Maastrichtian, western North America); paleo-coordinates of their T. rex finds in PBDB are about 47-60 N, 75-85 W"
+    },
+    {
+      "id": "life-jurassic-150ma",
+      "title": "Late Jurassic, 150 million years ago: Stegosaurus, sauropods and Allosaurus",
+      "ageMa": 150,
+      "latDeg": 31.5,
+      "lonDeg": -60.5,
+      "season": "june",
+      "herds": [
+        {
+          "species": "stegosaur",
+          "count": 2,
+          "east": -10,
+          "north": 30
+        },
+        {
+          "species": "diplodocid",
+          "count": 3,
+          "east": 26,
+          "north": 75
+        },
+        {
+          "species": "allosauroid",
+          "count": 1,
+          "east": -34,
+          "north": 62
+        }
+      ],
+      "source": "Morrison Formation (Kimmeridgian-Tithonian, western North America) in paleo-coordinates"
+    },
+    {
+      "id": "life-permian-252ma",
+      "title": "Late Permian, 252.5 million years ago: pareiasaurs, gorgonopsians and dicynodonts",
+      "ageMa": 252.5,
+      "latDeg": 33.0,
+      "lonDeg": 38.0,
+      "season": "june",
+      "herds": [
+        {
+          "species": "pareiasaur",
+          "count": 4,
+          "east": 6,
+          "north": 18
+        },
+        {
+          "species": "gorgonopsid",
+          "count": 1,
+          "east": -9,
+          "north": 14
+        },
+        {
+          "species": "dicynodont",
+          "count": 6,
+          "east": 14,
+          "north": 28
+        }
+      ],
+      "source": "Late Permian of European Russia (Sokolki: Scutosaurus, Inostrancevia, dicynodonts) in paleo-coordinates"
+    },
+    {
+      "id": "life-lucy-3ma",
+      "title": "3.2 million years ago at Hadar, Ethiopia: Australopithecus ('Lucy') among elephants and giraffes",
+      "ageMa": 3.2,
+      "latDeg": 11.1,
+      "lonDeg": 40.6,
+      "season": "december",
+      "herds": [
+        {
+          "species": "australopithecus",
+          "count": 6,
+          "east": 2,
+          "north": 14
+        },
+        {
+          "species": "elephant",
+          "count": 4,
+          "east": 30,
+          "north": 85
+        },
+        {
+          "species": "giraffe",
+          "count": 3,
+          "east": -30,
+          "north": 60
+        }
+      ],
+      "source": "Hadar Formation (A.L. 288-1 'Lucy', 3.18 Ma; Johanson et al. 1978); Africa has moved little since"
+    },
+    {
+      "id": "life-mammoth-45ka",
+      "title": "45,000 years ago on the mammoth steppe: Neanderthals, modern humans, mammoths and horses",
+      "ageMa": 0.045,
+      "latDeg": 48.0,
+      "lonDeg": 38.0,
+      "season": "june",
+      "herds": [
+        {
+          "species": "neanderthal",
+          "count": 5,
+          "east": -4,
+          "north": 15
+        },
+        {
+          "species": "mammoth",
+          "count": 4,
+          "east": 22,
+          "north": 55
+        },
+        {
+          "species": "horse",
+          "count": 6,
+          "east": -34,
+          "north": 80
+        }
+      ],
+      "source": "Mammoth steppe of eastern Europe; Neanderthals until about 40 ka, modern humans in Europe from about 45 ka (Higham et al. 2014)"
+    }
+  ]
+}

@@ -51,13 +51,24 @@ Public API: `src/modules/surfaces/public.ts`. Depends on solar-system, atmospher
   triplanar on the five Float64-anchored detail bands, each fading in by pixel footprint; slope (`s.slope` 0.06 to
   0.25) blends regolith into rock with a per-body albedo factor (brighter fresh rock on the Moon, darker on Mars).
 
-## HD Earth terrain (`hd.ts`, off by default)
+## HD Earth terrain (`hd.ts`)
 
-- Setting `surfaces.hdEarth` (Graphics) or `?hdterrain=1`. Below 300 km the main thread fetches the 3x3 Terrarium
-  block (`z = clamp(round(log2(4e7 / (12 alt))), 5, 12)`) around the sub-camera point with an 8 s
+- Setting `surfaces.hdEarth` (Graphics, default on), off at potato quality and in test mode; `?hdterrain=1` forces
+  it on (test mode and potato included), `?hdterrain=0` turns it off. Below 300 km the main thread fetches the 3x3
+  Terrarium block (`z = clamp(round(log2(4e7 / (12 alt))), 5, 12)`) around the sub-camera point with an 8 s
   AbortController timeout, keeps the tiles as blob: URLs and registers an Earth spec at priority 6 naming them; the
   workers decode the blobs, replace the baked land relief inside the block (faded over the outer quarter tile) and
   add ridged detail below the tile pixel. If every tile fails: baked relief stays, one "HD layer unavailable" toast.
+- Each block move swaps Earth's height function (life re-seats its objects), so the block keeps some
+  hysteresis: the zoom stays until the altitude is 0.15 zoom levels (about 11 %) past a threshold
+  (`HD_ZOOM_HYSTERESIS`; 1151 m, 2302 m, ...), and at the same zoom the block stays while the camera is within
+  0.2 tile (`HD_TILE_MARGIN`) of its middle tile, so it is still at least 0.55 tile from the faded outer
+  quarter.
+- Blob URLs of a replaced or dropped block (quality to potato, setting off) are revoked 60 s later, after the
+  worker builds still fetching them.
+- Memory per block move stays flat: the 'surface' height module keeps its decoded base rasters per path (a new
+  block decodes only its 9 Terrarium tiles, not the 2k PNGs again), and the terrain height-function cache keeps
+  only the current and the loading spec per body (`terrain/height-modules.ts`).
 
 ## Bookmark and tests
 
@@ -67,16 +78,26 @@ Public API: `src/modules/surfaces/public.ts`. Depends on solar-system, atmospher
   that deck, so the cloud-free stretch of the same orogen is used.
 - Unit: FC on a synthetic sphere cap + bumps (RMS < 2 %); crater SFD slope -2 +- 0.2 and absolute density; crater
   profiles; batch independence, date-line/pole continuity and smooth neighbours; real rasters (Tycho depth, Olympus vs
-  Hellas, Himalaya high / Pacific at sea level); specs; Terrarium decode of the fixture, tile maths, HD block sampling.
+  Hellas, Himalaya high / Pacific at sea level); specs; Terrarium decode of the fixture, tile maths, HD block
+  sampling, HD block hysteresis (zoom thresholds, tile edges) and blob-URL revocation of a dropped block.
 - E2E `tests/e2e/surfaces.spec.ts` (potato): apollo11-2m (@smoke), mars-gale-sunset and earth-himalaya check a
   non-smooth skyline (RMS about a quadratic > 0.6 px), ground contrast, zero errors and budgets; HD with `route()`
   fixtures (9 tiles requested, z9 block, no errors) and with refused tiles (fallback identical to the baked view).
 
+## HD Earth terrain by default
+
+The HD layer (`hd.ts`, AWS Terrarium near the camera below 300 km) is on by default outside test mode from low
+quality up (setting `surfaces.hdEarth`, default true; `?hdterrain=0` or the setting turns it off, and switching to
+potato drops the block). Test mode keeps it off unless `?hdterrain=1`, which also overrides potato and which e2e
+routes to fixtures. This became possible with the terrain `softReset`
+(`terrain/manager.ts`): when the 3x3 block moves, the drawn tiles and the CPU height function stay while the drawn
+tiles are rebuilt for the new block and swapped in one by one, instead of all of Earth's tiles being dropped at
+once. Terrarium is reachable from the build container now and was checked live (Himalaya).
+
 ## Known gaps
 
 - FC heights lack long wavelengths (Mars dichotomy, Tharsis, lunar far-side highlands); 2k rasters are 5-20 km/px.
-- Earth: no rendered sea floor (sea at 0 m; the bathymetry proxy is only used with `ocean.floor`), coastlines are
-  blobby at 20 km, and the HD layer reloads all Earth tiles when its 3x3 block changes. Terrarium itself was not
-  reachable from the build container, so only the fixture path is tested.
+- Earth: no rendered sea floor (sea at 0 m; the bathymetry proxy is only used with `ocean.floor`) and coastlines are
+  blobby at 20 km without the HD layer.
 - Crater contributions are summed (no overprinting), and potato's 64-tile cap keeps close-up ground coarse.
 - The Ultra 8k texture streaming flag (DESIGN 4.3) is not implemented.

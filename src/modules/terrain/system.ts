@@ -95,13 +95,15 @@ export class TerrainSystem {
 
   private loadFn(mgr: TerrainManager): Promise<void> {
     const spec = mgr.spec;
+    // Always through loadHeightFunction: it records the body's current spec (evicting superseded ones).
+    const loading = loadHeightFunction(spec, this.fnCtx, mgr.owner());
     const now = peekHeightFunction(spec);
     if (now) {
       mgr.fn = now;
       return Promise.resolve();
     }
     return this.deps.assets.track(
-      loadHeightFunction(spec, this.fnCtx).then(
+      loading.then(
         (fn) => {
           if (mgr.spec === spec) mgr.fn = fn;
         },
@@ -154,7 +156,9 @@ export class TerrainSystem {
           JSON.stringify(spec.params) === JSON.stringify(m.spec.params))
       )
         continue;
-      m.reset(spec);
+      // Same height module, new parameters (HD block): swap tiles in place; else start over.
+      if (spec.workerModule === m.spec.workerModule) m.softReset(spec);
+      else m.reset(spec);
       void this.loadFn(m);
     }
   }
@@ -164,7 +168,7 @@ export class TerrainSystem {
     const local: Generator = {
       build: (req) =>
         this.deps.assets.track(
-          loadHeightFunction(req.spec, this.fnCtx).then((fn) => buildPatch(fn, req, req.key)),
+          loadHeightFunction(req.spec, this.fnCtx, req.owner).then((fn) => buildPatch(fn, req, req.key)),
         ),
     };
     const pool = this.deps.workers;
@@ -256,6 +260,16 @@ export class TerrainSystem {
         return groundNormal(m.fn, m.opts.a, m.opts.c, dir, m.levelAt(dir), out);
       },
     };
+  }
+
+  /** See terrainHeightAt (public.ts); never creates a manager. */
+  heightAt(bodyId: string, dir: Vec3d): number | null {
+    return this.managers.get(bodyId)?.heightAt(dir) ?? null;
+  }
+
+  /** See terrainHeightGeneration (public.ts). */
+  heightGeneration(bodyId: string): number {
+    return this.managers.get(bodyId)?.heightGeneration ?? 0;
   }
 
   stats(): TerrainStats {
