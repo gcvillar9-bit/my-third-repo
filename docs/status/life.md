@@ -5,8 +5,8 @@ Work: `claude/eloquent-meitner-tqq1zc` (PR gcvillar9-bit/my-third-repo#12). Docs
 ## Done
 
 - Module `src/modules/life`: plants and animals of the clock's era within 3 km of Earth's ground; procedural
-  stylised low-poly models (47 creature models for 47 species, incl. dinosaurs, Permian synapsids, Cenozoic mammals, apes, hominins;
-  18 plants from mosses to grasses) with gaits in the vertex shader; one program, one draw per model.
+  stylised low-poly models (49 creature models: 47 species, incl. dinosaurs, Permian synapsids, Cenozoic
+  mammals, apes, hominins, plus townspeople and modern people; 18 plants from mosses to grasses) with gaits in the vertex shader; one program, one draw per model.
 - Ranges from Paleobiology Database finds (CC BY 4.0, paleo-coordinates) and hand-entered regions (hominins,
   humans, apes, living animals); plants by era and biome; biomes from the paleo climate map.
 - Paleo `paleoClimate`, terrain `terrainHeightAt`, ground-level label occlusion fix (`src/ui/labels.ts`).
