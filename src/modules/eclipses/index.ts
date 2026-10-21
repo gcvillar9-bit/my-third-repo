@@ -46,6 +46,10 @@ const eclipses: UniverseModule = {
     const luxor = buildLuxorBookmark(frames, earth);
     if (luxor) registry.addBookmarks([luxor]);
 
+    // Eclipse searches need real planet positions: they only run inside the ephemeris window, and a
+    // result is only offered when its peak is inside it too (beyond it the scene shows folded time).
+    const planetsValid = (jd: number) =>
+      clock.validity(jd).find((v) => v.range.id === 'core.planets')?.inside ?? true;
     // Searches are cached per sim day (a few ms each).
     let solar: { day: number; e: SolarEclipse } | null = null;
     let lunar: { day: number; e: LunarEclipse } | null = null;
@@ -59,7 +63,10 @@ const eclipses: UniverseModule = {
       if (lunar?.day !== day) lunar = { day, e: nextLunarEclipse(clock.jd) };
       return lunar.e;
     };
+    const solarOk = () => planetsValid(clock.jd) && planetsValid(nextSolar().peakJd);
+    const lunarOk = () => planetsValid(clock.jd) && planetsValid(nextLunar().peakJd);
     const solarBookmark = (): Bookmark | string => {
+      if (!solarOk()) return 'sun';
       const e = nextSolar();
       const [lat, lon] =
         e.latDeg !== undefined && e.lonDeg !== undefined
@@ -80,6 +87,7 @@ const eclipses: UniverseModule = {
       );
     };
     const lunarBookmark = (): Bookmark | string => {
+      if (!lunarOk()) return 'moon';
       const e = nextLunar();
       const [lat, lon] = subPoint(frames, earth, 'moon', e.peakJd);
       return (
@@ -135,6 +143,12 @@ const eclipses: UniverseModule = {
     registry.addInfo({
       id: ECLIPSES_MODULE_ID,
       info(id: string): InfoCard | null {
+        if ((id === NEXT_SOLAR_ID && !solarOk()) || (id === NEXT_LUNAR_ID && !lunarOk()))
+          return {
+            title: id === NEXT_SOLAR_ID ? 'Next solar eclipse' : 'Next lunar eclipse',
+            subtitle: 'After the current sim time',
+            facts: [{ label: 'Search', value: 'only within 10,000 years of 2000', source: SOURCE }],
+          };
         if (id === NEXT_SOLAR_ID) {
           const e = nextSolar();
           const facts: InfoCard['facts'] = [

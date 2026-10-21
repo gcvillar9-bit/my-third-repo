@@ -30,8 +30,11 @@
   `camera.goto(target)` and selects the entry (a bookmark selects its `lookAt`).
 - **Info card:** first non-null InfoProvider, else a card built from the Body (radius, gravity, albedo, Teff,
   `simulated` badge). Refreshed once per second while open. "Fly there" uses the entry target.
-- **Time bar:** reverse/slower, play/pause, faster (`clock.warpStep`), rate text, UTC date (click for a
-  `datetime-local` picker), Now, validity badges from `validityBadges(clock.validity())`.
+- **Time bar:** reverse/slower, play/pause, faster (`clock.warpStep`, up to 10 Myr/s), rate text, the date
+  (`formatInstant`: UTC, `500 BC …`, or `≈ 66.0 Ma · Late Cretaceous` in deep time), Now, validity badges from
+  `validityBadges(clock.validity())`. Clicking the date opens a text field parsed by `parseUserInstant`
+  (`src/core/geotime.ts`: `66 Ma`, `21 ka`, `3 million years ago`, `500 BC`, `1066`, ISO, `now`) with `ERA_PRESETS` as
+  a `<datalist>`; picking a preset jumps at once, Enter jumps, Esc cancels, unreadable text shows a warning toast.
 - **HUD:** speed (`formatSpeed`: m/s, km/s, c, ly/s, Mpc/s), target with surface distance and light-time, a log
   scale bar 1 m to 1e27 m with landmarks (marker = target distance or nearest-surface altitude), breadcrumbs of the
   camera frame path (click a body to fly there) and the camera mode. Updated at 10 Hz (every frame in test mode).

@@ -2,6 +2,7 @@
 /** Preact components of the UI shell: palette, info card, time bar, HUD, settings, toasts. */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { QUALITY_PRESETS, type QualityPreset, type SettingDef } from '../core/contracts';
+import { ERA_PRESETS, parseUserInstant } from '../core/geotime';
 import { AUDIO_ENABLED_SETTING } from '../modules/audio/public';
 import { photo } from '../modules/photo/public';
 import { COSMIC_ZOOM_ID, tours } from '../modules/tours/public';
@@ -9,7 +10,7 @@ import type { UiController } from './controller';
 import { LOG_SCALE_TICKS, logScaleFraction } from './format';
 
 export const HELP_TEXT =
-  '/ search · drag look · WASD fly · R/F up/down · Q/E roll · wheel or [ ] speed · , . time warp · K pause (or pause the tour) · N now · I info · G go to (walk when within 10 km of the ground: WASD walk, Shift run, Space jump) · O orbit · P photo mode · H hide UI · L copy link · M mute/unmute sound · Esc exit tour/photo';
+  '/ search · drag look · WASD fly · R/F up/down · Q/E roll · wheel or [ ] speed · , . time warp · click the date to type 66 Ma, 21 ka, 500 BC or 1066 · K pause (or pause the tour) · N now · I info · G go to (walk when within 10 km of the ground: WASD walk, Shift run, Space jump) · O orbit · P photo mode · H hide UI · L copy link · M mute/unmute sound · Esc exit tour/photo';
 
 function Palette({ ui }: { ui: UiController }) {
   const [text, setText] = useState('');
@@ -121,11 +122,72 @@ function InfoCardView({ ui }: { ui: UiController }) {
   );
 }
 
+/**
+ * Typed date for the time bar: '66 Ma', '21 ka', '500 BC', '1066', an ISO date or 'now'
+ * (parseUserInstant), with the era presets as suggestions; picking a suggestion jumps at once.
+ */
+function DateInput({ ui, current, onDone }: { ui: UiController; current: string; onDone: () => void }) {
+  const [text, setText] = useState('');
+  const input = useRef<HTMLInputElement>(null);
+  const { clock } = ui.ctx;
+  useEffect(() => input.current?.focus(), []);
+  const submit = (value: string) => {
+    const v = value.trim();
+    if (!v) return onDone();
+    const jd = parseUserInstant(v, clock.jd);
+    if (jd === null) {
+      ui.toast(`Cannot read the date "${v}". Try 66 Ma, 21 ka, 500 BC, 1066 or 2026-01-01.`, 'warn');
+      return;
+    }
+    if (jd === 'now') clock.setNow();
+    else clock.setTime(jd);
+    onDone();
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Enter') submit(text);
+    else if (e.key === 'Escape') onDone();
+    else return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  return (
+    <>
+      <input
+        ref={input}
+        class="cz-date-input"
+        list="cz-era-presets"
+        aria-label="Date"
+        placeholder={current}
+        title="66 Ma, 21 ka, 500 BC, 1066, 2026-01-01 12:00 (UTC) or now; Enter to jump, Esc to cancel"
+        value={text}
+        onInput={(e) => {
+          const v = (e.target as HTMLInputElement).value;
+          setText(v);
+          // A suggestion picked from the list arrives as a replacement, not as typing.
+          if (
+            (e as InputEvent).inputType === 'insertReplacementText' &&
+            ERA_PRESETS.some((p) => p.value === v)
+          )
+            submit(v);
+        }}
+        onKeyDown={onKey}
+        onBlur={onDone}
+        spellcheck={false}
+        autocomplete="off"
+      />
+      <datalist id="cz-era-presets">
+        {ERA_PRESETS.map((p) => (
+          <option key={p.value} value={p.value} label={p.label} />
+        ))}
+      </datalist>
+    </>
+  );
+}
+
 function TimeBar({ ui }: { ui: UiController }) {
   const t = ui.time.value;
   const { clock } = ui.ctx;
-  // While editing, the picker keeps the value captured on click (the clock may be running).
-  const [editing, setEditing] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   return (
     <div class="cz-panel cz-timebar">
       <button class="cz-icon" title="Slower / reverse (,)" onClick={() => clock.warpStep(-1)}>
@@ -133,7 +195,7 @@ function TimeBar({ ui }: { ui: UiController }) {
       </button>
       <button
         class="cz-icon"
-        title="Play / pause (P)"
+        title="Play / pause (K)"
         onClick={() => (t.paused ? (clock.rate === 0 ? clock.setRate(1) : clock.resume()) : clock.pause())}
       >
         {t.paused ? '▶' : '❚❚'}
@@ -145,22 +207,12 @@ function TimeBar({ ui }: { ui: UiController }) {
         {t.rate}
       </span>
       {editing ? (
-        <input
-          class="cz-date-input"
-          type="datetime-local"
-          value={editing}
-          onChange={(e) => {
-            const v = (e.target as HTMLInputElement).value;
-            if (v) clock.setTime(new Date(`${v}:00Z`));
-            setEditing(null);
-          }}
-          onBlur={() => setEditing(null)}
-        />
+        <DateInput ui={ui} current={t.text} onDone={() => setEditing(false)} />
       ) : (
         <button
           class="cz-date"
-          title="Set date and time (UTC)"
-          onClick={() => setEditing(t.dateValue || null)}
+          title="Set the date: 66 Ma, 21 ka, 500 BC, 1066, 2026-01-01 (UTC)…"
+          onClick={() => setEditing(true)}
         >
           {t.text}
         </button>

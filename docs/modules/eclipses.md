@@ -12,7 +12,7 @@ An eclipse finder built on astronomy-engine, with "next eclipse" search entries 
   durations.
 - `localSolarEclipse(jd, lat, lon, h)` uses `SearchLocalSolarEclipse`: the local peak, the Sun's altitude and
   the totality contacts.
-- JD TT goes in and out, converted through UTC with the engine's ΔT. Unit tests cover:
+- JD TT goes in and out; `astroTimeOf` uses the core's bounded TT → UT solve (`astroTimeFromTt`). Unit tests cover:
   - 2024-04-08: greatest eclipse at 25.3°N 104.1°W, 18:17 UTC (±3 min).
   - 2027-08-02: total at Luxor with about 6 min of totality and greatest eclipse within 1.5° of the city.
   - 2025-09-07: total lunar eclipse.
@@ -26,6 +26,9 @@ An eclipse finder built on astronomy-engine, with "next eclipse" search entries 
   - **Lunar:** on the ground at the sub-lunar point at the peak, looking up at the Moon (fovY 3°).
 - Info cards for `eclipse:next-solar`, `eclipse:next-lunar` and `eclipse-2027-luxor` show the date (UTC),
   type, location, obscuration and durations, sourced to astronomy-engine.
+- Deep time: searches need real planet positions, so they run only while the sim time is inside the
+  `core.planets` window (J2000 ± 10 kyr), and a result is offered only when its peak is inside it too. Otherwise
+  the entries fly to the Sun or the Moon and the cards say the search only works within 10,000 years of 2000.
 
 ## `eclipse-2027-luxor` (`bookmarks.ts`)
 

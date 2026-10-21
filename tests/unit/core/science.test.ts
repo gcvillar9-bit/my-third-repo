@@ -107,7 +107,10 @@ describe('time', () => {
     expect(c.rate).toBe(-1);
     c.setRate(1e13);
     c.warpStep(1);
-    expect(c.rate).toBe(1e13);
+    expect(c.rate).toBe(3.15576e13);
+    c.setRate(3.15576e14);
+    c.warpStep(1);
+    expect(c.rate).toBe(3.15576e14);
     c.setTime('2026-01-01T00:00:00Z');
     expect(c.toDate()!.toISOString()).toBe('2026-01-01T00:00:00.000Z');
     c.setNow();
@@ -117,7 +120,7 @@ describe('time', () => {
     expect(inside.inside).toBe(true);
     const outside = c.validity(JD_J2000 + 20_000 * 365.25).find((s) => s.range.id === 'core.planets')!;
     expect(outside.inside).toBe(false);
-    expect(outside.range.beyond).toBe('frozen');
+    expect(outside.range.beyond).toBe('approximate');
     expect(() => c.setTime('garbage')).toThrow();
   });
 });

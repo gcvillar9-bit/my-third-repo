@@ -12,13 +12,32 @@ const DATE_LIMIT_MS = 8.64e15;
 /** Clock range: J2000 ± 1e9 Julian years (beyond that the clock pauses at the bound). */
 export const JD_LIMIT = (1e9 * JULIAN_YEAR) / DAY;
 
+/**
+ * Cap on the fixed-point passes in astroTimeFromTt. astronomy-engine's AstroTime.FromTerrestrialTime
+ * loops until |err| < 1e-12 d with no cap, which float64 cannot always reach (whole bands of deep
+ * time and a day near 3743 BCE never converge, hanging the tab). Each pass shrinks the error by
+ * dΔT/dt (below 0.2 inside the clock range), so 50 passes reach float64 resolution everywhere.
+ */
+const TT_TO_UT_PASSES = 50;
+
+/** astronomy-engine time for a TT offset from J2000 in days (bounded FromTerrestrialTime). */
+export function astroTimeFromTt(ttDays: number): AstroTime {
+  let time = new AstroTime(ttDays);
+  for (let i = 0; i < TT_TO_UT_PASSES; i++) {
+    const err = ttDays - time.tt;
+    if (Math.abs(err) < 1e-12) break;
+    time = time.AddDays(err);
+  }
+  return time;
+}
+
 /** UTC JD → TT JD. */
 export function utcToTt(jdUtc: JD): JD {
   return new AstroTime(jdUtc - JD_J2000).tt + JD_J2000;
 }
 /** TT JD → UTC JD. */
 export function ttToUtc(jdTt: JD): JD {
-  return AstroTime.FromTerrestrialTime(jdTt - JD_J2000).ut + JD_J2000;
+  return astroTimeFromTt(jdTt - JD_J2000).ut + JD_J2000;
 }
 /** ΔT = TT − UT in seconds at a UTC JD. */
 export function deltaT(jdUtc: JD): number {
@@ -27,22 +46,50 @@ export function deltaT(jdUtc: JD): number {
 export const dateToJdUtc = (d: Date): JD => d.getTime() / MS_PER_DAY + JD_UNIX_EPOCH;
 export const jdUtcToMs = (jdUtc: JD): number => (jdUtc - JD_UNIX_EPOCH) * MS_PER_DAY;
 
-/** Parses an ISO-8601 instant (UTC when no zone is given) or a bare JD (TT) number. */
+/**
+ * Parses an ISO-8601 instant (UTC when no zone is given) or a bare JD (TT) number with |JD| > 1e5
+ * (negative JDs are the deep past, as share links write them).
+ */
 export function parseInstant(t: string): JD | null {
   const s = t.trim();
-  if (/^-?\d+(\.\d+)?$/.test(s) && Number(s) > 1e5) return Number(s);
+  if (/^-?\d+(\.\d+)?$/.test(s) && Math.abs(Number(s)) > 1e5) return Number(s);
   const iso = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(s) ? `${s}Z` : s;
   const ms = Date.parse(iso);
   return Number.isFinite(ms) ? utcToTt(ms / MS_PER_DAY + JD_UNIX_EPOCH) : null;
 }
 
+/** Days from the Unix epoch a JS Date can reach, plus a margin for ΔT (about 8 yr at the limit). */
+const DATE_RANGE_TT_DAYS = DATE_LIMIT_MS / MS_PER_DAY + 10 * 366;
+/** False when a TT JD is certainly outside the JS Date range (skips the TT → UT solve there). */
+const nearDateRange = (jdTt: JD): boolean => Math.abs(jdTt - JD_UNIX_EPOCH) < DATE_RANGE_TT_DAYS;
+
 /** ISO-8601 UTC text for a TT JD (null outside the Date range). */
 export function jdToIso(jdTt: JD): string | null {
+  if (!nearDateRange(jdTt)) return null;
   const ms = jdUtcToMs(ttToUtc(jdTt));
   return Math.abs(ms) < DATE_LIMIT_MS ? new Date(ms).toISOString() : null;
 }
 
 const YEARS = (y: number) => (y * JULIAN_YEAR) / DAY;
+
+/** Planet ephemerides are used as given within J2000 ± this many days (the core.planets range). */
+export const PLANETS_WINDOW_DAYS = YEARS(1e4);
+/**
+ * Beyond the window, time folds onto J2000 ± 2 yr with this period: 4 Julian years, a whole number
+ * of days, so the time of day and the Julian day of the year carry on. The ±10 kyr seam jumps once.
+ */
+export const FOLD_PERIOD_DAYS = 1461;
+
+/** True when the planet ephemerides are used as given at `jd` (J2000 ± 10 kyr). */
+export const insidePlanetsWindow = (jd: JD): boolean => Math.abs(jd - JD_J2000) <= PLANETS_WINDOW_DAYS;
+
+/** JD the ephemerides evaluate for `jd`: itself inside the window, folded onto J2000 ± 2 yr beyond. */
+export function foldJd(jd: JD): JD {
+  if (insidePlanetsWindow(jd)) return jd;
+  const d = jd - JD_J2000;
+  const off = ((d % FOLD_PERIOD_DAYS) + FOLD_PERIOD_DAYS) % FOLD_PERIOD_DAYS;
+  return JD_J2000 + (off >= FOLD_PERIOD_DAYS / 2 ? off - FOLD_PERIOD_DAYS : off);
+}
 
 /** Model validity ranges from DESIGN 3.2 (registered by boot). */
 export const STANDARD_VALIDITY: readonly ValidityRange[] = [
@@ -50,10 +97,12 @@ export const STANDARD_VALIDITY: readonly ValidityRange[] = [
     id: 'core.planets',
     appliesTo: 'planets',
     model: 'astronomy-engine (VSOP87 / ELP)',
-    jdMin: JD_J2000 - YEARS(1e4),
-    jdMax: JD_J2000 + YEARS(1e4),
-    beyond: 'frozen',
-    source: 'astronomy-engine documented accuracy window; planets freeze beyond ±10 kyr',
+    jdMin: JD_J2000 - PLANETS_WINDOW_DAYS,
+    jdMax: JD_J2000 + PLANETS_WINDOW_DAYS,
+    beyond: 'approximate',
+    source:
+      'astronomy-engine documented accuracy window ±10 kyr; beyond it time folds onto 2000 ± 2 yr, so day, ' +
+      'night and seasons continue but planet positions, day length and the Moon are modern',
   },
   {
     id: 'core.stars.proper-motion',
@@ -92,7 +141,7 @@ export function validityBadges(statuses: readonly ValidityStatus[]): ValidityBad
   }));
 }
 
-/** Signed warp ladder: -1e13 … -1, 0, 1 … 1e13. */
+/** Signed warp ladder: -10 Myr/s … -1, 0, 1 … 10 Myr/s. */
 export const SIGNED_LADDER: readonly number[] = [
   ...WARP_LADDER.slice(1)
     .map((r) => -r)
@@ -112,6 +161,8 @@ export interface SimClockOptions {
 export class SimClockImpl implements SimClock {
   readonly warpLadder = WARP_LADDER;
   private _jd: JD;
+  /** Days lost to float64 rounding in tick, carried into the next one (deep time: 0.33 s steps at 66 Ma). */
+  private _carry = 0;
   private _rate: number;
   private _paused = false;
   private listeners = new Set<() => void>();
@@ -175,6 +226,7 @@ export class SimClockImpl implements SimClock {
     else jd = parseInstant(t);
     if (jd === null || !Number.isFinite(jd)) throw new Error(`clock: cannot parse time '${String(t)}'`);
     this._jd = Math.min(JD_J2000 + JD_LIMIT, Math.max(JD_J2000 - JD_LIMIT, jd));
+    this._carry = 0;
     this.emit();
   }
 
@@ -185,17 +237,21 @@ export class SimClockImpl implements SimClock {
   tick(dtReal: number): number {
     if (this._paused || !(dtReal > 0)) return 0;
     const dtSim = this._rate * dtReal;
-    const next = this._jd + dtSim / DAY;
+    const step = dtSim / DAY + this._carry;
+    const next = this._jd + step;
     if (Math.abs(next - JD_J2000) > JD_LIMIT) {
       this._jd = JD_J2000 + Math.sign(next - JD_J2000) * JD_LIMIT;
+      this._carry = 0;
       this.pause();
       return 0;
     }
+    this._carry = step - (next - this._jd);
     this._jd = next;
     return dtSim;
   }
 
   toDate(jd: JD = this._jd): Date | null {
+    if (!nearDateRange(jd)) return null;
     const ms = jdUtcToMs(ttToUtc(jd));
     return Math.abs(ms) < DATE_LIMIT_MS ? new Date(ms) : null;
   }

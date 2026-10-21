@@ -28,6 +28,9 @@ to the largest structures in the universe and back home. Or press `/` and type a
 - Seamless terrain from orbit to the ground on every rocky planet and moon: real Moon, Mars and Earth elevation plus
   procedural craters, dunes, ridges and calderas. Walk mode with real gravity and jumping.
 - Physically based atmospheres (Earth, Mars, Venus, Titan): blue Earth skies, blue Martian sunsets.
+- Deep-time Earth: type an age in the time bar (`21 ka`, `66 Ma`, `250 Ma`) and Earth follows: ice-age sea levels
+  and ice sheets, then drifting continents, seas, deserts, forests and bare rock before land plants from the
+  PALEOMAP maps (0–540 Ma, approximate). Day and night keep turning; city lights fade out before ~1880.
 - A hero Earth with ocean glint, city lights, clouds and cloud shadows.
 - Gas giants with drifting cloud bands, the Great Red Spot and moon-shadow transits; Saturn's and Uranus's rings at
   true radii with backlit glow and shadows both ways.
@@ -63,7 +66,8 @@ to the largest structures in the universe and back home. Or press `/` and type a
 - Guided tour _Cosmic Zoom_ (palette: "Tour: Cosmic Zoom", or the ▶ Tour button): pause, skip, Esc to leave.
 - Photo mode (`P`): hides the interface, sets the field of view (5-120°) and exposure, and saves a PNG with a
   credits line.
-- Search palette, info cards, time controls (warp, pause, any date), HUD with speed, distance and light-travel time,
+- Search palette, info cards, time controls (warp up to 10 Myr/s, pause, any date: click the date and type `66 Ma`,
+  `21 ka`, `500 BC` or `1066`, or pick an era), HUD with speed, distance and light-travel time,
   and shareable links to any view.
 
 ## Controls
@@ -77,6 +81,7 @@ to the largest structures in the universe and back home. Or press `/` and type a
 | `,` `.`           | Slower or faster time (and backwards)                                 |
 | `K`               | Pause or play time (pauses the tour while one runs)                   |
 | `N`               | Back to the present                                                   |
+| Click the date    | Type a date or an age (`66 Ma`, `21 ka`, `500 BC`, `1066`)            |
 | `G`               | Go to the selection; near a surface, walk (`Shift` run, `Space` jump) |
 | `O`               | Orbit or free camera                                                  |
 | `I`               | Info card                                                             |

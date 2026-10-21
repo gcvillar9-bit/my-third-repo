@@ -25,6 +25,10 @@ same GLSL serves the sphere provider and the P2-A terrain provider.
   `detailOrigin[3] + localPos/10`, triplanar on the body-fixed normal, faded in below ~6 m per pixel.
 - **City lights:** night map × `CITY_LUMINANCE` × `1 − smoothstep(−0.15, 0.1, μ0)` (on from a Sun elevation of
   about +6° down to −9°), dimmed 80% under clouds. Physically invisible at daylight EVs.
+- **City lights through time (`city-lights.ts`, `city-lights.json`):** `uEarthCityLuminance` is scaled each frame by
+  `cityLightFraction(year)`: 0 before the first electric street lighting (~1880), then piecewise linear on world
+  electricity generation as a proxy (1950 ≈ 4%, 1990 ≈ 52%) up to 1 at the night map's epoch (2012). Approximate (only the rendered brightness
+  uses it; no value is shown in the UI); the map's geography stays modern (historical cities are a later phase). Dinosaurs no longer see Europe lit up.
 - Aerial perspective is not applied here; the atmosphere pass adds it to every pixel.
 
 ## Cloud shell (`clouds.ts`)
@@ -67,3 +71,12 @@ above and day right brighter than night left; warm city lights over Europe; limb
 - Cloud shell: 64 segments on every preset.
 - New fixed-instant bookmark `earth-sunrise-400km` (orbital sunrise over the Atlantic from 40N 80W, 2026-03-20, Sun 7.8° above the limb, EV 11). City lights are too faint for that exposure; see `earth-night-lights`.
 - `earth-dawn-400km` is the default start (`src/app/boot.ts`); the 400 km views set `lookAt: 'earth'` so Earth is the HUD target.
+
+## Deep-time hooks (paleo)
+
+- `glsl/shading-earth.glsl` declares `earthPaleoSurface` (called after the map samples, may change day, night and
+  ocean) and `earthPaleoWater` (used by `surfaceDetailMask`) under `#ifdef EARTH_PALEO`. The paleo module's
+  priority-20 wrapper defines them and sets the define; without it the shading is unchanged.
+- `uEarthCloudZonal` (shared uniform, default 0): `earthCloudDensity` mixes today's cloud map with
+  `earthZonalClouds` (equatorial convergence, clear subtropics, storm tracks, continental-scale noise) by this weight,
+  so the cloud shell and the ground cloud shadows stay consistent in deep time. See docs/modules/paleo.md.

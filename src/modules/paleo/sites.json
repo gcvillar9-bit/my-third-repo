@@ -1,0 +1,37 @@
+{
+  "about": "Bookmark sites on the latitude/longitude grid of the maps. PaleoDEM maps are in PALEOMAP paleo-coordinates (continents where they were, e.g. North America about 30 degrees east of today at 90 Ma), so a site names a place on the old globe, not a modern place. Hand-entered after checking the maps; tests re-check them.",
+  "sites": [
+    {
+      "id": "earth-pangaea-250ma",
+      "ageMa": 250,
+      "latDeg": -22.5,
+      "lonDeg": -9.5,
+      "season": "december",
+      "source": "PaleoDEM 250 Ma: land in every direction for 3 cells (interior Pangaea, about 3450 km from the sea); open South Atlantic today"
+    },
+    {
+      "id": "earth-seaway-90ma",
+      "ageMa": 90,
+      "latDeg": 40.5,
+      "lonDeg": -63.5,
+      "season": "june",
+      "source": "PaleoDEM 90 Ma (paleo-coordinates): shallow sea in a channel about 10 cells wide with land within 6 cells to the west (Laramidia) and the east (Appalachia): the Western Interior Seaway, centred south of the mid-latitude storm-track clouds; land on the 70 Ma map"
+    },
+    {
+      "id": "earth-lgm-21ka",
+      "ageMa": 0.021,
+      "latDeg": 58,
+      "lonDeg": -88,
+      "season": "june",
+      "source": "Laurentide ice dome over Hudson Bay at the Last Glacial Maximum (hand-entered margins, src/modules/paleo/data/lgm-ice.json); global sea level about -121 m (Bintanja & van de Wal 2008)"
+    },
+    {
+      "id": "earth-dusk-66ma",
+      "ageMa": 66,
+      "latDeg": 45.5,
+      "lonDeg": -95.5,
+      "season": "march",
+      "source": "Late Cretaceous Laramidia/Appalachia region on the PaleoDEM 65-70 Ma maps; the Sun is setting, to show day and night still turn in deep time"
+    }
+  ]
+}

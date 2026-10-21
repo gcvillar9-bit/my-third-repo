@@ -66,9 +66,11 @@ export const SPEED_MAX = 1e27;
 
 /**
  * Time-warp ladder in sim seconds per real second (positive half; negative rates mirror it).
- * 0 = paused, 1 = real time, ..., 1e13 ≈ 300 kyr/s.
+ * 0 = paused, 1 = real time, ..., 1e13 ≈ 300 kyr/s, then exactly 1 and 10 Myr/s for deep time.
  */
-export const WARP_LADDER: readonly number[] = [0, 1, 60, 3600, 86400, 2.6e6, 3.15e7, 3.15e9, 3.15e11, 1e13];
+export const WARP_LADDER: readonly number[] = [
+  0, 1, 60, 3600, 86400, 2.6e6, 3.15e7, 3.15e9, 3.15e11, 1e13, 3.15576e13, 3.15576e14,
+];
 
 /** Quality preset names in ascending cost. */
 export const QUALITY_PRESETS = ['potato', 'low', 'medium', 'high', 'ultra'] as const;

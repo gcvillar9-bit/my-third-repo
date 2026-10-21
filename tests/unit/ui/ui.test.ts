@@ -9,7 +9,6 @@ import {
   formatSpeed,
   frameLabel,
   logScaleFraction,
-  toDatetimeLocal,
 } from '../../../src/ui/format';
 import { bodyPriority, declutter, occluded, project, type LabelBox } from '../../../src/ui/labels';
 import { bodyEntry, bookmarkEntry, SearchIndex } from '../../../src/ui/search';
@@ -136,13 +135,19 @@ describe('HUD unit formatting', () => {
     expect(formatRate(3.15e7)).toBe('1 yr/s');
     expect(formatRate(3.15e11)).toBe('10 kyr/s');
     expect(formatRate(1e13)).toBe('316.9 kyr/s');
+    expect(formatRate(3.15576e13)).toBe('1 Myr/s');
+    expect(formatRate(-3.15576e14)).toBe('−10 Myr/s');
   });
 
   it('instants, date input value and the log scale bar', () => {
     const d = new Date('2026-01-01T12:34:56Z');
     expect(formatInstant(d, 0)).toBe('2026-01-01 12:34:56 UTC');
     expect(formatInstant(null, 2451545 + 365.25 * 1e7)).toBe('year 1.00e7');
-    expect(toDatetimeLocal(d)).toBe('2026-01-01T12:34');
+    // Deep time from TT (present = 1950.0) with the geologic unit; BC dates with the year first.
+    expect(formatInstant(null, 2433282.5 - 365.25 * 66.04e6)).toBe('≈ 66.0 Ma · Late Cretaceous');
+    expect(formatInstant(null, 2433282.5 - 365.25 * 21e3)).toBe('≈ 21.0 ka · Pleistocene');
+    expect(formatInstant(null, 2433282.5 - 365.25 * 255e6)).toBe('≈ 255.0 Ma · Permian');
+    expect(formatInstant(new Date('-000499-03-15T12:00:00Z'), 0)).toBe('500 BC 03-15 12:00 UTC');
     expect(logScaleFraction(1)).toBe(0);
     expect(logScaleFraction(1e27)).toBe(1);
     expect(logScaleFraction(1e9)).toBeCloseTo(1 / 3, 9);

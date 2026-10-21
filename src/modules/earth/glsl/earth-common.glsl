@@ -7,6 +7,7 @@ uniform float uEarthHasMaps;
 uniform mat3 uEarthWorldToBody; // world axes -> body-fixed axes
 uniform float uEarthRadiusKm;  // equatorial radius (= atmosphere bottom), km
 uniform float uEarthCloudAltKm;
+uniform float uEarthCloudZonal; // 0 today's cloud map .. 1 zonal weather bands (deep time)
 
 // Equirectangular uv (u = lon / 2pi + 0.5 east-positive, v = lat / pi + 0.5) of a body-fixed unit vector.
 vec2 earthUv(vec3 d) {
@@ -22,10 +23,25 @@ vec4 earthEquirect(sampler2D t, vec2 uv) {
   return textureGrad(t, uv, dx, dy);
 }
 
+// Cloud cover 0..1 without today's geography: the equatorial convergence band, clear subtropics,
+// the mid-latitude storm tracks and polar stratus, broken up by continental-scale noise. Used in deep
+// time, where today's cloud map would trace today's continents.
+float earthZonalClouds(vec3 d) {
+  float lat = asin(clamp(d.z, -1.0, 1.0)) * 57.29578;
+  float a = abs(lat);
+  float e0 = lat / 6.0;
+  float e1 = (a - 55.0) / 10.0;
+  float e2 = (a - 24.0) / 8.0;
+  float cover = 0.3 + 0.32 * exp(-e0 * e0) + 0.3 * exp(-e1 * e1) - 0.2 * exp(-e2 * e2);
+  float n = 0.55 * gnoise(d * 7.0) + 0.3 * gnoise(d * 17.0) + 0.15 * gnoise(d * 41.0);
+  return smoothstep(0.42, 0.75, cover + 0.55 * n);
+}
+
 // Cloud optical density 0..1 at body-fixed unit direction d: brc.B shaped by fBm detail (8 km and
 // 2 km wavelengths) that fades out when one pixel covers more than the wavelength.
 float earthCloudDensity(vec3 d, vec2 uv, float pixelSize) {
   float c = earthEquirect(uEarthBrc, uv).b;
+  if (uEarthCloudZonal > 0.0) c = mix(c, earthZonalClouds(d), uEarthCloudZonal);
   vec3 p = d * (uEarthRadiusKm / 8.0);
   float w1 = 1.0 - smoothstep(2000.0, 8000.0, pixelSize);
   float w2 = 1.0 - smoothstep(500.0, 2000.0, pixelSize);

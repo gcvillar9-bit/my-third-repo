@@ -28,7 +28,7 @@ kbd { font: 10px ui-monospace, monospace; opacity: 0.7; border: 1px solid rgba(2
   padding: 5px 8px; max-width: calc(100vw - 20px); white-space: nowrap; }
 .cz-rate { min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; }
 .cz-date { font-variant-numeric: tabular-nums; }
-.cz-date-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color-scheme: dark; }
+.cz-date-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color-scheme: dark; color: inherit; font: inherit; padding: 2px 6px; width: 15em; max-width: 40vw; }
 .cz-badges { display: flex; gap: 4px; overflow: hidden; }
 .cz-badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.15);
   max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }

@@ -1,0 +1,27 @@
+{
+  "about": "Brightness of the city-lights night map at a date, as a fraction of the map (NASA Black Marble, about 2012). World electricity generation stands in for outdoor lighting: a rough proxy (approximate; only the rendered brightness uses it, no value is shown in the UI). Before the first public electric lighting systems there are no lights; the map's geography stays modern (historical cities are a later phase).",
+  "rows": [
+    {
+      "year": 1880,
+      "fraction": 0,
+      "source": "First public electric lighting: Brush arc-lamp street lighting (1879-1880), Edison's Pearl Street station (1882)"
+    },
+    {
+      "year": 1900,
+      "fraction": 0.0004,
+      "source": "World electricity generation ~10 TWh (Smil 2017, Energy and Civilization), proxy"
+    },
+    {
+      "year": 1950,
+      "fraction": 0.042,
+      "source": "World electricity generation ~950 TWh (Smil 2017; UN energy statistics), proxy"
+    },
+    { "year": 1970, "fraction": 0.22, "source": "World electricity generation ~5,000 TWh (IEA), proxy" },
+    { "year": 1990, "fraction": 0.52, "source": "World electricity generation ~11,900 TWh (IEA), proxy" },
+    {
+      "year": 2012,
+      "fraction": 1,
+      "source": "World electricity generation ~22,700 TWh (IEA); epoch of the NASA Black Marble map"
+    }
+  ]
+}

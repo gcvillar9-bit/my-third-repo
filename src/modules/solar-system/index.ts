@@ -6,7 +6,7 @@
 import type { ModuleContext, UniverseModule } from '../../core/contracts';
 import { buildBookmarks, SUNVIEW_BODIES } from './bookmarks';
 import { BODIES_PATH, texturePath, type BodiesFile, type BodyRow } from './data';
-import { SolarEphemeris } from './ephemeris';
+import { FOLD_HOLD_RATE, SolarEphemeris } from './ephemeris';
 import { infoCard, searchEntries } from './facts';
 import { bodyFromRow, buildFrameDefs } from './frames';
 import { createRings, createSunGlow } from './render/extras';
@@ -44,6 +44,7 @@ const solarSystem: UniverseModule = {
     const rows = file.bodies;
     const rowsById = new Map(rows.map((r) => [r.id, r]));
     const eph = new SolarEphemeris(rows);
+    eph.setFoldHold(() => Math.abs(ctx.clock.rate) > FOLD_HOLD_RATE);
     const { registry, render } = ctx;
 
     for (const f of buildFrameDefs(eph, SUNVIEW_BODIES)) registry.addFrame(f);
