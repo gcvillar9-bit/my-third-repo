@@ -35,6 +35,12 @@ to the largest structures in the universe and back home. Or press `/` and type a
   of the date, placed by fossil finds (Paleobiology Database) and habitat: Tyrannosaurus and Triceratops at 66 Ma,
   Stegosaurus and sauropods at 150 Ma, Australopithecus at 3.2 Ma, Neanderthals and mammoths at 45 ka. Stylised
   low-poly models that walk, graze and fly (bookmarks `life-*`, approximate).
+- Cities through history: from orbit the largest cities of the date are labelled with approximate populations (Uruk
+  in 3000 BC, Rome in AD 117, Tokyo today); on the ground towns appear in the style of their place and period
+  (mud-brick and ziggurats, Roman insulae, medieval houses and cathedrals, mosques, pagodas, step pyramids,
+  industrial terraces, modern towers) with real monuments and people in the streets (bookmarks `city-*`).
+- Near the ground today's Earth streams real detail: NASA Blue Marble imagery at about 490 m per pixel and AWS
+  Terrarium elevation (on from low quality up; `?hdimagery=0`, `?hdterrain=0` or the setting turn them off).
 - A hero Earth with ocean glint, city lights, clouds and cloud shadows.
 - Gas giants with drifting cloud bands, the Great Red Spot and moon-shadow transits; Saturn's and Uranus's rings at
   true radii with backlit glow and shadows both ways.

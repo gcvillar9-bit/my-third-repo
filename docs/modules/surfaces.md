@@ -72,11 +72,19 @@ Public API: `src/modules/surfaces/public.ts`. Depends on solar-system, atmospher
   non-smooth skyline (RMS about a quadratic > 0.6 px), ground contrast, zero errors and budgets; HD with `route()`
   fixtures (9 tiles requested, z9 block, no errors) and with refused tiles (fallback identical to the baked view).
 
+## HD Earth terrain by default
+
+The HD layer (`hd.ts`, AWS Terrarium near the camera below 300 km) is on by default outside test mode (setting
+`surfaces.hdEarth`, default true; `?hdterrain=0` or the setting turns it off). Test mode keeps it off unless
+`?hdterrain=1`, which e2e routes to fixtures. This became possible with the terrain `softReset`
+(`terrain/manager.ts`): when the 3x3 block moves, the drawn tiles and the CPU height function stay while the drawn
+tiles are rebuilt for the new block and swapped in one by one, instead of all of Earth's tiles being dropped at
+once. Terrarium is reachable from the build container now and was checked live (Himalaya).
+
 ## Known gaps
 
 - FC heights lack long wavelengths (Mars dichotomy, Tharsis, lunar far-side highlands); 2k rasters are 5-20 km/px.
-- Earth: no rendered sea floor (sea at 0 m; the bathymetry proxy is only used with `ocean.floor`), coastlines are
-  blobby at 20 km, and the HD layer reloads all Earth tiles when its 3x3 block changes. Terrarium itself was not
-  reachable from the build container, so only the fixture path is tested.
+- Earth: no rendered sea floor (sea at 0 m; the bathymetry proxy is only used with `ocean.floor`) and coastlines are
+  blobby at 20 km without the HD layer.
 - Crater contributions are summed (no overprinting), and potato's 64-tile cap keeps close-up ground coarse.
 - The Ultra 8k texture streaming flag (DESIGN 4.3) is not implemented.

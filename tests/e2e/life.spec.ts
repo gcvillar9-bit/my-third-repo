@@ -11,7 +11,13 @@ const lum = ([r, g, b]: RGB) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
 declare global {
   interface Window {
-    __life?: { shown(): { plants: Record<string, number>; creatures: Record<string, number> } };
+    __life?: {
+      shown(): {
+        plants: Record<string, number>;
+        creatures: Record<string, number>;
+        buildings: Record<string, number>;
+      };
+    };
   }
 }
 

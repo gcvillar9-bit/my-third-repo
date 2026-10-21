@@ -37,6 +37,8 @@ const lim: LifeLimits = {
   herdRadius: 360,
   maxPlants: 900,
   maxCreatures: 50,
+  buildingRadius: 450,
+  maxBuildings: 500,
 };
 
 describe('life data', () => {

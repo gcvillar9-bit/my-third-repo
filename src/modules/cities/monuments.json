@@ -1,0 +1,156 @@
+{
+  "about": "Monuments drawn at their real places (building kinds from src/modules/life/kit/buildings.ts) from the year they were finished (historical years, negative = BC) until they were destroyed or left in ruin (end). Coordinates WGS84; dates approximate.",
+  "monuments": [
+    {
+      "name": "Great Pyramid of Khufu",
+      "kind": "pyramid",
+      "lat": 29.9792,
+      "lon": 31.1342,
+      "from": -2560,
+      "scale": 1.0,
+      "source": "Lehner 1997, The Complete Pyramids"
+    },
+    {
+      "name": "Pyramid of Khafre",
+      "kind": "pyramid",
+      "lat": 29.9761,
+      "lon": 31.1308,
+      "from": -2532,
+      "scale": 0.94,
+      "source": "Lehner 1997"
+    },
+    {
+      "name": "Pyramid of Menkaure",
+      "kind": "pyramid",
+      "lat": 29.9725,
+      "lon": 31.1281,
+      "from": -2503,
+      "scale": 0.47,
+      "source": "Lehner 1997"
+    },
+    {
+      "name": "Ziggurat of Ur",
+      "kind": "ziggurat",
+      "lat": 30.9626,
+      "lon": 46.1032,
+      "from": -2100,
+      "source": "Woolley 1939"
+    },
+    {
+      "name": "Etemenanki",
+      "kind": "ziggurat",
+      "lat": 32.5363,
+      "lon": 44.4209,
+      "from": -600,
+      "end": -275,
+      "scale": 1.4,
+      "source": "George 2005, The Tower of Babel"
+    },
+    {
+      "name": "Parthenon",
+      "kind": "temple",
+      "lat": 37.9715,
+      "lon": 23.7267,
+      "from": -438,
+      "end": 1687,
+      "scale": 1.6,
+      "source": "Hurwit 2004"
+    },
+    {
+      "name": "Temple of Jupiter Optimus Maximus",
+      "kind": "temple",
+      "lat": 41.8925,
+      "lon": 12.4823,
+      "from": -509,
+      "end": 455,
+      "scale": 1.8,
+      "source": "Claridge 2010, Rome: An Oxford Archaeological Guide"
+    },
+    {
+      "name": "Hagia Sophia",
+      "kind": "mosque",
+      "lat": 41.0086,
+      "lon": 28.9802,
+      "from": 537,
+      "scale": 1.3,
+      "source": "Mainstone 1988"
+    },
+    {
+      "name": "Pyramid of the Sun",
+      "kind": "stepPyramid",
+      "lat": 19.6925,
+      "lon": -98.8438,
+      "from": 200,
+      "scale": 1.6,
+      "source": "Millon 1973"
+    },
+    {
+      "name": "El Castillo",
+      "kind": "stepPyramid",
+      "lat": 20.6843,
+      "lon": -88.5678,
+      "from": 1000,
+      "source": "Coe & Houston 2015, The Maya"
+    },
+    {
+      "name": "Templo Mayor",
+      "kind": "stepPyramid",
+      "lat": 19.4352,
+      "lon": -99.1314,
+      "from": 1325,
+      "end": 1521,
+      "source": "Matos Moctezuma 1988"
+    },
+    {
+      "name": "Angkor Wat",
+      "kind": "prang",
+      "lat": 13.4125,
+      "lon": 103.867,
+      "from": 1150,
+      "scale": 1.8,
+      "source": "Jacques 2007"
+    },
+    {
+      "name": "Great Mosque of Djenné",
+      "kind": "mudMosque",
+      "lat": 13.9053,
+      "lon": -4.5554,
+      "from": 1240,
+      "source": "Bourgeois 1987"
+    },
+    {
+      "name": "Notre-Dame de Paris",
+      "kind": "cathedral",
+      "lat": 48.853,
+      "lon": 2.3499,
+      "from": 1260,
+      "source": "Erlande-Brandenburg 1998"
+    },
+    {
+      "name": "Forbidden City",
+      "kind": "palaceHall",
+      "lat": 39.9163,
+      "lon": 116.3972,
+      "from": 1420,
+      "scale": 1.6,
+      "source": "Yu 1984"
+    },
+    {
+      "name": "Himeji Castle",
+      "kind": "castleTiers",
+      "lat": 34.8394,
+      "lon": 134.6939,
+      "from": 1609,
+      "source": "Hinago 1986"
+    },
+    {
+      "name": "Empire State Building",
+      "kind": "tower",
+      "lat": 40.7484,
+      "lon": -73.9857,
+      "from": 1931,
+      "scale": 1.4,
+      "source": "Tauranac 1995"
+    }
+  ]
+}

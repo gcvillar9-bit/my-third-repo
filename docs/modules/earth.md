@@ -58,11 +58,23 @@ centre, dawn nadir Sun elevation in (−3°, 0°), night view over Europe), no r
 map paths, cube-sphere, world-to-body matrix. E2E (`tests/e2e/earth.spec.ts`): dawn limb band b > r with black space
 above and day right brighter than night left; warm city lights over Europe; limb band blue over sunlit Earth.
 
+## HD imagery near the ground (`hd-imagery.ts`)
+
+Below 1200 km above the ground, a 4 x 4 block of NASA GIBS Blue Marble Next Generation tiles (EPSG:4326 500m
+matrix, 512 px tiles of 2.25 degrees at level 7, about 490 m per pixel against the base map's 10 km; public domain)
+around the camera's sub-point is fetched in the browser, composited off-screen and blended into the day map
+(`uEarthHd`, `uEarthHdRect`, `uEarthHdMix`; feathered edges; gradients taken outside the branch). The block
+re-centres when the sub-point leaves its middle half, and the previous block stays until the new one is complete.
+On from low quality up outside test mode (`?hdimagery=0` turns it off); test mode only with `?hdimagery=1`
+(`tests/e2e/hd-imagery.spec.ts` routes the tiles to a magenta fixture and checks the refused-tiles fallback).
+
 ## Known gaps
 
 - Cloud shell has no volumetric thickness or self-shadowing; no specular on clouds.
 - Ground receives no skylight (only direct sun), so the terminator is a little harsh.
 - The 2k/4k brc cloud map is static (no cloud animation).
+- HD imagery is today's Blue Marble (2004 composite) at every date: in the ice ages and deep time the paleo hooks
+  paint over it, but historical dates show today's land cover; level 7 (490 m) is the finest GIBS Blue Marble level.
 
 ## R2b integration changes
 

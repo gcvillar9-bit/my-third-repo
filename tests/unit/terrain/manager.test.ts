@@ -174,3 +174,38 @@ describe('terrain eligibility', () => {
     withSpec.dispose();
   });
 });
+
+describe('terrain soft reset (HD block moves)', () => {
+  it('keeps the drawn tiles and the height function while rebuilding them in place', async () => {
+    const m = new TerrainManager({
+      bodyId: 'moon',
+      a: A,
+      c: C,
+      spec,
+      generator: () => localGen,
+      base: '/',
+      seed: 1,
+      test: true,
+    });
+    m.fn = fn;
+    m.observeRaw(view(1, 0.1, 0.1));
+    await flush(m);
+    const before = m.leaves.map((t) => t.key).sort();
+    expect(before.length).toBeGreaterThan(0);
+    const h0 = m.heightAt(vec3(1, 0.1, 0.1));
+    const spec2: HeightSourceSpec = { ...spec, params: { ...(spec.params as object), tweak: 1 } };
+    m.softReset(spec2);
+    // Nothing dropped: the same tiles stay drawn, the height function stays.
+    m.select();
+    expect(m.leaves.map((t) => t.key).sort()).toEqual(before);
+    expect(m.heightAt(vec3(1, 0.1, 0.1))).toBe(h0);
+    await flush(m);
+    // ...and every drawn tile has been rebuilt for the new spec.
+    m.select();
+    await flush(m);
+    const epochs = new Set(m.leaves.map((t) => t.epoch));
+    expect(epochs.size).toBe(1);
+    expect([...epochs][0]).toBeGreaterThan(0);
+    expect(m.leaves.length).toBeGreaterThan(0);
+  }, 60_000);
+});

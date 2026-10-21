@@ -1,0 +1,21 @@
+{
+  "module": "cities",
+  "assets": [
+    {
+      "id": "natural_earth_populated_places",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_populated_places_simple.geojson",
+      "license": "public-domain",
+      "attribution": "Natural Earth (naturalearthdata.com), populated places 1:10m, v5.1.2",
+      "note": "Today's cities of at least 300 000 people that the history table does not hold, shown from 1950",
+      "outputs": ["data/cities/cities.json"],
+      "sha256": "fd3fa867a320cbd5c5b6bb5bc550afeec2939fb2cef688e508007282a55ac42f",
+      "bytes": 4932147
+    },
+    {
+      "id": "cities_history_table",
+      "license": "reference",
+      "attribution": "Historical city populations hand-entered from Chandler (1987) Four Thousand Years of Urban Growth, Modelski (2003) World Cities -3000 to 2000, Morris (2010), Bairoch (1988) and UN World Urbanization Prospects 2018, with sources per row in src/modules/cities/history.json; approximate",
+      "outputs": ["data/cities/cities.json"]
+    }
+  ]
+}

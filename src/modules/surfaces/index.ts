@@ -42,19 +42,22 @@ const surfaces: UniverseModule = {
         body: earthBody,
         base: earthSpec,
       });
+      // On by default since the soft terrain reset (tiles swap in place when the HD block moves); test
+      // mode stays deterministic (off unless ?hdterrain=1, which e2e routes to fixtures).
       const forced = ctx.env.params.get(HD_URL_PARAM) === '1';
+      const allowed = (v: unknown) => forced || (!ctx.env.test && v !== false);
       registry.addSetting({
         id: HD_SETTING_ID,
         label: 'HD Earth terrain (streamed)',
         group: 'Graphics',
         type: 'boolean',
-        default: false,
+        default: true,
         persist: true,
         description:
           'Streams AWS Terrarium elevation tiles near the camera below 300 km (falls back to the built-in relief).',
-        onChange: (v) => hd.setEnabled(forced || v === true),
+        onChange: (v) => hd.setEnabled(allowed(v)),
       });
-      hd.setEnabled(forced || ctx.ui.settings.get<boolean>(HD_SETTING_ID) === true);
+      hd.setEnabled(allowed(ctx.ui.settings.get<boolean>(HD_SETTING_ID)));
       offFrame = ctx.render.onBeforeFrame((view) => hd.onFrame(view));
     }
 

@@ -43,6 +43,8 @@ export interface Tile extends PatchData {
   lastUsed: number;
   /** GPU resources created by the renderer (disposed on eviction). */
   gpu: { geometry: unknown; dispose(): void } | null;
+  /** Spec generation that built the tile (softReset rebuilds older ones in place). */
+  epoch: number;
 }
 
 export interface ManagerOptions {
@@ -166,6 +168,19 @@ export class TerrainManager {
     this.leaves = sel.leaves.map((k) => this.tiles.get(k)!);
     for (const k of sel.used) this.tiles.get(k)!.lastUsed = this.tick;
     this.issue(sel.requests, v.cap);
+    this.refresh();
+  }
+
+  /** Rebuilds drawn tiles of an older spec generation (after softReset); they stay drawn meanwhile. */
+  private refresh(): void {
+    const maxInflight = this.opts.test ? 2 * MAX_INFLIGHT : MAX_INFLIGHT;
+    let n = 0;
+    for (const t of this.leaves) {
+      if (t.epoch === this.epoch || this.inflight.has(t.key)) continue;
+      if (n >= SPLIT_BUDGET || this.inflight.size >= maxInflight) break;
+      this.request(t.key);
+      n++;
+    }
   }
 
   private issue(reqs: readonly { key: number }[], cap: number): void {
@@ -235,7 +250,10 @@ export class TerrainManager {
             for (const t of this.tiles.values()) this.known.set(t.key, t.bounds);
           }
           this.known.set(key, bounds);
-          this.tiles.set(key, { ...data, bounds, lastUsed: this.tick, gpu: null });
+          // A rebuilt tile (softReset) replaces the drawn one in place.
+          const old = this.tiles.get(key);
+          old?.gpu?.dispose();
+          this.tiles.set(key, { ...data, bounds, lastUsed: old?.lastUsed ?? this.tick, gpu: null, epoch });
           this.dirty = true;
           this.account();
           if (this.opts.test) this.select();
@@ -275,6 +293,20 @@ export class TerrainManager {
     this.split = new Set();
     this.used = new Set();
     this.leaves = [];
+    this.dirty = true;
+  }
+
+  /**
+   * Parameter-only spec change (the HD terrain block moved, or HD turned on or off): keeps drawing the
+   * resident tiles and keeps the current CPU height function while the drawn tiles are rebuilt for the
+   * new spec and swapped in one by one (select -> refresh); the system replaces the function when the
+   * new one loads. Before this, every move of the HD block dropped all of Earth's tiles at once.
+   */
+  softReset(spec: HeightSourceSpec): void {
+    this.epoch++;
+    this.retry.clear();
+    this.streak = 0;
+    this.opts.spec = spec;
     this.dirty = true;
   }
 

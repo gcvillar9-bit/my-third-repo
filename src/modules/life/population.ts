@@ -7,6 +7,7 @@
  */
 import { hash01 } from './kit/mesh';
 import { MODELS } from './kit/models';
+import { BUILDINGS, type BuildingKind } from './kit/buildings';
 import { PLANTS, type PlantKind } from './kit/plants';
 import {
   SPECIES,
@@ -37,6 +38,9 @@ export interface LifeLimits {
   herdRadius: number;
   maxPlants: number;
   maxCreatures: number;
+  /** Radius of town buildings (landmarks 4x), m. */
+  buildingRadius: number;
+  maxBuildings: number;
 }
 
 export const PLANT_CELL_M = 24;
@@ -146,6 +150,23 @@ export function plantsInCell(
       tint: hash01(row, col, i, 8),
     });
   }
+  // Ground cover: extra small plants of the mix (grass, ferns, mosses, shrubs) at twice the density;
+  // they are only drawn near the camera (tuftRadius).
+  const tuftIdx = mix.kinds.map((k, i) => (PLANTS[k].height < 2 ? i : -1)).filter((i) => i >= 0);
+  if (tuftIdx.length) {
+    const nt = Math.floor((2 * mix.density * area * patch) / 100 + hash01(row, col, era, 9));
+    for (let i = 0; i < nt; i++) {
+      const kind = mix.kinds[tuftIdx[Math.floor(hash01(row, col, era, i, 10) * tuftIdx.length)]];
+      out.push({
+        kind,
+        lat: cLat + (hash01(row, col, i, 11) - 0.5) * dLat,
+        lon: cLon + (hash01(row, col, i, 12) - 0.5) * dLon,
+        heading: 2 * Math.PI * hash01(row, col, i, 13),
+        scale: 0.5 + 0.7 * hash01(row, col, i, 14),
+        tint: hash01(row, col, i, 15),
+      });
+    }
+  }
   return out;
 }
 
@@ -158,6 +179,7 @@ export function plantsAround(
   climate: Climate,
   lim: LifeLimits,
   cache: Map<string, Plant[]>,
+  townOf?: TownOf,
 ): Plant[] {
   const out: { p: Plant; d: number }[] = [];
   cellsAround(lat, lon, lim.treeRadius, PLANT_CELL_M, (row, col, cLat, cLon) => {
@@ -171,13 +193,44 @@ export function plantsAround(
       const [e, n] = localEN(lat, lon, p.lat, p.lon);
       const d = Math.hypot(e, n);
       const tall = PLANTS[p.kind].height > 3;
-      if (d <= (tall ? lim.treeRadius : lim.tuftRadius)) out.push({ p, d });
+      if (d > (tall ? lim.treeRadius : lim.tuftRadius)) continue;
+      // Built-up land has no wild plants (a few trees in courtyards).
+      const t = townOf?.(p.lat, p.lon);
+      if (t && t.r < 0.95 && (!tall || p.tint > 0.03)) continue;
+      out.push({ p, d });
     }
   });
   if (cache.size > 6000) cache.clear();
   out.sort((a, b) => a.d - b.d);
   return out.slice(0, lim.maxPlants).map((x) => x.p);
 }
+
+/** People in the streets of a town (not a range species: placed by the cities module's towns). */
+export const TOWNSFOLK: SpeciesRow = {
+  id: 'townsfolk',
+  name: 'Townspeople',
+  model: 'townsfolk',
+  guild: 'people',
+  firstMa: 0.0092,
+  lastMa: 0,
+  habitats: [],
+  herd: [3, 9],
+  weight: 1,
+  source: 'Towns from the cities module',
+};
+export const MODERN_PEOPLE: SpeciesRow = {
+  ...TOWNSFOLK,
+  id: 'people',
+  name: 'People',
+  model: 'modernPerson',
+};
+/** Farmers and herders: Homo sapiens after the spread of farming wear the townsfolk's clothes. */
+export const RURAL_PEOPLE: SpeciesRow = { ...TOWNSFOLK, id: 'rural', name: 'People (farmers and herders)' };
+/** Hunter-gatherer dress until about 6000 BC (approximate; farming spread unevenly). */
+export const FARMING_FROM_MA = 0.008;
+
+/** Town lookup: the nearest town and the distance in town radii. */
+export type TownOf = (lat: number, lon: number) => { town: Town; r: number } | null;
 
 /** Guild odds of a herd cell holding a herd of that guild. */
 const GUILD_ODDS: Record<string, number> = {
@@ -250,6 +303,7 @@ export function herdInCell(
   era: number,
   climate: Climate,
   cands: (lat: number, lon: number, biome: Biome) => Candidate[],
+  townOf?: TownOf,
 ): Herd | null {
   const dLat = HERD_CELL_M / M_PER_DEG;
   const dLon = dLat / Math.max(0.05, Math.cos((cLat * Math.PI) / 180));
@@ -257,7 +311,23 @@ export function herdInCell(
   const lon = cLon + (hash01(row, col, era, 12) - 0.5) * 0.6 * dLon;
   const biome = biomeAt(climate, lat, lon);
   if (!biome) return null;
-  const list = cands(lat, lon, biome);
+  const town = townOf?.(lat, lon);
+  if (town && town.r < 1) {
+    // Streets: people instead of wild animals.
+    const modern = town.town.style === 'modern' || town.town.style === 'industrial';
+    const s = modern ? MODERN_PEOPLE : TOWNSFOLK;
+    const count = 3 + Math.floor(hash01(row, col, era, 16) * 7);
+    return {
+      key: `${row},${col},${era}`,
+      species: s,
+      lat,
+      lon,
+      members: makeMembers(s, count, row, col, 1.5, 0.6),
+    };
+  }
+  let list = cands(lat, lon, biome);
+  // Farmland around towns: livestock where it lived then, and no wild herds.
+  if (town) list = list.filter((c) => c.species.guild === 'domestic' || c.species.guild === 'flyer');
   if (!list.length) return null;
   // Pick a guild present here, then a species of that guild by weight.
   const guilds = [...new Set(list.map((c) => c.species.guild))];
@@ -294,6 +364,7 @@ export function herdsAround(
   candCache: Map<string, Candidate[]>,
   featured: readonly Featured[] = [],
   eraOf: (ageMa: number) => number = () => era,
+  townOf?: TownOf,
 ): Herd[] {
   const cands = (la: number, lo: number, biome: Biome) => {
     // Candidates change slowly in space: cache them per 0.25 degree and biome.
@@ -311,7 +382,8 @@ export function herdsAround(
     const key = `${row},${col},${era}`;
     let h = cache.get(key);
     if (h === undefined) {
-      h = herdInCell(row, col, cLat, cLon, era, climate, cands);
+      h = herdInCell(row, col, cLat, cLon, era, climate, cands, townOf);
+      if (h && h.species.id === 'sapiens' && ageMa < FARMING_FROM_MA) h = { ...h, species: RURAL_PEOPLE };
       cache.set(key, h);
     }
     if (h) out.push(h);
@@ -352,4 +424,312 @@ export function memberAt(m: Member, t: number, out: { e: number; n: number; ve: 
   out.ve = -m.radius * Math.sin(theta) * dTheta;
   out.vn = 0.6 * m.radius * Math.cos(theta) * dTheta;
   return out;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Settlements (cities module data): buildings by style, walls, monuments; townsfolk in the streets.
+// ---------------------------------------------------------------------------------------------
+
+/** A city as the cities module reports it (cities/public.ts City). */
+export interface Town {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  pop: number;
+  style: string;
+  radiusM: number;
+}
+
+export interface Landmark {
+  name: string;
+  kind: string;
+  lat: number;
+  lon: number;
+  scale: number;
+}
+
+export interface Building {
+  kind: BuildingKind;
+  lat: number;
+  lon: number;
+  heading: number;
+  scale: number;
+  seed: number;
+}
+
+export const BUILDING_CELL_M = 22;
+
+/** House mixes [kind, weight] per style. */
+const HOUSES: Record<string, [BuildingKind, number][]> = {
+  mesopotamian: [
+    ['mudHouse', 3],
+    ['mudHouse2', 2],
+  ],
+  egyptian: [
+    ['mudHouse', 3],
+    ['flatHouse', 2],
+    ['mudHouse2', 1],
+  ],
+  indus: [
+    ['brickHouse', 4],
+    ['mudHouse2', 1],
+  ],
+  chinese: [
+    ['courtyardHouse', 4],
+    ['woodHouse', 2],
+  ],
+  classical: [
+    ['stoneHouse', 4],
+    ['insula', 2],
+  ],
+  persian: [
+    ['mudHouse', 2],
+    ['flatHouse', 2],
+    ['mudHouse2', 1],
+  ],
+  'medieval-european': [
+    ['timberHouse', 4],
+    ['stoneHouseMed', 2],
+  ],
+  islamic: [
+    ['flatHouse', 5],
+    ['mudHouse2', 1],
+  ],
+  indian: [
+    ['flatHouse', 3],
+    ['brickHouse', 2],
+  ],
+  japanese: [['woodHouse', 5]],
+  'southeast-asian': [
+    ['stiltHouse', 4],
+    ['woodHouse', 1],
+  ],
+  mesoamerican: [
+    ['hut', 3],
+    ['flatHouse', 2],
+  ],
+  andean: [
+    ['andeanHouse', 4],
+    ['hut', 1],
+  ],
+  african: [
+    ['roundHut', 4],
+    ['mudHouse', 2],
+  ],
+  colonial: [
+    ['colonialHouse', 4],
+    ['flatHouse', 1],
+  ],
+  industrial: [
+    ['terrace', 5],
+    ['colonialHouse', 1],
+  ],
+  modern: [
+    ['apartment', 3],
+    ['suburbanHouse', 4],
+  ],
+};
+
+/** Landmarks at the centre per style (in order, the first at the centre). */
+const LANDMARKS: Record<string, BuildingKind[]> = {
+  mesopotamian: ['ziggurat'],
+  egyptian: ['pylonTemple'],
+  indus: [],
+  chinese: ['palaceHall', 'pagoda'],
+  classical: ['temple'],
+  persian: ['palaceHall'],
+  'medieval-european': ['cathedral', 'keep'],
+  islamic: ['mosque'],
+  indian: ['shikhara'],
+  japanese: ['pagoda', 'castleTiers'],
+  'southeast-asian': ['prang'],
+  mesoamerican: ['stepPyramid'],
+  andean: ['stepPyramid'],
+  african: ['mudMosque'],
+  colonial: ['baroqueChurch'],
+  industrial: ['cathedral', 'factory'],
+  modern: ['tower', 'tower', 'tower'],
+};
+
+/** Cells per block side (the fifth is the street). */
+const BLOCK_CELLS = 5;
+/** Buildings wider than a cell: placed on 2 x 2 cell lots. */
+const BIG = new Set<BuildingKind>(['tower', 'apartment', 'insula', 'terrace', 'factory']);
+
+/** Odds of a tower on a big lot: the core of big modern cities, business districts in megacities. */
+function towerOdds(t: Town, r: number): number {
+  if (t.style !== 'modern' || t.pop < 1e6) return 0;
+  return r < 0.12 ? 0.9 : t.pop > 5e6 && r < 0.4 ? 0.35 : 0;
+}
+
+/** The big-lot kind of a block (null: small lots), from the style and distance from the centre. */
+function bigLot(t: Town, r: number, u: number): BuildingKind | null {
+  switch (t.style) {
+    case 'modern':
+      return r < 0.55 ? 'tower' : null;
+    case 'industrial':
+      return r > 0.6 && u < 0.12 ? 'factory' : u < 0.8 ? 'terrace' : null;
+    case 'classical':
+      return t.pop > 1e5 && r < 0.7 && u < 0.45 ? 'insula' : null;
+    default:
+      return null;
+  }
+}
+
+/** Walled towns: styles and periods with city walls. */
+const WALLED = new Set([
+  'mesopotamian',
+  'indus',
+  'chinese',
+  'classical',
+  'persian',
+  'medieval-european',
+  'islamic',
+  'japanese',
+]);
+
+const cumul = (mix: [BuildingKind, number][]) => {
+  const total = mix.reduce((s, [, w]) => s + w, 0);
+  let a = 0;
+  return mix.map(([, w]) => (a += w / total));
+};
+
+/** Is (lat, lon) inside a town's built-up area (fraction of the radius, < 1 inside)? */
+export function townAt(towns: readonly Town[], lat: number, lon: number): { town: Town; r: number } | null {
+  let best: { town: Town; r: number } | null = null;
+  for (const t of towns) {
+    const [e, n] = localEN(t.lat, t.lon, lat, lon);
+    const r = Math.hypot(e, n) / t.radiusM;
+    if (r < 1.6 && (!best || r < best.r)) best = { town: t, r };
+  }
+  return best;
+}
+
+/** Buildings of the towns and monuments around (lat, lon) (deterministic per town and year). */
+export function buildingsAround(
+  lat: number,
+  lon: number,
+  towns: readonly Town[],
+  landmarks: readonly Landmark[],
+  year: number,
+  radiusM: number,
+  max: number,
+): Building[] {
+  const out: { b: Building; d: number }[] = [];
+  const push = (b: Building, far = 1) => {
+    const d = Math.hypot(...localEN(lat, lon, b.lat, b.lon));
+    if (d <= radiusM * far) out.push({ b, d: d / far });
+  };
+  const cell = BUILDING_CELL_M;
+  for (const t of towns) {
+    const mix = HOUSES[t.style] ?? HOUSES.modern;
+    const cosLat = Math.cos((t.lat * Math.PI) / 180);
+    const toLatLon = (e: number, n: number): [number, number] => [
+      t.lat + n / M_PER_DEG,
+      t.lon + e / (M_PER_DEG * cosLat),
+    ];
+    const seedT = Math.round(t.lat * 1000) * 7 + Math.round(t.lon * 1000);
+    const planned =
+      t.style === 'modern' ||
+      t.style === 'industrial' ||
+      t.style === 'colonial' ||
+      t.style === 'classical' ||
+      t.style === 'chinese';
+    const twist = planned ? 0 : 0.26;
+    // Landmarks at the centre, keeping their footprint clear of houses.
+    const lms = LANDMARKS[t.style] ?? [];
+    const clear: [number, number, number][] = [];
+    lms.forEach((k, i) => {
+      if (k === 'tower' && t.pop < 1e6) return;
+      const m = BUILDINGS[k];
+      const e = i === 0 ? 0 : (i % 2 ? 1 : -1) * (m.half[1] + 40) * Math.ceil(i / 2);
+      const n = i === 0 ? 0 : 30 * (i % 3);
+      const [la, lo] = toLatLon(e, n);
+      push({ kind: k, lat: la, lon: lo, heading: Math.PI, scale: 1, seed: seedT + i }, 4);
+      clear.push([e, n, Math.max(m.half[0], m.half[1]) + 12]);
+    });
+    // Blocks of 4 x 4 cells between streets (every fifth row and column): either 16 small lots or,
+    // for apartment blocks, towers, insulae and terraces, 4 big lots of 2 x 2 cells.
+    const [ce, cn] = localEN(t.lat, t.lon, lat, lon);
+    const span = radiusM + 2 * BLOCK_CELLS * cell;
+    const blk = BLOCK_CELLS * cell;
+    const b0 = Math.max(Math.floor((ce - span) / blk), Math.floor(-t.radiusM / blk));
+    const b1 = Math.min(Math.floor((ce + span) / blk), Math.floor(t.radiusM / blk));
+    const c0 = Math.max(Math.floor((cn - span) / blk), Math.floor(-t.radiusM / blk));
+    const c1 = Math.min(Math.floor((cn + span) / blk), Math.floor(t.radiusM / blk));
+    const small = mix.filter(([k]) => !BIG.has(k));
+    const smallCum = cumul(small.length ? small : mix);
+    const smallMix = small.length ? small : mix;
+    const lot = (i: number, j: number, e: number, n: number, kind: BuildingKind, k: number) => {
+      const r = Math.hypot(e, n) / t.radiusM;
+      if (r > 1) return;
+      if (hash01(seedT, i, j, 3 + k) > 0.92 - 0.5 * r) return;
+      if (clear.some(([x, y, rr]) => Math.hypot(e - x, n - y) < rr)) return;
+      const [la, lo] = toLatLon(e, n);
+      const quarter = (Math.PI / 2) * Math.floor(hash01(seedT, i, j, 6) * 4);
+      const big = BIG.has(kind);
+      push({
+        kind,
+        lat: la,
+        lon: lo,
+        heading: big ? quarter - (quarter % Math.PI) : quarter + (hash01(seedT, i, j, 7) - 0.5) * twist,
+        scale: big ? 0.9 + 0.1 * hash01(seedT, i, j, 8) : 0.85 + 0.3 * hash01(seedT, i, j, 8),
+        seed: Math.floor(hash01(seedT, i, j, 9) * 4),
+      });
+    };
+    for (let bi = b0; bi <= b1; bi++)
+      for (let bj = c0; bj <= c1; bj++) {
+        const ex = (bi * BLOCK_CELLS + 1) * cell; // first lot's west edge (the street is cell 0)
+        const nx = (bj * BLOCK_CELLS + 1) * cell;
+        const mid = Math.hypot(ex + 2 * cell, nx + 2 * cell) / t.radiusM;
+        const bigKind = bigLot(t, mid, hash01(seedT, bi, bj, 11));
+        if (bigKind) {
+          for (let a = 0; a < 2; a++)
+            for (let b = 0; b < 2; b++) {
+              const i = bi * BLOCK_CELLS + 1 + 2 * a;
+              const j = bj * BLOCK_CELLS + 1 + 2 * b;
+              const e = ex + (2 * a + 1) * cell;
+              const n = nx + (2 * b + 1) * cell;
+              const r = Math.hypot(e, n) / t.radiusM;
+              let kind = bigLot(t, r, hash01(seedT, i, j, 12)) ?? bigKind;
+              if (kind === 'tower' && hash01(seedT, i, j, 10) > towerOdds(t, r)) kind = 'apartment';
+              lot(i, j, e, n, kind, 0);
+            }
+          continue;
+        }
+        for (let a = 0; a < 4; a++)
+          for (let b = 0; b < 4; b++) {
+            const i = bi * BLOCK_CELLS + 1 + a;
+            const j = bj * BLOCK_CELLS + 1 + b;
+            const e = ex + (a + 0.5) * cell + (planned ? 0 : (hash01(seedT, i, j, 1) - 0.5) * 5);
+            const n = nx + (b + 0.5) * cell + (planned ? 0 : (hash01(seedT, i, j, 2) - 0.5) * 5);
+            let kind = smallMix[pick(smallCum, hash01(seedT, i, j, 4))][0];
+            if (t.style === 'modern') kind = 'suburbanHouse';
+            lot(i, j, e, n, kind, 0);
+          }
+      }
+    // Walls on a ring at the edge (pre-modern towns of more than 3000 people).
+    if (WALLED.has(t.style) && year < 1800 && t.pop > 3000) {
+      const R = t.radiusM * 1.02;
+      const n = Math.max(12, Math.round((2 * Math.PI * R) / 24));
+      for (let k = 0; k < n; k++) {
+        const a = (2 * Math.PI * k) / n;
+        const e = Math.sin(a) * R;
+        const nn = Math.cos(a) * R;
+        // Gates on the four main streets.
+        if (Math.abs(Math.sin(2 * a)) < 0.04) continue;
+        const [la, lo] = toLatLon(e, nn);
+        push({ kind: 'wall', lat: la, lon: lo, heading: a, scale: 1, seed: k });
+      }
+    }
+  }
+  // Monuments are always kept (they are few and large).
+  for (const m of landmarks)
+    out.push({
+      b: { kind: m.kind as BuildingKind, lat: m.lat, lon: m.lon, heading: Math.PI, scale: m.scale, seed: 0 },
+      d: 0,
+    });
+  out.sort((a, b) => a.d - b.d);
+  return out.slice(0, max).map((x) => x.b);
 }

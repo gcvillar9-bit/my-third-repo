@@ -17,3 +17,26 @@ export function sampleClimate(
   const d = map.data;
   return { kind: d[k], tempC: d[k + 1] - 60, moisture: d[k + 2] / 255, elevM: (d[k + 3] - 128) * 40 };
 }
+
+/** The nearest land cell within `maxCells` of a point (rings outward), or null. */
+export function sampleClimateLand(
+  map: { width: number; height: number; data: Uint8Array },
+  latDeg: number,
+  lonDeg: number,
+  maxCells = 2,
+): { kind: number; tempC: number; moisture: number; elevM: number } | null {
+  const x0 = Math.floor(((lonDeg + 180) / 360) * map.width);
+  const y0 = Math.min(map.height - 1, Math.max(0, Math.floor(((latDeg + 90) / 180) * map.height)));
+  for (let r = 1; r <= maxCells; r++)
+    for (let dy = -r; dy <= r; dy++)
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        const y = Math.min(map.height - 1, Math.max(0, y0 + dy));
+        const x = (((x0 + dx) % map.width) + map.width) % map.width;
+        const k = (y * map.width + x) * 4;
+        const d = map.data;
+        if (d[k] === 1)
+          return { kind: 1, tempC: d[k + 1] - 60, moisture: d[k + 2] / 255, elevM: (d[k + 3] - 128) * 40 };
+      }
+  return null;
+}

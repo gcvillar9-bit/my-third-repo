@@ -197,6 +197,12 @@ describe('labels', () => {
     expect(occluded(vec3(0, 0, -100), occ, 'moon')).toBe(false);
   });
 
+  it('ground-level labels: a camera inside an occluder sphere is never hidden by it', () => {
+    // Standing on an oblate body at mid latitude: the camera is inside the body's sphere.
+    const occ = [{ id: 'earth', c: vec3(0, 0, -6.36e6), r: 6.378e6 }];
+    expect(occluded(vec3(0, 50, -300), occ, 'animal')).toBe(false);
+  });
+
   it('body priority: planets above moons above minor bodies', () => {
     const planet = bodyPriority(body('mars', 'Mars', 'planet', 3.4e6));
     const moon = bodyPriority(body('titan', 'Titan', 'moon', 2.6e6));

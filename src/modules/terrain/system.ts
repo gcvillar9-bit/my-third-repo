@@ -154,7 +154,9 @@ export class TerrainSystem {
           JSON.stringify(spec.params) === JSON.stringify(m.spec.params))
       )
         continue;
-      m.reset(spec);
+      // Same height module, new parameters (HD block): swap tiles in place; else start over.
+      if (spec.workerModule === m.spec.workerModule) m.softReset(spec);
+      else m.reset(spec);
       void this.loadFn(m);
     }
   }

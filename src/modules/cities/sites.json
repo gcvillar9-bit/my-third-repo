@@ -1,0 +1,76 @@
+{
+  "about": "Bookmarks of the cities module. Walk-mode views stand at (lat, lon) facing the target (a monument or the city centre) at local midday on the given historical year (negative = BC); 'orbit' views look down on the target from altitudeKm. Coordinates WGS84 (modern; cities are within the last 10 000 years).",
+  "sites": [
+    {
+      "id": "city-giza-2450bc",
+      "title": "Giza, 2450 BC: the pyramids of Khufu, Khafre and Menkaure",
+      "year": -2450,
+      "lat": 29.9712,
+      "lon": 31.1405,
+      "targetLat": 29.9775,
+      "targetLon": 31.1325,
+      "mode": "walk"
+    },
+    {
+      "id": "city-babylon-570bc",
+      "title": "Babylon, 570 BC: the ziggurat Etemenanki in Nebuchadnezzar's city",
+      "year": -570,
+      "lat": 32.5325,
+      "lon": 44.421291,
+      "targetLat": 32.5363,
+      "targetLon": 44.421291,
+      "mode": "walk"
+    },
+    {
+      "id": "city-rome-117ad",
+      "title": "Rome, AD 117: a city of about a million under Trajan",
+      "year": 117,
+      "lat": 41.8895,
+      "lon": 12.486146,
+      "targetLat": 41.8925,
+      "targetLon": 12.486146,
+      "mode": "walk"
+    },
+    {
+      "id": "city-tenochtitlan-1500",
+      "title": "Tenochtitlan, 1500: the Templo Mayor of the Aztec capital",
+      "year": 1500,
+      "lat": 19.4322,
+      "lon": -99.131993,
+      "targetLat": 19.4352,
+      "targetLon": -99.131993,
+      "mode": "walk"
+    },
+    {
+      "id": "city-paris-1350",
+      "title": "Paris, 1350: Notre-Dame over the medieval city",
+      "year": 1350,
+      "lat": 48.8504,
+      "lon": 2.348647,
+      "targetLat": 48.853,
+      "targetLon": 2.348647,
+      "mode": "walk"
+    },
+    {
+      "id": "city-newyork-1935",
+      "title": "New York, 1935: Midtown towers and the Empire State Building",
+      "year": 1935,
+      "lat": 40.7425,
+      "lon": -73.988989,
+      "targetLat": 40.7484,
+      "targetLon": -73.988989,
+      "mode": "walk"
+    },
+    {
+      "id": "city-labels-117ad",
+      "title": "The Mediterranean world in AD 117: cities and their populations",
+      "year": 117,
+      "lat": 36,
+      "lon": 22,
+      "targetLat": 36,
+      "targetLon": 22,
+      "altitudeKm": 3500,
+      "mode": "orbit"
+    }
+  ]
+}

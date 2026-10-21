@@ -10,6 +10,7 @@ import { NOISE_GLSL } from '../../render/chunks/index';
 import { ATMOSPHERE_TRANSMITTANCE_GLSL, type ShadingAtmosphereUniforms } from '../atmosphere/public';
 import { CITY_LUMINANCE } from '../solar-system/public';
 import { cityLightFraction, yearOfJd } from './city-lights';
+import { createHdUniforms } from './hd-imagery';
 import earthCommonGlsl from './glsl/earth-common.glsl?raw';
 import shadingGlsl from './glsl/shading-earth.glsl?raw';
 import type { EarthTextures } from './textures';
@@ -65,6 +66,8 @@ export interface EarthShadingDeps {
   shared: Record<string, IUniform>;
   atmosphere: ShadingAtmosphereUniforms;
   waves: Texture;
+  /** HD imagery near the ground (optional). */
+  hd?: { uniforms: Record<string, IUniform>; update(view: ViewState, frame: string): void };
 }
 
 export function createEarthShading(deps: EarthShadingDeps): SurfaceShading {
@@ -73,6 +76,7 @@ export function createEarthShading(deps: EarthShadingDeps): SurfaceShading {
     ...textures.uniforms,
     ...shared,
     ...deps.atmosphere,
+    ...(deps.hd?.uniforms ?? createHdUniforms()),
     uEarthWaves: { value: deps.waves },
     uEarthCityLuminance: { value: CITY_LUMINANCE },
     uEarthTime: { value: 0 },
@@ -92,6 +96,7 @@ export function createEarthShading(deps: EarthShadingDeps): SurfaceShading {
       setWorldToBody(shared.uEarthWorldToBody.value as Matrix3, q);
       uniforms.uEarthTime.value = view.timeReal;
       uniforms.uEarthCityLuminance.value = CITY_LUMINANCE * cityLightFraction(yearOfJd(view.jd));
+      deps.hd?.update(view, body.fixedFrame ?? body.frame);
     },
   };
 }

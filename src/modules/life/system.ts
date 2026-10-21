@@ -30,42 +30,87 @@ import {
   requestAtmosphereLuts,
   siteDirection,
 } from '../atmosphere/public';
-import { paleoClimate, sampleClimate, type ClimateMap } from '../paleo/public';
+import { paleoClimate, sampleClimate, sampleClimateLand, type ClimateMap } from '../paleo/public';
 import { terrainHeightAt } from '../terrain/public';
 import { featuredHerds } from './bookmarks';
+import { ACTIVE_ALTITUDE_M } from './constants';
 import type { Candidate, Occurrences } from './ecology';
 import fragGlsl from './glsl/life.frag.glsl?raw';
 import vertGlsl from './glsl/life.vert.glsl?raw';
 import { buildCreature } from './kit/creatures';
 import { MODELS, type Gait } from './kit/models';
+import { BUILDINGS, buildBuilding, type BuildingKind } from './kit/buildings';
 import { PLANTS, buildPlant, type PlantKind } from './kit/plants';
 import {
   M_PER_DEG,
+  buildingsAround,
   herdsAround,
+  townAt,
   localEN,
   memberAt,
   plantsAround,
   type Climate,
   type Herd,
   type LifeLimits,
+  type Building,
   type Plant,
+  type Town,
+  type TownOf,
 } from './population';
+import { citiesLoaded, loadCities, monumentsNear, settlementsNear, yearOfJd } from '../cities/public';
 
-export const LIFE_MODULE_ID = 'life';
 export const OCCURRENCES_PATH = 'data/life/occurrences.json';
-/** The scene is filled below this altitude above the ground, m. */
-export const ACTIVE_ALTITUDE_M = 3000;
 /** The anchor snaps to this grid (degrees, about 220 m). */
 const ANCHOR_DEG = 0.002;
 /** Plants are re-picked when the camera moves this far, m. */
 const REPICK_M = 12;
 
 export const LIMITS: Record<string, LifeLimits> = {
-  potato: { treeRadius: 160, tuftRadius: 45, herdRadius: 360, maxPlants: 900, maxCreatures: 50 },
-  low: { treeRadius: 250, tuftRadius: 70, herdRadius: 480, maxPlants: 2000, maxCreatures: 90 },
-  medium: { treeRadius: 400, tuftRadius: 110, herdRadius: 700, maxPlants: 4500, maxCreatures: 160 },
-  high: { treeRadius: 600, tuftRadius: 150, herdRadius: 900, maxPlants: 8000, maxCreatures: 240 },
-  ultra: { treeRadius: 800, tuftRadius: 200, herdRadius: 1100, maxPlants: 12000, maxCreatures: 320 },
+  potato: {
+    treeRadius: 160,
+    tuftRadius: 45,
+    herdRadius: 360,
+    maxPlants: 900,
+    maxCreatures: 50,
+    buildingRadius: 450,
+    maxBuildings: 500,
+  },
+  low: {
+    treeRadius: 250,
+    tuftRadius: 70,
+    herdRadius: 480,
+    maxPlants: 2000,
+    maxCreatures: 90,
+    buildingRadius: 700,
+    maxBuildings: 1200,
+  },
+  medium: {
+    treeRadius: 400,
+    tuftRadius: 110,
+    herdRadius: 700,
+    maxPlants: 4500,
+    maxCreatures: 160,
+    buildingRadius: 1100,
+    maxBuildings: 3000,
+  },
+  high: {
+    treeRadius: 600,
+    tuftRadius: 150,
+    herdRadius: 900,
+    maxPlants: 8000,
+    maxCreatures: 240,
+    buildingRadius: 1600,
+    maxBuildings: 6000,
+  },
+  ultra: {
+    treeRadius: 800,
+    tuftRadius: 200,
+    herdRadius: 1100,
+    maxPlants: 12000,
+    maxCreatures: 320,
+    buildingRadius: 2200,
+    maxBuildings: 10000,
+  },
 };
 
 const GAIT_KIND: Record<Gait['kind'], number> = { walk: 0, biped: 1, upright: 2, fly: 3 };
@@ -111,11 +156,16 @@ export class LifeSystem {
   private pickLon = NaN;
   private pickEra = -1;
   private plants: Plant[] = [];
+  private buildings: Building[] = [];
+  /** Seated building positions by kind and place (buildingsAround returns new objects per pick). */
+  private buildingPos = new Map<string, Vec3d>();
   private herds: Herd[] = [];
   /** Ground height cache per plant (by object). */
   private plantPos = new WeakMap<Plant, Vec3d>();
   private labelsOut: LabelItem[] = [];
   private era = -1;
+  private townsReady = false;
+  private pickTime = -Infinity;
   private ageMa = 0;
   active = false;
   private tmp = { e: 0, n: 0, ve: 0, vn: 0 };
@@ -204,6 +254,13 @@ export class LifeSystem {
         gait: new Vector4(m.gait.swing, m.gait.knee, GAIT_KIND[m.gait.kind], 0),
         height: b.bounds().height,
       };
+    });
+  }
+
+  private buildingSet(kind: BuildingKind): InstanceSet {
+    return this.set(`b:${kind}`, () => {
+      const b = buildBuilding(kind, 3);
+      return { geo: b.build(), gait: new Vector4(0, 0, 4, 0), height: b.bounds().height };
     });
   }
 
@@ -329,13 +386,39 @@ export class LifeSystem {
     }
     const lim = LIMITS[view.quality] ?? LIMITS.medium;
     const map = this.climate;
-    const climate: Climate = { at: (la, lo) => sampleClimate(map, la, lo) };
+    const climate: Climate = { at: (la, lo) => this.climateAt(map, la, lo) };
     const [de, dn] = localEN(this.pickLat || lat, this.pickLon || lon, lat, lon);
-    if (reanchored || this.pickEra !== era || Math.hypot(de, dn) > REPICK_M) {
+    // Towns load lazily: pick again once they are known.
+    loadCities();
+    const towns = citiesLoaded();
+    if (towns !== this.townsReady) {
+      this.townsReady = towns;
+      this.pickEra = -1;
+      this.plantCache.clear();
+      this.herdCache.clear();
+    }
+    const moved = Math.hypot(de, dn);
+    // At most five picks a second while moving (fast low flight), unless the camera jumped far.
+    const due = view.timeReal - this.pickTime > 0.2 || moved > 20 * REPICK_M;
+    if (reanchored || this.pickEra !== era || (moved > REPICK_M && due)) {
+      this.pickTime = view.timeReal;
       this.pickLat = lat;
       this.pickLon = lon;
       this.pickEra = era;
-      this.plants = plantsAround(lat, lon, era, this.ageMa, climate, lim, this.plantCache);
+      // Towns of the date (cities module) for buildings, streets and farmland.
+      const towns: Town[] = settlementsNear(lat, lon, view.jd, lim.herdRadius + 500);
+      const townOf: TownOf = (la, lo) => townAt(towns, la, lo);
+      const year = yearOfJd(view.jd);
+      this.buildings = buildingsAround(
+        lat,
+        lon,
+        towns,
+        monumentsNear(lat, lon, view.jd, lim.buildingRadius * 4),
+        year,
+        lim.buildingRadius,
+        lim.maxBuildings,
+      );
+      this.plants = plantsAround(lat, lon, era, this.ageMa, climate, lim, this.plantCache, townOf);
       this.herds = herdsAround(
         lat,
         lon,
@@ -348,12 +431,39 @@ export class LifeSystem {
         this.candCache,
         this.featured,
         eraKey,
+        townOf,
       );
       this.fillPlants();
+      this.fillBuildings();
     }
     this.moveCreatures(view, lim);
     this.updateUniforms(view);
     this.group.visible = true;
+  }
+
+  /**
+   * Climate at a point. Today's continents (since 2.6 Ma) follow the terrain, which knows the real
+   * coast: land the 0.5 degree map calls sea takes the nearest land cell's climate, and ground at sea
+   * level is water. In deep time the paleo map decides (the painted land).
+   */
+  private climateAt(map: ClimateMap, la: number, lo: number) {
+    const c = sampleClimate(map, la, lo);
+    if (!map.modern) return c;
+    const h = terrainHeightAt('earth', siteDirection(la, lo));
+    if (h === null) return c;
+    const ground = h - this.seaLevelHeight(la, lo);
+    if (c.kind === 0 && ground > 1) return sampleClimateLand(map, la, lo) ?? { ...c, kind: 1, moisture: 0.4 };
+    if (c.kind === 1 && ground < 0.2) return { ...c, kind: 0 };
+    return c;
+  }
+
+  /** Terrain height of the sea surface at a point: heightAt is above the equatorial radius. */
+  private seaLevelHeight(la: number, lo: number): number {
+    const d = siteDirection(la, lo);
+    const a = this.earthRadius();
+    const f = this.ctx.registry.body('earth')?.oblateness ?? 0;
+    const c = a * (1 - f);
+    return 1 / Math.sqrt((d.x * d.x + d.y * d.y) / (a * a) + (d.z * d.z) / (c * c)) - a;
   }
 
   private fillPlants(): void {
@@ -392,6 +502,75 @@ export class LifeSystem {
         mo[n * 4 + 1] = 0;
         mo[n * 4 + 2] = 0;
         mo[n * 4 + 3] = -0.05 * p.scale; // sink the base a little on slopes
+        n++;
+      }
+      s.count = n;
+      s.geo.instanceCount = n;
+      s.pos.needsUpdate = true;
+      s.frame.needsUpdate = true;
+      s.motion.needsUpdate = true;
+    }
+  }
+
+  private fillBuildings(): void {
+    const byKind = new Map<BuildingKind, Building[]>();
+    for (const b of this.buildings) {
+      let l = byKind.get(b.kind);
+      if (!l) byKind.set(b.kind, (l = []));
+      l.push(b);
+    }
+    for (const [key, s] of this.sets)
+      if (key.startsWith('b:') && !byKind.has(key.slice(2) as BuildingKind))
+        s.geo.instanceCount = s.count = 0;
+    const p0 = vec3();
+    for (const [kind, list] of byKind) {
+      const s = this.buildingSet(kind);
+      this.ensure(s, list.length);
+      const pos = s.pos.array as Float32Array;
+      const fr = s.frame.array as Float32Array;
+      const mo = s.motion.array as Float32Array;
+      const half = BUILDINGS[kind].half;
+      let n = 0;
+      for (const b of list) {
+        const key = `${b.kind}:${b.lat.toFixed(7)}:${b.lon.toFixed(7)}:${b.scale.toFixed(3)}`;
+        let g = this.buildingPos.get(key);
+        if (!g) {
+          // Seat on the lowest corner so slopes do not leave the building floating.
+          const at = this.ground(b.lat, b.lon, p0);
+          if (!at) continue;
+          g = vec3(at.x, at.y, at.z);
+          const r0 = Math.hypot(g.x, g.y, g.z);
+          let low = 0;
+          const cosLat = Math.cos((b.lat * Math.PI) / 180);
+          for (const [e, nn] of [
+            [half[1], half[0]],
+            [-half[1], half[0]],
+            [half[1], -half[0]],
+            [-half[1], -half[0]],
+          ]) {
+            const c = this.ground(
+              b.lat + (nn * b.scale) / M_PER_DEG,
+              b.lon + (e * b.scale) / (M_PER_DEG * cosLat),
+              vec3(),
+            );
+            if (c) low = Math.min(low, Math.hypot(c.x, c.y, c.z) - r0);
+          }
+          const k = (r0 + low) / r0;
+          g = vec3(g.x * k, g.y * k, g.z * k);
+          if (this.buildingPos.size > 20_000) this.buildingPos.clear();
+          this.buildingPos.set(key, g);
+        }
+        pos[n * 3] = g.x - this.anchor.x;
+        pos[n * 3 + 1] = g.y - this.anchor.y;
+        pos[n * 3 + 2] = g.z - this.anchor.z;
+        fr[n * 4] = Math.cos(b.heading);
+        fr[n * 4 + 1] = Math.sin(b.heading);
+        fr[n * 4 + 2] = b.scale;
+        fr[n * 4 + 3] = 0.5;
+        mo[n * 4] = 0;
+        mo[n * 4 + 1] = 0;
+        mo[n * 4 + 2] = 0;
+        mo[n * 4 + 3] = 0;
         n++;
       }
       s.count = n;
@@ -505,17 +684,23 @@ export class LifeSystem {
   }
 
   /** Species shown now (tests, captions). */
-  shown(): { plants: Record<string, number>; creatures: Record<string, number> } {
+  shown(): {
+    plants: Record<string, number>;
+    creatures: Record<string, number>;
+    buildings: Record<string, number>;
+  } {
     const plants: Record<string, number> = {};
     const creatures: Record<string, number> = {};
+    const buildings: Record<string, number> = {};
     for (const [key, s] of this.sets) {
       if (!s.count) continue;
       if (key.startsWith('p:')) plants[key.slice(2)] = s.count;
+      else if (key.startsWith('b:')) buildings[key.slice(2)] = s.count;
       else creatures[key.slice(2)] = s.count;
     }
     for (const h of this.herds)
       creatures[`species:${h.species.id}`] = (creatures[`species:${h.species.id}`] ?? 0) + h.members.length;
-    return { plants, creatures };
+    return { plants, creatures, buildings };
   }
 
   /** Diagnostics (tests). */
