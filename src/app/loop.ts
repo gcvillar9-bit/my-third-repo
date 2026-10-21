@@ -35,12 +35,20 @@ interface SurfaceSlot {
 /**
  * Per body with a SurfaceShading: activates the highest-priority geometry provider that wants
  * it. Renderables are built lazily, registered through the registry and hidden while inactive.
+ * While a newly active provider's renderable is still warming up (its shaders link in the
+ * background, `ready`), the provider shown before keeps drawing so the body never blinks out;
+ * both are updated meanwhile.
  */
 export class SurfaceManager {
   private slots = new Map<string, SurfaceSlot>();
+  /** Provider drawn last frame per body. */
+  private shown = new Map<string, string>();
   readonly inactive = new Set<string>();
 
-  constructor(private readonly registry: RegistryImpl) {}
+  constructor(
+    private readonly registry: RegistryImpl,
+    private readonly ready: (renderableId: string) => boolean = () => true,
+  ) {}
 
   update(view: ViewState): SurfaceShading[] {
     const shadings: SurfaceShading[] = [];
@@ -50,22 +58,31 @@ export class SurfaceManager {
       const shading = this.registry.surfaceShading(body.id);
       if (!shading) continue;
       shadings.push(shading);
-      const active = providers.find(
-        (p) => (p.bodyId === '*' || p.bodyId === body.id) && safeWants(p, view, body),
-      );
-      for (const p of providers) {
-        if (p.bodyId !== '*' && p.bodyId !== body.id) continue;
-        const key = `${p.id}:${body.id}`;
-        let slot = this.slots.get(key);
-        if (p === active && (!slot || slot.shading !== shading)) {
+      const mine = providers.filter((p) => p.bodyId === '*' || p.bodyId === body.id);
+      const active = mine.find((p) => safeWants(p, view, body));
+      if (active) {
+        const key = `${active.id}:${body.id}`;
+        const slot = this.slots.get(key);
+        if (!slot || slot.shading !== shading) {
           if (slot) this.registry.removeRenderable(slot.renderable.id);
-          slot = { provider: p, shading, renderable: p.build(body, shading) };
-          this.slots.set(key, slot);
-          this.registry.addRenderable(slot.renderable);
+          const next = { provider: active, shading, renderable: active.build(body, shading) };
+          this.slots.set(key, next);
+          this.registry.addRenderable(next.renderable);
         }
+      }
+      let drawn = active;
+      const prev = this.shown.get(body.id);
+      if (active && prev !== undefined && prev !== active.id && this.slots.has(`${prev}:${body.id}`)) {
+        const warming = !this.ready(this.slots.get(`${active.id}:${body.id}`)!.renderable.id);
+        if (warming) drawn = mine.find((p) => p.id === prev) ?? active;
+      }
+      if (drawn) this.shown.set(body.id, drawn.id);
+      else this.shown.delete(body.id);
+      for (const p of mine) {
+        const slot = this.slots.get(`${p.id}:${body.id}`);
         if (!slot) continue;
-        slot.renderable.object.visible = p === active;
-        if (p === active) this.inactive.delete(slot.renderable.id);
+        slot.renderable.object.visible = p === drawn;
+        if (p === drawn || p === active) this.inactive.delete(slot.renderable.id);
         else this.inactive.add(slot.renderable.id);
       }
     }
@@ -103,7 +120,7 @@ export class Loop {
   readonly surfaces: SurfaceManager;
 
   constructor(private readonly d: LoopDeps) {
-    this.surfaces = new SurfaceManager(d.registry);
+    this.surfaces = new SurfaceManager(d.registry, (id) => d.render.isReady(id));
   }
 
   private fail(id: string, e: unknown): void {
