@@ -13,6 +13,7 @@ import {
   temperatureC,
 } from '../../../src/modules/paleo/biome';
 import { middayNear, onFoldedDay } from '../../../src/modules/paleo/bookmarks';
+import { bakeZonalClouds, gnoise } from '../../../src/modules/paleo/zonal-clouds';
 import {
   bracketAges,
   gmstAt,
@@ -190,7 +191,7 @@ describe('paleo shading and bookmarks', () => {
       defines: { SURFACE_DETAIL_MASK: 1 },
       update: () => {},
     };
-    const ctl = new PaleoController({} as never, base.uniforms.uEarthCloudZonal);
+    const ctl = new PaleoController({} as never, base.uniforms);
     const s = createPaleoShading(base, ctl);
     expect(s.priority).toBe(PALEO_PRIORITY);
     expect(s.defines).toMatchObject({ EARTH_PALEO: 1, SURFACE_DETAIL_MASK: 1 });
@@ -205,7 +206,7 @@ describe('paleo shading and bookmarks', () => {
 
   it('stays idle (today’s look) in the present and the recent past', () => {
     const zonal = { value: 0.5 };
-    const ctl = new PaleoController({} as never, zonal);
+    const ctl = new PaleoController({} as never, { uEarthCloudZonal: zonal });
     ctl.update(JD_J2000 + 26 * 365.25);
     expect(ctl.uniforms.uPaleoMix.value).toBe(0);
     expect(ctl.uniforms.uPaleoSeaDrop.value).toBe(0);
@@ -221,6 +222,26 @@ describe('paleo shading and bookmarks', () => {
     // Midday search finds the maximum of a smooth daily curve.
     const noon = middayNear((t) => Math.cos(2 * Math.PI * (t - 0.3)), 0);
     expect(noon).toBeCloseTo(0.3, 2);
+  });
+
+  it('bakes zonal clouds: cloudy equator and storm tracks, clear subtropics', () => {
+    const w = 256;
+    const h = 128;
+    const map = bakeZonalClouds(w, h);
+    const band = (lat: number) => {
+      const y = Math.floor(((lat + 90) / 180) * h);
+      let s = 0;
+      for (let x = 0; x < w; x++) s += map[y * w + x] + map[(h - 1 - y) * w + x];
+      return s / (2 * w * 255);
+    };
+    expect(band(0.5)).toBeGreaterThan(band(24) + 0.25);
+    expect(band(55)).toBeGreaterThan(band(24) + 0.25);
+    expect(band(24)).toBeLessThan(0.2);
+    // The noise is gnoise from noise.glsl: zero on lattice points, bounded, not constant.
+    expect(gnoise(3, 4, 5)).toBe(0);
+    const v = [0.3, 1.7, 2.2, 5.9].map((t) => gnoise(t, 0.5 * t, 1.3 * t));
+    for (const x of v) expect(Math.abs(x)).toBeLessThanOrEqual(1.6);
+    expect(new Set(v).size).toBe(4);
   });
 
   it('samples fields bilinearly with longitude wrap', () => {

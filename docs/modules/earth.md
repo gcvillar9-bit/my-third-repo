@@ -78,5 +78,8 @@ above and day right brighter than night left; warm city lights over Europe; limb
   ocean) and `earthPaleoWater` (used by `surfaceDetailMask`) under `#ifdef EARTH_PALEO`. The paleo module's
   priority-20 wrapper defines them and sets the define; without it the shading is unchanged.
 - `uEarthCloudZonal` (shared uniform, default 0): `earthCloudDensity` mixes today's cloud map with
-  `earthZonalClouds` (equatorial convergence, clear subtropics, storm tracks, continental-scale noise) by this weight,
-  so the cloud shell and the ground cloud shadows stay consistent in deep time. See docs/modules/paleo.md.
+  `uEarthCloudZonalMap` (shared R8 map of equatorial convergence, clear subtropics, storm tracks and
+  continental-scale noise, baked once by the paleo module; a 1 x 1 placeholder until then) by this weight, so the
+  cloud shell and the ground cloud shadows stay consistent in deep time. It is a texture lookup because the same
+  noise evaluated per pixel cost about 15% of present-day Earth frame time on SwiftShader, even behind the
+  uniform branch. See docs/modules/paleo.md.

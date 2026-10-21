@@ -15,7 +15,9 @@ before land plants). Cross-module API: `src/modules/paleo/public.ts`. Depends on
   `earthPaleoWater` in `surfaceDetailMask`); without the define it is exactly today's Earth.
 - Clouds: `uEarthCloudZonal` (earth-common.glsl, shared by the shading and the cloud shell) fades today's cloud map
   into zonal weather bands (equatorial convergence, clear subtropics, storm tracks) as the synthetic surface takes
-  over, so clouds no longer trace today's continents.
+  over, so clouds no longer trace today's continents. The bands are baked once by the worker
+  (`zonal-clouds.ts`, a port of `gnoise`) into `uEarthCloudZonalMap` (1024×512 R8) before the first bake: one
+  lookup per pixel instead of noise, so present-day Earth costs the same as before this module.
 - City lights fade out before electric lighting in the earth module itself (`earth/city-lights.ts`).
 
 ## Looks by age (`climate.ts` `regimeAt`, years before 1950)

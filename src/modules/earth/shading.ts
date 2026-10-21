@@ -3,7 +3,7 @@
  * SurfaceInput (sphere now, terrain later): everything it needs beyond SurfaceInput comes from its
  * own uniforms (prefixed uEarth*) and the atmosphere's shared transmittance uniforms (uAtmo*).
  */
-import { Matrix3, type IUniform, type Texture } from 'three';
+import { DataTexture, Matrix3, RGBAFormat, type IUniform, type Texture } from 'three';
 import type { Body, Quatd, SurfaceShading, ViewState } from '../../core/contracts';
 import { quat, v3len, vec3 } from '../../core/math64';
 import { NOISE_GLSL } from '../../render/chunks/index';
@@ -22,6 +22,9 @@ export const POINT_MAX_PX = 1.5;
 /** Shared GLSL prelude of the shading and the cloud shell. */
 export const EARTH_PRELUDE = `${NOISE_GLSL}\n${ATMOSPHERE_TRANSMITTANCE_GLSL}\n${earthCommonGlsl}\n`;
 
+const ZONAL_PLACEHOLDER = new DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1, RGBAFormat);
+ZONAL_PLACEHOLDER.needsUpdate = true;
+
 /** Uniforms shared (by reference) by the shading and the cloud shell. */
 export function createEarthUniforms(body: Body): Record<string, IUniform> {
   return {
@@ -29,6 +32,8 @@ export function createEarthUniforms(body: Body): Record<string, IUniform> {
     uEarthRadiusKm: { value: body.radius / 1000 },
     uEarthCloudAltKm: { value: CLOUD_ALTITUDE_M / 1000 },
     uEarthCloudZonal: { value: 0 },
+    // Filled by the paleo module before uEarthCloudZonal leaves 0.
+    uEarthCloudZonalMap: { value: ZONAL_PLACEHOLDER },
   };
 }
 

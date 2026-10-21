@@ -1,13 +1,15 @@
 /**
  * Paleo bake worker (comlink): fetches and decodes PaleoDEM maps, derives their fields (cached, a few
  * maps), fits the moisture model to today's Earth once, and bakes the synthetic surface for a pair
- * of maps and a blend weight. Returns RGBA8 rows from the south (transferred).
+ * of maps and a blend weight. Returns RGBA8 rows from the south (transferred). Also bakes the zonal
+ * cloud map once (zonal-clouds.ts).
  */
 import { expose, transfer } from 'comlink';
 import { decode } from 'fast-png';
 import { bakeSurface, fitMoisture, paletteFrom, type Palette } from './biome';
 import type { BiomeRow, Vegetation } from './climate';
 import { sliceFields, type SliceFields } from './fields';
+import { bakeZonalClouds } from './zonal-clouds';
 
 export interface PaleoBakeConfig {
   /** URL of a map with '{age}' for the zero-padded age, e.g. '/my-third-repo/data/paleo/dem/{age}.png'. */
@@ -32,6 +34,8 @@ export interface PaleoBakeRequest {
 export interface PaleoBakeApi {
   init(cfg: PaleoBakeConfig): Promise<void>;
   bake(req: PaleoBakeRequest): Promise<Uint8Array>;
+  /** R8 zonal cloud cover, rows from the south. */
+  clouds(width: number, height: number): Promise<Uint8Array>;
 }
 
 const CACHE = 6;
@@ -84,6 +88,10 @@ const api: PaleoBakeApi = {
       width: cfg.width,
       height: cfg.height,
     });
+    return transfer(out, [out.buffer]);
+  },
+  async clouds(width, height) {
+    const out = bakeZonalClouds(width, height);
     return transfer(out, [out.buffer]);
   },
 };

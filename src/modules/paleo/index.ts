@@ -37,7 +37,7 @@ const paleo: UniverseModule = {
       console.warn('[paleo] earth shading (priority 10) not found; deep-time surface disabled');
       return;
     }
-    controller = new PaleoController(ctx, base.uniforms.uEarthCloudZonal);
+    controller = new PaleoController(ctx, base.uniforms);
     registry.setSurfaceShading(createPaleoShading(base, controller));
     registry.addValidity(PALEO_VALIDITY);
     registry.addBookmarks(buildPaleoBookmarks(ctx.frames, earth.radius, earth.fixedFrame ?? 'earth.fixed'));

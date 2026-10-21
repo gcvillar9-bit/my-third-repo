@@ -19,6 +19,7 @@ import {
   NoColorSpace,
   RGBAFormat,
   RGFormat,
+  RedFormat,
   RepeatWrapping,
   SRGBColorSpace,
   UnsignedByteType,
@@ -51,6 +52,9 @@ export const PALEO_PRIORITY = 20;
 export const INDEX_PATH = 'data/paleo/index.json';
 export const BAKE_W = 1024;
 export const BAKE_H = 512;
+/** Zonal cloud map (R8); 0.35 deg texels resolve the finest noise octave (about 1.4 deg). */
+export const CLOUDS_W = 1024;
+export const CLOUDS_H = 512;
 /** Blend weights between two maps are baked in these steps. */
 const BLEND_STEPS = 16;
 
@@ -95,14 +99,25 @@ export class PaleoController {
   private budget: BudgetEntry[] = [];
   private wanted: { key: string; req: PaleoBakeRequest } | null = null;
   private bakedKey = '';
+  private clouds: Promise<void> | null = null;
+  private cloudTexture: DataTexture | null = null;
   private baking = false;
   private failed = false;
 
-  /** `cloudZonal` is the earth module's shared uEarthCloudZonal uniform (cloud shell and shading). */
+  private cloudZonal: IUniform | undefined;
+  private cloudMap: IUniform | undefined;
+
+  /**
+   * `earth` holds the earth module's uniforms shared by its shading and cloud shell: uEarthCloudZonal (the
+   * fade to zonal clouds) and uEarthCloudZonalMap (filled before the first bake).
+   */
   constructor(
     private ctx: Ctx,
-    private cloudZonal: IUniform | undefined,
-  ) {}
+    earth: Record<string, IUniform> = {},
+  ) {
+    this.cloudZonal = earth.uEarthCloudZonal;
+    this.cloudMap = earth.uEarthCloudZonalMap;
+  }
 
   /** Look for the instant (JD TT); called every frame by the wrapper. */
   update(jd: number): void {
@@ -235,6 +250,7 @@ export class PaleoController {
     const job = this.wanted!;
     this.baking = true;
     const done = this.ensureWorker()
+      .then(() => this.ensureClouds())
       .then(() => this.worker!.call('bake', job.req))
       .then((rgba) => {
         this.upload(rgba);
@@ -246,6 +262,29 @@ export class PaleoController {
         if (!this.failed && this.wanted && this.wanted.key !== this.bakedKey) this.bake();
       });
     this.ctx.assets.track(done, 'paleo bake');
+  }
+
+  private ensureClouds(): Promise<void> {
+    if (!this.clouds) {
+      this.clouds = this.cloudMap
+        ? this.worker!.call('clouds', CLOUDS_W, CLOUDS_H).then((r8) => {
+            const t = new DataTexture(r8, CLOUDS_W, CLOUDS_H, RedFormat, UnsignedByteType);
+            t.colorSpace = NoColorSpace;
+            t.minFilter = LinearMipmapLinearFilter;
+            t.magFilter = LinearFilter;
+            t.generateMipmaps = true;
+            t.wrapS = RepeatWrapping;
+            t.wrapT = ClampToEdgeWrapping;
+            t.needsUpdate = true;
+            this.cloudTexture = t;
+            this.cloudMap!.value = t;
+            this.budget.push(
+              this.ctx.budget.alloc(PALEO_MODULE_ID, 'zonal clouds', (CLOUDS_W * CLOUDS_H * 4) / 3),
+            );
+          })
+        : Promise.resolve();
+    }
+    return this.clouds;
   }
 
   private upload(rgba: Uint8Array): void {
@@ -275,6 +314,7 @@ export class PaleoController {
   dispose(): void {
     this.worker?.terminate();
     this.surface?.dispose();
+    this.cloudTexture?.dispose();
     (this.uniforms.uPaleoQuat.value as Texture).dispose();
     for (const b of this.budget) b.free();
   }
