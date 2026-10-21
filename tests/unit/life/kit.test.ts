@@ -167,6 +167,27 @@ describe('mesh builder winding', () => {
   });
 });
 
+describe('mesh builder blobs', () => {
+  it('keeps the poles of rough blobs at c.y ± r.y: a blob centred at its radius rests on the ground', () => {
+    for (const rough of [0, 0.3, 0.4])
+      for (const seed of [0, 1, 2, 3, 9])
+        for (const lat of [2, 3, 4]) {
+          const m = new MeshBuilder();
+          m.blob([0.3, 0.7, -0.2], [0.75, 0.7, 0.75], grey, still, { lat, lon: 5, rough, seed });
+          const { pos } = m.arrays();
+          let lo = Infinity;
+          let hi = -Infinity;
+          for (let i = 1; i < pos.length; i += 3) {
+            lo = Math.min(lo, pos[i]);
+            hi = Math.max(hi, pos[i]);
+          }
+          const label = `rough ${rough} seed ${seed} lat ${lat}`;
+          expect(lo, label).toBeCloseTo(0, 9);
+          expect(hi, label).toBeCloseTo(1.4, 9);
+        }
+  });
+});
+
 /** Primitive calls (outermost blob, loft or fan) made while building a model, by triangle range. */
 interface Call {
   kind: 'blob' | 'loft' | 'fan';

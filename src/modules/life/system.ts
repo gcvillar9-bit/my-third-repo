@@ -55,6 +55,7 @@ import {
   type Herd,
   type LifeLimits,
   type Building,
+  type Member,
   type Plant,
   type Town,
   type TownOf,
@@ -80,6 +81,24 @@ const LANDMARK_SPREAD_M = 100;
  * (the Empire State Building is about 4.7 km from New York's, the Forbidden City 930 m from Beijing's).
  */
 const MONUMENT_SPREAD_M = 5000;
+/** CPU time per frame for seating the scene again after the ground changed, ms. */
+const RESEAT_MS = 1;
+/** A new height function that moves no probe by this much leaves the seats alone, m. */
+const SEAT_EPS_M = 0.01;
+/** Seats probed against a new height function (besides the anchor). */
+const PROBES = 16;
+/**
+ * A median probe shift above this means the ground itself was replaced (the base Earth function by HD
+ * tiles after a jump: tens of metres apart), so the cached cells, whose modern coast test read the old
+ * heights, are rebuilt too, m. HD zoom steps (z10 to z12) move the median by 1-3 m (the noise below the
+ * tile pixel), and HD block moves by nothing near the camera.
+ */
+const RECELL_M = 10;
+/** Animals sample the ground again after walking this far from their last sample, m. */
+const STEP_M = 2;
+/** Baseline of an animal's slope samples (one east, one north), m. */
+const SLOPE_M = 1;
+const DEG = Math.PI / 180;
 
 export const LIMITS: Record<string, LifeLimits> = {
   potato: {
@@ -142,6 +161,30 @@ interface InstanceSet {
   /** Model height, m (labels). */
   height: number;
   bytes: number;
+}
+
+/** A seated plant or building: its ground point (body-fixed, m) and where the last fill drew it. */
+interface Seat extends Vec3d {
+  /** Terrain height at the object's own point when seated, m (probes compare against it). */
+  h: number;
+  /** Seat epoch it was computed in: stale when it is not the system's. */
+  epoch: number;
+  set: InstanceSet | null;
+  /** Instance index in `set`. */
+  i: number;
+}
+
+const seat = (): Seat => ({ x: 0, y: 0, z: 0, h: 0, epoch: -1, set: null, i: 0 });
+
+/** An animal's last ground sample: where (m east and north of its herd centre) and the ground plane there. */
+interface Footing {
+  e: number;
+  n: number;
+  /** Ground radius there, m, and its slope east and north (m per m). */
+  r: number;
+  sE: number;
+  sN: number;
+  epoch: number;
 }
 
 /** Era key: about 2.5% steps in age, so a scene stays put while the clock runs at everyday rates. */
@@ -209,7 +252,10 @@ export function orderHerds(herds: readonly Herd[], lat: number, lon: number): He
  * Climate at a point. Today's continents (since 2.6 Ma) follow the terrain, which knows the real coast:
  * land the 0.5 degree map calls sea takes the nearest land cell's climate, and ground at sea level is
  * water. Exposed shelves (the ice-age sea-level drop) stay land: the terrain has no bathymetry, so it
- * cannot tell the dry seabed from the sea. In deep time the paleo map decides (the painted land).
+ * cannot tell the dry seabed from the sea. Shelf cells are land, and so is every point paleo draws as bared
+ * seabed (`map.shelfAt`, per point like the surface shader): a land cell keeps its climate, a sea or
+ * sea-ice cell takes the nearest land cell's (iceAgeOverlay bares both alike); land ice stays ice. In deep
+ * time the paleo map decides (the painted land).
  * `aboveSea` is the ground height above sea level, m, or null before the terrain loads.
  */
 export function groundClimate(
@@ -220,6 +266,10 @@ export function groundClimate(
 ): { kind: number; tempC: number; moisture: number } {
   const c = sampleClimate(map, la, lo);
   if (!map.modern || c.kind === SURFACE.shelf) return c;
+  if (c.kind !== SURFACE.landIce && map.shelfAt?.(la, lo)) {
+    const land = c.kind === SURFACE.land ? c : sampleClimateLand(map, la, lo);
+    return { ...(land ?? { ...c, moisture: 0.4 }), kind: SURFACE.shelf };
+  }
   const ground = aboveSea(la, lo);
   if (ground === null) return c;
   if (c.kind === SURFACE.sea && ground > 1)
@@ -251,21 +301,41 @@ export class LifeSystem {
   private up = vec3();
   private pickLat = NaN;
   private pickLon = NaN;
+  /** Building radius of the last pick, m: only landmarks and monuments stand farther from its point. */
+  private houseM = 0;
   private pickEra = -1;
   /** Town date step (townYearKey) of the last pick. */
   private pickTown = NaN;
-  /** Terrain height generation the scene is seated on (terrainHeightGeneration). */
+  /** Terrain height generation last seen (terrainHeightGeneration). */
   private heightGen = 0;
+  /**
+   * Seat epoch: seats (plants, buildings, animals' ground samples) of another epoch are stale. It moves on
+   * when a new height function moved the ground under the scene (heightsChanged).
+   */
+  private seatEpoch = 0;
   private plants: Plant[] = [];
   private buildings: Building[] = [];
-  /** Seated building positions by kind and place (buildingsAround returns new objects per pick). */
-  private buildingPos = new Map<string, Vec3d>();
+  /** Seats by building kind and place (buildingsAround returns new objects per pick). */
+  private buildingPos = new Map<string, Seat>();
+  /** Seats of the current buildings by object (no key strings after the pick's fill). */
+  private buildingSeat = new WeakMap<Building, Seat>();
   /** Herds of the last pick in drawing order (orderHerds). */
   private herds: Herd[] = [];
   /** Members drawn this frame per species id (under the creature cap). */
   private drawn = new Map<string, number>();
-  /** Ground height cache per plant (by object). */
-  private plantPos = new WeakMap<Plant, Vec3d>();
+  /** Seats per plant (by object). */
+  private plantPos = new WeakMap<Plant, Seat>();
+  /** Stale plants and buildings of the current lists, nearest first, and how far `reseat` got in each. */
+  private plantQ: readonly Plant[] = [];
+  private plantQi = 0;
+  private buildingQ: readonly Building[] = [];
+  private buildingQi = 0;
+  /** Ground samples per animal. */
+  private feet = new WeakMap<Member, Footing>();
+  private shifts = new Float64Array(PROBES + 1);
+  /** Scratch: the direction of the last heightAt, and a ground point. */
+  private dir = vec3();
+  private p0 = vec3();
   private labelsOut: LabelItem[] = [];
   private era = -1;
   private townsReady = false;
@@ -302,16 +372,80 @@ export class LifeSystem {
     return this.ctx.registry.body('earth')?.radius ?? 6_378_137;
   }
 
+  /** Body-fixed unit direction of lat/lon into `this.dir` (siteDirection without allocating). */
+  private toDir(lat: number, lon: number): Vec3d {
+    const la = lat * DEG;
+    const lo = lon * DEG;
+    const d = this.dir;
+    d.x = Math.cos(la) * Math.cos(lo);
+    d.y = Math.cos(la) * Math.sin(lo);
+    d.z = Math.sin(la);
+    return d;
+  }
+
+  /** Terrain height under lat/lon (direction left in `this.dir`), or null before the heights load. */
+  private heightAt(lat: number, lon: number): number | null {
+    return terrainHeightAt('earth', this.toDir(lat, lon));
+  }
+
   /** Ground point (body-fixed, m) under lat/lon, or null before the terrain heights load. */
   private ground(lat: number, lon: number, out: Vec3d): Vec3d | null {
-    const d = siteDirection(lat, lon);
-    const h = terrainHeightAt('earth', d);
+    const h = this.heightAt(lat, lon);
     if (h === null) return null;
+    const d = this.dir;
     const r = this.earthRadius() + h;
     out.x = d.x * r;
     out.y = d.y * r;
     out.z = d.z * r;
     return out;
+  }
+
+  /** Seats a plant on the ground under it (one heightAt); false before the heights load. */
+  private seatPlant(p: Plant, g: Seat): boolean {
+    const h = this.heightAt(p.lat, p.lon);
+    if (h === null) return false;
+    const d = this.dir;
+    const r = this.earthRadius() + h;
+    g.x = d.x * r;
+    g.y = d.y * r;
+    g.z = d.z * r;
+    g.h = h;
+    g.epoch = this.seatEpoch;
+    return true;
+  }
+
+  /** Seats a building on its lowest corner, so slopes do not leave it floating (five heightAt). */
+  private seatBuilding(b: Building, g: Seat): boolean {
+    const h = this.heightAt(b.lat, b.lon);
+    if (h === null) return false;
+    const { x, y, z } = this.dir;
+    const half = BUILDINGS[b.kind].half;
+    const cosLat = Math.cos(b.lat * DEG);
+    let low = 0;
+    for (let k = 0; k < 4; k++) {
+      const e = (k & 1 ? -half[1] : half[1]) * b.scale;
+      const n = (k & 2 ? -half[0] : half[0]) * b.scale;
+      const c = this.heightAt(b.lat + n / M_PER_DEG, b.lon + e / (M_PER_DEG * cosLat));
+      if (c !== null) low = Math.min(low, c - h);
+    }
+    const r = this.earthRadius() + h + low;
+    g.x = x * r;
+    g.y = y * r;
+    g.z = z * r;
+    g.h = h;
+    g.epoch = this.seatEpoch;
+    return true;
+  }
+
+  /** Writes a seat's instance offset from the anchor where the last fill drew it. */
+  private writeSeat(g: Seat | undefined): void {
+    const s = g?.set;
+    if (!g || !s) return;
+    const pos = s.pos.array as Float32Array;
+    pos[g.i * 3] = g.x - this.anchor.x;
+    pos[g.i * 3 + 1] = g.y - this.anchor.y;
+    pos[g.i * 3 + 2] = g.z - this.anchor.z;
+    s.pos.needsUpdate = true;
   }
 
   private set(key: string, build: () => { geo: BufferGeometry; gait: Vector4; height: number }): InstanceSet {
@@ -486,19 +620,9 @@ export class LifeSystem {
       this.ageMa = ageMa;
       this.pickEra = -1;
     }
-    // The ground changed under the scene (first heights, HD terrain blocks): seat everything again, at
-    // most five times a second. The modern coast test (climateAt) reads the heights too, so the cached
-    // cells go as well.
+    // A new height function (first heights, HD terrain blocks): every frame, whatever the picks do.
     const gen = terrainHeightGeneration('earth');
-    if (gen !== this.heightGen && view.timeReal - this.pickTime > 0.2) {
-      this.heightGen = gen;
-      this.plantPos = new WeakMap();
-      this.buildingPos.clear();
-      this.plantCache.clear();
-      this.herdCache.clear();
-      this.anchorLat = this.anchorLon = NaN;
-      this.pickEra = -1;
-    }
+    if (gen !== this.heightGen) this.heightsChanged(gen);
     const reanchored = this.reanchor(lat, lon);
     if (Number.isNaN(this.anchorLat)) {
       this.group.visible = false;
@@ -529,6 +653,7 @@ export class LifeSystem {
       this.pickTime = view.timeReal;
       this.pickLat = lat;
       this.pickLon = lon;
+      this.houseM = lim.buildingRadius;
       this.pickEra = era;
       this.pickTown = town;
       // Cached herd cells hold townsfolk, livestock or wild herds by the towns of their date.
@@ -571,9 +696,157 @@ export class LifeSystem {
       this.fillPlants();
       this.fillBuildings();
     }
-    this.moveCreatures(view, lim);
+    // Animals first: they are the nearest and move.
+    const until = performance.now() + RESEAT_MS;
+    this.moveCreatures(view, lim, until);
+    this.reseat(until);
     this.updateUniforms(view);
     this.group.visible = true;
+  }
+
+  /**
+   * The terrain height function changed. Without heights before or after, start over. Otherwise seat the
+   * anchor again (one heightAt) and probe PROBES seats spread over the scene: when nothing moved (an HD
+   * block moved with the camera, which stays inside both blocks) only the landmarks and monuments beyond
+   * the houses are checked (probeFar). Else every seat goes stale and `reseat` replaces them over the next
+   * frames, nearest first, while the old ones stay drawn; a median shift above RECELL_M (the ground itself
+   * replaced) also rebuilds the cached cells and picks again.
+   */
+  private heightsChanged(gen: number): void {
+    const was = this.heightGen;
+    this.heightGen = gen;
+    if (!gen || !was || Number.isNaN(this.anchorLat)) {
+      this.seatEpoch++;
+      this.plantPos = new WeakMap();
+      this.buildingSeat = new WeakMap();
+      this.buildingPos.clear();
+      this.plantQ = this.buildingQ = [];
+      this.plantCache.clear();
+      this.herdCache.clear();
+      this.anchorLat = this.anchorLon = NaN;
+      this.pickEra = -1;
+      return;
+    }
+    const a = this.ground(this.anchorLat, this.anchorLon, this.p0);
+    if (!a) return;
+    const shifts = this.shifts;
+    const da = Math.hypot(a.x, a.y, a.z) - Math.hypot(this.anchor.x, this.anchor.y, this.anchor.z);
+    shifts[0] = Math.abs(da);
+    // Half the probes each over the plants and the houses, all of them when one list is empty. Landmarks
+    // and monuments beyond the houses are left to probeFar: an HD block move changes the ground there.
+    const half = PROBES / 2;
+    const mPerLon = M_PER_DEG * Math.cos(this.pickLat * DEG);
+    let k = this.probe(this.plants, this.plantPos, this.buildings.length ? half : PROBES, 1, null);
+    k = this.probe(this.buildings, this.buildingSeat, this.plants.length ? half : PROBES, k, (b) =>
+      this.beyondHouses(b, mPerLon),
+    );
+    let max = 0;
+    for (let i = 0; i < k; i++) max = Math.max(max, shifts[i]);
+    if (max < SEAT_EPS_M) {
+      this.probeFar(mPerLon);
+      return;
+    }
+    this.seatEpoch++;
+    this.plantQ = this.plants;
+    this.buildingQ = this.buildings;
+    this.plantQi = this.buildingQi = 0;
+    if (Math.abs(da) >= SEAT_EPS_M) {
+      this.anchor.x = a.x;
+      this.anchor.y = a.y;
+      this.anchor.z = a.z;
+      // The old seats stay drawn where they were, from the new anchor.
+      for (const p of this.plants) this.writeSeat(this.plantPos.get(p));
+      for (const b of this.buildings) this.writeSeat(this.buildingSeat.get(b));
+    }
+    const sorted = shifts.subarray(0, k).sort();
+    if (sorted[k >> 1] > RECELL_M) {
+      this.plantCache.clear();
+      this.herdCache.clear();
+      this.pickEra = -1;
+    }
+  }
+
+  /**
+   * Shifts of up to `n` current seats spread evenly over `list` (first to last, but not those `skip`
+   * names) under the new height function, into `this.shifts` from index `k`; returns the next free index.
+   */
+  private probe<T extends { lat: number; lon: number }>(
+    list: readonly T[],
+    seats: WeakMap<T, Seat>,
+    n: number,
+    k: number,
+    skip: ((o: T) => boolean) | null,
+  ): number {
+    const m = Math.min(n, list.length);
+    for (let j = 0; j < m; j++) {
+      const o = list[m > 1 ? Math.round((j * (list.length - 1)) / (m - 1)) : 0];
+      const g = seats.get(o);
+      if (!g || g.epoch !== this.seatEpoch || skip?.(o)) continue;
+      const h = this.heightAt(o.lat, o.lon);
+      if (h !== null) this.shifts[k++] = Math.abs(h - g.h);
+    }
+    return k;
+  }
+
+  /** True for a building beyond the last pick's house radius (a landmark or monument); `mPerLon` there. */
+  private beyondHouses(b: Building, mPerLon: number): boolean {
+    let dl = b.lon - this.pickLon;
+    if (dl > 180) dl -= 360;
+    else if (dl < -180) dl += 360;
+    const e = dl * mPerLon;
+    const n = (b.lat - this.pickLat) * M_PER_DEG;
+    return e * e + n * n > this.houseM * this.houseM;
+  }
+
+  /**
+   * Probes each current building beyond the last pick's house radius (landmarks out to 4x, monuments
+   * out to monumentRange: a few) after a new height function moved nothing near the camera. An HD block
+   * move still changes the ground from about half a tile away (the old or new block's fading rim, or
+   * outside both: 2.5-5 km at z12 below 60 degrees of latitude), which the probes leave out. Those
+   * that moved go stale and are queued first. One heightAt each.
+   */
+  private probeFar(mPerLon: number): void {
+    let moved: Building[] | null = null;
+    for (const b of this.buildings) {
+      if (!this.beyondHouses(b, mPerLon)) continue;
+      const g = this.buildingSeat.get(b);
+      if (!g || g.epoch !== this.seatEpoch) continue;
+      const h = this.heightAt(b.lat, b.lon);
+      if (h === null || Math.abs(h - g.h) < SEAT_EPS_M) continue;
+      g.epoch = -1;
+      (moved ??= []).push(b);
+    }
+    if (!moved) return;
+    for (let i = this.buildingQi; i < this.buildingQ.length; i++) moved.push(this.buildingQ[i]);
+    this.buildingQ = moved;
+    this.buildingQi = 0;
+  }
+
+  /**
+   * Seats stale plants and buildings of the current lists again (queued by the last fill or by
+   * heightsChanged, nearest first, the two lists in turn) until `until`, at least one a frame, and
+   * rewrites the instance offsets of those that moved. New objects are seated at once by the fills.
+   */
+  private reseat(until: number): void {
+    while (this.plantQi < this.plantQ.length || this.buildingQi < this.buildingQ.length) {
+      if (this.plantQi < this.plantQ.length) {
+        const p = this.plantQ[this.plantQi++];
+        const g = this.plantPos.get(p);
+        if (g && g.epoch !== this.seatEpoch) {
+          const { x, y, z } = g;
+          if (this.seatPlant(p, g) && (g.x !== x || g.y !== y || g.z !== z)) this.writeSeat(g);
+        }
+      }
+      if (this.buildingQi < this.buildingQ.length) {
+        const b = this.buildingQ[this.buildingQi++];
+        const g = this.buildingSeat.get(b);
+        if (g && g.epoch !== this.seatEpoch) {
+          const { x, y, z } = g;
+          if (this.seatBuilding(b, g) && (g.x !== x || g.y !== y || g.z !== z)) this.writeSeat(g);
+        }
+      }
+      if (performance.now() > until) return;
+    }
   }
 
   /** Climate at a point (groundClimate on the terrain heights). */
@@ -596,17 +869,31 @@ export class LifeSystem {
     return 1 / Math.sqrt((d.x * d.x + d.y * d.y) / (a * a) + (d.z * d.z) / (c * c)) - a;
   }
 
+  /**
+   * Draws the current plants from their seats (seating new ones now) and queues the stale seats for
+   * `reseat`, nearest first.
+   */
   private fillPlants(): void {
-    const byKind = new Map<PlantKind, Plant[]>();
+    const byKind = new Map<PlantKind, { list: Plant[]; seats: Seat[] }>();
+    const stale: Plant[] = [];
     for (const p of this.plants) {
+      let g = this.plantPos.get(p);
+      if (!g) {
+        g = seat();
+        if (!this.seatPlant(p, g)) continue;
+        this.plantPos.set(p, g);
+      }
+      if (g.epoch !== this.seatEpoch) stale.push(p);
       let l = byKind.get(p.kind);
-      if (!l) byKind.set(p.kind, (l = []));
-      l.push(p);
+      if (!l) byKind.set(p.kind, (l = { list: [], seats: [] }));
+      l.list.push(p);
+      l.seats.push(g);
     }
+    this.plantQ = stale;
+    this.plantQi = 0;
     for (const [key, s] of this.sets)
       if (key.startsWith('p:') && !byKind.has(key.slice(2) as PlantKind)) s.geo.instanceCount = s.count = 0;
-    const p0 = vec3();
-    for (const [kind, list] of byKind) {
+    for (const [kind, { list, seats }] of byKind) {
       const s = this.plantSet(kind);
       this.ensure(s, list.length);
       const pos = s.pos.array as Float32Array;
@@ -614,13 +901,9 @@ export class LifeSystem {
       const mo = s.motion.array as Float32Array;
       let n = 0;
       for (const p of list) {
-        let g = this.plantPos.get(p);
-        if (!g) {
-          const at = this.ground(p.lat, p.lon, p0);
-          if (!at) continue;
-          g = vec3(at.x, at.y, at.z);
-          this.plantPos.set(p, g);
-        }
+        const g = seats[n];
+        g.set = s;
+        g.i = n;
         pos[n * 3] = g.x - this.anchor.x;
         pos[n * 3 + 1] = g.y - this.anchor.y;
         pos[n * 3 + 2] = g.z - this.anchor.z;
@@ -642,54 +925,45 @@ export class LifeSystem {
     }
   }
 
+  /** As fillPlants, for the buildings (seats shared by kind and place across picks). */
   private fillBuildings(): void {
-    const byKind = new Map<BuildingKind, Building[]>();
+    const byKind = new Map<BuildingKind, { list: Building[]; seats: Seat[] }>();
+    const stale: Building[] = [];
     for (const b of this.buildings) {
+      let g = this.buildingSeat.get(b);
+      if (!g) {
+        const key = `${b.kind}:${b.lat.toFixed(7)}:${b.lon.toFixed(7)}:${b.scale.toFixed(3)}`;
+        g = this.buildingPos.get(key);
+        if (!g) {
+          g = seat();
+          if (!this.seatBuilding(b, g)) continue;
+          if (this.buildingPos.size > 20_000) this.buildingPos.clear();
+          this.buildingPos.set(key, g);
+        }
+        this.buildingSeat.set(b, g);
+      }
+      if (g.epoch !== this.seatEpoch) stale.push(b);
       let l = byKind.get(b.kind);
-      if (!l) byKind.set(b.kind, (l = []));
-      l.push(b);
+      if (!l) byKind.set(b.kind, (l = { list: [], seats: [] }));
+      l.list.push(b);
+      l.seats.push(g);
     }
+    this.buildingQ = stale;
+    this.buildingQi = 0;
     for (const [key, s] of this.sets)
       if (key.startsWith('b:') && !byKind.has(key.slice(2) as BuildingKind))
         s.geo.instanceCount = s.count = 0;
-    const p0 = vec3();
-    for (const [kind, list] of byKind) {
+    for (const [kind, { list, seats }] of byKind) {
       const s = this.buildingSet(kind);
       this.ensure(s, list.length);
       const pos = s.pos.array as Float32Array;
       const fr = s.frame.array as Float32Array;
       const mo = s.motion.array as Float32Array;
-      const half = BUILDINGS[kind].half;
       let n = 0;
       for (const b of list) {
-        const key = `${b.kind}:${b.lat.toFixed(7)}:${b.lon.toFixed(7)}:${b.scale.toFixed(3)}`;
-        let g = this.buildingPos.get(key);
-        if (!g) {
-          // Seat on the lowest corner so slopes do not leave the building floating.
-          const at = this.ground(b.lat, b.lon, p0);
-          if (!at) continue;
-          g = vec3(at.x, at.y, at.z);
-          const r0 = Math.hypot(g.x, g.y, g.z);
-          let low = 0;
-          const cosLat = Math.cos((b.lat * Math.PI) / 180);
-          for (const [e, nn] of [
-            [half[1], half[0]],
-            [-half[1], half[0]],
-            [half[1], -half[0]],
-            [-half[1], -half[0]],
-          ]) {
-            const c = this.ground(
-              b.lat + (nn * b.scale) / M_PER_DEG,
-              b.lon + (e * b.scale) / (M_PER_DEG * cosLat),
-              vec3(),
-            );
-            if (c) low = Math.min(low, Math.hypot(c.x, c.y, c.z) - r0);
-          }
-          const k = (r0 + low) / r0;
-          g = vec3(g.x * k, g.y * k, g.z * k);
-          if (this.buildingPos.size > 20_000) this.buildingPos.clear();
-          this.buildingPos.set(key, g);
-        }
+        const g = seats[n];
+        g.set = s;
+        g.i = n;
         pos[n * 3] = g.x - this.anchor.x;
         pos[n * 3 + 1] = g.y - this.anchor.y;
         pos[n * 3 + 2] = g.z - this.anchor.z;
@@ -711,7 +985,52 @@ export class LifeSystem {
     }
   }
 
-  private moveCreatures(view: ViewState, lim: LifeLimits): void {
+  /**
+   * Ground point of an animal at (e, n) m from its herd centre (lat, lon): the plane of its last sample,
+   * sampled again (three heightAt: the point, 1 m east, 1 m north) when it has walked STEP_M from there,
+   * or when the seats went stale (before `until`; until then it stays on the old ground). A new animal
+   * starts level at its point (one heightAt, so a pick's new herds cost no more than drawing them did) and
+   * gets its slope from that budgeted refresh a few frames later. Null before the heights load.
+   */
+  private footing(
+    m: Member,
+    e: number,
+    n: number,
+    lat: number,
+    lon: number,
+    mPerLon: number,
+    until: number,
+    out: Vec3d,
+  ) {
+    let f = this.feet.get(m);
+    if (
+      !f ||
+      (e - f.e) ** 2 + (n - f.n) ** 2 > STEP_M * STEP_M ||
+      (f.epoch !== this.seatEpoch && performance.now() < until)
+    ) {
+      const h = this.heightAt(lat, lon);
+      if (h === null) return null;
+      if (!f) this.feet.set(m, (f = { e, n, r: this.earthRadius() + h, sE: 0, sN: 0, epoch: -1 }));
+      else {
+        const hE = this.heightAt(lat, lon + SLOPE_M / mPerLon) ?? h;
+        const hN = this.heightAt(lat + SLOPE_M / M_PER_DEG, lon) ?? h;
+        f.e = e;
+        f.n = n;
+        f.r = this.earthRadius() + h;
+        f.sE = (hE - h) / SLOPE_M;
+        f.sN = (hN - h) / SLOPE_M;
+        f.epoch = this.seatEpoch;
+      }
+    }
+    const r = f.r + f.sE * (e - f.e) + f.sN * (n - f.n);
+    const d = this.toDir(lat, lon);
+    out.x = d.x * r;
+    out.y = d.y * r;
+    out.z = d.z * r;
+    return out;
+  }
+
+  private moveCreatures(view: ViewState, lim: LifeLimits, until: number): void {
     const t = view.timeReal;
     const dt = Math.min(0.25, Math.max(0, view.dtReal));
     for (const [key, s] of this.sets) if (key.startsWith('c:')) s.count = 0;
@@ -730,13 +1049,13 @@ export class LifeSystem {
       const pos = s.pos.array as Float32Array;
       const fr = s.frame.array as Float32Array;
       const mo = s.motion.array as Float32Array;
-      const cosLat = Math.cos((h.lat * Math.PI) / 180);
+      const mPerLon = M_PER_DEG * Math.max(0.05, Math.cos((h.lat * Math.PI) / 180));
       for (const m of h.members) {
         if (total >= lim.maxCreatures) break;
-        memberAt(m, t, this.tmp);
-        const lat = h.lat + this.tmp.n / M_PER_DEG;
-        const lon = h.lon + this.tmp.e / (M_PER_DEG * Math.max(0.05, cosLat));
-        if (!this.ground(lat, lon, g)) continue;
+        const at = memberAt(m, t, this.tmp);
+        const lat = h.lat + at.n / M_PER_DEG;
+        const lon = h.lon + at.e / mPerLon;
+        if (!this.footing(m, at.e, at.n, lat, lon, mPerLon, until, g)) continue;
         const speed = Math.hypot(this.tmp.ve, this.tmp.vn);
         if (speed > 0.05) m.heading = Math.atan2(this.tmp.ve, this.tmp.vn);
         const fly = model.gait.kind === 'fly';
@@ -851,6 +1170,8 @@ export class LifeSystem {
       anchor: [this.anchorLat, this.anchorLon],
       plants: this.plants.length,
       nearestPlantM: near,
+      // Plants and buildings still queued to be seated again (heightsChanged).
+      reseat: this.plantQ.length - this.plantQi + this.buildingQ.length - this.buildingQi,
       herds: this.herds.map((h) => `${h.species.id}x${h.members.length}`),
     };
   }

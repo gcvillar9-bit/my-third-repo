@@ -15,11 +15,11 @@ Work: `claude/eloquent-meitner-tqq1zc` (PR gcvillar9-bit/my-third-repo#12). Docs
   insulae, terraces), landmarks at the centre, walls before 1800, townspeople, farmers after 6000 BC,
   livestock around towns; the terrain decides the modern coastline for life.
 - Seven bookmarks (Giza, Babylon, Rome, Tenochtitlan, Paris, New York, Mediterranean labels); four e2e tests.
+  Rome looks 4° east of north up a street at the Temple of Jupiter, 157 m away; its test counts temples and
+  probes the temple at the view centre (pale marble, 0.6 < b/r < 1.4).
 
 ## Gaps
 
 - Reba et al. (2016) dataset behind a personal-details guestbook, so the table is hand-entered (approximate).
 - Circular towns around one centre; no rivers, harbours or real street plans; styles switch at once.
 - No Byzantine church model (Hagia Sophia before 1453 uses the baroque church); dress follows the style period.
-- E2E: the Rome bookmark now looks 4° east of north up a street at the Temple of Jupiter, 157 m away; its
-  test still only counts temples (a pixel probe is the integrator's).

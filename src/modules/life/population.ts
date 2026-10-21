@@ -14,6 +14,7 @@ import {
   biomeOf,
   candidates,
   floraFor,
+  livedAt,
   pick,
   type Biome,
   type Candidate,
@@ -45,11 +46,16 @@ export interface LifeLimits {
 
 export const PLANT_CELL_M = 24;
 export const HERD_CELL_M = 240;
+
 /**
- * Plant cells kept before the cache is emptied: about 3 picks at ultra (800 m tree radius, about 4600
- * cells of 24 m), so moving around does not empty it every few hundred metres.
+ * Plant cells kept: about 3 picks at the preset's tree radius (a pick visits at most n x n cells, n the
+ * cells across the tree diameter plus 2: 768 kept at potato, 14,283 at ultra), so moving around reuses
+ * the cells it passed. The least recently used go first, never the current pick's.
  */
-const PLANT_CACHE_MAX = 15000;
+export function plantCacheMax(lim: LifeLimits): number {
+  const n = Math.ceil((2 * lim.treeRadius) / PLANT_CELL_M) + 2;
+  return 3 * n * n;
+}
 
 export interface Plant {
   kind: PlantKind;
@@ -205,10 +211,10 @@ export function plantsAround(
   cellsAround(lat, lon, lim.treeRadius, PLANT_CELL_M, (row, col, cLat, cLon) => {
     const key = `${row},${col},${era}`;
     let list = cache.get(key);
-    if (!list) {
-      list = plantsInCell(row, col, cLat, cLon, era, ageMa, climate);
-      cache.set(key, list);
-    }
+    // A hit moves the cell to the end of the Map's order, so the order is least recently used first.
+    if (list) cache.delete(key);
+    else list = plantsInCell(row, col, cLat, cLon, era, ageMa, climate);
+    cache.set(key, list);
     for (const p of list) {
       const [e, n] = localEN(lat, lon, p.lat, p.lon);
       const d = Math.hypot(e, n);
@@ -220,7 +226,11 @@ export function plantsAround(
       out.push({ p, d });
     }
   });
-  if (cache.size > PLANT_CACHE_MAX) cache.clear();
+  const max = plantCacheMax(lim);
+  for (const k of cache.keys()) {
+    if (cache.size <= max) break;
+    cache.delete(k);
+  }
   out.sort((a, b) => a.d - b.d);
   return out.slice(0, lim.maxPlants).map((x) => x.p);
 }
@@ -427,6 +437,9 @@ export function herdsAround(
       };
       cache.set(key, h);
     }
+    // Only while the species lived (the era window reaches about 5% of the age either side): a bookmark
+    // set just before the K-Pg or the end-Permian loses the herds of the species that died out there.
+    if (!livedAt(h.species, ageMa)) continue;
     out.push(h);
   }
   return out;

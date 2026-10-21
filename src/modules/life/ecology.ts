@@ -98,11 +98,15 @@ function slackMa(ageMa: number): number {
   return ageMa < MODERN_BELOW_MA ? Math.max(0.002, 0.15 * ageMa) : Math.max(1, 0.1 * ageMa);
 }
 
+/** Whether a species lived at an age: inside its own time range (lastMa..firstMa, never widened). */
+export function livedAt(s: SpeciesRow, ageMa: number): boolean {
+  return ageMa <= s.firstMa && ageMa >= s.lastMa;
+}
+
 /**
  * Presence weight 0..1 of a species at a place (latitude/longitude on the globe as drawn: paleo-
- * coordinates from 2.6 Ma, modern below) and age: 0 outside its own time range (lastMa..firstMa, never
- * widened); 1 inside a hand-entered region; else falls off with the distance to the nearest find of
- * about that age.
+ * coordinates from 2.6 Ma, modern below) and age: 0 outside its own time range (livedAt); 1 inside a
+ * hand-entered region; else falls off with the distance to the nearest find of about that age.
  */
 export function presence(
   s: SpeciesRow,
@@ -111,7 +115,7 @@ export function presence(
   lonDeg: number,
   ageMa: number,
 ): number {
-  if (ageMa > s.firstMa || ageMa < s.lastMa) return 0;
+  if (!livedAt(s, ageMa)) return 0;
   if (s.regions) {
     for (const [la0, la1, lo0, lo1, from, to] of s.regions)
       if (ageMa <= from && ageMa >= to && latDeg >= la0 && latDeg <= la1 && lonDeg >= lo0 && lonDeg <= lo1)

@@ -150,10 +150,13 @@ describe('life kit', () => {
           expect(bend[i], kind).toBeGreaterThanOrEqual(0);
           expect(bend[i], kind).toBeLessThanOrEqual(1);
         }
-        // The root (the lowest 2 cm, and anything touching or under the ground) does not sway.
+        // Every plant reaches the ground (y = 0, the origin), and its root (anything under 2 cm above the
+        // ground) does not sway.
         let minY = Infinity;
         for (let i = 1; i < pos.length; i += 3) minY = Math.min(minY, pos[i]);
-        const root = Math.max(minY, 0) + 0.02;
+        const root = 0.02;
+        expect(minY, `${kind} seed ${seed}: lowest vertex`).toBeLessThanOrEqual(root);
+        expect(minY, `${kind} seed ${seed}: lowest vertex`).toBeGreaterThan(-0.1);
         let rooted = 0;
         for (let v = 0; v < pos.length / 3; v++)
           if (pos[3 * v + 1] <= root) {

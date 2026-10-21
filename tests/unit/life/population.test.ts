@@ -6,16 +6,21 @@ import { SURFACE } from '../../../src/modules/paleo/public';
 import monuments from '../../../src/modules/cities/monuments.json';
 import citySites from '../../../src/modules/cities/sites.json';
 import { BUILDINGS, type BuildingKind } from '../../../src/modules/life/kit/buildings';
+import { featuredHerds } from '../../../src/modules/life/bookmarks';
+import lifeSites from '../../../src/modules/life/sites.json';
+import { LIMITS, eraKey } from '../../../src/modules/life/system';
 import {
   M_PER_DEG,
   buildingsAround,
   herdsAround,
   localEN,
+  plantCacheMax,
   plantsAround,
   type Building,
   type Climate,
   type Landmark,
   type LifeLimits,
+  type Plant,
   type Town,
 } from '../../../src/modules/life/population';
 
@@ -81,6 +86,44 @@ describe('life placement grid', () => {
     const shelf: Climate = { at: () => ({ kind: SHELF, tempC: 5, moisture: 0.2 }) };
     expect(plantsAround(54, 3, 900, 0.02, shelf, lim, new Map()).length).toBeGreaterThan(50);
   });
+
+  it('keeps about three picks of plant cells for the preset, least recently used out first', () => {
+    // Open sea: every cell is cached (empty), so the bound shows without growing plants.
+    const sea: Climate = { at: () => ({ kind: SURFACE.sea, tempC: 15, moisture: 0.5 }) };
+    const lonAt = (eastM: number) => 10 + eastM / (M_PER_DEG * Math.cos((45 * Math.PI) / 180));
+    for (const [q, l] of Object.entries(LIMITS)) {
+      const cache = new Map<string, Plant[]>();
+      plantsAround(45, 10, 700, 0, sea, l, cache);
+      const one = cache.size;
+      expect(plantCacheMax(l), q).toBeGreaterThanOrEqual(3 * one);
+      expect(plantCacheMax(l), q).toBeLessThan(4 * one);
+      // Flying east, half a tree radius per pick: the cache fills to the bound and stays there.
+      let most = 0;
+      for (let i = 1; i <= 30; i++) {
+        plantsAround(45, lonAt((i * l.treeRadius) / 2), 700, 0, sea, l, cache);
+        most = Math.max(most, cache.size);
+      }
+      expect(most, q).toBe(plantCacheMax(l));
+    }
+    expect(plantCacheMax(LIMITS.potato)).toBeLessThan(1000);
+    // Back at the start after a detour, then two new places: the detour's cells go first, never the
+    // start's (used again) or the current pick's.
+    const l = LIMITS.potato;
+    const keysAt = (eastM: number) => {
+      const c = new Map<string, Plant[]>();
+      plantsAround(45, lonAt(eastM), 700, 0, sea, l, c);
+      return [...c.keys()];
+    };
+    const far = 3 * l.treeRadius;
+    const [start, detour, last] = [keysAt(0), keysAt(far), keysAt(3 * far)];
+    const cache = new Map<string, Plant[]>();
+    for (const e of [0, far, 0, 2 * far, 3 * far]) plantsAround(45, lonAt(e), 700, 0, sea, l, cache);
+    expect(cache.size).toBe(plantCacheMax(l));
+    expect(start.every((k) => cache.has(k))).toBe(true);
+    expect(last.every((k) => cache.has(k))).toBe(true);
+    expect(detour.some((k) => !cache.has(k))).toBe(true);
+    expect(detour).toContain(cache.keys().next().value);
+  });
 });
 
 describe('life presence', () => {
@@ -101,6 +144,45 @@ describe('life presence', () => {
     expect(presence(sp('pareiasaur'), occ, 33, 38, 251.9)).toBe(0);
     // Before its first appearance.
     expect(presence(sp('ceratopsid'), occ, 50, -79.5, 83.1)).toBe(0);
+  });
+
+  it('keeps the featured herds of a bookmark inside their species ranges too', () => {
+    const savanna: Climate = { at: () => ({ kind: LAND, tempC: 22, moisture: 0.33 }) };
+    // Species of the herds at a bookmark site and age, featured ones marked with '*'.
+    const herdIds = (id: string, ageMa: number) => {
+      const site = lifeSites.sites.find((s) => s.id === id)!;
+      const herds = herdsAround(
+        site.latDeg,
+        site.lonDeg,
+        eraKey(ageMa),
+        ageMa,
+        savanna,
+        occ,
+        lim,
+        new Map(),
+        new Map(),
+        featuredHerds(),
+        eraKey,
+      );
+      return herds.map((h) => (h.key.startsWith('featured:') ? '*' : '') + h.species.id);
+    };
+    const survivors = (list: string[], ids: string[]) => list.filter((x) => ids.includes(x.replace('*', '')));
+    const dinosaurs = ['tyrannosaurid', 'ceratopsid', 'hadrosaur'];
+    expect(herdIds('life-trex-66ma', 66.5)).toEqual(expect.arrayContaining(dinosaurs.map((x) => '*' + x)));
+    // The era window (about 5% of the age either side) still takes in the bookmark: the species' ranges
+    // do not.
+    for (const age of [65.5, 64])
+      expect(survivors(herdIds('life-trex-66ma', age), dinosaurs), `${age}`).toEqual([]);
+    // The end-Permian: Lystrosaurus' kin (dicynodonts) live on.
+    const permian = ['gorgonopsid', 'pareiasaur'];
+    expect(herdIds('life-permian-252ma', 252.5)).toEqual(
+      expect.arrayContaining(['*gorgonopsid', '*pareiasaur']),
+    );
+    for (const age of [251.9, 241]) {
+      const ids = herdIds('life-permian-252ma', age);
+      expect(survivors(ids, permian), `${age}`).toEqual([]);
+      expect(ids, `${age}`).toContain('*dicynodont');
+    }
   });
 });
 

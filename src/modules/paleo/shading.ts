@@ -36,7 +36,7 @@ import type {
 } from '../../core/contracts';
 import { yearsBeforePresent } from '../../core/geotime';
 import type { PaleoBakeApi, PaleoBakeRequest } from './bake.worker';
-import { iceAgeOverlay } from './biome';
+import { iceAgeOverlay, shelfSampler } from './biome';
 import {
   QUATERNARY_START_YEARS,
   SYNTHETIC_FROM_YEARS,
@@ -81,6 +81,15 @@ export interface ClimateMap {
   width: number;
   height: number;
   data: Uint8Array;
+  /**
+   * True where paleo-surface.glsl draws today's sea as bared seabed at this map's sea-level drop (its
+   * half-point: 0.5 m <= today's depth < drop, depth read bilinearly like the shader at geocentric
+   * latDeg/lonDeg, as its uv). Set only on modern maps with a drop once the quaternary data has loaded.
+   * It has no water mask, so on today's land within a texel of a shallow sea (where the shader, masked
+   * by today's water, keeps the land) it is true too. Four array reads, no allocation: cheap enough per
+   * plant cell.
+   */
+  shelfAt?: (latDeg: number, lonDeg: number) => boolean;
 }
 
 let activeController: PaleoController | null = null;
@@ -361,20 +370,18 @@ export class PaleoController {
       width: CLIMATE_W,
       height: CLIMATE_H,
     });
+    const map: ClimateMap = { key, ageMa, modern, width: CLIMATE_W, height: CLIMATE_H, data };
     if (seaDrop > 0) {
       await this.quatLoad;
       const t = this.uniforms.uPaleoQuat.value as DataTexture;
       const q = t.image.data as Uint8Array | undefined;
-      if (q && t.image.width > 1)
-        iceAgeOverlay(
-          data,
-          CLIMATE_W,
-          CLIMATE_H,
-          { data: q, width: t.image.width, height: t.image.height },
-          seaDrop,
-        );
+      if (q && t.image.width > 1) {
+        const quat = { data: q, width: t.image.width, height: t.image.height };
+        iceAgeOverlay(data, CLIMATE_W, CLIMATE_H, quat, seaDrop);
+        if (modern) map.shelfAt = shelfSampler(quat, seaDrop);
+      }
     }
-    return { key, ageMa, modern, width: CLIMATE_W, height: CLIMATE_H, data };
+    return map;
   }
 
   private ensureClouds(): Promise<void> {

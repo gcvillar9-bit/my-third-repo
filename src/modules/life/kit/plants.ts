@@ -211,7 +211,7 @@ export const PLANTS: Record<PlantKind, PlantModel> = {
     height: 1,
     sway: 0.08,
     build(m, seed) {
-      crownOfFronds(m, [0, 0.1, 0], 8, 1.0, 1.2, 0.18, g(0x4a7a30), seed, 0);
+      crownOfFronds(m, [0, 0, 0], 8, 1.0, 1.2, 0.18, g(0x4a7a30), seed, 0);
     },
   },
   seedFern: {
@@ -367,15 +367,19 @@ export const PLANTS: Record<PlantKind, PlantModel> = {
     height: 1.5,
     sway: 0.05,
     build(m, seed) {
+      // Three blobs resting on the ground: each is centred 2 cm below its own vertical radius, so its
+      // bottom pole (the root, which does not sway) sits 2 cm under y = 0.
       for (let i = 0; i < 3; i++) {
         const a = 2 * Math.PI * hash01(seed, i);
-        m.blob(
-          [Math.cos(a) * 0.4, 0.6 + 0.3 * hash01(seed, i, 1), Math.sin(a) * 0.4],
-          [0.75, 0.6, 0.75],
-          g(0x4e6230),
-          plant,
-          { lat: 3, lon: 5, bend: 0.8, bendBase: 0, rough: 0.3, seed: i },
-        );
+        const ry = 0.55 + 0.25 * hash01(seed, i, 1);
+        m.blob([Math.cos(a) * 0.4, ry - 0.02, Math.sin(a) * 0.4], [0.75, ry, 0.75], g(0x4e6230), plant, {
+          lat: 3,
+          lon: 5,
+          bend: 0.8,
+          bendBase: 0,
+          rough: 0.3,
+          seed: i,
+        });
       }
     },
   },

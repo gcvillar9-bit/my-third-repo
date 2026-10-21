@@ -24,6 +24,8 @@ import {
 
 const M_PER_DEG = 111_195;
 const R_EARTH = 6_378_137;
+/** Probes heightsChanged takes besides the anchor (system.ts PROBES). */
+const PROBES = 16;
 
 describe('townYearKey (the date step of towns and buildings)', () => {
   it('changes wherever the towns do (cities: a decade before 1800, a year after)', () => {
@@ -265,6 +267,34 @@ describe('groundClimate', () => {
     expect(groundClimate(map(SURFACE.sea, SURFACE.land, false), 10, 5, aboveSea).kind).toBe(SURFACE.land);
     expect(aboveSea).not.toHaveBeenCalled();
   });
+
+  it('keeps the points paleo draws as bared seabed (shelfAt) land, in land, sea and sea-ice cells', () => {
+    // West a land cell at 25 C, east a sea cell at 10 C; today's sea is at terrain height 0 in both.
+    const m = {
+      ...map(SURFACE.land, SURFACE.sea),
+      data: new Uint8Array([SURFACE.land, 85, 120, 128, SURFACE.sea, 70, 200, 128]),
+      shelfAt: (la: number) => la > 50,
+    };
+    const aboveSea = vi.fn(() => 0);
+    // Doggerland off a coastal land cell: shelf with the cell's own climate, not sea.
+    expect(groundClimate(m, 52.7, -2, aboveSea)).toMatchObject({ kind: SURFACE.shelf, tempC: 25 });
+    // Bared seabed in a sea cell: shelf with the nearest land cell's climate.
+    expect(groundClimate(m, 52.7, 5, aboveSea)).toMatchObject({ kind: SURFACE.shelf, tempC: 25 });
+    expect(aboveSea).not.toHaveBeenCalled();
+    // Where paleo draws water (shelfAt false), the terrain decides as before.
+    expect(groundClimate(m, 10, -5, aboveSea).kind).toBe(SURFACE.sea);
+    expect(groundClimate(m, 10, 5, aboveSea).kind).toBe(SURFACE.sea);
+    // Land ice stays ice. Sea ice is bared like the sea (iceAgeOverlay too): shelf with the land's climate.
+    const ice = { ...m, data: new Uint8Array([SURFACE.landIce, 50, 0, 128, SURFACE.seaIce, 50, 0, 128]) };
+    expect(groundClimate(ice, 52.7, -2, aboveSea).kind).toBe(SURFACE.landIce);
+    const seaIce = { ...m, data: new Uint8Array([SURFACE.land, 55, 120, 128, SURFACE.seaIce, 50, 0, 128]) };
+    expect(groundClimate(seaIce, 52.7, 5, aboveSea)).toMatchObject({ kind: SURFACE.shelf, tempC: -5 });
+    expect(groundClimate(seaIce, 10, 5, aboveSea).kind).toBe(SURFACE.seaIce);
+    // Deep time never asks.
+    const shelfAt = vi.fn(() => true);
+    expect(groundClimate({ ...m, modern: false, shelfAt }, 52.7, 5, aboveSea).kind).toBe(SURFACE.sea);
+    expect(shelfAt).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -280,16 +310,35 @@ function savanna(): ClimateMap {
   return { key: 's', ageMa: 0, modern: false, width, height, data };
 }
 
+/**
+ * Fake terrain heights: `h` everywhere, or `at(lat, lon)`; `calls` counts heightAt, and each call spins for
+ * `costUs` (the real Earth function takes 20-50 us) so the re-seat time budget shows as a call count.
+ */
+interface Terrain {
+  h: number;
+  gen: number;
+  calls: number;
+  costUs: number;
+  at?: (lat: number, lon: number) => number;
+}
+
 interface Rig {
   sys: LifeSystem;
-  terrain: { h: number; gen: number };
+  terrain: Terrain;
   resolveOcc: () => void;
 }
 
 function rig(opts: { occPending?: boolean } = {}): Rig {
-  const terrain = { h: 0, gen: 1 };
+  const terrain: Terrain = { h: 0, gen: 1, calls: 0, costUs: 0 };
   setActiveSystem({
-    heightAt: () => (terrain.gen ? terrain.h : null),
+    heightAt: (_b: string, d: Vec3d) => {
+      terrain.calls++;
+      const t0 = performance.now();
+      while (performance.now() - t0 < terrain.costUs / 1000);
+      if (!terrain.gen) return null;
+      if (!terrain.at) return terrain.h;
+      return terrain.at((Math.asin(d.z) * 180) / Math.PI, (Math.atan2(d.y, d.x) * 180) / Math.PI);
+    },
     heightGeneration: () => terrain.gen,
   } as never);
   const map = savanna();
@@ -358,6 +407,54 @@ function plantMesh(sys: LifeSystem): InstancedMesh {
   return meshes.find((m) => m.name.startsWith('life.p:') && m.geometry.instanceCount > 0)!;
 }
 
+/**
+ * Body-fixed points of the instances drawn by the models named `life.<prefix>...` (anchor + offset), for a
+ * view() at (lat, lon, alt).
+ */
+function drawnAt(sys: LifeSystem, prefix: string, lat: number, lon: number, alt = 2): Vec3d[] {
+  const up = siteDirection(lat, lon);
+  const out: Vec3d[] = [];
+  for (const m of sys.group.children as unknown as InstancedMesh[]) {
+    if (!m.name.startsWith(`life.${prefix}`)) continue;
+    const a = m.material.uniforms.uAnchorRel.value as Vec3d;
+    const p = m.geometry.getAttribute('iPos').array;
+    for (let i = 0; i < m.geometry.instanceCount; i++)
+      out.push({
+        x: a.x + p[i * 3] + up.x * (R_EARTH + alt),
+        y: a.y + p[i * 3 + 1] + up.y * (R_EARTH + alt),
+        z: a.z + p[i * 3 + 2] + up.z * (R_EARTH + alt),
+      });
+  }
+  return out;
+}
+
+/** Heights above R_EARTH of the drawn instances of `prefix` (see drawnAt), m. */
+const drawnHeights = (sys: LifeSystem, prefix: string, lat: number, lon: number) =>
+  drawnAt(sys, prefix, lat, lon).map((p) => Math.hypot(p.x, p.y, p.z) - R_EARTH);
+
+type Internals = {
+  pickTime: number;
+  pickEra: number;
+  seatEpoch: number;
+  plants: object[];
+  buildings: { lat: number; lon: number }[];
+  herdCache: Map<string, unknown>;
+};
+const internals = (sys: LifeSystem) => sys as unknown as Internals;
+
+/** Largest distance of a drawn animal from the ground `at` under it, m, and how many were drawn. */
+function offGround(sys: LifeSystem, at: (lat: number, lon: number) => number, lat0: number, lon0: number) {
+  let worst = 0;
+  const pts = drawnAt(sys, 'c:', lat0, lon0);
+  for (const p of pts) {
+    const r = Math.hypot(p.x, p.y, p.z);
+    const lat = (Math.asin(p.z / r) * 180) / Math.PI;
+    const lon = (Math.atan2(p.y, p.x) * 180) / Math.PI;
+    worst = Math.max(worst, Math.abs(r - R_EARTH - at(lat, lon)));
+  }
+  return { worst, n: pts.length };
+}
+
 const LUCY = { lat: 11.1, lon: 40.6, jd: jdFromYearsBP(3.2e6) };
 
 afterEach(() => {
@@ -397,15 +494,19 @@ describe('LifeSystem', () => {
     expect(c['species:elephant']).toBeUndefined();
   });
 
-  it('re-seats plants and the anchor when the terrain height function changes (HD blocks)', async () => {
+  it('seats all at once and rebuilds the cells when HD tiles replace the base ground', async () => {
     const { sys, terrain } = rig();
     const v = view(LUCY.lat, LUCY.lon, LUCY.jd, 1);
     await stepShown(sys, v);
     const before = plantMesh(sys);
     expect(before).toBeDefined();
+    const { pickTime, plants } = internals(sys);
     terrain.h = 60;
     terrain.gen = 2;
-    sys.update(view(LUCY.lat, LUCY.lon, LUCY.jd, 1.3));
+    sys.update(view(LUCY.lat, LUCY.lon, LUCY.jd, 1.02));
+    // A median shift of 60 m: the cached cells (the modern coast test reads heights) are filled again.
+    expect(internals(sys).pickTime).not.toBe(pickTime);
+    expect(internals(sys).plants[0]).not.toBe(plants[0]);
     const m = plantMesh(sys);
     expect(m.material.uniforms.uGroundRkm.value as number).toBeCloseTo((R_EARTH + 60) / 1000, 6);
     // Plants sit on the new ground: offsets from the (new) anchor stay tangent, not 60 m below.
@@ -415,6 +516,229 @@ describe('LifeSystem', () => {
       const radial = pos[i * 3] * up.x + pos[i * 3 + 1] * up.y + pos[i * 3 + 2] * up.z;
       expect(Math.abs(radial)).toBeLessThan(1);
     }
+  });
+
+  it('neither re-picks nor re-seats when an HD block move keeps the heights near the camera', async () => {
+    const { sys, terrain } = rig();
+    LIMITS.capped = { ...LIMITS.potato, maxCreatures: 0 };
+    let t = 1;
+    const v = () => view(LUCY.lat, LUCY.lon, LUCY.jd, (t += 0.5), 'capped');
+    await stepShown(sys, v());
+    const before = drawnHeights(sys, 'p:', LUCY.lat, LUCY.lon);
+    const { pickTime, plants } = internals(sys);
+    terrain.calls = 0;
+    terrain.gen = 2;
+    sys.update(v());
+    // The anchor and 16 seats probed against the new function, nothing more then or later.
+    expect(terrain.calls).toBe(17);
+    for (let i = 0; i < 4; i++) sys.update(v());
+    expect(terrain.calls).toBe(17);
+    expect(internals(sys).pickTime).toBe(pickTime);
+    expect(internals(sys).plants).toBe(plants);
+    expect(sys.debug().reseat).toBe(0);
+    expect(drawnHeights(sys, 'p:', LUCY.lat, LUCY.lon)).toEqual(before);
+  });
+
+  it('seats the scene again over a few frames when the heights change (1 ms a frame)', async () => {
+    const { sys, terrain } = rig();
+    LIMITS.capped = { ...LIMITS.potato, maxPlants: 150, maxCreatures: 0 };
+    let t = 1;
+    const v = () => view(LUCY.lat, LUCY.lon, LUCY.jd, (t += 1 / 60), 'capped');
+    await stepShown(sys, v());
+    const n = drawnHeights(sys, 'p:', LUCY.lat, LUCY.lon).length;
+    expect(n).toBe(150);
+    const { pickTime, plants } = internals(sys);
+    // An HD zoom step: 3 m higher everywhere, each heightAt as dear as the real Earth function's.
+    terrain.costUs = 50;
+    terrain.h = 3;
+    terrain.gen = 2;
+    const calls: number[] = [];
+    let done = false;
+    while (!done && calls.length < 100) {
+      terrain.calls = 0;
+      sys.update(v());
+      calls.push(terrain.calls);
+      const hs = drawnHeights(sys, 'p:', LUCY.lat, LUCY.lon);
+      // Every plant stays drawn, on its old seat until it gets the new one.
+      expect(hs.length).toBe(n);
+      for (const h of hs) expect(Math.min(Math.abs(h), Math.abs(h - 3))).toBeLessThan(1e-3);
+      done = hs.every((h) => Math.abs(h - 3) < 1e-3);
+    }
+    // About 20 calls a frame (1 ms at 50 us), plus the anchor and 16 probes on the first.
+    expect(Math.max(...calls)).toBeLessThanOrEqual(40);
+    expect(calls.length).toBeGreaterThan(3);
+    expect(calls.length).toBeLessThan(30);
+    expect(done).toBe(true);
+    expect(plantMesh(sys).material.uniforms.uGroundRkm.value as number).toBeCloseTo((R_EARTH + 3) / 1000, 6);
+    // No re-pick, and the cells (whose coast test reads heights) are kept for a few metres.
+    expect(internals(sys).pickTime).toBe(pickTime);
+    expect(internals(sys).plants).toBe(plants);
+    expect(sys.debug().reseat).toBe(0);
+  });
+
+  it('seats the town again while the clock forces a pick every other frame', async () => {
+    // A walled town around the camera through the 16th century: a new era every 12 years.
+    const city = {
+      styles: ['medieval-european'],
+      cities: [
+        [
+          'Old Town',
+          45,
+          10,
+          [[1000, 0]],
+          [
+            [1000, 2e4],
+            [1800, 2e4],
+          ],
+          null,
+        ],
+      ],
+    } as unknown as CityData;
+    setCityAssets({ json: () => Promise.resolve(city), track: <T>(p: Promise<T>) => p } as never);
+    await loadCities();
+    const { sys, terrain } = rig();
+    LIMITS.capped = { ...LIMITS.potato, maxPlants: 50, maxBuildings: 60, maxCreatures: 0 };
+    let t = 1;
+    let year = 1500.3;
+    const v = () => view(45, 10, jdOfAstroYear(year), (t += 1 / 60), 'capped');
+    await stepShown(sys, v());
+    expect(drawnHeights(sys, 'b:', 45, 10).length).toBe(60);
+    terrain.costUs = 30;
+    terrain.h = 3;
+    terrain.gen = 2;
+    let pairs = 0;
+    let picks = 0;
+    let done = false;
+    while (!done && pairs < 30) {
+      year += 12;
+      sys.update(v()); // the new era's climate arrives after this frame
+      await settle();
+      const before = internals(sys).pickTime;
+      sys.update(v());
+      pairs++;
+      if (internals(sys).pickTime !== before) picks++;
+      done = drawnHeights(sys, 'b:', 45, 10).every((h) => Math.abs(h - 3) < 1e-3);
+    }
+    expect(done).toBe(true);
+    expect(picks).toBe(pairs);
+    expect(pairs).toBeGreaterThan(1); // 60 buildings x 5 calls x 30 us: more than one frame's budget
+  });
+
+  it('keeps animals on sloping ground from a few samples, not a heightAt per animal per frame', async () => {
+    const { sys, terrain } = rig();
+    const cos = Math.cos((LUCY.lat * Math.PI) / 180);
+    let lift = 0;
+    const at = (lat: number, lon: number) => {
+      const e = (lon - LUCY.lon) * M_PER_DEG * cos;
+      const n = (lat - LUCY.lat) * M_PER_DEG;
+      return lift + 0.12 * e - 0.05 * n + 4 * Math.sin(n / 40);
+    };
+    terrain.at = at;
+    let t = 1;
+    const v = () => view(LUCY.lat, LUCY.lon, LUCY.jd, (t += 1 / 60));
+    await stepShown(sys, v());
+    const check = () => offGround(sys, at, LUCY.lat, LUCY.lon);
+    terrain.calls = 0;
+    let drawn = 0;
+    let worst = 0;
+    for (let f = 0; f < 300; f++) {
+      sys.update(v());
+      const c = check();
+      drawn += c.n;
+      worst = Math.max(worst, c.worst);
+    }
+    expect(drawn).toBeGreaterThan(300 * 13); // the featured herds at least
+    expect(worst).toBeLessThan(0.03);
+    expect(terrain.calls).toBeGreaterThan(0); // some walked 2 m and sampled again
+    expect(terrain.calls / drawn).toBeLessThan(0.05);
+    // A new function with the same heights: no animal samples again.
+    terrain.calls = 0;
+    terrain.gen = 2;
+    sys.update(v());
+    expect(terrain.calls).toBeLessThan(17 + 3 * 3);
+    // 3 m higher: they stand on the new ground within a frame or two.
+    lift = 3;
+    terrain.gen = 3;
+    sys.update(v());
+    sys.update(v());
+    expect(check().worst).toBeLessThan(0.03);
+  });
+
+  it('starts new animals level at one heightAt each, then slopes them within the frame budget', async () => {
+    const { sys, terrain } = rig();
+    const cos = Math.cos((LUCY.lat * Math.PI) / 180);
+    // 20% up to the east, 10% down to the north.
+    const at = (lat: number, lon: number) =>
+      0.2 * (lon - LUCY.lon) * M_PER_DEG * cos - 0.1 * (lat - LUCY.lat) * M_PER_DEG;
+    terrain.at = at;
+    let t = 1;
+    const v = () => view(LUCY.lat, LUCY.lon, LUCY.jd, (t += 1 / 60));
+    await stepShown(sys, v());
+    // A pick with every herd made anew (a new era or town date): no animal has a ground sample yet.
+    internals(sys).herdCache.clear();
+    internals(sys).pickEra = -1;
+    terrain.calls = 0;
+    sys.update(v());
+    const { worst, n } = offGround(sys, at, LUCY.lat, LUCY.lon);
+    expect(n).toBeGreaterThan(13);
+    // As dear as drawing them was before ground samples (one heightAt each), not three.
+    expect(terrain.calls).toBe(n);
+    expect(worst).toBeLessThan(0.03);
+    for (let f = 0; f < 120; f++) {
+      sys.update(v());
+      expect(offGround(sys, at, LUCY.lat, LUCY.lon).worst).toBeLessThan(0.03);
+    }
+  });
+
+  it('re-seats the landmarks past the houses when an HD block move changes only the far ground', async () => {
+    // A walled town; the camera 900 m north of its centre, so the centre landmarks stand past the
+    // 450 m of houses, where the old and new blocks differ (their fading rims, or past them).
+    const city = {
+      styles: ['medieval-european'],
+      cities: [
+        [
+          'Old Town',
+          45,
+          10,
+          [[1000, 0]],
+          [
+            [1000, 2e4],
+            [1800, 2e4],
+          ],
+          null,
+        ],
+      ],
+    } as unknown as CityData;
+    setCityAssets({ json: () => Promise.resolve(city), track: <T>(p: Promise<T>) => p } as never);
+    await loadCities();
+    const { sys, terrain } = rig();
+    LIMITS.capped = { ...LIMITS.potato, maxCreatures: 0 };
+    const lat = 45 + 900 / M_PER_DEG;
+    const cos = Math.cos((lat * Math.PI) / 180);
+    const away = (la: number, lo: number) => Math.hypot((lo - 10) * M_PER_DEG * cos, (la - lat) * M_PER_DEG);
+    let lift = 0;
+    terrain.at = (la, lo) => (away(la, lo) > 600 ? lift : 0);
+    let t = 1;
+    const v = () => view(lat, 10, jdOfAstroYear(1500.3), (t += 1 / 60), 'capped');
+    await stepShown(sys, v());
+    const all = internals(sys).buildings;
+    const far = all.filter((b) => away(b.lat, b.lon) > 600).length;
+    expect(far).toBeGreaterThan(1);
+    expect(all.filter((b) => away(b.lat, b.lon) > 450 && away(b.lat, b.lon) < 700)).toEqual([]);
+    const { seatEpoch, pickTime } = internals(sys);
+    lift = 6;
+    terrain.gen = 2;
+    terrain.calls = 0;
+    for (let i = 0; i < 3; i++) sys.update(v());
+    const hs = drawnHeights(sys, 'b:', lat, 10);
+    expect(hs.length).toBe(all.length);
+    expect(hs.filter((h) => Math.abs(h - 6) < 1e-3).length).toBe(far);
+    expect(hs.filter((h) => Math.abs(h) < 1e-3).length).toBe(all.length - far);
+    // Only the far ones were probed and seated again: the houses and plants kept their seats.
+    expect(internals(sys).seatEpoch).toBe(seatEpoch);
+    expect(internals(sys).pickTime).toBe(pickTime);
+    expect(terrain.calls).toBeLessThanOrEqual(1 + PROBES + 6 * far);
+    expect(sys.debug().reseat).toBe(0);
   });
 
   it('crossing an anchor cell only rewrites offsets until the next pick is due', async () => {

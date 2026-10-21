@@ -461,4 +461,33 @@ export function iceAgeOverlay(
   }
 }
 
+/**
+ * The shader's bared-seabed test per point (paleo-surface.glsl earthPaleoIceAge) at a sea-level drop:
+ * quaternary.png R (`quat` as in iceAgeOverlay) read bilinearly like the GPU's linear filter (texel
+ * centres, longitude wraps, latitude clamps) at the point's geocentric uv, exposed at the shader's
+ * half-point: 0.5 m <= depth < drop (today's land has depth 0). Four reads, no allocation per call.
+ */
+export function shelfSampler(
+  quat: { data: Uint8Array; width: number; height: number },
+  seaDropM: number,
+): (latDeg: number, lonDeg: number) => boolean {
+  const { data: q, width: w, height: h } = quat;
+  return (latDeg, lonDeg) => {
+    const x = (lonDeg / 360 + 0.5) * w - 0.5;
+    const y = (latDeg / 180 + 0.5) * h - 0.5;
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const fx = x - xi;
+    const fy = y - yi;
+    const xa = ((xi % w) + w) % w;
+    const xb = xa + 1 === w ? 0 : xa + 1;
+    const ya = Math.max(0, Math.min(h - 1, yi)) * w;
+    const yb = Math.max(0, Math.min(h - 1, yi + 1)) * w;
+    const depth =
+      (q[(ya + xa) * 2] * (1 - fx) + q[(ya + xb) * 2] * fx) * (1 - fy) +
+      (q[(yb + xa) * 2] * (1 - fx) + q[(yb + xb) * 2] * fx) * fy;
+    return depth >= 0.5 && depth < seaDropM;
+  };
+}
+
 export { DEM_H, DEM_W };

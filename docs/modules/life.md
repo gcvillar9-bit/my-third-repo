@@ -23,6 +23,11 @@ Cross-module API: `src/modules/life/public.ts`.
   - Near the camera, `system.ts` `groundClimate` checks the modern map against the terrain heights: land
     at sea level becomes sea, and dry ground the map calls sea becomes land. Shelf cells stay land (the
     terrain has no bathymetry, so it cannot tell exposed sea floor from sea).
+  - So does every point the surface draws as bared seabed, also inside coastal land and sea cells:
+    paleo's `ClimateMap.shelfAt(lat, lon)` (modern maps with a sea-level drop) is the shader's own
+    per-point test on the quaternary depths. There a land cell keeps its climate and a sea or sea-ice
+    cell takes the nearest land cell's (`sampleClimateLand`), all as kind shelf (`iceAgeOverlay` bares
+    sea and sea ice alike); land ice stays ice. Without `shelfAt` the terrain test above decides.
   - `ecology.ts` `biomeOf` turns land and shelf into rainforest, forest, taiga, savanna, grassland, steppe,
     desert or tundra (sea and ice have none).
 - **Plants** (`flora.json`): era rows, from mosses at 470 Ma to grasslands from 20 Ma.
@@ -32,7 +37,9 @@ Cross-module API: `src/modules/life/public.ts`.
   - Cells are rows of latitude, each split into a whole number of columns, so the grid wraps at the
     antimeridian: both sides of it (Taveuni, Chukotka) show the same plants and herds.
   - Trees are kept out to `treeRadius`, tufts to `tuftRadius` (by quality, `LIMITS`), nearest first.
-    Filled cells stay cached up to 15000 (about three picks at ultra) before the cache is emptied.
+    Filled cells stay cached up to about three picks at the preset's tree radius (`plantCacheMax`: 768
+    cells at potato, 14,283 at ultra); past that the least recently used cells go first, never the
+    current pick's.
 - **Animals** (`species.json`): each row has an era range, habitats, a herd size, an abundance, and a
   range from either source:
   - PBDB fossil finds (`public/data/life/occurrences.json`, `tools/build-life.mjs`).
@@ -46,6 +53,13 @@ Cross-module API: `src/modules/life/public.ts`.
   age lies in its interval widened by a slack of 15% of the age below 2.6 Ma (at least 2 kyr) or 10% in
   deep time (at least 1 Myr). From 2.6 Ma on, finds are placed by their paleo-coordinates
   (`pgm=scotese`, the frame of the PaleoDEM maps); at younger ages, by their modern coordinates.
+
+  The hand-placed bookmark herds (`featuredHerds`) are shown within about two era steps of their site's
+  age, but only while their species lived (`livedAt`), so no tyrannosaurids stand at the T. rex site
+  after 66 Ma (dicynodonts stay at the Permian site). The scene uses the age at which its era step was
+  entered (`system.ts` `ageMa`): era step 720 (64.84-66.49 Ma) contains the K-Pg, so scrubbing slowly
+  down from 66.5 Ma keeps dinosaurs, featured and wild, until about 64.84 Ma; jumping straight to 65.5 Ma
+  hides them.
 
   Each 240 m cell may hold one herd: pick a guild present there, then a species by presence × habitat
   × abundance. The creature cap (`maxCreatures`) keeps the hand-placed herds first, then the nearest
@@ -96,8 +110,31 @@ Cross-module API: `src/modules/life/public.ts`.
     small in Float32. The shader turns the anchor's tangent frame into world axes. Crossing an anchor
     cell only rewrites the offsets from the cached ground positions; the next pick waits for its turn.
   - Ground heights come from `terrainHeightAt` (terrain `public.ts`): the exact finest-level ground of
-    the drawn mesh. When the height function changes (`terrainHeightGeneration`: the first heights, HD
-    terrain blocks), the scene is seated again and its cached cells are rebuilt.
+    the drawn mesh. Each plant and building keeps its seat (ground point, the height under it, and the
+    seat epoch it was computed in); buildings share seats by kind and place across picks.
+  - The height function changes (`terrainHeightGeneration`) with the first heights and every HD block
+    move or zoom step. `heightsChanged` checks that every frame, whatever the picks do. It seats the
+    anchor again and probes 16 seats spread over the plants and houses (17 `heightAt`).
+    - Every probe moved by under 1 cm (an HD block move: the camera stays inside both blocks): only the
+      landmarks and monuments beyond the pick's building radius are probed, one `heightAt` each
+      (`probeFar`). A block move changes the ground from about half a tile away (the old or new block's
+      fading rim, or past both: 2.5-5 km at z12 below 60 degrees), and those that moved there are queued
+      to be seated again.
+    - Otherwise every seat goes stale. `reseat` replaces stale seats of the current lists, nearest first,
+      within 1 ms a frame (after the animals), and rewrites only the offsets that moved. Old seats stay
+      drawn until replaced, and new objects are seated at once by the pick. Each pick queues the stale
+      seats of its new lists, so the re-seat finishes while picks run every frame (about 10 s for a full
+      city at ultra).
+    - A median probe shift over 10 m means the ground itself was replaced (the base Earth function by HD
+      tiles after a jump: about 50 m apart). The cached plant and herd cells are then rebuilt too, since
+      the modern coast test read the old heights, with one full pick. HD zoom steps move the median by
+      1-3 m and keep the cells.
+  - Animals keep a ground sample each: the height and its slope east and north (three `heightAt`). They
+    follow that plane until they have walked 2 m from it, or until the seats go stale (sampled again
+    within the same 1 ms budget, nearest herds first). A new animal starts level at its point (one
+    `heightAt`) and gets its slope within that budget, so a pick that makes every herd anew (a new era or
+    town date) costs what drawing them did before. That is about 3 `heightAt` a frame for 320 animals
+    instead of 320.
 - **Shading** (`glsl/life.frag.glsl`):
   - Faceted Lambert with the normal from screen-space derivatives (no normal attribute, so posed limbs
     stay faceted).
@@ -126,7 +163,10 @@ from the gait phase:
   araucarias, cycads, ginkgos, broadleaf trees, palms, birches, shrubs, grass, cacti) sway in the wind
   by height. Each vertex carries a sway weight, 0 at the root. A blob's `bendBase` option
   (`kit/mesh.ts`) blends the weight ring by ring from `bendBase` at its bottom pole to `bend` at its top
-  (without it the whole blob has `bend`), so a shrub with `bendBase: 0` stays rooted in the ground.
+  (without it the whole blob has `bend`). A blob's poles take no roughness and sit exactly at c.y ± r.y.
+  The shrub's three blobs rest on the ground (each bottom pole, its bend-0 root, 2 cm under y = 0) and a
+  fern's fronds start at ground level, so with `bendBase: 0` a shrub is rooted in the ground both in
+  shape and in sway.
 
 Downloadable CC0 packs (Quaternius) were the plan. Their Google Drive host answers "quota exceeded" from
 the build environment, so the models are generated in code instead: no download and no licence; each
@@ -161,19 +201,27 @@ Unit tests check that those species lived there and then.
   - The data: models, sources, contiguous flora eras.
   - Biomes, with exposed shelf as land; ranges (T. rex only in Late Cretaceous Laramidia; species gone
     just past their own first and last appearance; the human dispersal; featured herds alive where
-    placed; candidates of the time).
+    placed, and gone after their species' last appearance; candidates of the time).
   - Kit sanity: finite, on the ground, joints; winding (every blob, loft, cone and building face wound
     counter-clockwise from outside, because the life material culls back faces; blobs closed); no
-    uniform or attribute that clashes with three.js; zero sway at plant roots; arms swinging with the
-    opposite leg.
-  - Population determinism and limits; the same cells on both sides of the antimeridian; motion
-    consistency.
+    uniform or attribute that clashes with three.js; every plant reaching the ground (lowest vertex
+    within 2 cm of y = 0, seeds 1-5) with zero sway below 2 cm; blob poles at c.y ± r.y whatever the
+    roughness; arms swinging with the opposite leg.
+  - Population determinism and limits; the same cells on both sides of the antimeridian; the plant cache
+    bounded per preset, least recently used first; motion consistency.
   - Settlements (`population.test.ts`): no house on a monument at the city bookmarks, monuments
     replacing the style landmark of their kind, a wall gate on each of the four main streets.
   - The system (`system.test.ts`): the date step of towns; towns in range (`built`, `near` from the town
-    centre) and the monument range; herd order under the cap; the ground climate (shelf kept as land);
-    waiting for the fossil finds; seating again when the terrain heights change; crossing an anchor
-    cell; re-picking the towns when the date changes inside an era.
+    centre) and the monument range; herd order under the cap; the ground climate (shelf cells and
+    `shelfAt` points kept as land); waiting for the fossil finds; crossing an anchor cell; re-picking the
+    towns when the date changes inside an era.
+  - Height function changes (`system.test.ts`, with a fake `heightAt` that counts calls and can cost
+    50 us): an HD block move with the same heights makes 17 calls and no pick; a 3 m change re-seats
+    over a few frames at about 20 calls a frame, with old seats drawn until replaced; a 60 m change
+    rebuilds the cells at once; a town re-seats while a forced pick runs every other frame; when only
+    the ground past the houses changed, just the landmarks there are seated again; animals stay within
+    3 cm of a curved slope (5 mm measured) at about 0.005 `heightAt` per animal per frame, and herds made
+    anew cost one `heightAt` per animal.
 - **E2E** (`tests/e2e/life.spec.ts`):
   - Four bookmarks with their cast (test hook `window.__life`) and the horizon band holding trees and
     animals. Species that must be absent are checked in every picked herd (`debug().herds`), so the

@@ -59,6 +59,13 @@ Public API: `src/modules/surfaces/public.ts`. Depends on solar-system, atmospher
   AbortController timeout, keeps the tiles as blob: URLs and registers an Earth spec at priority 6 naming them; the
   workers decode the blobs, replace the baked land relief inside the block (faded over the outer quarter tile) and
   add ridged detail below the tile pixel. If every tile fails: baked relief stays, one "HD layer unavailable" toast.
+- Each block move swaps Earth's height function (life re-seats its objects), so the block keeps some
+  hysteresis: the zoom stays until the altitude is 0.15 zoom levels (about 11 %) past a threshold
+  (`HD_ZOOM_HYSTERESIS`; 1151 m, 2302 m, ...), and at the same zoom the block stays while the camera is within
+  0.2 tile (`HD_TILE_MARGIN`) of its middle tile, so it is still at least 0.55 tile from the faded outer
+  quarter.
+- Blob URLs of a replaced or dropped block (quality to potato, setting off) are revoked 60 s later, after the
+  worker builds still fetching them.
 - Memory per block move stays flat: the 'surface' height module keeps its decoded base rasters per path (a new
   block decodes only its 9 Terrarium tiles, not the 2k PNGs again), and the terrain height-function cache keeps
   only the current and the loading spec per body (`terrain/height-modules.ts`).
@@ -71,7 +78,8 @@ Public API: `src/modules/surfaces/public.ts`. Depends on solar-system, atmospher
   that deck, so the cloud-free stretch of the same orogen is used.
 - Unit: FC on a synthetic sphere cap + bumps (RMS < 2 %); crater SFD slope -2 +- 0.2 and absolute density; crater
   profiles; batch independence, date-line/pole continuity and smooth neighbours; real rasters (Tycho depth, Olympus vs
-  Hellas, Himalaya high / Pacific at sea level); specs; Terrarium decode of the fixture, tile maths, HD block sampling.
+  Hellas, Himalaya high / Pacific at sea level); specs; Terrarium decode of the fixture, tile maths, HD block
+  sampling, HD block hysteresis (zoom thresholds, tile edges) and blob-URL revocation of a dropped block.
 - E2E `tests/e2e/surfaces.spec.ts` (potato): apollo11-2m (@smoke), mars-gale-sunset and earth-himalaya check a
   non-smooth skyline (RMS about a quadratic > 0.6 px), ground contrast, zero errors and budgets; HD with `route()`
   fixtures (9 tiles requested, z9 block, no errors) and with refused tiles (fallback identical to the baked view).

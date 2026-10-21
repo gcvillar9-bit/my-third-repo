@@ -189,9 +189,10 @@ export class MeshBuilder {
   }
 
   /**
-   * A faceted ellipsoid (low-poly blob) centred at c with radii r. `bend` is the bend weight; with
-   * `bendBase` it blends from `bendBase` at the bottom pole to `bend` at the top (a shrub rooted in the
-   * ground).
+   * A faceted ellipsoid (low-poly blob) centred at c with radii r. `rough` scales the rings between the
+   * poles by a hash of `seed`; the poles stay exactly at c.y ± r.y, so a blob centred at its own
+   * vertical radius rests on the ground. `bend` is the bend weight; with `bendBase` it blends from
+   * `bendBase` at the bottom pole to `bend` at the top (a shrub rooted in the ground).
    */
   blob(
     c: V3,
@@ -217,8 +218,8 @@ export class MeshBuilder {
       const row: V3[] = [];
       for (let k = 0; k < lon; k++) {
         const ph = (2 * Math.PI * (k + (i % 2) * 0.5)) / lon;
-        // One roughness per pole row, so the pole vertices coincide and the polar fans stay closed.
-        const f = 1 + rough * (2 * hash01(seed, i, i === 0 || i === lat ? 0 : k) - 1);
+        // No roughness at the poles: their vertices coincide (closed polar fans) at a known height.
+        const f = i === 0 || i === lat ? 1 : 1 + rough * (2 * hash01(seed, i, k) - 1);
         row.push([
           c[0] + Math.cos(th) * Math.cos(ph) * r[0] * f,
           c[1] + Math.sin(th) * r[1] * f,
