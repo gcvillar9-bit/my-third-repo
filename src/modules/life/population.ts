@@ -45,6 +45,11 @@ export interface LifeLimits {
 
 export const PLANT_CELL_M = 24;
 export const HERD_CELL_M = 240;
+/**
+ * Plant cells kept before the cache is emptied: about 3 picks at ultra (800 m tree radius, about 4600
+ * cells of 24 m), so moving around does not empty it every few hundred metres.
+ */
+const PLANT_CACHE_MAX = 15000;
 
 export interface Plant {
   kind: PlantKind;
@@ -83,7 +88,17 @@ export interface Herd {
   members: Member[];
 }
 
-/** Lat/lon cell grid of `cellM` metres: rows by latitude, columns by longitude scaled per row. */
+/** Columns of the cell row at latitude cLat: a whole number of about `cellM` metres, so rows wrap. */
+function rowCols(cLat: number, cellM: number): number {
+  const dLon = cellM / (M_PER_DEG * Math.max(0.05, Math.cos((cLat * Math.PI) / 180)));
+  return Math.max(1, Math.round(360 / dLon));
+}
+
+/**
+ * Lat/lon cell grid of `cellM` metres: rows by latitude, columns by longitude scaled per row. Columns
+ * divide each row evenly and wrap at the antimeridian, so both sides of it see the same cells (cell
+ * centres in -180..180).
+ */
 function cellsAround(
   lat: number,
   lon: number,
@@ -96,11 +111,16 @@ function cellsAround(
   const r1 = Math.floor((lat + radiusM / M_PER_DEG) / dLat);
   for (let row = r0; row <= r1; row++) {
     const cLat = (row + 0.5) * dLat;
-    const dLon = dLat / Math.max(0.05, Math.cos((cLat * Math.PI) / 180));
+    const cols = rowCols(cLat, cellM);
+    const dLon = 360 / cols;
     const spanLon = radiusM / (M_PER_DEG * Math.max(0.05, Math.cos((cLat * Math.PI) / 180)));
     const c0 = Math.floor((lon - spanLon) / dLon);
-    const c1 = Math.floor((lon + spanLon) / dLon);
-    for (let col = c0; col <= c1; col++) visit(row, col, cLat, (col + 0.5) * dLon);
+    const c1 = Math.min(Math.floor((lon + spanLon) / dLon), c0 + cols - 1);
+    for (let c = c0; c <= c1; c++) {
+      const col = ((c % cols) + cols) % cols;
+      const cLon = (col + 0.5) * dLon;
+      visit(row, col, cLat, cLon < 180 ? cLon : cLon - 360);
+    }
   }
 }
 
@@ -137,7 +157,7 @@ export function plantsInCell(
   const patch = 0.35 + 1.3 * hash01(Math.floor(row / 6), Math.floor(col / 6), era, 7);
   const n = Math.floor((mix.density * area * patch) / 100 + hash01(row, col, era, 1));
   const dLat = PLANT_CELL_M / M_PER_DEG;
-  const dLon = dLat / Math.max(0.05, Math.cos((cLat * Math.PI) / 180));
+  const dLon = 360 / rowCols(cLat, PLANT_CELL_M);
   const out: Plant[] = [];
   for (let i = 0; i < n; i++) {
     const kind = mix.kinds[pick(mix.cumulative, hash01(row, col, era, i, 2))];
@@ -200,7 +220,7 @@ export function plantsAround(
       out.push({ p, d });
     }
   });
-  if (cache.size > 6000) cache.clear();
+  if (cache.size > PLANT_CACHE_MAX) cache.clear();
   out.sort((a, b) => a.d - b.d);
   return out.slice(0, lim.maxPlants).map((x) => x.p);
 }
@@ -306,7 +326,7 @@ export function herdInCell(
   townOf?: TownOf,
 ): Herd | null {
   const dLat = HERD_CELL_M / M_PER_DEG;
-  const dLon = dLat / Math.max(0.05, Math.cos((cLat * Math.PI) / 180));
+  const dLon = 360 / rowCols(cLat, HERD_CELL_M);
   const lat = cLat + (hash01(row, col, era, 11) - 0.5) * 0.6 * dLat;
   const lon = cLon + (hash01(row, col, era, 12) - 0.5) * 0.6 * dLon;
   const biome = biomeAt(climate, lat, lon);
@@ -556,6 +576,14 @@ const LANDMARKS: Record<string, BuildingKind[]> = {
 const BLOCK_CELLS = 5;
 /** Buildings wider than a cell: placed on 2 x 2 cell lots. */
 const BIG = new Set<BuildingKind>(['tower', 'apartment', 'insula', 'terrace', 'factory']);
+/** Open ground between a landmark or monument and the nearest house, m. */
+const LANE_M = 6;
+
+/** Radius of a building's footprint at a scale (the circle through its corners), m. */
+function reach(kind: BuildingKind, scale = 1): number {
+  const [hx, hz] = BUILDINGS[kind].half;
+  return Math.hypot(hx, hz) * scale;
+}
 
 /** Odds of a tower on a big lot: the core of big modern cities, business districts in megacities. */
 function towerOdds(t: Town, r: number): number {
@@ -637,17 +665,37 @@ export function buildingsAround(
       t.style === 'classical' ||
       t.style === 'chinese';
     const twist = planned ? 0 : 0.26;
-    // Landmarks at the centre, keeping their footprint clear of houses.
-    const lms = LANDMARKS[t.style] ?? [];
+    // Footprints kept clear of houses (east, north, radius with a lane around it): first the monuments
+    // in or near the town, which also stand in for the style landmark of their kind.
     const clear: [number, number, number][] = [];
+    const real = new Map<string, number>();
+    for (const m of landmarks) {
+      if (!BUILDINGS[m.kind as BuildingKind]) continue;
+      const [e, n] = localEN(t.lat, t.lon, m.lat, m.lon);
+      const rr = reach(m.kind as BuildingKind, m.scale) + LANE_M;
+      const d = Math.hypot(e, n);
+      if (d > t.radiusM + rr) continue;
+      clear.push([e, n, rr]);
+      if (d <= t.radiusM) real.set(m.kind, (real.get(m.kind) ?? 0) + 1);
+    }
+    const monuments = clear.length;
+    // Landmarks at the centre, unless a monument of that kind stands in town or one is in the way.
+    const lms = LANDMARKS[t.style] ?? [];
     lms.forEach((k, i) => {
       if (k === 'tower' && t.pop < 1e6) return;
       const m = BUILDINGS[k];
       const e = i === 0 ? 0 : (i % 2 ? 1 : -1) * (m.half[1] + 40) * Math.ceil(i / 2);
       const n = i === 0 ? 0 : 30 * (i % 3);
+      const left = real.get(k) ?? 0;
+      if (left > 0) {
+        real.set(k, left - 1);
+        return;
+      }
+      const r = reach(k);
+      if (clear.some(([x, y, rr], j) => j < monuments && Math.hypot(e - x, n - y) < rr + r)) return;
       const [la, lo] = toLatLon(e, n);
       push({ kind: k, lat: la, lon: lo, heading: Math.PI, scale: 1, seed: seedT + i }, 4);
-      clear.push([e, n, Math.max(m.half[0], m.half[1]) + 12]);
+      clear.push([e, n, r + LANE_M]);
     });
     // Blocks of 4 x 4 cells between streets (every fifth row and column): either 16 small lots or,
     // for apartment blocks, towers, insulae and terraces, 4 big lots of 2 x 2 cells.
@@ -665,16 +713,18 @@ export function buildingsAround(
       const r = Math.hypot(e, n) / t.radiusM;
       if (r > 1) return;
       if (hash01(seedT, i, j, 3 + k) > 0.92 - 0.5 * r) return;
-      if (clear.some(([x, y, rr]) => Math.hypot(e - x, n - y) < rr)) return;
+      const big = BIG.has(kind);
+      const scale = big ? 0.9 + 0.1 * hash01(seedT, i, j, 8) : 0.85 + 0.3 * hash01(seedT, i, j, 8);
+      const own = reach(kind, scale);
+      if (clear.some(([x, y, rr]) => Math.hypot(e - x, n - y) < rr + own)) return;
       const [la, lo] = toLatLon(e, n);
       const quarter = (Math.PI / 2) * Math.floor(hash01(seedT, i, j, 6) * 4);
-      const big = BIG.has(kind);
       push({
         kind,
         lat: la,
         lon: lo,
         heading: big ? quarter - (quarter % Math.PI) : quarter + (hash01(seedT, i, j, 7) - 0.5) * twist,
-        scale: big ? 0.9 + 0.1 * hash01(seedT, i, j, 8) : 0.85 + 0.3 * hash01(seedT, i, j, 8),
+        scale,
         seed: Math.floor(hash01(seedT, i, j, 9) * 4),
       });
     };
@@ -709,17 +759,20 @@ export function buildingsAround(
             lot(i, j, e, n, kind, 0);
           }
       }
-    // Walls on a ring at the edge (pre-modern towns of more than 3000 people).
+    // Walls on a ring at the edge (pre-modern towns of more than 3000 people), with a gate on each of
+    // the four main streets (the cells at 0..22 m east and north). The ring is centred where those
+    // streets cross and pushed out by as much, so it keeps 2% of the radius clear of the lots.
     if (WALLED.has(t.style) && year < 1800 && t.pop > 3000) {
-      const R = t.radiusM * 1.02;
-      const n = Math.max(12, Math.round((2 * Math.PI * R) / 24));
+      const mid = cell / 2;
+      const R = t.radiusM * 1.02 + mid * Math.SQRT2;
+      // Segments are 24 m with a tower 4 m past their clockwise end. A multiple of 4 segments 25-27 m
+      // apart puts one on each street; leaving it out opens 2 x step - 28 m (22-26 m), and turning the
+      // ring back 2 m centres that opening on the street.
+      const n = 4 * Math.max(3, Math.round((2 * Math.PI * R) / 104));
       for (let k = 0; k < n; k++) {
-        const a = (2 * Math.PI * k) / n;
-        const e = Math.sin(a) * R;
-        const nn = Math.cos(a) * R;
-        // Gates on the four main streets.
-        if (Math.abs(Math.sin(2 * a)) < 0.04) continue;
-        const [la, lo] = toLatLon(e, nn);
+        if (k % (n / 4) === 0) continue;
+        const a = (2 * Math.PI * k) / n - 2 / R;
+        const [la, lo] = toLatLon(mid + Math.sin(a) * R, mid + Math.cos(a) * R);
         push({ kind: 'wall', lat: la, lon: lo, heading: a, scale: 1, seed: k });
       }
     }

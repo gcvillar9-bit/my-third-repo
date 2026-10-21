@@ -42,6 +42,44 @@ describe('HD imagery tiles (GIBS EPSG:4326 500m)', () => {
     expect(p.row0).toBe(0);
   });
 
+  it('re-centres after a jump one or more block widths away (no longitude aliasing)', () => {
+    const rome = blockAt(41.89, 12.49, 7);
+    expect(insideMiddle(rome, 40.42, -3.7)).toBe(false); // Madrid: 2 block widths west
+    for (let k = 1; k < 40; k++) expect(insideMiddle(rome, 41.89, 12.49 + k * rome.dLon)).toBe(false);
+    expect(insideMiddle(rome, 41.89, 12.49 + 360)).toBe(true);
+    const l6 = blockAt(41.89, 12.49, 6);
+    expect(insideMiddle(l6, 41.89, 12.49 - l6.dLon)).toBe(false);
+  });
+
+  it('bounds a pole block on its equator side only', () => {
+    const north = blockAt(88, 1, 7);
+    expect(north.lat0 + north.dLat).toBeCloseTo(90, 9);
+    expect(insideMiddle(north, 89.99, 1)).toBe(true);
+    expect(insideMiddle(north, 84, 1)).toBe(true);
+    expect(insideMiddle(north, 70, 1)).toBe(false);
+    expect(insideMiddle(north, 0, 1)).toBe(false);
+    expect(insideMiddle(north, 70, 30)).toBe(false);
+    const south = blockAt(-88, 1, 7);
+    expect(south.lat0).toBeCloseTo(-90, 9);
+    expect(insideMiddle(south, -89.99, 1)).toBe(true);
+    expect(insideMiddle(south, -84, 1)).toBe(true);
+    expect(insideMiddle(south, -70, 1)).toBe(false);
+  });
+
+  it('keeps a point on a tile edge inside the block just centred on it', () => {
+    for (const level of [6, 7])
+      for (const [lat, lon] of [
+        [45, 0],
+        [0, -180],
+        [-45, 90],
+        [88, 0],
+        [-88, 179.99],
+      ]) {
+        const b = blockAt(lat, lon, level);
+        expect(insideMiddle(b, lat, lon), `${level} ${lat} ${lon}`).toBe(true);
+      }
+  });
+
   it('blends inside the block only, with gradients taken outside the branch', () => {
     const i = shading.indexOf('vec2 hdx = dFdx(hu);');
     const j = shading.indexOf('if (uEarthHdMix > 0.0');

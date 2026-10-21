@@ -26,6 +26,8 @@ import { eraKey } from '../../../src/modules/life/system';
 import sites from '../../../src/modules/life/sites.json';
 import vert from '../../../src/modules/life/glsl/life.vert.glsl?raw';
 import frag from '../../../src/modules/life/glsl/life.frag.glsl?raw';
+import { DEPTH_GLSL } from '../../../src/render/chunks/index';
+import { ATMOSPHERE_TRANSMITTANCE_GLSL } from '../../../src/modules/atmosphere/public';
 
 const occ = JSON.parse(readFileSync('public/data/life/occurrences.json', 'utf8')) as Occurrences;
 const sp = (id: string) => SPECIES.find((s) => s.id === id)!;
@@ -138,23 +140,109 @@ describe('life kit', () => {
   });
 
   it('builds every plant with sway weights from 0 at the root', () => {
-    for (const kind of Object.keys(PLANTS) as PlantKind[]) {
-      const b = buildPlant(kind, 3);
-      const { pos, bend } = b.arrays();
-      expect(b.triangles, kind).toBeGreaterThan(5);
-      for (let i = 0; i < pos.length; i++) expect(Number.isFinite(pos[i]), kind).toBe(true);
-      for (let i = 3; i < bend.length; i += 4) {
-        expect(bend[i], kind).toBeGreaterThanOrEqual(0);
-        expect(bend[i], kind).toBeLessThanOrEqual(1);
+    for (const kind of Object.keys(PLANTS) as PlantKind[])
+      for (const seed of [1, 2, 3, 4, 5]) {
+        const b = buildPlant(kind, seed);
+        const { pos, bend } = b.arrays();
+        expect(b.triangles, kind).toBeGreaterThan(5);
+        for (let i = 0; i < pos.length; i++) expect(Number.isFinite(pos[i]), kind).toBe(true);
+        for (let i = 3; i < bend.length; i += 4) {
+          expect(bend[i], kind).toBeGreaterThanOrEqual(0);
+          expect(bend[i], kind).toBeLessThanOrEqual(1);
+        }
+        // The root (the lowest 2 cm, and anything touching or under the ground) does not sway.
+        let minY = Infinity;
+        for (let i = 1; i < pos.length; i += 3) minY = Math.min(minY, pos[i]);
+        const root = Math.max(minY, 0) + 0.02;
+        let rooted = 0;
+        for (let v = 0; v < pos.length / 3; v++)
+          if (pos[3 * v + 1] <= root) {
+            expect(bend[4 * v + 3], `${kind} seed ${seed}: weight at y ${pos[3 * v + 1]}`).toBe(0);
+            rooted++;
+          }
+        expect(rooted, kind).toBeGreaterThan(0);
+        expect(b.bounds().height, kind).toBeLessThan(PLANTS[kind].height * 1.6 + 0.5);
       }
-      expect(b.bounds().height, kind).toBeLessThan(PLANTS[kind].height * 1.6 + 0.5);
-    }
   });
 
-  it('includes the log-depth chunk calls and no reserved uniform names twice', () => {
+  it('declares no uniform or attribute that clashes with three.js or another chunk', () => {
     expect(vert).toContain('LOG_DEPTH_VERTEX()');
     expect(frag).toContain('LOG_DEPTH_FRAGMENT()');
     expect(frag).toContain('atmoSunTransmittance');
+    // The stages as system.ts assembles them for its ShaderMaterial.
+    const stages = {
+      vertex: `${DEPTH_GLSL}\n${vert}`,
+      fragment: `${DEPTH_GLSL}\n${ATMOSPHERE_TRANSMITTANCE_GLSL}\n${frag}`,
+    };
+    // Declared by three.js in the ShaderMaterial prefix (or its chunks): redeclaring one fails to compile.
+    const threeUniforms = [
+      'modelMatrix',
+      'modelViewMatrix',
+      'projectionMatrix',
+      'viewMatrix',
+      'normalMatrix',
+      'cameraPosition',
+      'isOrthographic',
+      'toneMappingExposure',
+      'logDepthBufFC',
+    ];
+    const threeAttributes = [
+      'position',
+      'normal',
+      'uv',
+      'color',
+      'tangent',
+      'instanceMatrix',
+      'instanceColor',
+    ];
+    const decls = (src: string, q: string) => {
+      const out: [string, string][] = [];
+      const code = src.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      const re = new RegExp(`\\b${q}\\s+(?:(?:lowp|mediump|highp)\\s+)?(\\w+)\\s+([^;]+);`, 'g');
+      for (const m of code.matchAll(re))
+        for (const name of m[2].split(',')) out.push([name.trim().replace(/\s*\[.*$/, ''), m[1]]);
+      return out;
+    };
+    const types = new Map<string, string>();
+    for (const [stage, src] of Object.entries(stages)) {
+      const uniforms = decls(src, 'uniform');
+      const names = uniforms.map(([n]) => n);
+      expect(names.length, stage).toBeGreaterThan(3);
+      expect(new Set(names).size, `${stage}: ${names.join(' ')}`).toBe(names.length);
+      for (const [name, type] of uniforms) {
+        expect(threeUniforms, `${stage}: ${name}`).not.toContain(name);
+        expect(types.get(name) ?? type, `${name} has one type in both stages`).toBe(type);
+        types.set(name, type);
+      }
+      const attributes = decls(src, 'attribute').map(([n]) => n);
+      expect(new Set(attributes).size, stage).toBe(attributes.length);
+      for (const a of attributes) expect(threeAttributes, `${stage}: ${a}`).not.toContain(a);
+    }
+    expect([...types.keys()]).toEqual(expect.arrayContaining(['uGait', 'uExposure', 'uAtmoTransmittance']));
+  });
+
+  it('swings each arm with the opposite leg and keeps the sway seed per individual', () => {
+    // Evaluate limbOffset (plain C-like GLSL) for the biped and upright gaits.
+    const src = vert.match(/float limbOffset\(int part, int kind\) \{[\s\S]*?\n\}/)![0];
+    const limbOffset = new Function(
+      'part',
+      'kind',
+      src.replace(/^float limbOffset\(int part, int kind\) \{/, '').replace(/\}$/, ''),
+    ) as (part: number, kind: number) => number;
+    expect(vert).toContain('float swing = (arm ? -1.0 : 1.0) * amp * move * sin(a);');
+    const swing = (part: number, kind: number, phase: number) =>
+      (part >= PART.armL ? -1 : 1) * Math.sin(2 * Math.PI * (phase + limbOffset(part, kind)));
+    for (const kind of [1, 2])
+      for (const phase of [0.1, 0.3, 0.6, 0.85]) {
+        const sign = (p: number) => Math.sign(swing(p, kind, phase));
+        expect(sign(PART.legBL), 'legs in antiphase').toBe(-sign(PART.legBR));
+        expect(sign(PART.armR), 'right arm with the left leg').toBe(sign(PART.legBL));
+        expect(sign(PART.armL), 'left arm with the right leg').toBe(sign(PART.legBR));
+      }
+    // The seed must not come from iPos (anchor-relative: it jumps at every re-anchor and while walking).
+    const main = vert.slice(vert.indexOf('void main()'));
+    expect(main).toMatch(/float seed = iFrame\.w;/);
+    expect(main).not.toMatch(/seed = [^;]*iPos/);
   });
 });
 

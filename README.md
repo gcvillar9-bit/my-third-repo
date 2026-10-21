@@ -40,7 +40,8 @@ to the largest structures in the universe and back home. Or press `/` and type a
   (mud-brick and ziggurats, Roman insulae, medieval houses and cathedrals, mosques, pagodas, step pyramids,
   industrial terraces, modern towers) with real monuments and people in the streets (bookmarks `city-*`).
 - Near the ground today's Earth streams real detail: NASA Blue Marble imagery at about 490 m per pixel and AWS
-  Terrarium elevation (on from low quality up; `?hdimagery=0`, `?hdterrain=0` or the setting turn them off).
+  Terrarium elevation (on from low quality up; `?hdimagery=0` and `?hdterrain=0` turn them off, and the "HD Earth
+  terrain" setting turns off the elevation).
 - A hero Earth with ocean glint, city lights, clouds and cloud shadows.
 - Gas giants with drifting cloud bands, the Great Red Spot and moon-shadow transits; Saturn's and Uranus's rings at
   true radii with backlit glow and shadows both ways.

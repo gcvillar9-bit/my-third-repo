@@ -1,5 +1,5 @@
 {
-  "about": "Monuments drawn at their real places (building kinds from src/modules/life/kit/buildings.ts) from the year they were finished (historical years, negative = BC) until they were destroyed or left in ruin (end). Coordinates WGS84; dates approximate.",
+  "about": "Monuments drawn at their real places (building kinds from src/modules/life/kit/buildings.ts) from the year they were finished (historical years, negative = BC) until they were destroyed, left in ruin or rebuilt as another kind (end, excluded; a building that changed use has one row per use). Coordinates WGS84; dates approximate.",
   "monuments": [
     {
       "name": "Great Pyramid of Khufu",
@@ -68,11 +68,23 @@
     },
     {
       "name": "Hagia Sophia",
-      "kind": "mosque",
+      "kind": "baroqueChurch",
       "lat": 41.0086,
       "lon": 28.9802,
       "from": 537,
+      "end": 1453,
       "scale": 1.3,
+      "note": "A church until the Ottoman conquest; the domed baroqueChurch model stands in for a Byzantine church",
+      "source": "Mainstone 1988"
+    },
+    {
+      "name": "Hagia Sophia",
+      "kind": "mosque",
+      "lat": 41.0086,
+      "lon": 28.9802,
+      "from": 1453,
+      "scale": 1.3,
+      "note": "A mosque from the Ottoman conquest of 1453; the minarets were added after it",
       "source": "Mainstone 1988"
     },
     {

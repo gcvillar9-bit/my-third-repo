@@ -52,9 +52,20 @@ export interface City {
   founded: number;
 }
 
+/**
+ * Astronomical year of the earliest town in the data (Jericho, founded 8000 BC). The one start date of
+ * the module: labels, the validity range and the docs begin here (a unit test checks it against the table).
+ */
+export const TOWNS_FROM_YEAR = -7999;
+
 /** Astronomical calendar year (fractional) of a JD (TT); 365.25-day years from J2000. */
 export function yearOfJd(jd: number): number {
   return 2000 + (jd - JD_J2000) / 365.25;
+}
+
+/** JD (TT) of an astronomical calendar year (the inverse of yearOfJd). */
+export function jdOfAstroYear(year: number): number {
+  return JD_J2000 + (year - 2000) * 365.25;
 }
 
 /** People per km2 of built-up land by period (dense walled towns, then industrial, then metro areas). */

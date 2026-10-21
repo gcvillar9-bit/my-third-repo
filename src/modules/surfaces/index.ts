@@ -10,7 +10,7 @@ import { requestAtmosphereLuts } from '../atmosphere/public';
 import { ATMOSPHERE_BODIES } from '../solar-system/public';
 import { buildHimalayaBookmark } from './bookmarks';
 import { createDetailTexture } from './detail';
-import { HD_SETTING_ID, HD_URL_PARAM, HdEarthTerrain } from './hd';
+import { HD_SETTING_ID, HD_URL_PARAM, HdEarthTerrain, hdTerrainAllowed, hdTerrainQualityOk } from './hd';
 import { SURFACES_MODULE_ID } from './public';
 import { createSurfaceShading } from './shading';
 import { SURFACE_BODIES, surfaceHeightSpec } from './specs';
@@ -30,22 +30,24 @@ const surfaces: UniverseModule = {
       if (spec) registry.addHeightSource(spec);
     }
 
-    // Optional HD Earth terrain (Terrarium tiles), off by default.
+    // HD Earth terrain (Terrarium tiles near the camera).
     const earthBody = registry.body('earth');
     const earthSpec = earthBody && surfaceHeightSpec(earthBody);
     let offFrame: (() => void) | null = null;
     if (earthBody && earthSpec) {
+      // On by default since the soft terrain reset (tiles swap in place when the HD block moves), except on
+      // potato; test mode stays deterministic. ?hdterrain=1 forces it on (test mode and potato included; e2e
+      // routes the tiles to fixtures), ?hdterrain=0 turns it off whatever the setting says.
+      const flag = ctx.env.params.get(HD_URL_PARAM);
+      const allowed = (v: unknown) => hdTerrainAllowed(flag, ctx.env.test, v);
       const hd = new HdEarthTerrain({
         registry,
         assets: ctx.assets,
         ui: ctx.ui,
         body: earthBody,
         base: earthSpec,
+        gate: (view) => hdTerrainQualityOk(flag, view.quality),
       });
-      // On by default since the soft terrain reset (tiles swap in place when the HD block moves); test
-      // mode stays deterministic (off unless ?hdterrain=1, which e2e routes to fixtures).
-      const forced = ctx.env.params.get(HD_URL_PARAM) === '1';
-      const allowed = (v: unknown) => forced || (!ctx.env.test && v !== false);
       registry.addSetting({
         id: HD_SETTING_ID,
         label: 'HD Earth terrain (streamed)',
@@ -54,7 +56,7 @@ const surfaces: UniverseModule = {
         default: true,
         persist: true,
         description:
-          'Streams AWS Terrarium elevation tiles near the camera below 300 km (falls back to the built-in relief).',
+          'Streams AWS Terrarium elevation tiles near the camera below 300 km, except at potato quality (falls back to the built-in relief).',
         onChange: (v) => hd.setEnabled(allowed(v)),
       });
       hd.setEnabled(allowed(ctx.ui.settings.get<boolean>(HD_SETTING_ID)));

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * build-cities: public/data/cities/cities.json from the hand-entered history table
- * (src/modules/cities/history.json: cities from 7100 BC with population estimates over time, styles and
+ * (src/modules/cities/history.json: cities from Jericho, 8000 BC, with population estimates, styles and
  * sources) and Natural Earth populated places (public domain, today's population) for cities that are
  * not in the table; those appear from 1950 (approximate).
  *
@@ -64,9 +64,11 @@ const paths = await ensureModuleAssets('cities', { ids: ['natural_earth_populate
 const places = JSON.parse(readFileSync(paths.get('natural_earth_populated_places'), 'utf8')).features.map(
   (f) => f.properties,
 );
+// Only cities still standing in 1950 hold a place: a ruin nearby (Linzi, Cahokia, Nineveh) does not.
 const near = (lat, lon) =>
   out.some(
-    ([, la, lo]) =>
+    ([, la, lo, , , end]) =>
+      (end === null || end >= 1950) &&
       Math.abs(la - lat) < 0.35 &&
       Math.abs(((lo - lon + 540) % 360) - 180) < 0.35 / Math.max(0.2, Math.cos((lat * Math.PI) / 180)),
   );

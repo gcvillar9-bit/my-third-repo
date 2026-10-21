@@ -1,13 +1,22 @@
 /**
- * Optional 'HD Earth terrain' layer (off by default; setting 'surfaces.hdEarth' or URL ?hdterrain=1).
- * Below 300 km the main thread fetches the 3x3 block of AWS Terrarium tiles (z5-z12 by altitude)
+ * 'HD Earth terrain' layer: on by default outside test mode, off at potato quality (setting
+ * 'surfaces.hdEarth'); ?hdterrain=1 forces it on (test mode and potato included), ?hdterrain=0 turns it
+ * off. Below 300 km the main thread fetches the 3x3 block of AWS Terrarium tiles (z5-z12 by altitude)
  * around the camera's sub-point, each with an 8 s AbortController timeout, keeps them as blob: URLs
  * and registers a new Earth HeightSourceSpec (priority 6) whose params name those URLs; the terrain
  * workers and the collision function fetch the blobs, so the streamed heights replace the baked 2k
  * relief inside the block and fade into it at the edges. If every tile of a block fails, the baked
  * raster stays and a "HD layer unavailable" toast is shown once.
  */
-import type { AssetLoader, Body, HeightSourceSpec, Registry, UiApi, ViewState } from '../../core/contracts';
+import type {
+  AssetLoader,
+  Body,
+  HeightSourceSpec,
+  QualityPreset,
+  Registry,
+  UiApi,
+  ViewState,
+} from '../../core/contracts';
 import { qrotateInv, quat, v3len, vec3 } from '../../core/math64';
 import { heightBound, type HdBlock, type SurfaceHeightParams } from './heightfield';
 import { lonLatToTile, terrariumTileUrl } from './terrarium';
@@ -23,16 +32,28 @@ export const HD_GRID = 3;
 export const hdZoom = (alt: number): number =>
   Math.max(5, Math.min(12, Math.round(Math.log2(4e7 / (Math.max(alt, 100) * 12)))));
 
+/** Setting gate: ?hdterrain=1 forces the layer on, ?hdterrain=0 off; else the setting, never in test mode. */
+export const hdTerrainAllowed = (flag: string | null, test: boolean, setting: unknown): boolean =>
+  flag === '1' || (flag !== '0' && !test && setting !== false);
+
+/** Quality gate (per frame): off at potato unless ?hdterrain=1. */
+export const hdTerrainQualityOk = (flag: string | null, quality: QualityPreset): boolean =>
+  flag === '1' || quality !== 'potato';
+
 export interface HdDeps {
   registry: Registry;
   assets: AssetLoader;
   ui: Pick<UiApi, 'toast'>;
   body: Body;
   base: HeightSourceSpec;
+  /** Per-frame gate on top of setEnabled (quality preset); open when omitted. */
+  gate?: (view: ViewState) => boolean;
 }
 
 export class HdEarthTerrain {
   private enabled = false;
+  /** Last result of HdDeps.gate. */
+  private gateOpen = true;
   private busy = false;
   private key = '';
   private urls: string[] = [];
@@ -46,14 +67,24 @@ export class HdEarthTerrain {
   setEnabled(on: boolean): void {
     if (on === this.enabled) return;
     this.enabled = on;
-    if (!on && this.key) {
-      this.key = '';
-      this.d.registry.addHeightSource({ ...this.d.base, priority: HD_PRIORITY });
-    }
+    if (!on) this.dropBlock();
+  }
+
+  /** Back to the baked relief (a spec at the HD priority with the base parameters). */
+  private dropBlock(): void {
+    if (!this.key) return;
+    this.key = '';
+    this.d.registry.addHeightSource({ ...this.d.base, priority: HD_PRIORITY });
   }
 
   onFrame(view: ViewState): void {
-    if (!this.enabled || this.busy) return;
+    if (!this.enabled) return;
+    this.gateOpen = this.d.gate?.(view) ?? true;
+    if (!this.gateOpen) {
+      this.dropBlock();
+      return;
+    }
+    if (this.busy) return;
     const b = this.d.body;
     // Camera in body-fixed axes: -(body - camera), rotated into the fixed frame.
     view.toCamera(b.frame, vec3(), this.rel);
@@ -97,7 +128,7 @@ export class HdEarthTerrain {
       }
       return;
     }
-    if (!this.enabled) {
+    if (!this.enabled || !this.gateOpen) {
       for (const u of urls) if (u) URL.revokeObjectURL(u);
       return;
     }

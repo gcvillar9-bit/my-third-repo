@@ -110,6 +110,7 @@ function frond(
   }
 }
 
+/** Fronds from `top`; `bendBase` is their sway weight at the base (0 for a crown on the ground). */
 function crownOfFronds(
   m: MeshBuilder,
   top: V3,
@@ -119,10 +120,11 @@ function crownOfFronds(
   width: number,
   col: V3,
   seed: number,
+  bendBase = 0.7,
 ) {
   for (let i = 0; i < count; i++) {
     const az = (2 * Math.PI * (i + 0.37 * hash01(seed, i))) / count;
-    frond(m, top, az, len * (0.85 + 0.3 * hash01(seed, i, 2)), rise, width, col, 0.7);
+    frond(m, top, az, len * (0.85 + 0.3 * hash01(seed, i, 2)), rise, width, col, bendBase);
   }
 }
 
@@ -209,7 +211,7 @@ export const PLANTS: Record<PlantKind, PlantModel> = {
     height: 1,
     sway: 0.08,
     build(m, seed) {
-      crownOfFronds(m, [0, 0.1, 0], 8, 1.0, 1.2, 0.18, g(0x4a7a30), seed);
+      crownOfFronds(m, [0, 0.1, 0], 8, 1.0, 1.2, 0.18, g(0x4a7a30), seed, 0);
     },
   },
   seedFern: {
@@ -372,7 +374,7 @@ export const PLANTS: Record<PlantKind, PlantModel> = {
           [0.75, 0.6, 0.75],
           g(0x4e6230),
           plant,
-          { lat: 3, lon: 5, bend: 0.8, rough: 0.3, seed: i },
+          { lat: 3, lon: 5, bend: 0.8, bendBase: 0, rough: 0.3, seed: i },
         );
       }
     },
@@ -464,6 +466,7 @@ export const PLANTS: Record<PlantKind, PlantModel> = {
         lat: 2,
         lon: 5,
         bend: 0.5,
+        bendBase: 0,
         rough: 0.4,
         seed,
       });

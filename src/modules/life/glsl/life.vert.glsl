@@ -46,8 +46,9 @@ float limbOffset(int part, int kind) {
     if (part == 4) return 0.5;
     return 0.75;
   }
-  // bipeds and uprights: legs in antiphase, arms against the opposite leg
-  if (part == 3 || part == 10) return 0.0;
+  // bipeds and uprights: legs in antiphase; each arm takes its own leg's phase and swings against it,
+  // so it moves with the opposite leg
+  if (part == 3 || part == 9) return 0.0;
   return 0.5;
 }
 
@@ -67,7 +68,7 @@ vec3 pose(vec3 p, float phase, float move, float graze, float seed) {
     float a = TAU * (phase + off);
     bool arm = part >= 9;
     float amp = uGait.x * (arm ? (kind == 2 ? 0.7 : 0.25) : 1.0);
-    // Arms swing against the legs.
+    // Arms swing against the leg on their own side.
     float swing = (arm ? -1.0 : 1.0) * amp * move * sin(a);
     float knee = uGait.y * move * max(0.0, sin(a + 1.5708));
     if (aBend.w > 0.5) p = rotZ(p, aBend.xyz, arm ? 0.3 * knee + 0.25 : -knee);
@@ -93,7 +94,8 @@ vec3 pose(vec3 p, float phase, float move, float graze, float seed) {
 
 void main() {
   float scale = iFrame.z;
-  float seed = fract(iPos.x * 0.0131 + iPos.y * 0.0173 + iPos.z * 0.0119);
+  // Per-individual phase seed: the colour variation (stable; iPos moves with the anchor and the walk).
+  float seed = iFrame.w;
   vec3 p = pose(position, iMotion.x, iMotion.y, iMotion.z, seed) * scale;
   p.y += iMotion.w;
   vec3 fwd = iFrame.x * uNorth + iFrame.y * uEast;

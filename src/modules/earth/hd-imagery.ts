@@ -68,12 +68,21 @@ export function blockAt(latDeg: number, lonDeg: number, level: number): Block {
   };
 }
 
-/** Is the point inside the middle half of the block (no re-centre needed)? */
+/**
+ * Is the point inside the middle half of the block (no re-centre needed)? Bounds are inclusive, so a point on
+ * a tile edge is inside the block just centred on it (no reload every frame).
+ */
 export function insideMiddle(b: Block, latDeg: number, lonDeg: number): boolean {
-  let x = (lonDeg - b.lon0) / b.dLon;
-  x -= Math.floor(x);
-  const y = (latDeg - b.lat0) / b.dLat;
-  return x > 0.25 && x < 0.75 && ((y > 0.25 && y < 0.75) || b.lat0 <= -89.9 || b.lat0 + b.dLat >= 89.9);
+  const eps = 1e-9;
+  // Longitude offset from the block centre, wrapped to [-180, 180): aliases every 360 degrees, not
+  // every block.
+  let dx = lonDeg - b.lon0 - b.dLon / 2;
+  dx -= 360 * Math.floor((dx + 180) / 360);
+  if (Math.abs(dx) > b.dLon / 4 + eps) return false;
+  // Rows clamp at the poles: a block touching a pole drops only its bound on that side.
+  const dy = latDeg - b.lat0 - b.dLat / 2;
+  const q = b.dLat / 4 + eps;
+  return (dy >= -q || b.lat0 <= -89.9) && (dy <= q || b.lat0 + b.dLat >= 89.9);
 }
 
 export function tileUrl(level: number, row: number, col: number): string {

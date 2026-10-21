@@ -652,12 +652,14 @@ export const BUILDINGS: Record<BuildingKind, BuildingModel> = {
     landmark: true,
     build(m) {
       cbox(m, 25, 15, 0, 10, C.darkBrick, C.slate);
-      // Sawtooth roof.
+      // Sawtooth roof: glazing facing -x, slopes facing +x, closed ends.
       for (let i = 0; i < 6; i++) {
         const x0 = -25 + i * (50 / 6);
         const x1 = x0 + 50 / 6;
-        m.quad([x0, 10, -15], [x0, 15, -15], [x0, 15, 15], [x0, 10, 15], C.glass, still);
-        m.quad([x0, 15, -15], [x1, 10, -15], [x1, 10, 15], [x0, 15, 15], C.slate, still);
+        m.quad([x0, 10, 15], [x0, 15, 15], [x0, 15, -15], [x0, 10, -15], C.glass, still);
+        m.quad([x0, 15, 15], [x1, 10, 15], [x1, 10, -15], [x0, 15, -15], C.slate, still);
+        m.triangle([x0, 10, -15], [x0, 15, -15], [x1, 10, -15], C.darkBrick, still);
+        m.triangle([x1, 10, 15], [x0, 15, 15], [x0, 10, 15], C.darkBrick, still);
       }
       cylinder(m, 2.2, 0, 45, C.darkBrick, 8, -20, 18, 1.5);
     },
@@ -669,11 +671,20 @@ export const BUILDINGS: Record<BuildingKind, BuildingModel> = {
       const floors = 6 + Math.floor(hash01(seed, 5) * 6);
       const h = floors * 3;
       cbox(m, 16, 8, 0, h, C.concrete, rgb(0x707070));
-      // Window bands on the long sides.
+      // Window bands on the long sides (z = +-8), facing out.
       for (let f = 0; f < floors; f++) {
         const y = f * 3 + 1;
-        for (const x of [8.03, -8.03])
-          m.quad([x, y, -15], [x, y + 1.2, -15], [x, y + 1.2, 15], [x, y, 15], C.glass, still);
+        for (const s of [1, -1]) {
+          const z = 8.03 * s;
+          m.quad(
+            [15 * s, y, z],
+            [15 * s, y + 1.2, z],
+            [-15 * s, y + 1.2, z],
+            [-15 * s, y, z],
+            C.glass,
+            still,
+          );
+        }
       }
       void h;
     },

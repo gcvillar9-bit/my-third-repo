@@ -22,7 +22,12 @@ before land plants). Cross-module API: `src/modules/paleo/public.ts`. Depends on
 - Climate for other modules (`public.ts` `paleoClimate(jd)`, `sampleClimate`): a 720×360 RGBA map (surface kind,
   temperature, moisture, elevation) from the same per-cell model as the bake (`biome.ts` `climateMap`), so the life
   module's animals stand on the painted land. Since 2.6 Ma it uses today's maps and observed moisture, cooled with
-  the ice-age sea level (6 C at the LGM), exposed shelves as land and the drawn ice sheets as ice. Cached per era.
+  the ice-age sea level (6 C at the LGM). `biome.ts` `iceAgeOverlay` matches the shader's half-points: sea and sea-ice
+  cells whose seabed is shallower than the drop become `SURFACE.shelf` (land for every purpose; it is kept apart
+  because today's terrain has no bathymetry and cannot tell the bared seabed from the sea; it takes the
+  temperature and moisture of the nearest coast, breadth-first, not the sea's), and cells whose ice
+  threshold the drop passes by 4 m (`ICE_HALF_M`, half of the shader's 8 m blend) become land ice. The drop is
+  rounded to 5 m for the cache, so the edges can sit up to 2.5 m of drop off the drawn ones. Cached per era.
 
 ## Looks by age (`climate.ts` `regimeAt`, years before 1950)
 

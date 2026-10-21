@@ -82,7 +82,10 @@ export interface Monument {
   scale: number;
 }
 
-/** Monuments standing at `jd` within `rangeM` of (lat, lon). */
+/**
+ * Monuments standing at `jd` within `rangeM` of (lat, lon): from their `from` year until their `end`
+ * year (excluded, so a later row of the same building, such as Hagia Sophia as a mosque, takes over).
+ */
 export function monumentsNear(latDeg: number, lonDeg: number, jd: number, rangeM: number): Monument[] {
   const year = yearOfJd(jd);
   const out: Monument[] = [];
@@ -91,7 +94,7 @@ export function monumentsNear(latDeg: number, lonDeg: number, jd: number, rangeM
     // Historical years in the table (negative = BC): to astronomical.
     const from = m.from < 0 ? m.from + 1 : m.from;
     const end = m.end === undefined ? Infinity : m.end < 0 ? m.end + 1 : m.end;
-    if (year < from || year > end) continue;
+    if (year < from || year >= end) continue;
     const dn = (m.lat - latDeg) * M_PER_DEG;
     const de = (m.lon - lonDeg) * M_PER_DEG * cl;
     if (Math.hypot(de, dn) < rangeM)

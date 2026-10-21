@@ -2,9 +2,10 @@ import { expect, test, type Page } from '@playwright/test';
 
 /**
  * Life at ground level: walk-mode bookmarks at four dates. The scene's cast comes from the test hook
- * window.__life (species shown now); pixels check that the horizon band holds plants and animals
- * (dark and bright patches), not bare ground and sky. Climate maps and species data load lazily, so the
- * page alternates ready() and single frames first.
+ * window.__life (animals drawn now by species, under the creature cap: the hand-placed herds come
+ * first; species that must be absent are checked in every picked herd, drawn or not); pixels check that
+ * the horizon band holds plants and animals (dark and bright patches), not bare ground and sky. Climate
+ * maps and species data load lazily, so the page alternates ready() and single frames first.
  */
 type RGB = [number, number, number];
 const lum = ([r, g, b]: RGB) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -36,7 +37,16 @@ async function open(page: Page, bookmark: string) {
   expect(problems).toEqual([]);
   expect(stats.calls).toBeLessThanOrEqual(150);
   expect(stats.programs).toBeLessThanOrEqual(60);
-  return { shown: () => page.evaluate(() => window.__life!.shown()) };
+  return {
+    shown: () => page.evaluate(() => window.__life!.shown()),
+    // Species of every herd picked around the camera, drawn or past the creature cap (absence checks).
+    picked: () =>
+      page.evaluate(() =>
+        ((window.__life as unknown as { debug(): { herds?: string[] } }).debug().herds ?? []).map((h) =>
+          h.replace(/x\d+$/, ''),
+        ),
+      ),
+  };
 }
 
 async function settle(page: Page) {
@@ -62,46 +72,47 @@ test(
   'life-trex-66ma: Tyrannosaurus, ceratopsids and hadrosaurs; gone today',
   { tag: '@smoke' },
   async ({ page }) => {
-    const { shown } = await open(page, 'life-trex-66ma');
+    const { shown, picked } = await open(page, 'life-trex-66ma');
     const c = (await shown()).creatures;
     expect(c['species:tyrannosaurid']).toBeGreaterThan(0);
     expect(c['species:ceratopsid']).toBeGreaterThan(0);
     expect(c['species:hadrosaur']).toBeGreaterThan(0);
-    expect(c['species:sapiens']).toBeUndefined();
+    expect(await picked()).not.toContain('sapiens');
     expect(await horizonContrast(page)).toBeGreaterThan(1.3);
     // The same place today: no dinosaurs.
     await page.evaluate(() => window.__universe!.setTime('2025-06-21T17:00:00Z'));
     await settle(page);
     const now = (await shown()).creatures;
     expect(Object.keys(now).filter((k) => /tyrannosaurid|ceratopsid|hadrosaur/.test(k))).toEqual([]);
+    expect((await picked()).filter((k) => /tyrannosaurid|ceratopsid|hadrosaur/.test(k))).toEqual([]);
     expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);
   },
 );
 
 test('life-jurassic-150ma: Stegosaurus and sauropods among cycads, no tyrannosaurs', async ({ page }) => {
-  const { shown } = await open(page, 'life-jurassic-150ma');
+  const { shown, picked } = await open(page, 'life-jurassic-150ma');
   const { creatures, plants } = await shown();
   expect(creatures['species:stegosaur']).toBeGreaterThan(0);
   expect(creatures['species:diplodocid']).toBeGreaterThan(0);
-  expect(creatures['species:tyrannosaurid']).toBeUndefined();
+  expect(await picked()).not.toContain('tyrannosaurid');
   expect(plants.grass).toBeUndefined(); // no grasses in the Jurassic
 });
 
 test('life-lucy-3ma: Australopithecus with elephants and giraffes, no modern humans', async ({ page }) => {
-  const { shown } = await open(page, 'life-lucy-3ma');
+  const { shown, picked } = await open(page, 'life-lucy-3ma');
   const c = (await shown()).creatures;
   expect(c['species:australopithecus']).toBeGreaterThan(0);
   expect(c['species:elephant']).toBeGreaterThan(0);
   expect(c['species:giraffe']).toBeGreaterThan(0);
-  expect(c['species:sapiens']).toBeUndefined();
+  expect(await picked()).not.toContain('sapiens');
   expect(await horizonContrast(page)).toBeGreaterThan(1.3);
 });
 
 test('life-mammoth-45ka: Neanderthals and mammoths on the steppe', async ({ page }) => {
-  const { shown } = await open(page, 'life-mammoth-45ka');
+  const { shown, picked } = await open(page, 'life-mammoth-45ka');
   const { creatures, plants } = await shown();
   expect(creatures['species:neanderthal']).toBeGreaterThan(0);
   expect(creatures['species:mammoth']).toBeGreaterThan(0);
-  expect(creatures['species:tyrannosaurid']).toBeUndefined();
+  expect(await picked()).not.toContain('tyrannosaurid');
   expect(plants.grass).toBeGreaterThan(10);
 });

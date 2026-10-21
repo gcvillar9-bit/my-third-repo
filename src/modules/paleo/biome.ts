@@ -352,8 +352,12 @@ export function bakeSurface(inp: BakeInput, out = new Uint8Array(inp.width * inp
   return out;
 }
 
-/** Surface kinds of the climate map (byte 0). */
-export const SURFACE = { sea: 0, land: 1, landIce: 2, seaIce: 3 } as const;
+/**
+ * Surface kinds of the climate map (byte 0). `shelf` is sea floor bared by the ice-age sea level
+ * (iceAgeOverlay): land for every purpose, kept apart because today's terrain has no bathymetry and
+ * cannot tell it from the sea.
+ */
+export const SURFACE = { sea: 0, land: 1, landIce: 2, seaIce: 3, shelf: 4 } as const;
 
 /**
  * Climate map for life at ground level, RGBA8 rows from the south like the bake: R = SURFACE kind,
@@ -387,6 +391,74 @@ export function climateMap(inp: CellInput & { width: number; height: number }): 
     }
   }
   return out;
+}
+
+/**
+ * Sea-level drop past an ice threshold at which paleo-surface.glsl draws the sheet half iced: its blend is
+ * smoothstep(G, G + 8 m, drop).
+ */
+export const ICE_HALF_M = 4;
+
+/**
+ * Ice ages over today's climate map (in place), matching paleo-surface.glsl at its half-points. `quat` is
+ * quaternary.png as RG8 rows from the south: R seabed depth today (m, 0 land), G the sea-level drop (m)
+ * that grows the ice sheet there (0 or 255 never). Sea and sea-ice cells whose seabed is shallower than
+ * `seaDropM` become SURFACE.shelf (the shader exposes half at depth = drop); cells whose threshold the
+ * drop passes by ICE_HALF_M become SURFACE.landIce. A shelf takes the temperature and moisture of the
+ * nearest land (the sea's own values would make every bared seabed rainforest).
+ */
+export function iceAgeOverlay(
+  data: Uint8Array,
+  width: number,
+  height: number,
+  quat: { data: Uint8Array; width: number; height: number },
+  seaDropM: number,
+): void {
+  const { data: q, width: qw, height: qh } = quat;
+  // Shelf cells still holding the sea's climate.
+  const open = new Uint8Array(width * height);
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const i = y * width + x;
+      const k = i * 4;
+      const s = (Math.floor(((y + 0.5) / height) * qh) * qw + Math.floor(((x + 0.5) / width) * qw)) * 2;
+      const depth = q[s];
+      const ice = q[s + 1];
+      if ((data[k] === SURFACE.sea || data[k] === SURFACE.seaIce) && depth > 0 && depth < seaDropM) {
+        data[k] = SURFACE.shelf;
+        open[i] = 1;
+      }
+      if (ice > 0 && ice < 255 && ice + ICE_HALF_M <= seaDropM) {
+        data[k] = SURFACE.landIce;
+        open[i] = 0;
+      }
+    }
+  // Breadth-first from the coast: each shelf cell copies the cell it was reached from (columns wrap).
+  const queue: number[] = [];
+  const step = (i: number, visit: (j: number) => void) => {
+    const x = i % width;
+    visit(i - x + ((x + 1) % width));
+    visit(i - x + ((x + width - 1) % width));
+    if (i >= width) visit(i - width);
+    if (i + width < width * height) visit(i + width);
+  };
+  for (let i = 0; i < width * height; i++) {
+    const kind = data[i * 4];
+    if (open[i] || (kind !== SURFACE.land && kind !== SURFACE.landIce)) continue;
+    let coast = false;
+    step(i, (j) => (coast ||= open[j] === 1));
+    if (coast) queue.push(i);
+  }
+  for (let h = 0; h < queue.length; h++) {
+    const i = queue[h];
+    step(i, (j) => {
+      if (!open[j]) return;
+      open[j] = 0;
+      data[j * 4 + 1] = data[i * 4 + 1];
+      data[j * 4 + 2] = data[i * 4 + 2];
+      queue.push(j);
+    });
+  }
 }
 
 export { DEM_H, DEM_W };

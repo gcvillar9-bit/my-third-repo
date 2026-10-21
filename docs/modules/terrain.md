@@ -3,7 +3,9 @@
 Cube-sphere quadtree terrain for every planet, dwarf, moon and minor body (not the gas giants), the mesh-identical
 ground used by collision, and walk mode. Code: `src/modules/terrain/**`, `src/camera/walk.ts` (+ hooks in
 `src/camera/controller.ts`). Public API: `src/modules/terrain/public.ts` (including `terrainHeightAt(bodyId, dir)`,
-the ground height of the finest grid, used by the life module to stand plants and animals on the drawn ground).
+the ground height of the finest grid, used by the life module to stand plants and animals on the drawn ground, and
+`terrainHeightGeneration(bodyId)`: 0 while the body has no height function, then a number that grows every time the
+function behind `terrainHeightAt` is replaced, first load and HD block swaps included).
 
 ## Quadtree (`cube.ts`, `patch.ts`, `select.ts`)
 
@@ -37,6 +39,11 @@ the ground height of the finest grid, used by the life module to stand plants an
   (default export `{ create }` or a named `create`). Bodies without a registered spec use
   `/src/modules/terrain/height/fbm-craters-lite.ts`. A later `addHeightSource` (registry `'height'`) resets that
   body's tiles and reloads the CPU function.
+- Height-function cache (`height-modules.ts`, per thread): one function per spec. Loads name their owner (body id
+  and a spec stamp that grows with every spec change), so a newer spec evicts the body's older one once it has
+  loaded, and a spec superseded while still loading is dropped at once; builds already waiting keep their function.
+  Each thread therefore holds at most the current and the loading spec per body, however often the HD Earth block
+  moves. A build request of an older spec (a late fallback after a worker failure) gets an uncached function.
 - `fbm-craters-lite`: float64 hashed gradient-noise fBm (`λ0 = min(R/2, 400 km)`, `A0 = 0.0035·λ0`, H = 0.9)
   plus 9 crater layers (jittered 3D cells, `D ≤ 0.35 S`, bowl + rim + ejecta, depth `min(0.2 D, 1 km·(D/15 km)^0.3)`;
   none on Earth, Venus, Titan, Io, Europa). Features fade in between 4 and 2 vertex spacings of the requested

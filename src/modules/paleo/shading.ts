@@ -36,7 +36,7 @@ import type {
 } from '../../core/contracts';
 import { yearsBeforePresent } from '../../core/geotime';
 import type { PaleoBakeApi, PaleoBakeRequest } from './bake.worker';
-import { SURFACE } from './biome';
+import { iceAgeOverlay } from './biome';
 import {
   QUATERNARY_START_YEARS,
   SYNTHETIC_FROM_YEARS,
@@ -70,8 +70,8 @@ const LGM_SEA_DROP_M = 121;
 /**
  * Surface climate at a date for life at ground level: RGBA8 rows from the south (biome.ts climateMap: R
  * surface kind, G temperature + 60 C, B moisture * 255, A elevation / 40 m + 128). In the ice ages it is
- * today's map with exposed shelves as land and the drawn ice sheets as land ice; before 2.6 Ma it follows
- * the PALEOMAP maps (paleo-coordinates) like the synthetic surface.
+ * today's map with exposed shelves as SURFACE.shelf and the drawn ice sheets as land ice (biome.ts
+ * iceAgeOverlay); before 2.6 Ma it follows the PALEOMAP maps (paleo-coordinates) like the synthetic surface.
  */
 export interface ClimateMap {
   key: string;
@@ -365,20 +365,14 @@ export class PaleoController {
       await this.quatLoad;
       const t = this.uniforms.uPaleoQuat.value as DataTexture;
       const q = t.image.data as Uint8Array | undefined;
-      const qw = t.image.width;
-      const qh = t.image.height;
-      if (q && qw > 1) {
-        for (let y = 0; y < CLIMATE_H; y++)
-          for (let x = 0; x < CLIMATE_W; x++) {
-            const k = (y * CLIMATE_W + x) * 4;
-            const s =
-              (Math.floor(((y + 0.5) / CLIMATE_H) * qh) * qw + Math.floor(((x + 0.5) / CLIMATE_W) * qw)) * 2;
-            const depth = q[s];
-            const ice = q[s + 1];
-            if (data[k] === SURFACE.sea && depth > 0 && depth < seaDrop) data[k] = SURFACE.land;
-            if (ice > 0 && ice < 255 && ice < seaDrop) data[k] = SURFACE.landIce;
-          }
-      }
+      if (q && t.image.width > 1)
+        iceAgeOverlay(
+          data,
+          CLIMATE_W,
+          CLIMATE_H,
+          { data: q, width: t.image.width, height: t.image.height },
+          seaDrop,
+        );
     }
     return { key, ageMa, modern, width: CLIMATE_W, height: CLIMATE_H, data };
   }

@@ -19,8 +19,8 @@ export function jdOfYear(year: number): number {
   return JD_J2000 - 0.5 + (astro - 2000) * 365.25;
 }
 
-/** Ellipsoid radius at a unit direction. */
-function ellipsoid(up: { x: number; y: number; z: number }, a: number, f: number): number {
+/** Ellipsoid radius at a unit direction (equatorial radius `a`, flattening `f`). */
+export function ellipsoid(up: { x: number; y: number; z: number }, a: number, f: number): number {
   const c2 = (a * (1 - f)) ** 2;
   return 1 / Math.sqrt((up.x * up.x + up.y * up.y) / (a * a) + (up.z * up.z) / c2);
 }

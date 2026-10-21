@@ -64,7 +64,9 @@ Below 1200 km above the ground, a 4 x 4 block of NASA GIBS Blue Marble Next Gene
 matrix, 512 px tiles of 2.25 degrees at level 7, about 490 m per pixel against the base map's 10 km; public domain)
 around the camera's sub-point is fetched in the browser, composited off-screen and blended into the day map
 (`uEarthHd`, `uEarthHdRect`, `uEarthHdMix`; feathered edges; gradients taken outside the branch). The block
-re-centres when the sub-point leaves its middle half, and the previous block stays until the new one is complete.
+re-centres when the sub-point leaves its middle half (longitude offsets wrap over 360 degrees, so a jump of whole
+block widths re-centres too; a block touching a pole is bounded only on its equator side; edges count as inside),
+and the previous block stays until the new one is complete.
 On from low quality up outside test mode (`?hdimagery=0` turns it off); test mode only with `?hdimagery=1`
 (`tests/e2e/hd-imagery.spec.ts` routes the tiles to a magenta fixture and checks the refused-tiles fallback).
 

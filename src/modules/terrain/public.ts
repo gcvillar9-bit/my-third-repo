@@ -6,7 +6,7 @@
  * - Heights: register a HeightSourceSpec (registry.addHeightSource) whose workerModule is a key of
  *   import.meta.glob('/src/modules/*\/height/*.ts'); bodies without one use DEFAULT_HEIGHT_MODULE.
  * - Ground: a GroundProvider (priority 10) identical to the drawn mesh; terrainHeightAt for modules
- *   that place objects on the ground (life).
+ *   that place objects on the ground (life), and terrainHeightGeneration to know when to re-place them.
  * - Stats: terrainStats() (resident tiles, drawn leaves, in-flight requests).
  */
 import type { Vec3d } from '../../core/contracts';
@@ -36,4 +36,13 @@ export function terrainStats(): TerrainStats {
  */
 export function terrainHeightAt(bodyId: string, dir: Vec3d): number | null {
   return active ? active.heightAt(bodyId, dir) : null;
+}
+
+/**
+ * Generation of the height function behind terrainHeightAt(bodyId): 0 while the body has none, else a
+ * number that grows (by at least 1) every time that function is replaced (first load, HD block swaps), so
+ * callers can cache ground heights and re-place objects when it changes.
+ */
+export function terrainHeightGeneration(bodyId: string): number {
+  return active ? active.heightGeneration(bodyId) : 0;
 }

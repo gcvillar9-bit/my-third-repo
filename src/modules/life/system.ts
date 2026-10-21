@@ -30,8 +30,8 @@ import {
   requestAtmosphereLuts,
   siteDirection,
 } from '../atmosphere/public';
-import { paleoClimate, sampleClimate, sampleClimateLand, type ClimateMap } from '../paleo/public';
-import { terrainHeightAt } from '../terrain/public';
+import { SURFACE, paleoClimate, sampleClimate, sampleClimateLand, type ClimateMap } from '../paleo/public';
+import { terrainHeightAt, terrainHeightGeneration } from '../terrain/public';
 import { featuredHerds } from './bookmarks';
 import { ACTIVE_ALTITUDE_M } from './constants';
 import type { Candidate, Occurrences } from './ecology';
@@ -42,6 +42,8 @@ import { MODELS, type Gait } from './kit/models';
 import { BUILDINGS, buildBuilding, type BuildingKind } from './kit/buildings';
 import { PLANTS, buildPlant, type PlantKind } from './kit/plants';
 import {
+  HERD_CELL_M,
+  BUILDING_CELL_M,
   M_PER_DEG,
   buildingsAround,
   herdsAround,
@@ -57,13 +59,27 @@ import {
   type Town,
   type TownOf,
 } from './population';
-import { citiesLoaded, loadCities, monumentsNear, settlementsNear, yearOfJd } from '../cities/public';
+import {
+  TOWNS_FROM_YEAR,
+  citiesAtJd,
+  citiesLoaded,
+  loadCities,
+  monumentsNear,
+  yearOfJd,
+} from '../cities/public';
 
 export const OCCURRENCES_PATH = 'data/life/occurrences.json';
 /** The anchor snaps to this grid (degrees, about 220 m). */
 const ANCHOR_DEG = 0.002;
 /** Plants are re-picked when the camera moves this far, m. */
 const REPICK_M = 12;
+/** Town landmarks other than the first stand within this distance of the town centre, m. */
+const LANDMARK_SPREAD_M = 100;
+/**
+ * Monuments that stand in for a town's style landmark lie within this distance of the town centre, m
+ * (the Empire State Building is about 4.7 km from New York's, the Forbidden City 930 m from Beijing's).
+ */
+const MONUMENT_SPREAD_M = 5000;
 
 export const LIMITS: Record<string, LifeLimits> = {
   potato: {
@@ -133,12 +149,93 @@ export function eraKey(ageMa: number): number {
   return Math.round(Math.log(ageMa * 1e6 + 1) * 40);
 }
 
+/**
+ * Date step of a pick's towns and buildings: half a year, so it changes wherever one of them can (cities
+ * citiesAtJd rounds to a decade before 1800 and to a year after; monuments and town walls switch on whole
+ * years). One key before the first towns (cities TOWNS_FROM_YEAR), so a clock running through deep time
+ * does not re-pick.
+ */
+export function townYearKey(year: number): number {
+  return year < TOWNS_FROM_YEAR ? -Infinity : Math.floor(2 * year);
+}
+
+/**
+ * Towns around (lat, lon) by use. `built` feeds buildingsAround: houses and walls (just outside the edge)
+ * within the building radius, centre landmarks within 4x. `near` feeds townAt: streets and the farmland
+ * ring (1.6 town radii) at any herd a pick can place (cellsAround walks a square of herd cells), so a
+ * cached herd cell does not depend on where the camera stood when it was filled.
+ */
+export function townsAround(
+  all: readonly Town[],
+  lat: number,
+  lon: number,
+  lim: LifeLimits,
+): { built: Town[]; near: Town[] } {
+  const built: Town[] = [];
+  const near: Town[] = [];
+  const reach = Math.SQRT2 * (lim.herdRadius + HERD_CELL_M);
+  for (const t of all) {
+    const d = Math.hypot(...localEN(lat, lon, t.lat, t.lon));
+    const walls = 1.02 * t.radiusM + 2 * BUILDING_CELL_M;
+    if (d < Math.max(walls + lim.buildingRadius, 4 * lim.buildingRadius + LANDMARK_SPREAD_M)) built.push(t);
+    // From the town centre, as townAt measures: across a big town at high latitude the camera's and
+    // the town's east-west scales differ by more than the margin.
+    if (Math.hypot(...localEN(t.lat, t.lon, lat, lon)) < 1.6 * t.radiusM + reach) near.push(t);
+  }
+  return { built, near };
+}
+
+/**
+ * Range of the monuments a pick passes to buildingsAround, m. A monument in town replaces the style
+ * landmark of its kind, which is drawn out to 4x the building radius, so the monument must be in range
+ * wherever that landmark is (or the landmark shows until the camera comes within reach of the monument).
+ */
+export function monumentRange(lim: LifeLimits): number {
+  return 4 * lim.buildingRadius + LANDMARK_SPREAD_M + MONUMENT_SPREAD_M;
+}
+
+/** Herds in drawing order under the creature cap: the hand-placed ones (bookmarks) first, then nearest. */
+export function orderHerds(herds: readonly Herd[], lat: number, lon: number): Herd[] {
+  return herds
+    .map((h) => ({
+      h,
+      d: Math.hypot(...localEN(lat, lon, h.lat, h.lon)) - (h.key.startsWith('featured:') ? 1e9 : 0),
+    }))
+    .sort((a, b) => a.d - b.d)
+    .map((x) => x.h);
+}
+
+/**
+ * Climate at a point. Today's continents (since 2.6 Ma) follow the terrain, which knows the real coast:
+ * land the 0.5 degree map calls sea takes the nearest land cell's climate, and ground at sea level is
+ * water. Exposed shelves (the ice-age sea-level drop) stay land: the terrain has no bathymetry, so it
+ * cannot tell the dry seabed from the sea. In deep time the paleo map decides (the painted land).
+ * `aboveSea` is the ground height above sea level, m, or null before the terrain loads.
+ */
+export function groundClimate(
+  map: ClimateMap,
+  la: number,
+  lo: number,
+  aboveSea: (la: number, lo: number) => number | null,
+): { kind: number; tempC: number; moisture: number } {
+  const c = sampleClimate(map, la, lo);
+  if (!map.modern || c.kind === SURFACE.shelf) return c;
+  const ground = aboveSea(la, lo);
+  if (ground === null) return c;
+  if (c.kind === SURFACE.sea && ground > 1)
+    return sampleClimateLand(map, la, lo) ?? { ...c, kind: SURFACE.land, moisture: 0.4 };
+  if (c.kind === SURFACE.land && ground < 0.2) return { ...c, kind: SURFACE.sea };
+  return c;
+}
+
 export class LifeSystem {
   readonly group = new Group();
   private sets = new Map<string, InstanceSet>();
   private shared: Record<string, IUniform>;
   private occ: Occurrences | null = null;
   private occLoad: Promise<unknown> | null = null;
+  /** The occurrences have loaded or failed (herds picked before would be cached without them). */
+  private occDone = false;
   private climate: ClimateMap | null = null;
   private climateKey = '';
   private climateWant = '';
@@ -155,11 +252,18 @@ export class LifeSystem {
   private pickLat = NaN;
   private pickLon = NaN;
   private pickEra = -1;
+  /** Town date step (townYearKey) of the last pick. */
+  private pickTown = NaN;
+  /** Terrain height generation the scene is seated on (terrainHeightGeneration). */
+  private heightGen = 0;
   private plants: Plant[] = [];
   private buildings: Building[] = [];
   /** Seated building positions by kind and place (buildingsAround returns new objects per pick). */
   private buildingPos = new Map<string, Vec3d>();
+  /** Herds of the last pick in drawing order (orderHerds). */
   private herds: Herd[] = [];
+  /** Members drawn this frame per species id (under the creature cap). */
+  private drawn = new Map<string, number>();
   /** Ground height cache per plant (by object). */
   private plantPos = new WeakMap<Plant, Vec3d>();
   private labelsOut: LabelItem[] = [];
@@ -298,7 +402,10 @@ export class LifeSystem {
         .then((o) => {
           this.occ = o;
         })
-        .catch((e) => console.warn('[life] occurrences unavailable; only hand-entered ranges', e)),
+        .catch((e) => console.warn('[life] occurrences unavailable; only hand-entered ranges', e))
+        .then(() => {
+          this.occDone = true;
+        }),
       'life occurrences',
     );
   }
@@ -370,13 +477,26 @@ export class LifeSystem {
     const era = eraKey(ageMa);
     this.loadOccurrences();
     this.requestClimate(view.jd, String(era));
-    if (!this.climate || this.climateKey !== String(era) || !this.occLoad) {
+    if (!this.climate || this.climateKey !== String(era) || !this.occDone) {
       this.group.visible = false;
       return;
     }
     if (era !== this.era) {
       this.era = era;
       this.ageMa = ageMa;
+      this.pickEra = -1;
+    }
+    // The ground changed under the scene (first heights, HD terrain blocks): seat everything again, at
+    // most five times a second. The modern coast test (climateAt) reads the heights too, so the cached
+    // cells go as well.
+    const gen = terrainHeightGeneration('earth');
+    if (gen !== this.heightGen && view.timeReal - this.pickTime > 0.2) {
+      this.heightGen = gen;
+      this.plantPos = new WeakMap();
+      this.buildingPos.clear();
+      this.plantCache.clear();
+      this.herdCache.clear();
+      this.anchorLat = this.anchorLon = NaN;
       this.pickEra = -1;
     }
     const reanchored = this.reanchor(lat, lon);
@@ -398,41 +518,56 @@ export class LifeSystem {
       this.herdCache.clear();
     }
     const moved = Math.hypot(de, dn);
-    // At most five picks a second while moving (fast low flight), unless the camera jumped far.
+    // At most five picks a second while moving (fast low flight) or while the clock runs through the
+    // towns' history, unless the camera jumped far.
     const due = view.timeReal - this.pickTime > 0.2 || moved > 20 * REPICK_M;
-    if (reanchored || this.pickEra !== era || (moved > REPICK_M && due)) {
+    const year = yearOfJd(view.jd);
+    const town = townYearKey(year);
+    // Towns grow, change style and vanish within an era (all of 1950 to today is one era).
+    const townsChanged = town !== this.pickTown;
+    if (this.pickEra !== era || ((moved > REPICK_M || townsChanged) && due)) {
       this.pickTime = view.timeReal;
       this.pickLat = lat;
       this.pickLon = lon;
       this.pickEra = era;
+      this.pickTown = town;
+      // Cached herd cells hold townsfolk, livestock or wild herds by the towns of their date.
+      if (townsChanged) this.herdCache.clear();
       // Towns of the date (cities module) for buildings, streets and farmland.
-      const towns: Town[] = settlementsNear(lat, lon, view.jd, lim.herdRadius + 500);
-      const townOf: TownOf = (la, lo) => townAt(towns, la, lo);
-      const year = yearOfJd(view.jd);
+      const towns = townsAround(citiesAtJd(view.jd), lat, lon, lim);
+      const townOf: TownOf = (la, lo) => townAt(towns.near, la, lo);
       this.buildings = buildingsAround(
         lat,
         lon,
-        towns,
-        monumentsNear(lat, lon, view.jd, lim.buildingRadius * 4),
+        towns.built,
+        monumentsNear(lat, lon, view.jd, monumentRange(lim)),
         year,
         lim.buildingRadius,
         lim.maxBuildings,
       );
       this.plants = plantsAround(lat, lon, era, this.ageMa, climate, lim, this.plantCache, townOf);
-      this.herds = herdsAround(
+      this.herds = orderHerds(
+        herdsAround(
+          lat,
+          lon,
+          era,
+          this.ageMa,
+          climate,
+          this.occ,
+          lim,
+          this.herdCache,
+          this.candCache,
+          this.featured,
+          eraKey,
+          townOf,
+        ),
         lat,
         lon,
-        era,
-        this.ageMa,
-        climate,
-        this.occ,
-        lim,
-        this.herdCache,
-        this.candCache,
-        this.featured,
-        eraKey,
-        townOf,
       );
+      this.fillPlants();
+      this.fillBuildings();
+    } else if (reanchored) {
+      // Instance offsets are from the anchor: rewrite them now, the next pick waits for its turn.
       this.fillPlants();
       this.fillBuildings();
     }
@@ -441,21 +576,16 @@ export class LifeSystem {
     this.group.visible = true;
   }
 
-  /**
-   * Climate at a point. Today's continents (since 2.6 Ma) follow the terrain, which knows the real
-   * coast: land the 0.5 degree map calls sea takes the nearest land cell's climate, and ground at sea
-   * level is water. In deep time the paleo map decides (the painted land).
-   */
+  /** Climate at a point (groundClimate on the terrain heights). */
   private climateAt(map: ClimateMap, la: number, lo: number) {
-    const c = sampleClimate(map, la, lo);
-    if (!map.modern) return c;
-    const h = terrainHeightAt('earth', siteDirection(la, lo));
-    if (h === null) return c;
-    const ground = h - this.seaLevelHeight(la, lo);
-    if (c.kind === 0 && ground > 1) return sampleClimateLand(map, la, lo) ?? { ...c, kind: 1, moisture: 0.4 };
-    if (c.kind === 1 && ground < 0.2) return { ...c, kind: 0 };
-    return c;
+    return groundClimate(map, la, lo, this.aboveSea);
   }
+
+  /** Ground height above sea level at a point, m, or null before the terrain heights load. */
+  private aboveSea = (la: number, lo: number): number | null => {
+    const h = terrainHeightAt('earth', siteDirection(la, lo));
+    return h === null ? null : h - this.seaLevelHeight(la, lo);
+  };
 
   /** Terrain height of the sea surface at a point: heightAt is above the equatorial radius. */
   private seaLevelHeight(la: number, lo: number): number {
@@ -584,13 +714,16 @@ export class LifeSystem {
   private moveCreatures(view: ViewState, lim: LifeLimits): void {
     const t = view.timeReal;
     const dt = Math.min(0.25, Math.max(0, view.dtReal));
-    const counts = new Map<string, number>();
     for (const [key, s] of this.sets) if (key.startsWith('c:')) s.count = 0;
     const labels: LabelItem[] = [];
     const nearest = new Map<string, { d: number; item: LabelItem }>();
+    const drawn = this.drawn;
+    drawn.clear();
     let total = 0;
     const g = vec3();
+    // Herds come featured first, then nearest (orderHerds): the cap drops the farthest.
     for (const h of this.herds) {
+      if (total >= lim.maxCreatures) break;
       const model = MODELS[h.species.model];
       const s = this.creatureSet(h.species.model);
       this.ensure(s, s.count + h.members.length);
@@ -625,6 +758,7 @@ export class LifeSystem {
         mo[n * 4 + 2] = graze;
         mo[n * 4 + 3] = m.fly;
         total++;
+        drawn.set(h.species.id, (drawn.get(h.species.id) ?? 0) + 1);
         // Label the nearest individual of each species.
         const rel = view.toCamera('earth.fixed', g, this.v);
         const d = Math.hypot(rel.x, rel.y, rel.z);
@@ -644,7 +778,6 @@ export class LifeSystem {
           });
         }
       }
-      counts.set(h.species.model, s.count);
     }
     for (const [key, s] of this.sets) {
       if (!key.startsWith('c:')) continue;
@@ -683,7 +816,7 @@ export class LifeSystem {
     for (const l of this.labelsOut) out.push(l);
   }
 
-  /** Species shown now (tests, captions). */
+  /** Instances drawn now by plant, building and model kind, and animals by species (tests, captions). */
   shown(): {
     plants: Record<string, number>;
     creatures: Record<string, number>;
@@ -698,8 +831,7 @@ export class LifeSystem {
       else if (key.startsWith('b:')) buildings[key.slice(2)] = s.count;
       else creatures[key.slice(2)] = s.count;
     }
-    for (const h of this.herds)
-      creatures[`species:${h.species.id}`] = (creatures[`species:${h.species.id}`] ?? 0) + h.members.length;
+    for (const [id, n] of this.drawn) creatures[`species:${id}`] = n;
     return { plants, creatures, buildings };
   }
 

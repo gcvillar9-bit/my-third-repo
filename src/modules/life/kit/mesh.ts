@@ -2,7 +2,9 @@
  * Low-poly mesh builder for the procedural creatures and plants (life module). Model space: metres,
  * +x forward, +y up, +z to the right; the origin is on the ground under the animal. Triangles are not
  * indexed and carry no normals: the fragment shader takes the face normal from screen-space derivatives,
- * which keeps the faceted look after the vertex shader has posed the limbs.
+ * which keeps the faceted look after the vertex shader has posed the limbs. The life material culls back
+ * faces, so every closed part (blob, loft and its caps, cone, building box and roof) is wound
+ * counter-clockwise seen from outside; only fans (and fronds, grass blades) are double-sided.
  *
  * Every vertex carries the joint it hangs from, for the procedural gaits in glsl/life.vert.glsl:
  * - aJoint.xyz: pivot of the limb, neck or tail; aJoint.w: the part (PART below).
@@ -169,6 +171,8 @@ export class MeshBuilder {
         this.quad(pt(i, k), pt(i + 1, k), pt(i + 1, k1), pt(i, k1), c, j, b0, b1, b1, b0);
       }
     }
+    // Ring points run counter-clockwise seen from behind the ring (looking along the path), so the
+    // start cap keeps that order (facing back) and the end cap reverses it (facing forward).
     const cap = (i: number, flip: boolean) => {
       const r = rings[i];
       if (r.w < 1e-4 && r.h < 1e-4) return;
@@ -180,17 +184,28 @@ export class MeshBuilder {
         else this.triangle(r.p, pt(i, k), pt(i, k1), c, j, b);
       }
     };
-    if (opts.capStart !== false) cap(0, true);
-    if (opts.capEnd !== false) cap(n - 1, false);
+    if (opts.capStart !== false) cap(0, false);
+    if (opts.capEnd !== false) cap(n - 1, true);
   }
 
-  /** A faceted ellipsoid (low-poly blob) centred at c with radii r. */
+  /**
+   * A faceted ellipsoid (low-poly blob) centred at c with radii r. `bend` is the bend weight; with
+   * `bendBase` it blends from `bendBase` at the bottom pole to `bend` at the top (a shrub rooted in the
+   * ground).
+   */
   blob(
     c: V3,
     r: V3,
     colour: V3,
     j: Joint,
-    opts: { lat?: number; lon?: number; seed?: number; rough?: number; bend?: number } = {},
+    opts: {
+      lat?: number;
+      lon?: number;
+      seed?: number;
+      rough?: number;
+      bend?: number;
+      bendBase?: number;
+    } = {},
   ) {
     const lat = opts.lat ?? 4;
     const lon = opts.lon ?? 6;
@@ -202,7 +217,8 @@ export class MeshBuilder {
       const row: V3[] = [];
       for (let k = 0; k < lon; k++) {
         const ph = (2 * Math.PI * (k + (i % 2) * 0.5)) / lon;
-        const f = 1 + rough * (2 * hash01(seed, i, k) - 1);
+        // One roughness per pole row, so the pole vertices coincide and the polar fans stay closed.
+        const f = 1 + rough * (2 * hash01(seed, i, i === 0 || i === lat ? 0 : k) - 1);
         row.push([
           c[0] + Math.cos(th) * Math.cos(ph) * r[0] * f,
           c[1] + Math.sin(th) * r[1] * f,
@@ -211,16 +227,20 @@ export class MeshBuilder {
       }
       pts.push(row);
     }
-    const b = opts.bend ?? 0;
-    for (let i = 0; i < lat; i++)
+    const top = opts.bend ?? 0;
+    const base = opts.bendBase ?? top;
+    for (let i = 0; i < lat; i++) {
+      const b0 = base + ((top - base) * i) / lat;
+      const b1 = base + ((top - base) * (i + 1)) / lat;
       for (let k = 0; k < lon; k++) {
         const k1 = (k + 1) % lon;
         const shade = 0.85 + 0.15 * (i / lat);
         const cc = scale(colour, shade);
-        if (i === 0) this.triangle(pts[0][k], pts[1][k1], pts[1][k], cc, j, b);
-        else if (i === lat - 1) this.triangle(pts[i][k], pts[i][k1], pts[i + 1][k], cc, j, b);
-        else this.quad(pts[i][k], pts[i][k1], pts[i + 1][k1], pts[i + 1][k], cc, j, b);
+        if (i === 0) this.triangle(pts[0][k], pts[1][k], pts[1][k1], cc, j, b0, b1, b1);
+        else if (i === lat - 1) this.triangle(pts[i][k], pts[i + 1][k], pts[i][k1], cc, j, b0, b1, b0);
+        else this.quad(pts[i][k], pts[i + 1][k], pts[i + 1][k1], pts[i][k1], cc, j, b0, b1, b1, b0);
       }
+    }
   }
 
   /** A cone from base centre `a` (radius r) to apex `b`. */

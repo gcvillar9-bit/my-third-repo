@@ -6,6 +6,7 @@
 import flora from './flora.json';
 import speciesData from './species.json';
 import type { PlantKind } from './kit/plants';
+import { SURFACE } from '../paleo/public';
 
 export type Biome =
   'rainforest' | 'forest' | 'taiga' | 'savanna' | 'grassland' | 'steppe' | 'desert' | 'tundra';
@@ -33,12 +34,9 @@ export interface Occurrences {
   species: Record<string, number[][]>;
 }
 
-/** Surface kinds (paleo SURFACE). */
-const LAND = 1;
-
-/** Biome of a land cell from the paleo climate map, or null for sea and ice. */
+/** Biome of a land (or exposed shelf) cell from the paleo climate map, or null for sea and ice. */
 export function biomeOf(kind: number, tempC: number, moisture: number): Biome | null {
-  if (kind !== LAND) return null;
+  if (kind !== SURFACE.land && kind !== SURFACE.shelf) return null;
   if (tempC < -3) return 'tundra';
   if (moisture < 0.14) return 'desert';
   if (moisture < 0.26) return tempC < 2 ? 'tundra' : 'steppe';
@@ -92,15 +90,19 @@ export const MODERN_BELOW_MA = 2.6;
 /** A species ranges this far from a find of its time (fossil sites are sparse). */
 export const RANGE_KM = 1800;
 
-/** Time slack of a find: its interval widened by 10% of the age (at least 1 Myr in deep time). */
+/**
+ * Time slack of a find: its interval is widened by 15% of the age below 2.6 Ma (at least 2 kyr) and by
+ * 10% in deep time (at least 1 Myr). It only matches finds; a species' own range is never widened.
+ */
 function slackMa(ageMa: number): number {
   return ageMa < MODERN_BELOW_MA ? Math.max(0.002, 0.15 * ageMa) : Math.max(1, 0.1 * ageMa);
 }
 
 /**
  * Presence weight 0..1 of a species at a place (latitude/longitude on the globe as drawn: paleo-
- * coordinates from 2.6 Ma, modern below) and age: 0 outside its time range; 1 inside a hand-entered
- * region; else falls off with the distance to the nearest find of about that age.
+ * coordinates from 2.6 Ma, modern below) and age: 0 outside its own time range (lastMa..firstMa, never
+ * widened); 1 inside a hand-entered region; else falls off with the distance to the nearest find of
+ * about that age.
  */
 export function presence(
   s: SpeciesRow,
@@ -109,8 +111,7 @@ export function presence(
   lonDeg: number,
   ageMa: number,
 ): number {
-  const tol = s.firstMa < MODERN_BELOW_MA ? 0 : slackMa(ageMa) * 0.5;
-  if (ageMa > s.firstMa + tol || ageMa < s.lastMa - tol) return 0;
+  if (ageMa > s.firstMa || ageMa < s.lastMa) return 0;
   if (s.regions) {
     for (const [la0, la1, lo0, lo1, from, to] of s.regions)
       if (ageMa <= from && ageMa >= to && latDeg >= la0 && latDeg <= la1 && lonDeg >= lo0 && lonDeg <= lo1)

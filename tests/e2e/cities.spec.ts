@@ -83,6 +83,11 @@ test('city-rome-117ad: a classical city with temples, houses and people', async 
   expect(buildings.tower ?? 0).toBe(0);
   expect(creatures['species:townsfolk']).toBeGreaterThan(0);
   expect(await horizonContrast(page)).toBeGreaterThan(1.3);
+  // The Temple of Jupiter on the Capitoline fills the centre of the view up the street: pale marble,
+  // neither blue sky (blue over red about 2.8) nor brick and earth (about 0.3-0.4). About 0.8 measured.
+  const [r, , b] = (await page.evaluate(() => window.__universe!.probe(222, 105, 40, 30))) as RGB;
+  expect(b / r).toBeGreaterThan(0.6);
+  expect(b / r).toBeLessThan(1.4);
 });
 
 test('city-newyork-1935: towers and the Empire State Building', async ({ page }) => {

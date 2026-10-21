@@ -51,13 +51,17 @@ Public API: `src/modules/surfaces/public.ts`. Depends on solar-system, atmospher
   triplanar on the five Float64-anchored detail bands, each fading in by pixel footprint; slope (`s.slope` 0.06 to
   0.25) blends regolith into rock with a per-body albedo factor (brighter fresh rock on the Moon, darker on Mars).
 
-## HD Earth terrain (`hd.ts`, off by default)
+## HD Earth terrain (`hd.ts`)
 
-- Setting `surfaces.hdEarth` (Graphics) or `?hdterrain=1`. Below 300 km the main thread fetches the 3x3 Terrarium
-  block (`z = clamp(round(log2(4e7 / (12 alt))), 5, 12)`) around the sub-camera point with an 8 s
+- Setting `surfaces.hdEarth` (Graphics, default on), off at potato quality and in test mode; `?hdterrain=1` forces
+  it on (test mode and potato included), `?hdterrain=0` turns it off. Below 300 km the main thread fetches the 3x3
+  Terrarium block (`z = clamp(round(log2(4e7 / (12 alt))), 5, 12)`) around the sub-camera point with an 8 s
   AbortController timeout, keeps the tiles as blob: URLs and registers an Earth spec at priority 6 naming them; the
   workers decode the blobs, replace the baked land relief inside the block (faded over the outer quarter tile) and
   add ridged detail below the tile pixel. If every tile fails: baked relief stays, one "HD layer unavailable" toast.
+- Memory per block move stays flat: the 'surface' height module keeps its decoded base rasters per path (a new
+  block decodes only its 9 Terrarium tiles, not the 2k PNGs again), and the terrain height-function cache keeps
+  only the current and the loading spec per body (`terrain/height-modules.ts`).
 
 ## Bookmark and tests
 
@@ -74,9 +78,10 @@ Public API: `src/modules/surfaces/public.ts`. Depends on solar-system, atmospher
 
 ## HD Earth terrain by default
 
-The HD layer (`hd.ts`, AWS Terrarium near the camera below 300 km) is on by default outside test mode (setting
-`surfaces.hdEarth`, default true; `?hdterrain=0` or the setting turns it off). Test mode keeps it off unless
-`?hdterrain=1`, which e2e routes to fixtures. This became possible with the terrain `softReset`
+The HD layer (`hd.ts`, AWS Terrarium near the camera below 300 km) is on by default outside test mode from low
+quality up (setting `surfaces.hdEarth`, default true; `?hdterrain=0` or the setting turns it off, and switching to
+potato drops the block). Test mode keeps it off unless `?hdterrain=1`, which also overrides potato and which e2e
+routes to fixtures. This became possible with the terrain `softReset`
 (`terrain/manager.ts`): when the 3x3 block moves, the drawn tiles and the CPU height function stay while the drawn
 tiles are rebuilt for the new block and swapped in one by one, instead of all of Earth's tiles being dropped at
 once. Terrarium is reachable from the build container now and was checked live (Himalaya).

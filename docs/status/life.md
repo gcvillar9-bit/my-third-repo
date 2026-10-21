@@ -11,9 +11,14 @@ Work: `claude/eloquent-meitner-tqq1zc` (PR gcvillar9-bit/my-third-repo#12). Docs
   humans, apes, living animals); plants by era and biome; biomes from the paleo climate map.
 - Paleo `paleoClimate`, terrain `terrainHeightAt`, ground-level label occlusion fix (`src/ui/labels.ts`).
 - Five walk bookmarks, four e2e tests, unit tests.
+- Phase 3 people: townspeople in town streets, farmers (sapiens younger than 8 ka) and livestock on the
+  farmland around towns (`docs/modules/cities.md`). Buildings, walls with four gates, monuments clear of
+  houses.
+- Review fixes: the cell grid wraps at the antimeridian; a species' own range is never widened by the find
+  slack; exposed shelf is land.
 
 ## Gaps
 
 - Quaternius CC0 models unreachable (Google Drive quota), so models are procedural.
 - No shadows, no animal avoidance or migration; sparse grass; one mesh variant per plant kind.
-- People and livestock near cities belong to Phase 3.
+- People are generic (townspeople in the streets, farmers in the fields); livestock is cattle and sheep only.

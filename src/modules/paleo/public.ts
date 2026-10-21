@@ -1,4 +1,6 @@
 /** Cross-module API of the paleo module (import only this file from other modules). */
+import { SURFACE } from './biome';
+
 export { PALEO_MODULE_ID } from './shading';
 export { PALEO_BOOKMARK_IDS, middayNear, onFoldedDay } from './bookmarks';
 export { regimeAt, seaLevelAt, gmstAt, type PaleoIndex, type Regime } from './climate';
@@ -18,7 +20,7 @@ export function sampleClimate(
   return { kind: d[k], tempC: d[k + 1] - 60, moisture: d[k + 2] / 255, elevM: (d[k + 3] - 128) * 40 };
 }
 
-/** The nearest land cell within `maxCells` of a point (rings outward), or null. */
+/** The nearest land or exposed-shelf cell within `maxCells` of a point (rings outward), or null. */
 export function sampleClimateLand(
   map: { width: number; height: number; data: Uint8Array },
   latDeg: number,
@@ -35,8 +37,8 @@ export function sampleClimateLand(
         const x = (((x0 + dx) % map.width) + map.width) % map.width;
         const k = (y * map.width + x) * 4;
         const d = map.data;
-        if (d[k] === 1)
-          return { kind: 1, tempC: d[k + 1] - 60, moisture: d[k + 2] / 255, elevM: (d[k + 3] - 128) * 40 };
+        if (d[k] === SURFACE.land || d[k] === SURFACE.shelf)
+          return { kind: d[k], tempC: d[k + 1] - 60, moisture: d[k + 2] / 255, elevM: (d[k + 3] - 128) * 40 };
       }
   return null;
 }

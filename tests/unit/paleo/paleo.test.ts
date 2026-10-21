@@ -5,13 +5,17 @@ import { yearsBeforePresent } from '../../../src/core/geotime';
 import { FOLD_PERIOD_DAYS, foldJd } from '../../../src/core/time';
 import { JD_J2000 } from '../../../src/core/units';
 import {
+  ICE_HALF_M,
+  SURFACE,
   bakeSurface,
   fitMoisture,
+  iceAgeOverlay,
   maritimeAt,
   moisture,
   paletteFrom,
   temperatureC,
 } from '../../../src/modules/paleo/biome';
+import { SURFACE as PUBLIC_SURFACE, sampleClimateLand } from '../../../src/modules/paleo/public';
 import { middayNear, onFoldedDay } from '../../../src/modules/paleo/bookmarks';
 import { bakeZonalClouds, gnoise } from '../../../src/modules/paleo/zonal-clouds';
 import {
@@ -178,6 +182,74 @@ describe('paleo biomes', () => {
     expect(at(20, 15)[3]).toBe(0); // Sahara: land
     expect(at(20, 15)[0]).toBeGreaterThan(at(20, 15)[2]); // desert is red-yellow
     expect(at(-80, 0)[0]).toBeGreaterThan(200); // Antarctic ice
+  });
+});
+
+describe('paleo ice-age climate map', () => {
+  /** One row of cells: kinds, and quaternary.png R (seabed depth, m) and G (ice threshold, m) per cell. */
+  const overlay = (kinds: number[], depth: number[], ice: number[], drop: number) => {
+    const data = new Uint8Array(kinds.length * 4);
+    kinds.forEach((k, i) => data.set([k, 60, 128, 128], i * 4));
+    const q = new Uint8Array(kinds.length * 2);
+    depth.forEach((d, i) => q.set([d, ice[i]], i * 2));
+    iceAgeOverlay(data, kinds.length, 1, { data: q, width: kinds.length, height: 1 }, drop);
+    return [...data.filter((_, i) => i % 4 === 0)];
+  };
+  const { sea, land, landIce, seaIce, shelf } = SURFACE;
+
+  it('marks the bared seabed as shelf, also under sea ice, and keeps deeper sea', () => {
+    expect(shelf).toBe(4);
+    expect(PUBLIC_SURFACE).toBe(SURFACE);
+    expect(overlay([sea, seaIce, sea, sea, land], [50, 40, 125, 0, 0], [0, 0, 0, 0, 0], 120)).toEqual([
+      shelf,
+      shelf,
+      sea,
+      sea,
+      land,
+    ]);
+  });
+
+  it('grows ice where the shader draws it half iced (G + 4 m of drop)', () => {
+    const g = 100;
+    const at = (drop: number) => overlay([land, sea], [0, 30], [g, g], drop);
+    // The shader's blend, so a change there cannot leave the climate map's threshold behind.
+    expect(paleoGlsl).toContain(`smoothstep(q.g, q.g + ${(2 * ICE_HALF_M).toFixed(1)}, uPaleoSeaDrop)`);
+    expect(at(g)).toEqual([land, shelf]); // drawn 0% iced
+    expect(at(g + 3)).toEqual([land, shelf]); // drawn 32%
+    expect(at(g + ICE_HALF_M)).toEqual([landIce, landIce]); // drawn 50%
+    expect(overlay([land], [0], [255], 120)).toEqual([land]); // 255: never iced
+  });
+
+  it('gives a bared shelf the climate of the nearest coast, not the sea', () => {
+    // A 6 x 2 map: dry land (G 90, B 40) west, a shelf strip, wet land (B 200) east, and sea in the
+    // south row that stays sea. Columns wrap, so cell 5 touches cell 0.
+    const w = 6;
+    const data = new Uint8Array(w * 2 * 4);
+    const row = [land, sea, sea, sea, land, sea];
+    for (let i = 0; i < w * 2; i++) data.set([i < w ? row[i] : sea, 70, 255, 128], i * 4);
+    data.set([land, 90, 40, 128], 0);
+    data.set([land, 75, 200, 128], 4 * 4);
+    const q = new Uint8Array(w * 2 * 2);
+    for (let i = 0; i < w; i++) q.set([row[i] === land ? 0 : 40, 0], i * 2);
+    for (let i = w; i < 2 * w; i++) q.set([200, 0], i * 2);
+    iceAgeOverlay(data, w, 2, { data: q, width: w, height: 2 }, 120);
+    const at = (i: number) => [...data.subarray(i * 4, i * 4 + 3)];
+    expect(at(1)).toEqual([shelf, 90, 40]); // next to the dry coast
+    expect(at(3)).toEqual([shelf, 75, 200]); // next to the wet coast
+    expect(at(5)).toEqual([shelf, 90, 40]); // across the seam from cell 0
+    expect(at(w)).toEqual([sea, 70, 255]); // the sea keeps its own
+  });
+
+  it('treats a shelf cell as land when looking for the nearest land', () => {
+    const w = 8;
+    const data = new Uint8Array(w * 4);
+    data.set([shelf, 70, 100, 127], 3 * 4); // the eastern neighbour of the sea cell 2
+    const lon2 = ((2 + 0.5) / w) * 360 - 180;
+    const c = sampleClimateLand({ width: w, height: 1, data }, 0, lon2);
+    expect(c?.kind).toBe(shelf);
+    expect(c?.tempC).toBe(10);
+    data[3 * 4] = sea;
+    expect(sampleClimateLand({ width: w, height: 1, data }, 0, lon2)).toBeNull();
   });
 });
 
