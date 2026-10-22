@@ -38,6 +38,7 @@ import { BLACKBODY_LUT_SIZE, buildBlackbodyLut } from '../core/photometry';
 import { ExposureController, LuminanceMeter, METER_INTERVAL, targetEv } from './exposure';
 import { PostChain } from './post';
 import { ScreenPassHost } from './screenpass-host';
+import { ShaderWarmUp } from './warm-up';
 
 export interface EngineRendererOptions {
   /** Resident terrain tiles for stats().tiles (wired by the app; 0 when absent). */
@@ -117,6 +118,8 @@ export class EngineRenderer implements RenderApi {
   private cssH = 1;
   private readonly test: boolean;
   private readonly work: MarchWork = { fragmentSteps: 0, draws: 0, pixels: 0 };
+  /** Null without KHR_parallel_shader_compile (and in tests): programs then link on first draw. */
+  private readonly warmUp: ShaderWarmUp | null;
 
   constructor(private readonly opts: EngineRendererOptions) {
     this.test = opts.test;
@@ -145,6 +148,10 @@ export class EngineRenderer implements RenderApi {
       console.warn(msg);
     };
     this.camera.matrixAutoUpdate = true;
+    this.warmUp =
+      !this.test && this.renderer.extensions.has('KHR_parallel_shader_compile')
+        ? new ShaderWarmUp((r) => this.programsReady(r))
+        : null;
     if (opts.countWork ?? opts.test) this.countMarchWork();
     this.uniforms = {
       uExposure: { value: 1 },
@@ -243,12 +250,14 @@ export class EngineRenderer implements RenderApi {
       });
     }
     sceneForLayer(this, r.layer).add(r.object);
+    this.warmUp?.add(r, this.frames);
     const owner = r.id.split('.')[0];
     const entry = this.opts.budget.alloc(owner, `renderable:${r.id}`, safeBytes(r));
     this.entries.set(r.id, { r, entry });
   }
 
   removeRenderable(r: Renderable): void {
+    this.warmUp?.remove(r.id);
     r.object.removeFromParent();
     this.entries.get(r.id)?.entry.free();
     this.entries.delete(r.id);
@@ -287,8 +296,47 @@ export class EngineRenderer implements RenderApi {
     return this.exposure.value;
   }
 
+  /**
+   * True once the renderable's shader programs are linked (always true without parallel compile).
+   * The surface manager keeps the previous geometry provider drawn until the new one is ready.
+   */
+  isReady(id: string): boolean {
+    return this.warmUp?.isReady(id) ?? true;
+  }
+
+  /**
+   * Creates the programs of every material under the renderable (three.js `compile`: the driver
+   * links in the background with KHR_parallel_shader_compile) and polls their completion status.
+   */
+  private programsReady(r: Renderable): boolean | null {
+    // The program variant depends on the bound target (output colour space, tone mapping): compile
+    // against the target the layer is drawn to, or the draw would link a second variant anyway.
+    this.renderer.setRenderTarget(r.layer === 'overlay' ? null : this.sceneTarget);
+    const materials = this.renderer.compile(r.object, this.camera, sceneForLayer(this, r.layer));
+    if (materials.size === 0) return null;
+    const props = this.renderer.properties as {
+      get(o: unknown): { currentProgram?: { isReady(): boolean } };
+    };
+    for (const m of materials) {
+      const program = props.get(m).currentProgram;
+      if (program && !program.isReady()) return false;
+    }
+    return true;
+  }
+
   /** Steps 1-8 of the frame pipeline. */
   renderPipeline(view: ViewState): void {
+    const hidden = this.warmUp?.hide(this.frames) ?? [];
+    try {
+      this.renderScenes(view);
+    } finally {
+      this.warmUp?.show(hidden);
+    }
+    this.frames++;
+    if (this.frames % 30 === 0) this.syncBudget();
+  }
+
+  private renderScenes(view: ViewState): void {
     const r = this.renderer;
     r.setRenderTarget(this.sceneTarget);
     r.clear(true, true, false);
@@ -305,8 +353,6 @@ export class EngineRenderer implements RenderApi {
       r.clearDepth();
       r.render(this.scenes.overlay, this.camera);
     }
-    this.frames++;
-    if (this.frames % 30 === 0) this.syncBudget();
   }
 
   private syncBudget(): void {

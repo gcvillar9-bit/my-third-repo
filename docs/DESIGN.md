@@ -236,6 +236,8 @@ Every frame node has `positionAt(jd, out)`, an optional `orientationAt`, and an 
 7. **EffectPass.** Mip bloom, AgX, SMAA (off in potato), and a vignette in photo mode only.
 8. **DOM overlay.** Labels (decluttered by priority, at most 64, occlusion tested by ray-sphere) and the HUD.
 
+**Shader warm-up** (`src/render/warm-up.ts`). With `KHR_parallel_shader_compile` the renderer creates the programs of a renderable as soon as it is added and keeps the object out of the draws until every program reports linked (at most 180 frames), so a new kind of object (terrain below 3 R, clouds, life, a town) never blocks a frame on its link. The surface manager keeps the previous geometry provider drawn while the new one warms up. Without the extension, and under `?test=1`, programs link on first draw as before.
+
 **Quality presets.**
 
 | Preset | Notes |

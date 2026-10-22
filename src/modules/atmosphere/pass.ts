@@ -33,7 +33,14 @@ import skyviewFrag from './glsl/skyview.frag.glsl?raw';
 import scatterGlsl from './glsl/scatter.glsl?raw';
 import transmittanceFrag from './glsl/transmittance.frag.glsl?raw';
 import viewRayGlsl from './glsl/view-ray.glsl?raw';
-import { FULLSCREEN_VERT, FullscreenDraw, lutMaterial, lutTarget, targetBytes } from './gpu/fullscreen';
+import {
+  FULLSCREEN_VERT,
+  FullscreenDraw,
+  lutMaterial,
+  lutTarget,
+  programReady,
+  targetBytes,
+} from './gpu/fullscreen';
 import { StaticLutCache } from './lut-cache';
 import { AP_SIZE, AP_SLICES, MULTISCATTER_SIZE, SKYVIEW_SIZE, TRANSMITTANCE_SIZE } from './model';
 import type { AtmosphereParams } from './params';
@@ -169,6 +176,9 @@ export class AtmosphereGpu implements ScreenPass {
   private skyTarget: WebGLRenderTarget | null = null;
   private apTarget: WebGLRenderTarget | null = null;
   private sel: { p: AtmosphereParams; body: Body; f: AtmosphereFrame; inside: boolean } | null = null;
+  /** Inside-only materials: handed to the compiler on the first render, then drawn once when linked. */
+  private warmed = false;
+  private primed = false;
   private readonly tmp = { rel: vec3(), sun: vec3(), q: quat() };
 
   constructor(private readonly deps: AtmosphereGpuDeps) {
@@ -352,6 +362,7 @@ export class AtmosphereGpu implements ScreenPass {
     v.uApMax.value = p.apMaxKm;
     const steps = stepCounts(view.knobs.atmosphereSteps);
     const cu = this.compositeMat.uniforms;
+    if (!this.primed) this.prime(gl, input, inside, steps);
     if (inside) {
       this.skyTarget ??= lutTarget(SKYVIEW_SIZE[0], SKYVIEW_SIZE[1]);
       this.apTarget ??= lutTarget(AP_SIZE * AP_SLICES, AP_SIZE);
@@ -392,6 +403,36 @@ export class AtmosphereGpu implements ScreenPass {
       cu.uHalf.value = 0;
     }
     this.draw.render(gl, this.compositeMat, output);
+  }
+
+  /**
+   * Smoothness: the sky-view and aerial-perspective programs used to link on the frame the camera
+   * entered the atmosphere (about 100 km up on Earth), a stall of up to a second. The first render
+   * hands them to the compiler (with KHR_parallel_shader_compile they link in the background) and,
+   * once they report linked, one off-screen draw of each finishes whatever a driver left for the
+   * first use. Without the extension that draw happens on the second frame, at boot.
+   */
+  private prime(
+    gl: WebGLRenderer,
+    input: WebGLRenderTarget,
+    inside: boolean,
+    steps: ReturnType<typeof stepCounts>,
+  ): void {
+    if (!this.warmed) {
+      this.warmed = true;
+      this.draw.compile(gl, this.skyMat, input);
+      this.draw.compile(gl, this.aerialMat, input);
+      return;
+    }
+    if (!programReady(gl, this.skyMat) || !programReady(gl, this.aerialMat)) return;
+    this.primed = true;
+    if (inside) return; // the regular inside path draws both this frame
+    this.skyTarget ??= lutTarget(SKYVIEW_SIZE[0], SKYVIEW_SIZE[1]);
+    this.apTarget ??= lutTarget(AP_SIZE * AP_SLICES, AP_SIZE);
+    this.skyMat.uniforms.uSteps.value = steps.sky;
+    this.draw.render(gl, this.skyMat, this.skyTarget);
+    this.aerialMat.uniforms.uSteps.value = steps.aerial;
+    this.draw.render(gl, this.aerialMat, this.apTarget);
   }
 
   memoryBytes(): number {

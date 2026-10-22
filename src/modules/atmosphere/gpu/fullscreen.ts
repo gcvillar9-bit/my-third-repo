@@ -75,7 +75,28 @@ export class FullscreenDraw {
     gl.render(this.scene, this.camera);
   }
 
+  /**
+   * Creates the material's program without drawing (three.js `compile`), so a material first drawn
+   * later (the inside-the-atmosphere LUTs) links in the background meanwhile instead of stalling the
+   * frame of its first draw. `target` only fixes the variant (any off-screen target does).
+   */
+  compile(gl: WebGLRenderer, material: ShaderMaterial, target: WebGLRenderTarget | null): void {
+    this.mesh.material = material;
+    gl.setRenderTarget(target);
+    gl.compile(this.scene, this.camera);
+  }
+
   dispose(): void {
     this.geometry.dispose();
   }
+}
+
+/**
+ * True once the program `compile` created for the material reports linked (KHR_parallel_shader_compile),
+ * and at once without that extension, where three.js links on the first draw anyway.
+ */
+export function programReady(gl: WebGLRenderer, material: ShaderMaterial): boolean {
+  const props = gl.properties as { get(o: unknown): { currentProgram?: { isReady(): boolean } } };
+  const program = props.get(material).currentProgram;
+  return !program || program.isReady();
 }
