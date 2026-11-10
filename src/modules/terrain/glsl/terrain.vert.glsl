@@ -10,7 +10,9 @@ varying vec3 vViewPos;    // camera-relative position, world axes, m
 varying vec3 vDirBody;    // radial direction, body-fixed
 varying vec3 vNormalBody; // shading normal, body-fixed
 varying float vHeight;
+varying float vSkirt;     // 1 on the skirt's lower vertices (they hang below the surface)
 void main() {
+  vSkirt = gl_VertexID >= TERRAIN_GRID_VERTICES ? 1.0 : 0.0;
   vec3 p = position - aUpH.xyz * (aUpH.w * (1.0 - uMorph));
   vec4 wp = modelMatrix * vec4(p, 1.0);
   vViewPos = wp.xyz;

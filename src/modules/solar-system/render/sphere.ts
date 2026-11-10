@@ -29,6 +29,7 @@ import { SUN_RGB } from '../../../core/photometry';
 import { R_SUN } from '../../../core/units';
 import {
   DEPTH_GLSL,
+  FACET_GLSL,
   SHADOWS_GLSL,
   createShadowUniforms,
   setShadowUniforms,
@@ -119,7 +120,7 @@ export function cubeSphereArrays(n: number): { pos: Float32Array; index: Uint16A
 
 /** Builds the fragment shader: chunks + the shading's GLSL + the provider's main(). */
 export function sphereFragmentShader(shading: SurfaceShading): string {
-  return [DEPTH_GLSL, SURFACE_INPUT_GLSL, SHADOWS_GLSL, shading.glsl, sphereFrag].join('\n');
+  return [DEPTH_GLSL, FACET_GLSL, SURFACE_INPUT_GLSL, SHADOWS_GLSL, shading.glsl, sphereFrag].join('\n');
 }
 
 export interface SphereDeps {

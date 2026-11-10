@@ -4,7 +4,9 @@
 uniform vec3 uRadii;
 varying vec3 vPosBody; // body-fixed position, m
 varying vec3 vViewPos; // camera-relative position, world axes, m
+varying vec3 vUnit;    // position on the unit sphere (shorter than 1 inside a facet: the chord sag)
 void main() {
+  vUnit = position;
   vPosBody = position * uRadii;
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vViewPos = wp.xyz;

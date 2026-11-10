@@ -3,7 +3,9 @@
 uniform vec3 uCloudRadii;
 varying vec3 vPosBody; // body-fixed, m
 varying vec3 vViewPos; // camera-relative, world axes, m
+varying vec3 vUnit;    // position on the unit sphere (shorter than 1 inside a facet)
 void main() {
+  vUnit = position;
   vPosBody = position * uCloudRadii;
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vViewPos = wp.xyz;

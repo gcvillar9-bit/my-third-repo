@@ -32,6 +32,7 @@ import { solarIlluminance, SUN_RGB } from '../../core/photometry';
 import { R_SUN } from '../../core/units';
 import {
   DEPTH_GLSL,
+  FACET_GLSL,
   NOISE_GLSL,
   SHADOWS_GLSL,
   createShadowUniforms,
@@ -40,10 +41,19 @@ import {
 import terrainFrag from './glsl/terrain.frag.glsl?raw';
 import terrainVert from './glsl/terrain.vert.glsl?raw';
 import type { TerrainManager, Tile } from './manager';
+import { PATCH_N } from './cube';
 import { patchIndex } from './patch';
 
 export function terrainFragmentShader(shading: SurfaceShading): string {
-  return [DEPTH_GLSL, SURFACE_INPUT_GLSL, SHADOWS_GLSL, NOISE_GLSL, shading.glsl, terrainFrag].join('\n');
+  return [
+    DEPTH_GLSL,
+    FACET_GLSL,
+    SURFACE_INPUT_GLSL,
+    SHADOWS_GLSL,
+    NOISE_GLSL,
+    shading.glsl,
+    terrainFrag,
+  ].join('\n');
 }
 
 export const terrainVertexShader = (): string => `${DEPTH_GLSL}\n${terrainVert}`;
@@ -109,7 +119,8 @@ export function buildTerrain(body: Body, shading: SurfaceShading, deps: TerrainR
     vertexShader: terrainVertexShader(),
     fragmentShader: terrainFragmentShader(shading),
     uniforms,
-    defines: { ...(shading.defines ?? {}) },
+    // Vertices past the 33 x 33 grid are the skirts' lower edge (terrain.vert.glsl).
+    defines: { ...(shading.defines ?? {}), TERRAIN_GRID_VERTICES: PATCH_N * PATCH_N },
     side: DoubleSide,
   });
   const group = new Group();

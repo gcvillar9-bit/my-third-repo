@@ -7,6 +7,7 @@ import { CAMERA_FAR, type Vec3d } from '../../core/contracts';
 import { splitDouble } from '../../core/math64';
 import blackbody from './blackbody.glsl?raw';
 import depth from './depth.glsl?raw';
+import facet from './facet.glsl?raw';
 import noise from './noise.glsl?raw';
 import phase from './phase.glsl?raw';
 import rte from './rte.glsl?raw';
@@ -18,6 +19,8 @@ export const NOISE_GLSL: string = noise;
 export const BLACKBODY_GLSL: string = blackbody;
 export const SHADOWS_GLSL: string = shadows;
 export const PHASE_GLSL: string = phase;
+/** Exact curved surface under flat facets (include after DEPTH_GLSL in the fragment stage). */
+export const FACET_GLSL: string = facet;
 
 /** log2(CAMERA_FAR + 1): the constant baked into depth.glsl. */
 export const LOG2_FAR_PLUS_1 = Math.log2(CAMERA_FAR + 1);
