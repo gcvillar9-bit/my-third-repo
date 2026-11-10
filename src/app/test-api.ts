@@ -23,6 +23,8 @@ export interface TestApiHost {
   camera(): CameraState & { mode: string; traveling: boolean; altitude: number | null };
   /** Drawing-buffer size and dynamic resolution scale. */
   resolution(): { width: number; height: number; dynamicScale: number };
+  /** Ids of every registered bookmark (sweep specs). */
+  bookmarks(): string[];
 }
 
 /** Test-only additions to the contract's UniverseTestApi (see docs/CONTRACTS.md). */
@@ -31,6 +33,7 @@ export interface UniverseTestApiExtras {
   work(): MarchWork;
   camera(): CameraState & { mode: string; traveling: boolean; altitude: number | null };
   resolution(): { width: number; height: number; dynamicScale: number };
+  bookmarks(): string[];
 }
 
 const errors: string[] = [];
@@ -93,6 +96,7 @@ export function installTestApi(host: TestApiHost): UniverseTestApi {
     work: () => host.work(),
     camera: () => host.camera(),
     resolution: () => host.resolution(),
+    bookmarks: () => host.bookmarks(),
   };
   window.__universe = api;
   return api;

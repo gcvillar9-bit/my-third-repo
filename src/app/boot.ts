@@ -304,6 +304,7 @@ export async function boot(): Promise<Engine | undefined> {
         altitude: camera.nearestSurface()?.altitude ?? null,
       }),
       resolution: () => ({ ...render.size, dynamicScale: quality.dynamicScale }),
+      bookmarks: () => registry.bookmarks().map((b) => b.id),
       compileAll: async () => {
         await render.compileAll();
         return render.stats().programs;
