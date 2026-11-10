@@ -1,6 +1,4 @@
-# Spacecraft status
-
-Branch `p-spacecraft`. Docs: `docs/modules/spacecraft.md`. Requests: `docs/requests/spacecraft.md`.
+# Spacecraft status (branch `p-spacecraft`; docs: `docs/modules/spacecraft.md`)
 
 ## Done
 
@@ -23,8 +21,7 @@ Branch `p-spacecraft`. Docs: `docs/modules/spacecraft.md`. Requests: `docs/reque
 - Flybys are heliocentric arcs through a point over the planet's pole; attitudes are illustrative.
 - No cast shadows; the 8% fill light is not physical. `voyager1-looking-back` shows the craft's shadowed
   side, and at its exposure the app's Sun glow is a wide glare.
-- `spacecraft.enabled` is not exercised by a test (settings storage is off in test mode).
-- Not built: Parker Solar Probe and other craft.
+- `spacecraft.enabled` has no test (settings storage is off in test mode). No Parker Solar Probe.
 
 ## Requests
 
