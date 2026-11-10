@@ -57,8 +57,10 @@ export function readPad(p: PadLike): PadCommand {
   };
 }
 
-/** First connected pad with the standard mapping (or any connected pad when none declares one). */
+/**
+ * First connected pad with the standard mapping. Other devices (wheels, throttles, unmapped
+ * controllers) are ignored: their axes mean something else and may rest far from zero.
+ */
 export function pickPad(pads: readonly (PadLike | null)[]): PadLike | null {
-  const live = pads.filter((p): p is PadLike => !!p && p.axes.length >= 2);
-  return live.find((p) => p.mapping === 'standard') ?? live[0] ?? null;
+  return pads.find((p): p is PadLike => !!p && p.mapping === 'standard' && p.axes.length >= 4) ?? null;
 }

@@ -76,7 +76,7 @@ export const GRAND_TOUR: TourDef = {
     { type: 'goto', target: 'uranus-rings', duration: 5 },
     {
       type: 'caption',
-      text: 'Its thirteen rings are narrow and as dark as coal. They were found in 1977, when they dimmed a star passing behind them.',
+      text: 'Its thirteen rings are narrow and as dark as coal. The first nine were found in 1977, when they dimmed a star passing behind them.',
     },
     { type: 'wait', seconds: 8 },
     { type: 'goto', target: 'neptune', duration: 7 },

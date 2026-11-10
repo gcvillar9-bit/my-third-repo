@@ -50,11 +50,11 @@ describe('gamepad mapping', () => {
     ]);
   });
 
-  it('prefers a pad with the standard mapping', () => {
-    const odd = { axes: [0, 0], buttons: [], mapping: '' };
+  it('uses only pads with the standard mapping', () => {
+    const odd = { axes: [0, 0, 1, 1], buttons: [], mapping: '' };
     const std = pad([0, 0, 0, 0]);
     expect(pickPad([null, odd, std])).toBe(std);
-    expect(pickPad([null, odd])).toBe(odd);
+    expect(pickPad([null, odd])).toBeNull();
     expect(pickPad([null, null])).toBeNull();
   });
 });

@@ -68,6 +68,11 @@ export interface CameraDeps {
   jd: () => JD;
   /** Invoked when goto() receives a bookmark (the app applies jd/rate/ev). */
   onBookmark?: (bm: Bookmark) => void;
+  /**
+   * Whether a body has ground to stand on (default: every solid body that is not a star). The
+   * app passes the terrain's rule, which leaves out gas giants, comets and spacecraft.
+   */
+  walkable?: (b: Body) => boolean;
 }
 
 export interface NearestInfo {
@@ -84,6 +89,9 @@ interface ActiveFlight {
   finish: () => void;
   /** Landing flights end on the ground under `dir` (unit, body-fixed), wherever it turns out to be. */
   land?: { body: Body; dir: Vec3d };
+  /** Field of view at the start and end of the flight (eased in between), radians. */
+  fov0: number;
+  fov1: number;
 }
 
 /** Analog movement from on-screen controls or a gamepad, each axis −1..1 (added to the keys). */
@@ -147,7 +155,7 @@ export class CameraController implements CameraApi {
     const { frames, registry } = this.deps;
     const n = this.computeNearest();
     const b = n ? registry.body(n.bodyId) : undefined;
-    if (!n || !b || !SOLID.has(b.kind) || b.kind === 'star' || n.altitude > WALK_RANGE) return false;
+    if (!n || !this.walkable(b) || n.altitude > WALK_RANGE) return false;
     const fixed = b.fixedFrame && frames.has(b.fixedFrame) ? b.fixedFrame : b.frame;
     const jd = this.deps.jd();
     const pose: WalkPose = {
@@ -170,11 +178,16 @@ export class CameraController implements CameraApi {
     this.walkBody = null;
   }
 
-  /** Whether walk mode can start right now (a solid body within WALK_RANGE below the camera). */
+  /** A body with ground to stand on. */
+  private walkable(b: Body | undefined): b is Body {
+    return !!b && SOLID.has(b.kind) && b.kind !== 'star' && (this.deps.walkable?.(b) ?? true);
+  }
+
+  /** Whether walk mode can start right now (walkable ground within WALK_RANGE below the camera). */
   canWalk(): boolean {
     const n = this.nearest;
     const b = n ? this.deps.registry.body(n.bodyId) : undefined;
-    return !!n && !!b && SOLID.has(b.kind) && b.kind !== 'star' && n.altitude <= WALK_RANGE && !this.active;
+    return !!n && this.walkable(b) && n.altitude <= WALK_RANGE && !this.active;
   }
 
   /**
@@ -187,7 +200,7 @@ export class CameraController implements CameraApi {
     const { frames, registry } = this.deps;
     const id = bodyId ?? this.computeNearest()?.bodyId;
     const b = id ? registry.body(id) : undefined;
-    if (!b || !SOLID.has(b.kind) || b.kind === 'star' || !frames.has(b.frame)) return Promise.resolve(false);
+    if (!this.walkable(b) || !frames.has(b.frame)) return Promise.resolve(false);
     const fixed = b.fixedFrame && frames.has(b.fixedFrame) ? b.fixedFrame : b.frame;
     const jd = this.deps.jd();
     const p = frames.convertPoint(this.st.frame, this.st.local, fixed, jd, vec3());
@@ -402,8 +415,12 @@ export class CameraController implements CameraApi {
       newTarget = b.id;
     }
     const w0 = Math.max(1, this.nearest?.altitude ?? v3len(v3sub(vec3(), look, p0)));
+    // A view that names no field of view gets the normal one back (a bookmark's telescope view
+    // used to stay on for every flight after it).
+    const fov0 = this.st.fovY;
+    const fov1 = bm?.fovY ?? DEFAULT_FOV;
     const finish = () => {
-      if (bm?.fovY) this.st.fovY = bm.fovY;
+      this.st.fovY = fov1;
       this._target = newTarget;
       if (bm?.mode === 'walk') this.enterWalk();
       else if (bm?.mode) this._mode = bm.mode;
@@ -422,7 +439,7 @@ export class CameraController implements CameraApi {
     }
     const flight = new Flight({ p0, p1, q0, q1, look, w0, w1, duration: opts.duration });
     return new Promise<boolean>((resolve) => {
-      this.active = { flight, frame, t: 0, resolve, finish };
+      this.active = { flight, frame, t: 0, resolve, finish, fov0, fov1 };
       this.emit();
     });
   }
@@ -476,6 +493,11 @@ export class CameraController implements CameraApi {
       this.st.frame = a.frame;
       this.st.local = pose.local;
       this.st.quat = pose.quat;
+      // Zoom eases with the flight (in log space, like the distance).
+      const z = Math.min(1, a.t / Math.max(a.flight.duration, 1e-6));
+      this.st.fovY = a.fov0 * (a.fov1 / a.fov0) ** (z * z * (3 - 2 * z));
+      // Look input during a flight is dropped, not saved up for one jolt on arrival.
+      this.look.yaw = this.look.pitch = 0;
       this.move.x = this.move.y = this.move.z = 0;
       this.dolly = 0;
       if (done) {

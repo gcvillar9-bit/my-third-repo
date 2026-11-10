@@ -10,8 +10,10 @@
 // Unit sphere: `unit` is the fragment's interpolated position on the unit sphere (its length
 // falls short of 1 by the sag) and `d` the camera-to-fragment vector in the same space (body axes,
 // divided by the radii). Solves |unit + t d| = 1 for the root next to the facet, in the form
-// that does not cancel (c is the sag itself). Seen from outside (b < 0) the surface is back
-// toward the camera; from inside the sphere it is further along the ray.
+// that does not cancel (c is the sag itself). A camera outside the sphere takes the near root
+// (back toward the camera), one inside the far root (onward to the shell). The camera's side
+// decides, not the sign of b: on a limb facet b can turn slightly positive while the surface is
+// still the near one. Right at the surface, where float32 cannot tell the side, b breaks the tie.
 float cosmosSphereFactor(vec3 unit, vec3 d) {
   float a = dot(d, d);
   float b = dot(unit, d);
@@ -19,7 +21,9 @@ float cosmosSphereFactor(vec3 unit, vec3 d) {
   float disc = b * b - a * c;
   if (c >= 0.0 || disc <= 0.0 || a <= 0.0) return 1.0;
   float s = sqrt(disc);
-  float t = b < 0.0 ? c / (s - b) : -c / (s + b);
+  float cam2 = dot(unit - d, unit - d);
+  bool outside = cam2 > 1.00001 || (cam2 > 0.99999 && b < 0.0);
+  float t = outside ? c / (s - b) : -c / (s + b);
   return clamp(1.0 + t, 0.02, 4.0);
 }
 // Local form for terrain, where only fragment-local quantities are precise: P is the
@@ -33,8 +37,8 @@ float cosmosCurveFactor(vec3 P, vec3 u, float rho, float delta) {
   float disc = b * b - a * c;
   if (delta <= 0.0 || disc <= 0.0 || a <= 0.0) return 1.0;
   float s = sqrt(disc);
-  float t = b < 0.0 ? c / (s - b) : -c / (s + b);
-  return clamp(1.0 + t, 0.02, 4.0);
+  // Terrain is seen from above its surface: always the near root.
+  return clamp(1.0 + c / (s - b), 0.02, 1.0);
 }
 // LOG_DEPTH_FRAGMENT() for a fragment moved by the factor k (needs depth.glsl before this chunk).
 #define LOG_DEPTH_FRAGMENT_AT(k) gl_FragDepth = logDepthFromLinear(max((vCosmosLogDepth - 1.0) * (k), 0.0))

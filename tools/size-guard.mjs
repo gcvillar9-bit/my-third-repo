@@ -33,6 +33,7 @@ const BOOT_PATH = [
   'textures/solar-system/earth_spec_2k.webp',
   'data/stars/stars.bin',
   'data/stars/names.json',
+  'data/comets/comets.json',
   'textures/stars/milkyway_diffuse_2k.webp',
   'data/solar-system/bodies.json',
 ];

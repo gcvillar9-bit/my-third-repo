@@ -8,7 +8,7 @@ import { qualityControl } from '../app/auto-quality';
 import { AUDIO_ENABLED_SETTING } from '../modules/audio/public';
 import { photo } from '../modules/photo/public';
 import { tours } from '../modules/tours/public';
-import { landable, TOUCH_SETTING, type UiController } from './controller';
+import { landable, panelsShareSpace, TOUCH_SETTING, type UiController } from './controller';
 import { LOG_SCALE_TICKS, logScaleFraction } from './format';
 
 /** Keyboard and mouse help, by theme (the help panel and the plain-text HELP_TEXT). */
@@ -215,7 +215,7 @@ function ExplorePanel({ ui }: { ui: UiController }) {
                         data-key={key}
                         onClick={() => {
                           ui.choose(entry);
-                          if (window.innerWidth < 700) ui.exploreOpen.value = false;
+                          if (panelsShareSpace()) ui.exploreOpen.value = false;
                         }}
                       >
                         <span class="cz-result-name">{entry.name.replace(/^Tour: /, '')}</span>
@@ -652,7 +652,7 @@ function Hud({ ui }: { ui: UiController }) {
               title="Set down on the surface and walk (Shift+G)"
               onClick={() => ui.land()}
             >
-              <Icon name="land" /> Land
+              <Icon name="land" /> Land{h.landName ? ` on ${h.landName}` : ''}
             </button>
           )
         )}
@@ -814,6 +814,8 @@ function TouchControls({ ui }: { ui: UiController }) {
   const { camera } = ui.ctx;
   const [knob, setKnob] = useState<{ x: number; y: number } | null>(null);
   const base = useRef<HTMLDivElement>(null);
+  /** The pointer steering the stick (a second finger on it is ignored). */
+  const owner = useRef<number | null>(null);
   const mode = ui.settings.get(TOUCH_SETTING);
   const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
   const show = mode === 'on' || (mode !== 'off' && (coarse || ui.touchSeen.value));
@@ -833,7 +835,9 @@ function TouchControls({ ui }: { ui: UiController }) {
     const live = Math.min(1, m) > STICK_DEAD;
     camera.setVirtualInput?.({ right: live ? x : 0, forward: live ? -y : 0 });
   };
-  const release = () => {
+  const release = (e?: PointerEvent) => {
+    if (e && owner.current !== null && e.pointerId !== owner.current) return;
+    owner.current = null;
     setKnob(null);
     camera.setVirtualInput?.({ right: 0, forward: 0 });
   };
@@ -863,10 +867,12 @@ function TouchControls({ ui }: { ui: UiController }) {
         aria-label="Move"
         aria-valuetext={knob ? 'moving' : 'centred'}
         onPointerDown={(e) => {
+          if (owner.current !== null) return;
+          owner.current = e.pointerId;
           capture(e);
           steer(e);
         }}
-        onPointerMove={(e) => knob && steer(e)}
+        onPointerMove={(e) => e.pointerId === owner.current && steer(e)}
         onPointerUp={release}
         onPointerCancel={release}
         onLostPointerCapture={release}

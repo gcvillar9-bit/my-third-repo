@@ -168,7 +168,7 @@ function installKeys(ui: UiController, ctx: UiContext): void {
       if (isEditable(e.target) || ui.paletteOpen.value || photo.active) return;
       e.stopImmediatePropagation();
       e.preventDefault();
-      ui.land(ui.selection.value ?? undefined);
+      ui.land(ui.selection.value);
     },
     true,
   );
@@ -179,7 +179,9 @@ function installKeys(ui: UiController, ctx: UiContext): void {
       return;
     }
     if (e.key === 'Escape') {
-      ui.closeTop();
+      // One Escape closes one thing: with a panel or card open, the tour underneath keeps running
+      // (this listener is registered before the tours module's).
+      if (ui.closeTop()) e.stopImmediatePropagation();
       return;
     }
     if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey || ui.paletteOpen.value || photo.active)

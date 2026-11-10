@@ -272,4 +272,74 @@ describe('CameraController', () => {
     camera.setVirtualInput({ forward: 0.5 });
     expect(camera.traveling).toBe(false);
   });
+  it('a view without its own field of view gets the normal one back, eased during the flight', async () => {
+    const { camera } = setup();
+    const narrow = (6 * Math.PI) / 180;
+    await camera.goto(
+      {
+        id: 'scope',
+        title: 'Telescope view',
+        frame: 'earth',
+        pos: vec3(0, 0, 9 * R_EARTH),
+        lookAt: 'earth',
+        fovY: narrow,
+      },
+      { instant: true },
+    );
+    expect(camera.getState().fovY).toBeCloseTo(narrow, 12);
+    void camera.goto('earth');
+    let prev = narrow;
+    for (let t = 0; t < 20 && camera.traveling; t += 1 / 30) {
+      camera.update(1 / 30);
+      const f = camera.getState().fovY;
+      expect(f).toBeGreaterThanOrEqual(prev - 1e-12);
+      prev = f;
+    }
+    expect(camera.getState().fovY).toBeCloseTo(Math.PI / 3, 12);
+  });
+
+  it('look input during a flight is dropped instead of landing as one jolt', () => {
+    const { camera } = setup();
+    camera.setState({ frame: SSB_FRAME, local: vec3(0, 3 * AU, 0) });
+    void camera.goto('earth');
+    for (let t = 0; t < 20 && camera.traveling; t += 1 / 30) {
+      camera.addLook(0.2, 0);
+      camera.update(1 / 30);
+    }
+    const q = { ...camera.getState().quat };
+    camera.update(1 / 30);
+    const r = camera.getState().quat;
+    expect(Math.abs(q.x * r.x + q.y * r.y + q.z * r.z + q.w * r.w)).toBeCloseTo(1, 9);
+  });
+
+  it('only walkable ground can be walked or landed on when the app says which bodies have any', async () => {
+    const frames = new FrameTreeImpl();
+    addStandardFrames(frames);
+    const registry = new RegistryImpl(frames);
+    registry.addFrame({
+      id: 'jupiter',
+      parent: SSB_FRAME,
+      influenceRadius: 1e10,
+      positionAt: (_j, o) => v3set(o, 5 * AU, 0, 0),
+    });
+    registry.addBody({
+      id: 'jupiter',
+      name: 'Jupiter',
+      kind: 'planet',
+      frame: 'jupiter',
+      radius: 7e7,
+      influenceRadius: 1e10,
+    });
+    const camera = new CameraController({
+      frames,
+      registry,
+      jd: () => 2451545,
+      walkable: (b) => b.id !== 'jupiter',
+    });
+    camera.setState({ frame: 'jupiter', local: vec3(7e7 + 500, 0, 0) });
+    expect(camera.canWalk()).toBe(false);
+    camera.setMode('walk');
+    expect(camera.mode).toBe('free');
+    expect(await camera.land('jupiter')).toBe(false);
+  });
 });

@@ -130,13 +130,13 @@ button.cz-accuracy:hover { background: rgba(255, 255, 255, 0.1); }
 @media (max-width: 640px) {
   .cz-topbar { left: 10px; justify-content: flex-end; flex-wrap: wrap; }
   .cz-rate { min-width: 0; padding: 0 4px; }
-  .cz-hud { bottom: 54px; min-width: 0; max-width: calc(100vw - 20px); padding: 6px 8px; }
+  .cz-hud { bottom: 84px; min-width: 0; max-width: calc(100vw - 20px); padding: 6px 8px; }
   .cz-scale, .cz-crumbs { display: none; }
-  .cz-timebar { gap: 4px; padding: 4px 6px; }
-  .cz-timebar .cz-btn { display: none; }
+  /* The time bar wraps onto a second row (Now and the accuracy chip) instead of losing them. */
+  .cz-timebar { gap: 4px; padding: 4px 6px; flex-wrap: wrap; justify-content: center; width: max-content; }
   .cz-explore, .cz-info, .cz-settings, .cz-tours { top: 48px; left: 10px; right: 10px; width: auto; max-height: calc(100vh - 204px); }
   /* Tall and narrow (phones held upright): the stick sits above the HUD instead of beside it. */
-  .cz-touch { bottom: 156px; }
+  .cz-touch { bottom: 186px; }
   .cz-caption { font-size: 14px; max-width: 92vw; bottom: 150px; }
   .cz-accuracy-panel { position: fixed; left: 10px; right: 10px; bottom: 52px; width: auto; }
 }

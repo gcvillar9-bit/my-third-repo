@@ -31,7 +31,7 @@ import { CONSTELLATIONS_SETTING, LINE_BOOKMARKS } from '../modules/starsystems/p
 import { terrainEligible } from '../modules/terrain/public';
 import { TOUR_ENTRY_PREFIX, tours } from '../modules/tours/public';
 import { resolveExplore, type ResolvedGroup } from './explore';
-import { bodyPriority, project } from './labels';
+import { bodyLabelHidden, bodyPriority, occluded, project } from './labels';
 import { bodyEntry, bookmarkEntry, SearchIndex } from './search';
 import { SettingsStoreImpl } from './settings';
 
@@ -110,6 +110,10 @@ export function inDaylight(
   return sinEl > DAYLIGHT_SIN_ELEVATION;
 }
 
+/** True on screens where the side panels share one slot (phones, upright or sideways). */
+export const panelsShareSpace = (): boolean =>
+  typeof matchMedia === 'function' && matchMedia('(max-width: 640px), (max-height: 420px)').matches;
+
 /** A body the camera could set down on: rocky or icy, not a star or a gas giant. */
 export const landable = (b: Body | undefined): b is Body => !!b && terrainEligible(b);
 
@@ -162,6 +166,8 @@ export interface HudData {
   position: string | null;
   /** Body the Land button would set down on (null: nothing to land on from here). */
   landOn: string | null;
+  /** Its display name (the button says where it lands). */
+  landName: string | null;
   /** Walk mode can start from here (within reach of a surface). */
   canWalk: boolean;
   mode: string;
@@ -187,6 +193,7 @@ const EMPTY_HUD: HudData = {
   lightTime: null,
   position: null,
   landOn: null,
+  landName: null,
   canWalk: false,
   mode: 'free',
   scaleFrac: 0,
@@ -271,8 +278,10 @@ export class UiController {
   select(id: string | null): void {
     batch(() => {
       this.selection.value = id;
-      // The info card takes the place of the settings and tours panels.
+      // The info card takes the place of the settings and tours panels, and of Explore where
+      // the screen is too small for both.
       if (id) this.settingsOpen.value = this.toursOpen.value = false;
+      if (id && panelsShareSpace()) this.exploreOpen.value = false;
       this.showInfo(id);
     });
   }
@@ -372,12 +381,16 @@ export class UiController {
   /** Sets down on a body's surface (default: the target, else the nearest world) and walks. */
   land(id?: string | null): void {
     const { camera, registry } = this.ctx;
-    const bodyId = id ?? this.hud.value.landOn;
-    const b = bodyId ? registry.body(bodyId) : undefined;
+    // A selection that is not a world to stand on (a star, a city label) falls back to the world
+    // the HUD offers: the one under the camera, else the target.
+    const wanted = id ? registry.body(id) : undefined;
+    const b = landable(wanted) ? wanted : registry.body(this.hud.value.landOn ?? '');
     if (!landable(b) || !camera.land) {
-      this.toast(b ? `${b.name} has no surface to land on` : 'Nothing to land on from here', 'warn');
+      const named = wanted ?? b;
+      this.toast(named ? `${named.name} has no surface to land on` : 'Nothing to land on from here', 'warn');
       return;
     }
+    if (!camera.land) return;
     this.select(b.id);
     // From far away, first arrive at the world; the descent then starts over its sunlit side.
     const near = camera.nearestSurface();
@@ -433,6 +446,10 @@ export class UiController {
     const rel = vec3();
     const proj = { x: 0, y: 0, depth: 0 };
     const cands: PickCandidate[] = [];
+    const daylight = this.daylight(view);
+    // Spheres that hide what is behind them, the world under the camera included.
+    const occluders: { id: string; c: { x: number; y: number; z: number }; r: number }[] = [];
+    const seen: { b: Body; rel: { x: number; y: number; z: number }; d: number; r: number }[] = [];
     for (const b of this.ctx.registry.bodies()) {
       try {
         view.toCamera(b.frame, vec3(), rel);
@@ -441,9 +458,16 @@ export class UiController {
       }
       const d = v3len(rel);
       const r = d > b.radius ? Math.asin(Math.min(1, b.radius / d)) / pxAngle : Infinity;
+      if (r > 1 && b.kind !== 'galaxy' && b.kind !== 'blackhole')
+        occluders.push({ id: b.id, c: { ...rel }, r: b.radius * (1 - (b.oblateness ?? 0)) });
+      seen.push({ b, rel: { ...rel }, d, r });
+    }
+    for (const { b, rel: at, d, r } of seen) {
       // The world under the camera fills the view: clicking the ground is not a selection.
       if (r > 0.75 * cssH) continue;
-      if (!project(rel, view.worldQuat, view.fovY, cssW, cssH, proj)) continue;
+      // Nothing behind a world, and nothing whose label the sky is hiding (stars at noon).
+      if (occluded(at, occluders, b.id) || bodyLabelHidden(b, d, daylight)) continue;
+      if (!project(at, view.worldQuat, view.fovY, cssW, cssH, proj)) continue;
       cands.push({ id: b.id, x: proj.x, y: proj.y, r, depth: d, priority: bodyPriority(b) });
     }
     return pickCandidate(cands, x, y);
@@ -546,11 +570,9 @@ export class UiController {
         position = `${formatLatLon(p)} · ${formatDistance(Math.max(0, near.altitude))} up`;
       }
     }
-    const landBody = landable(body)
-      ? body
-      : landable(nearBody) && near!.altitude < 20 * nearBody.radius
-        ? nearBody
-        : null;
+    // The world under the camera comes first; from further out, the target.
+    const landBody =
+      landable(nearBody) && near!.altitude < 20 * nearBody.radius ? nearBody : landable(body) ? body : null;
     this.hud.value = {
       speed: formatSpeed(camera.speed),
       targetId: targetId ?? null,
@@ -559,7 +581,8 @@ export class UiController {
       lightTime,
       position,
       landOn: camera.mode === 'walk' || camera.traveling ? null : (landBody?.id ?? null),
-      canWalk: camera.mode !== 'walk' && (camera.canWalk?.() ?? false),
+      landName: landBody?.name ?? null,
+      canWalk: camera.mode !== 'walk' && landable(nearBody) && (camera.canWalk?.() ?? false),
       mode: camera.mode,
       scaleFrac: logScaleFraction(scaleD),
       scaleText: formatDistance(scaleD),

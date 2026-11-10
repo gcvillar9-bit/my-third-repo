@@ -35,7 +35,7 @@ import { startOnboarding } from './onboarding';
 import { createSplash } from './splash';
 import { captureErrors, installTestApi, recordError } from './test-api';
 import { instantOf, parseHash, stateFromCamera, UrlSync, type UrlState } from './url-state';
-import { terrainStats } from '../modules/terrain/public';
+import { terrainEligible, terrainStats } from '../modules/terrain/public';
 
 /** Sim instant used in test mode when no ?t= is given (deterministic screenshots). */
 export const TEST_DEFAULT_TIME = '2026-01-01T00:00:00Z';
@@ -68,6 +68,10 @@ function sessionStore(): Storage | null {
 const SPLASH_FRAMES = 3;
 /** Longest wait for the first view's assets before the splash lifts anyway, ms. */
 const SPLASH_MAX_WAIT_MS = 8000;
+/** A boot still behind the splash after this long gets a hint and a Reload button, ms. */
+const SPLASH_SLOW_MS = 45_000;
+/** Automatic quality steps are remembered for the next visit only after this long, ms. */
+const AUTO_REMEMBER_AFTER_MS = 60_000;
 
 export async function boot(): Promise<Engine | undefined> {
   const env = parseEnv(window.location.search, import.meta.env.BASE_URL, import.meta.env.DEV);
@@ -75,6 +79,11 @@ export async function boot(): Promise<Engine | undefined> {
   const splash = createSplash();
   // Tests screenshot and click the page straight away: no splash there.
   if (test) splash.remove();
+  // Stalled downloads or a first frame that never comes: say so instead of loading forever.
+  const slowTimer = setTimeout(
+    () => splash.slow('This is taking a while. Check your connection, or reload to try again.'),
+    SPLASH_SLOW_MS,
+  );
   // ?test=1&live=1: the test API plus a normal session (rAF loop, mouse/keyboard input, URL sync,
   // initial view from the hash). Used by the input regression spec.
   const live = test && env.params.get('live') === '1';
@@ -155,7 +164,13 @@ export async function boot(): Promise<Engine | undefined> {
   const assets = new AssetLoaderImpl(env.baseUrl, budget);
   const stopSplashProgress = assets.subscribe((p) => splash.progress(p.loaded, p.total));
   const workers = new WorkerPoolImpl();
-  const camera = new CameraController({ frames, registry, jd: () => clock.jd, onBookmark });
+  const camera = new CameraController({
+    frames,
+    registry,
+    jd: () => clock.jd,
+    onBookmark,
+    walkable: terrainEligible,
+  });
   const uiCtx: UiContext = { frames, clock, registry, render, assets, workers, quality, camera, budget, env };
   const ui = mountUi(document.getElementById('ui') ?? document.body, uiCtx);
   const ctx: ModuleContext = { ...uiCtx, registry, ui };
@@ -290,7 +305,14 @@ export async function boot(): Promise<Engine | undefined> {
     },
   });
   let lastFrameMs = 0;
+  let bootedMs = 0;
   const tickDynamic = (ms: number) => {
+    // A hidden page is throttled by the browser: its frame times say nothing about the machine.
+    if (document.hidden) {
+      lastFrameMs = 0;
+      return;
+    }
+    bootedMs ||= ms;
     const dt = lastFrameMs ? ms - lastFrameMs : 0;
     lastFrameMs = ms;
     if (dynOn) {
@@ -303,7 +325,8 @@ export async function boot(): Promise<Engine | undefined> {
     const next = autoQ.sample(dt, dynOn ? dyn.meanMs : dt, atMin, quality.preset);
     if (!next) return;
     quality.set(next);
-    storeAutoLevel(store, next);
+    // A slow first minute is often the page still loading: only later steps are remembered.
+    if (ms - bootedMs > AUTO_REMEMBER_AFTER_MS) storeAutoLevel(store, next);
     ui.toast(`Graphics quality lowered to "${next}" for a smoother flight. Change it in Settings (⚙).`, {
       durationMs: 8000,
     });
@@ -387,8 +410,11 @@ export async function boot(): Promise<Engine | undefined> {
 
   // A lost WebGL context (GPU reset, driver update, out of memory) cannot be repaired piecemeal:
   // say so, and reload once the browser hands a context back. The link keeps the view.
+  let contextLost = false;
   canvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
+    contextLost = true;
+    clearTimeout(slowTimer);
     loop.stop();
     splash.fail(
       'The graphics context was lost (the GPU was reset or ran out of memory). Reload to carry on from the same view.',
@@ -397,6 +423,7 @@ export async function boot(): Promise<Engine | undefined> {
   canvas.addEventListener('webglcontextrestored', () => window.location.reload());
 
   if (!interactive) {
+    clearTimeout(slowTimer);
     loop.frame(TEST_DT);
   } else {
     camera.attach(canvas);
@@ -405,14 +432,20 @@ export async function boot(): Promise<Engine | undefined> {
     // so the first thing on screen is a finished frame rather than textures popping in.
     void (async () => {
       const frames0 = render.stats().frame;
+      // Resolves false when the context is lost meanwhile: the failure screen then stays up.
       const framesDrawn = (n: number) =>
-        new Promise<void>((resolve) => {
-          const tick = () => (render.stats().frame - frames0 >= n ? resolve() : setTimeout(tick, 50));
+        new Promise<boolean>((resolve) => {
+          const tick = () => {
+            if (contextLost) resolve(false);
+            else if (render.stats().frame - frames0 >= n) resolve(true);
+            else setTimeout(tick, 50);
+          };
           tick();
         });
-      await framesDrawn(SPLASH_FRAMES);
+      if (!(await framesDrawn(SPLASH_FRAMES))) return;
       await Promise.race([assets.whenIdle(), new Promise((r) => setTimeout(r, SPLASH_MAX_WAIT_MS))]);
-      await framesDrawn(2 * SPLASH_FRAMES);
+      if (!(await framesDrawn(2 * SPLASH_FRAMES))) return;
+      clearTimeout(slowTimer);
       stopSplashProgress();
       splash.done();
       startOnboarding(ui, env);

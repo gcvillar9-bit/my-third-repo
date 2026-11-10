@@ -10,11 +10,11 @@ export const EARTH_THROUGH_TIME_ID = 'earth-through-time';
 export const EARTH_THROUGH_TIME: TourDef = {
   id: EARTH_THROUGH_TIME_ID,
   title: 'Earth Through Time',
-  description: 'From Pangaea and the dinosaurs to the first cities and today (about 5 minutes).',
+  description: 'From Pangaea and the dinosaurs to the first cities and today (about 4 minutes).',
   steps: [
     {
       type: 'caption',
-      text: 'Earth through time: 250 million years in five minutes. Continents, climates and creatures are reconstructions, and approximate.',
+      text: 'Earth through time: 250 million years in four minutes. Continents, climates and creatures are reconstructions, and approximate.',
     },
     { type: 'goto', target: 'earth-pangaea-250ma', duration: 6 },
     {

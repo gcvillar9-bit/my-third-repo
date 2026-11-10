@@ -31,6 +31,8 @@ export const BLACK_HOLES: TourDef = {
       text: 'The centre of the Milky Way: the star S2 swings around Sagittarius A* every 16 years at up to 7,700 km/s. Its orbit weighs the black hole at 4.3 million Suns.',
     },
     { type: 'wait', seconds: 11 },
+    // The S2 bookmark runs the clock at a month per second to show the orbit: back to real time.
+    { type: 'timeRate', rate: 1 },
     { type: 'goto', target: 'sgra-lensing', duration: 7 },
     {
       type: 'caption',

@@ -9,6 +9,8 @@ export interface Splash {
   /** Asset progress; the bar never moves backwards while more work is being queued. */
   progress(loaded: number, total: number): void;
   message(text: string): void;
+  /** Keeps the progress bar but adds a hint and the Reload button (a boot that is taking long). */
+  slow(text: string): void;
   /** Fades the splash out and removes it. */
   done(): void;
   /** Replaces the splash by an error message with a Reload button (re-creating it if it was removed). */
@@ -39,6 +41,12 @@ export function createSplash(doc: Document | undefined = globalThis.document): S
       if (bar) bar.style.width = `${(shown * 100).toFixed(1)}%`;
     },
     message(text) {
+      const s = sub();
+      if (s) s.textContent = text;
+    },
+    slow(text) {
+      if (!el || el.classList.contains('failed')) return;
+      el.classList.add('slow');
       const s = sub();
       if (s) s.textContent = text;
     },

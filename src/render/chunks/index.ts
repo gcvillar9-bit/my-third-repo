@@ -106,7 +106,12 @@ export function sphereFactor(unit: Vec3d, d: Vec3d): number {
   const disc = b * b - a * c;
   if (c >= 0 || disc <= 0 || a <= 0) return 1;
   const s = Math.sqrt(disc);
-  const t = b < 0 ? c / (s - b) : -c / (s + b);
+  const cx = unit.x - d.x;
+  const cy = unit.y - d.y;
+  const cz = unit.z - d.z;
+  const cam2 = cx * cx + cy * cy + cz * cz;
+  const outside = cam2 > 1.00001 || (cam2 > 0.99999 && b < 0);
+  const t = outside ? c / (s - b) : -c / (s + b);
   return Math.min(4, Math.max(0.02, 1 + t));
 }
 
@@ -121,6 +126,5 @@ export function curveFactor(P: Vec3d, u: Vec3d, rho: number, delta: number): num
   const disc = b * b - a * c;
   if (delta <= 0 || disc <= 0 || a <= 0) return 1;
   const s = Math.sqrt(disc);
-  const t = b < 0 ? c / (s - b) : -c / (s + b);
-  return Math.min(4, Math.max(0.02, 1 + t));
+  return Math.min(1, Math.max(0.02, 1 + c / (s - b)));
 }
