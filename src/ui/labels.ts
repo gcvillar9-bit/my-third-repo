@@ -223,11 +223,9 @@ export class LabelOverlay {
       const off = it.radius ? Math.min(cssH, Math.atan2(it.radius, d) / pxAngle) : 0;
       const { w, h } = labelSize(it.text);
       const pri = it.priority + (it.id === target ? 1000 : 0) + (it.id === selection ? 500 : 0);
-      // A label whose anchor is in view stays whole: it flips to the left of the anchor rather
-      // than being cut by the right edge (and never starts left of the view).
-      let left = proj.x + 4 + off * 0.7;
-      if (left + w > cssW - 2 && proj.x <= cssW) left = Math.max(2, proj.x - 4 - off * 0.7 - w);
-      if (left < 2 && proj.x >= 0) left = 2;
+      // A label whose anchor is in view stays whole: near the right edge it slides left over its
+      // anchor instead of being cut off.
+      const left = Math.max(2, Math.min(proj.x + 4 + off * 0.7, cssW - w - 2));
       cands.push({
         item: { ...it, priority: pri },
         x: proj.x,

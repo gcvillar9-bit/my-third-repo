@@ -716,6 +716,15 @@ function MuteButton({ ui }: { ui: UiController }) {
   );
 }
 
+/** Keeps a press on its control while the finger slides off it (ignored when the pointer is already gone). */
+const capture = (e: PointerEvent): void => {
+  try {
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  } catch {
+    // Released between dispatch and capture: the control gets its pointerup anyway.
+  }
+};
+
 const STICK_RADIUS = 44;
 const STICK_DEAD = 0.12;
 
@@ -754,7 +763,7 @@ function TouchControls({ ui }: { ui: UiController }) {
   };
   const hold = (up: number) => ({
     onPointerDown: (e: PointerEvent) => {
-      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      capture(e);
       camera.setVirtualInput?.({ up });
     },
     onPointerUp: () => camera.setVirtualInput?.({ up: 0 }),
@@ -778,7 +787,7 @@ function TouchControls({ ui }: { ui: UiController }) {
         aria-label="Move"
         aria-valuetext={knob ? 'moving' : 'centred'}
         onPointerDown={(e) => {
-          (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+          capture(e);
           steer(e);
         }}
         onPointerMove={(e) => knob && steer(e)}

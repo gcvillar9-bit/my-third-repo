@@ -29,13 +29,14 @@ Core services, render pipeline, camera and app shell. Contracts: `src/core/contr
 
 ## Shaders (`src/render/chunks`, import from `src/render/chunks/index.ts`)
 
-| Chunk          | Use                                                                                                                                                                                                                                                                                                                                                                  |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DEPTH_GLSL`   | Include in **both** stages of every ShaderMaterial. Call `LOG_DEPTH_VERTEX();` after `gl_Position` and `LOG_DEPTH_FRAGMENT();` at the end of the fragment. `linearFromLogDepth(d)` decodes the depth texture (background = far). Opt out only with a `cosmos:no-depth (reason)` comment (background layers, full-screen passes). The conventions test enforces this. |
-| `RTE_GLSL`     | `rteRelative(p)` / `rteRelative2(hi, lo)` with uniforms from `createRteUniforms()` / `setRteCamera(u, camRelOrigin)`. Keep `object.position` at 0 and set `object.quaternion` from `view.frameQuat(cloudFrame)`.                                                                                                                                                     |
-| `SHADOWS_GLSL` | `sunVisibility(p)` for up to 4 sphere occluders (exact circle overlap: umbra, penumbra, annular). Uniforms from `createShadowUniforms()` / `setShadowUniforms()`, all camera-relative.                                                                                                                                                                               |
-| `NOISE_GLSL`   | Integer hashes, `pnoise(p, period)` periodic gradient noise, `pfbm`.                                                                                                                                                                                                                                                                                                 |
-| `PHASE_GLSL`   | Rayleigh, Henyey-Greenstein, Cornette-Shanks, Lambert sphere, Lommel-Seeliger.                                                                                                                                                                                                                                                                                       |
+| Chunk          | Use                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEPTH_GLSL`   | Include in **both** stages of every ShaderMaterial. Call `LOG_DEPTH_VERTEX();` after `gl_Position` and `LOG_DEPTH_FRAGMENT();` at the end of the fragment. `linearFromLogDepth(d)` decodes the depth texture (background = far). Opt out only with a `cosmos:no-depth (reason)` comment (background layers, full-screen passes). The conventions test enforces this.                                                                                                                                                   |
+| `RTE_GLSL`     | `rteRelative(p)` / `rteRelative2(hi, lo)` with uniforms from `createRteUniforms()` / `setRteCamera(u, camRelOrigin)`. Keep `object.position` at 0 and set `object.quaternion` from `view.frameQuat(cloudFrame)`.                                                                                                                                                                                                                                                                                                       |
+| `SHADOWS_GLSL` | `sunVisibility(p)` for up to 4 sphere occluders (exact circle overlap: umbra, penumbra, annular). Uniforms from `createShadowUniforms()` / `setShadowUniforms()`, all camera-relative.                                                                                                                                                                                                                                                                                                                                 |
+| `NOISE_GLSL`   | Integer hashes, `pnoise(p, period)` periodic gradient noise, `pfbm`.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `PHASE_GLSL`   | Rayleigh, Henyey-Greenstein, Cornette-Shanks, Lambert sphere, Lommel-Seeliger.                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `FACET_GLSL`   | Exact curved surface under flat facets: `cosmosSphereFactor(unit, d)` (unit-sphere form) and `cosmosCurveFactor(P, u, rho, delta)` (fragment-local form) return the factor that slides a fragment along its view ray onto the true surface; write depth with `LOG_DEPTH_FRAGMENT_AT(k)`. Used by the sphere provider, coarse terrain tiles and Earth's cloud shell, whose facets otherwise sag 1-2 km below the surface and print the mesh grid into the atmosphere. Include after `DEPTH_GLSL` in the fragment stage. |
 
 - Output `L[cd/m²] · uExposure`; splice `render.uniforms.uExposure` (shared by reference).
 - `background` renderables get `depthTest = depthWrite = false` forced on add. Opaque and transparent renderables share the main scene; transparent sorting is three.js's.
@@ -56,6 +57,16 @@ Core services, render pipeline, camera and app shell. Contracts: `src/core/contr
   released; a single move larger than `MAX_LOOK_JUMP` (0.5 viewport heights) only re-bases the drag.
 - `goto(body)` ends at altitude 3R, biased towards the Sun-lit side when that keeps the approach monotonic. `goto(bookmark)` uses its pos and quat (or `lookAt`), and boot applies its jd, rate and ev (ev only in tests). Flights follow van Wijk-Nuij u(s) with ρ = 1.4 along a straight line in the target's frame, take 3-12 s, and move key presses cancel them.
 - Collision applies to stars, planets, dwarfs, moons, minor bodies, comets and spacecraft (not galaxies or black holes). Ground comes from `addGroundProvider`; with no provider the ground is the sphere.
+- Movement easing: free flight eases its three movement axes towards the input with `MOVE_TAU` = 0.12 s, so keys
+  and the on-screen stick start and stop softly (the speed law itself is unchanged).
+- `land(bodyId?)`: a goto straight down to the ground under the camera on a solid body (not a star), ending in walk
+  mode at eye height. Each frame of the descent the end point is moved to `radius + ground + eye height` from the
+  ground providers, so relief that loads on the way (or a finer tile) never leaves the camera inside a mountain or
+  hanging above a basin. `canWalk()` tells the HUD whether walk mode can start.
+- Touch and analog input: one finger looks (the same path as the mouse drag); two fingers pinch to move along the
+  view by `PINCH_GAIN` altitudes per e-fold of finger spread (zoom in orbit mode); a finger that stays down takes
+  over the drag. `setVirtualInput({forward, right, up, roll})` adds analog axes to the keys (on-screen stick; a
+  full deflection runs in walk mode and `up` jumps); `addLook(yaw, pitch)` adds look rotations.
 
 ## App (`src/app`)
 
@@ -66,6 +77,16 @@ Core services, render pipeline, camera and app shell. Contracts: `src/core/contr
 - P4-P: boot replaces the applied `#b=`/`#f=` hash with the live state at once (`UrlSync.commit()`), and a
   `hashchange` applies only a hash canonically different from the last applied one and from the 16 most recent
   hashes the session wrote; the stale bookmark hash can no longer be re-applied by a history step or tab restore.
+- Splash (`src/app/splash.ts`, markup and styles in `index.html` `#boot` so it shows before any script): follows
+  `assets.progress()` while modules load, and lifts after the first frames have drawn and the first view's assets
+  are idle (at most 8 s more). Boot failures, a missing WebGL2 and a lost WebGL context show a message with a
+  Reload button there; a restored context reloads the page (the hash keeps the view). Removed at once under
+  `?test=1`. The first-visit card starts after the splash.
+- Quality (`src/app/auto-quality.ts`): `?q=` > the stored explicit choice (`cosmos.quality`) > the last automatic
+  level (`cosmos.quality.auto`, only when lower than the device default) > the device default (low on coarse
+  pointers or 2 GB devices, else medium). Without an explicit choice, `AutoQuality` steps one preset down after 6
+  s under about 24 fps at the lowest dynamic resolution (8 s of quiet after a step, never up), with a toast.
+  Tests take `?q=` literally and never adapt.
 - `?test=1&live=1`: test API plus a normal session (rAF loop, mouse/keyboard input, URL sync, initial view from the
   hash, clock from `#t=`). `tests/e2e/input.spec.ts` uses it. Extra test API: `work()`, `camera()` (state, mode,
   altitude), `resolution()`.
@@ -80,8 +101,9 @@ Core services, render pipeline, camera and app shell. Contracts: `src/core/contr
   renderer resizes its targets on each change). Bounds per preset `DYNAMIC_SCALE_BOUNDS` (potato 0.75-1, low 0.6-1,
   medium…ultra 0.5-1). Decisions use a 1 s window's trimmed mean (slowest 5% dropped): below ~52 fps it steps down
   0.05 (0.1 below ~26 fps), at most once per 1.2 s; it steps up only after 4 s at ≥ ~57 fps, and an upscale
-  followed by a downscale within 6 s doubles that hold (up to 60 s), so it settles instead of pumping. Stalls over
-  250 ms reset the window. Setting `render.dynamicResolution` (group Performance, on by default, persisted);
+  followed by a downscale within 6 s doubles that hold (up to 60 s), so it settles instead of pumping. A single stall
+  over 250 ms resets the window; `STALL_STREAK` (4) of them in a row are the frame rate itself and step the scale
+  down by 0.1 per cooldown (a machine at a few frames a second used to be ignored forever). Setting `render.dynamicResolution` (group Performance, on by default, persisted);
   setting `render.perfStats` ("Show performance stats", off by default, persisted; `?perf=1` forces it on at boot)
   shows the stats-gl graphs (GPU only with timer queries, else "GPU n/a") and a line with the scale, drawing-buffer
   size, fps and draw calls (`src/app/perf-overlay.ts`, updated from `render.onAfterFrame`). It measures whole frames, so a
