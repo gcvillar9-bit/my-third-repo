@@ -58,6 +58,23 @@ describe('DynamicResolution', () => {
     expect(t).toBeGreaterThan(10_000);
   });
 
+  it('treats a run of very slow frames as the frame rate, not as hitches', () => {
+    const d = new DynamicResolution();
+    const seen: number[] = [];
+    // 3 fps: every interval is above the stall threshold.
+    for (let i = 0; i < 30; i++) {
+      const s = d.sample(330);
+      if (s !== null) seen.push(s);
+    }
+    expect(seen[0]).toBe(0.9);
+    expect(d.scale).toBe(0.5);
+    expect(d.meanMs).toBe(330);
+    // A single long interval between normal frames is still ignored.
+    const e = new DynamicResolution();
+    for (let i = 0; i < 600; i++) expect(e.sample(i % 100 === 50 ? 900 : 1000 / 60)).toBeNull();
+    expect(e.scale).toBe(1);
+  });
+
   it('recovers after the load drops, but only after the hold', () => {
     const d = new DynamicResolution();
     run(d, 30, 6);
