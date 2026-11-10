@@ -53,6 +53,10 @@ describe('flat facets onto the curved surface', () => {
     expect(len(q) / rho).toBeCloseTo(1, 10);
     expect(k).toBeLessThan(1);
     expect(curveFactor(P, u, rho, 0)).toBe(1);
+    // A fragment on the far side of the planet (the view ray leaves the ground there) is left alone:
+    // moving it would bring the far hemisphere in front of the near one.
+    const far = vec3(centre.x, centre.y, centre.z - (rho - delta));
+    expect(curveFactor(far, vec3(0, 0, -1), rho, delta)).toBe(1);
   });
 
   it('the sphere and terrain fragment shaders include the chunk and write the moved depth', () => {

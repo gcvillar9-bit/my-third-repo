@@ -35,9 +35,12 @@ float cosmosCurveFactor(vec3 P, vec3 u, float rho, float delta) {
   float b = (rho - delta) * dot(P, u);
   float c = -delta * (2.0 * rho - delta);
   float disc = b * b - a * c;
-  if (delta <= 0.0 || disc <= 0.0 || a <= 0.0) return 1.0;
+  // b >= 0: the surface there faces away from the camera (tiles beyond the horizon are still drawn,
+  // and hidden by depth). They stay where they are; pulling them in would put the far side of the
+  // planet in front of the near one.
+  if (delta <= 0.0 || disc <= 0.0 || a <= 0.0 || b >= 0.0) return 1.0;
   float s = sqrt(disc);
-  // Terrain is seen from above its surface: always the near root.
+  // Seen from above: the near root, back toward the camera.
   return clamp(1.0 + c / (s - b), 0.02, 1.0);
 }
 // LOG_DEPTH_FRAGMENT() for a fragment moved by the factor k (needs depth.glsl before this chunk).

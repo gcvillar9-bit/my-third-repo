@@ -124,7 +124,7 @@ export function curveFactor(P: Vec3d, u: Vec3d, rho: number, delta: number): num
   const b = (rho - delta) * (P.x * u.x + P.y * u.y + P.z * u.z);
   const c = -delta * (2 * rho - delta);
   const disc = b * b - a * c;
-  if (delta <= 0 || disc <= 0 || a <= 0) return 1;
+  if (delta <= 0 || disc <= 0 || a <= 0 || b >= 0) return 1;
   const s = Math.sqrt(disc);
   return Math.min(1, Math.max(0.02, 1 + c / (s - b)));
 }
