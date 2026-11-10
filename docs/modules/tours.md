@@ -32,7 +32,7 @@ scheduled times (unit test with a fake clock at dt = 1/60, 0.37 and 5 s).
 ## Controls
 
 - Start: palette "Tour: <title>" (entry kind `tour`, id `tour:<id>`), the UI's Tours menu (`T`), the Explore panel,
-  the onboarding card, or `?tour=<id>` (starts on the first frame). `?tourspeed=<k>` (max 100) plays k times faster (e2e uses 20).
+  the onboarding card, or `?tour=<id>` (starts on the first frame). `?tourspeed=<k>` (max 100) plays k times faster (e2e uses 60 and 100).
 - Esc exits (not while photo mode is on: Esc leaves photo mode first). `K` pauses the tour while one runs (UI key
   handler). Overlay buttons: Pause/Resume, Next (skip to the next stop), Exit.
 
@@ -70,5 +70,5 @@ Nebula 1,340 ly (Menten et al. 2007); TRAPPIST-1 40 ly, seven planets; Sun's gal
 - Unit `tests/unit/tours/tours.test.ts`: compiled times, missing stop skipped with its captions, same actions for
   any tick size, speed scaling, pause/next/stop, Cosmic Zoom stop list and skip behaviour; for every tour: a
   caption at each stop, readable caption times, total length, ends at `earth-now`, runs with optional stops missing.
-- E2E `tests/e2e/tours.spec.ts` (@smoke): `?tour=cosmic-zoom&tourspeed=20&ui=1`, captions change, overlay targets
+- E2E `tests/e2e/tours.spec.ts` (@smoke): `?tour=cosmic-zoom&tourspeed=60&ui=1`, captions change, overlay targets
   advance through the first 3 stops, the camera passes through 3+ anchor frames, Esc exits, no errors.
