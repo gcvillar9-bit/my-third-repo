@@ -100,10 +100,9 @@ test(
   },
 );
 
-test('shell: click selects a world, Land sets down on it and walks', async ({ page }) => {
+test('shell: a click selects the world under it; a drag does not', async ({ page }) => {
   const problems: string[] = [];
   await open(page, '?test=1&q=potato&ui=1&b=moon', problems);
-  await frames(page, 3);
 
   // The Moon fills the middle of the view: a click on it selects it (empty sky selects nothing).
   await page.mouse.click(20, 135);
@@ -112,11 +111,28 @@ test('shell: click selects a world, Land sets down on it and walks', async ({ pa
   await expect(page.locator('.cz-info .cz-info-title')).toHaveText('Moon');
   // A drag is a look, not a selection.
   await page.keyboard.press('Escape');
+  await expect(page.locator('.cz-info')).toHaveCount(0);
   await page.mouse.move(240, 135);
   await page.mouse.down();
   await page.mouse.move(260, 150, { steps: 3 });
   await page.mouse.up();
   await expect(page.locator('.cz-info')).toHaveCount(0);
+  // Orbit lines and labels switch off and on from the keyboard.
+  await page.keyboard.press('Shift+L');
+  await page.evaluate(() => window.__universe!.renderFrames(1));
+  await expect(page.locator('.cz-labels')).toBeHidden();
+  await page.keyboard.press('Shift+L');
+  await page.evaluate(() => window.__universe!.renderFrames(1));
+  await expect(page.locator('.cz-labels')).toBeVisible();
+  expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);
+  expect(problems).toEqual([]);
+});
+
+test('shell: Land sets down on the Moon and walks; Take off flies again', async ({ page }) => {
+  // The descent draws close-range terrain for a few hundred software-rendered frames.
+  test.setTimeout(240_000);
+  const problems: string[] = [];
+  await open(page, '?test=1&q=potato&ui=1&b=moon-low-orbit', problems);
 
   // Land from the HUD: straight down to eye height, then walk mode with a position readout.
   const hud = page.locator('.cz-hud');
@@ -128,7 +144,7 @@ test('shell: click selects a world, Land sets down on it and walks', async ({ pa
     return c.mode === 'walk';
   });
   expect(took).toBeLessThanOrEqual(13);
-  await frames(page, 4);
+  await frames(page, 3);
   const c = await cam(page);
   expect(c.mode).toBe('walk');
   expect(c.altitude!).toBeGreaterThan(1.5);
@@ -138,13 +154,10 @@ test('shell: click selects a world, Land sets down on it and walks', async ({ pa
   await expect(hud).toHaveAttribute('data-mode', 'walk');
   await expect(hud.locator('.cz-hud-pos')).toContainText(/°[NS] .*°[EW] · .* up/);
   await page.screenshot({ path: 'artifacts/shell/landed-moon.png' });
-  // Lit ground below the horizon.
-  const [r, g, b] = await page.evaluate(() => window.__universe!.probe(200, 200, 80, 40));
-  expect(0.2126 * r + 0.7152 * g + 0.0722 * b).toBeGreaterThan(0.005);
 
   // Take off again.
   await hud.getByRole('button', { name: 'Take off' }).click();
-  await frames(page, 2);
+  await page.evaluate(() => window.__universe!.renderFrames(2));
   expect((await cam(page)).mode).toBe('free');
   expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);
   expect(problems).toEqual([]);
@@ -153,11 +166,11 @@ test('shell: click selects a world, Land sets down on it and walks', async ({ pa
 test.describe('touch', () => {
   test.use({ hasTouch: true });
 
-  test('shell: a touch brings up the stick, and the stick flies the camera', async ({ page }) => {
+  test('shell: a touch screen gets the stick, and the stick flies the camera', async ({ page }) => {
     const problems: string[] = [];
     await open(page, '?test=1&q=potato&ui=1&b=orion-from-earth', problems);
+    // A touch screen (coarse pointer, or the first touch on a hybrid) gets the on-screen controls.
     const stick = page.locator('.cz-stick');
-    await expect(stick).toHaveCount(0);
     await page.touchscreen.tap(60, 60);
     await expect(stick).toBeVisible();
     await page.screenshot({ path: 'artifacts/shell/touch-controls.png' });

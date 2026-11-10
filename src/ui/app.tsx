@@ -913,13 +913,14 @@ export function App({ ui }: { ui: UiController }) {
               ?
             </button>
           </div>
+          {/* Before the panels, so an open panel sits above the stick on small screens. */}
+          <TouchControls ui={ui} />
           <Hud ui={ui} />
           <TimeBar ui={ui} />
           <InfoCardView ui={ui} />
           {ui.exploreOpen.value && <ExplorePanel ui={ui} />}
           {ui.toursOpen.value && <ToursMenu ui={ui} />}
           {ui.settingsOpen.value && <SettingsPanel ui={ui} />}
-          <TouchControls ui={ui} />
         </>
       )}
       {ui.caption.value && <div class="cz-caption">{ui.caption.value}</div>}
