@@ -1,0 +1,284 @@
+{
+  "version": 1,
+  "note": "Hand-entered rows for the spacecraft module. Distances in km, speeds in km/s, angles in degrees, dates in UTC unless a field says JD (TDB). Every row and every position block carries its source.",
+  "craft": [
+    {
+      "id": "iss",
+      "name": "International Space Station",
+      "shortName": "ISS",
+      "aliases": ["ISS", "Space Station", "Zarya", "Alpha", "MKS"],
+      "kind": "leo",
+      "model": "iss",
+      "operator": "NASA, Roscosmos, ESA, JAXA, CSA",
+      "launchUtc": "1998-11-20T06:40:00Z",
+      "launchNote": "first module (Zarya)",
+      "massKg": 420000,
+      "massApproximate": true,
+      "size": "109 m truss, 73 m across the solar arrays",
+      "radiusM": 55,
+      "influenceRadiusM": 10000,
+      "orbit": {
+        "epochUtc": "2026-11-09T11:10:18.771Z",
+        "inclinationDeg": 51.6321,
+        "raanDeg": 301.1765,
+        "eccentricity": 0.0007285,
+        "argPerigeeDeg": 6.3021,
+        "meanAnomalyDeg": 353.8058,
+        "meanMotionRevPerDay": 15.49275323,
+        "source": "CelesTrak GP element set (TLE) for NORAD 25544, epoch 2026 day 313.46549504 UTC; mean elements in the TEME frame"
+      },
+      "facts": [
+        { "label": "Crew", "value": "7 (typical)", "approximate": true },
+        { "label": "Continuously crewed since", "value": "2 November 2000" },
+        { "label": "Pressurised volume", "value": 916, "unit": "m³", "approximate": true }
+      ],
+      "description": "The largest structure people have built in space, assembled in orbit between 1998 and 2011 and crewed without a break since November 2000. It circles Earth about sixteen times a day at 7.7 km/s. The model shows the completed station at every date; the orbit is a circle fitted to one published element set, so the ground track is right but the place along it drifts from the real one within days.",
+      "source": "NASA International Space Station facts and figures; CelesTrak element set for the orbit"
+    },
+    {
+      "id": "hubble",
+      "name": "Hubble Space Telescope",
+      "shortName": "Hubble",
+      "aliases": ["HST", "Hubble", "Hubble telescope"],
+      "kind": "leo",
+      "model": "hubble",
+      "operator": "NASA and ESA (science operations: STScI)",
+      "launchUtc": "1990-04-24T12:33:51Z",
+      "launchNote": "Space Shuttle Discovery, STS-31; released the next day",
+      "massKg": 12200,
+      "massApproximate": true,
+      "size": "13.2 m long, 4.2 m wide; 2.4 m primary mirror",
+      "radiusM": 7,
+      "influenceRadiusM": 5000,
+      "orbit": {
+        "epochUtc": "2026-11-09T15:43:11.718Z",
+        "inclinationDeg": 28.4708,
+        "raanDeg": 165.2405,
+        "eccentricity": 0.0002004,
+        "argPerigeeDeg": 341.506,
+        "meanAnomalyDeg": 18.5463,
+        "meanMotionRevPerDay": 15.32241081,
+        "source": "CelesTrak GP element set (TLE) for NORAD 20580, epoch 2026 day 313.65499674 UTC; mean elements in the TEME frame"
+      },
+      "facts": [
+        { "label": "Primary mirror", "value": 2.4, "unit": "m" },
+        { "label": "Servicing missions", "value": "5 (1993 to 2009)" }
+      ],
+      "description": "A 2.4 m reflecting telescope above the atmosphere, serviced five times by Space Shuttle crews. Its orbit has been sinking through the thin upper atmosphere since the last reboost in 2009: about 610 km at release, 540 km in 2020 and about 470 km at the element-set epoch used here (November 2026). The model keeps that last altitude at every date, and the attitude (aperture towards the north ecliptic pole, panels square to the Sun) is illustrative.",
+      "source": "NASA Hubble Space Telescope quick facts; CelesTrak element set for the orbit"
+    },
+    {
+      "id": "jwst",
+      "name": "James Webb Space Telescope",
+      "shortName": "JWST",
+      "aliases": ["JWST", "Webb", "James Webb", "Webb telescope"],
+      "kind": "l2",
+      "model": "jwst",
+      "operator": "NASA, ESA and CSA (science operations: STScI)",
+      "launchUtc": "2021-12-25T12:20:00Z",
+      "launchNote": "Ariane 5 from Kourou",
+      "massKg": 6161,
+      "massApproximate": true,
+      "size": "21.2 m × 14.2 m sunshield; 6.5 m primary mirror of 18 gold-coated segments",
+      "radiusM": 11,
+      "influenceRadiusM": 100000,
+      "halo": {
+        "arrivalUtc": "2022-01-24T19:00:00Z",
+        "epochJd": 2461221.5,
+        "periodDays": 181.5,
+        "centerKm": [-104654, -519, -67973],
+        "cosKm": [227479, -393647, -282695],
+        "sinKm": [-126962, -698203, 143193],
+        "fitRmsKm": 38000,
+        "frame": "rotating about L2: x from the Sun through Earth, z towards the north ecliptic pole, y = z × x (the way Earth moves); offset = center + cos·cos θ + sin·sin θ, θ = 2π (JD − epochJd) / periodDays",
+        "source": "L2 from astronomy-engine LagrangePoint(2, Sun, Earth-Moon barycentre); halo: least-squares fit made for this project to 25 geocentric ICRF vectors of JWST (-170) from JPL Horizons, 2026-01-01 to 2026-12-27 TDB at 15-day steps (RMS residual 38,000 km, worst 57,000 km)"
+      },
+      "facts": [
+        { "label": "Primary mirror", "value": 6.5, "unit": "m" },
+        { "label": "Arrived at L2", "value": "24 January 2022" },
+        { "label": "Halo orbit period", "value": 181.5, "unit": "d", "approximate": true }
+      ],
+      "description": "An infrared telescope with a 6.5 m segmented mirror, kept below 50 K behind a five-layer sunshield the size of a tennis court. It circles the Sun-Earth L2 point, 1.5 million km beyond Earth, on a halo orbit hundreds of thousands of kilometres wide, so that Earth and the Moon never shade its solar panels. The halo drawn here is a simple ellipse fitted to the real 2026 path; the attitude (hot side to the Sun, telescope towards the north ecliptic pole) is illustrative.",
+      "source": "NASA Webb key facts and orbit pages; JPL Horizons for the halo fit"
+    },
+    {
+      "id": "voyager1",
+      "name": "Voyager 1",
+      "aliases": ["Voyager", "Voyager I", "VGR1", "Mariner Jupiter-Saturn 1977"],
+      "kind": "probe",
+      "model": "voyager",
+      "operator": "NASA / Jet Propulsion Laboratory",
+      "launchUtc": "1977-09-05T12:56:00Z",
+      "launchNote": "Titan IIIE-Centaur from Cape Canaveral",
+      "massKg": 722,
+      "size": "3.7 m dish, 13 m magnetometer boom",
+      "radiusM": 4,
+      "influenceRadiusM": 1000000,
+      "trajectory": {
+        "nodes": [
+          { "body": "earth", "utc": "1977-09-05T12:56:00Z", "caKm": 6600, "label": "Launch" },
+          { "body": "jupiter", "utc": "1979-03-05T12:05:00Z", "caKm": 348890, "label": "Jupiter flyby" },
+          { "body": "saturn", "utc": "1980-11-12T23:46:00Z", "caKm": 184300, "label": "Saturn flyby" }
+        ],
+        "nodeSource": "NASA NSSDCA master catalogue 1977-084A and the JPL Voyager mission timeline (closest-approach times; distances from the planet's centre, rounded)",
+        "coast": {
+          "epochJd": 2461041.5,
+          "posKm": [-4.762659739242758e9, -2.42836855810249e10, 5.360366524995458e9],
+          "velKmS": [-2.072816913981589, -16.39996880555899, 3.608955582432917],
+          "source": "JPL Horizons, Voyager 1 (-31), heliocentric ICRF geometric state at 2026-Jan-01 00:00 TDB (trajectory Voyager_1_ST+refit2022_m)"
+        }
+      },
+      "facts": [
+        { "label": "Entered interstellar space", "value": "25 August 2012" },
+        { "label": "Power", "value": "3 plutonium RTGs (470 W at launch)", "approximate": true }
+      ],
+      "description": "The most distant object people have made. After flying past Jupiter (1979) and Saturn with its moon Titan (1980) it left the plane of the planets heading north, took the Pale Blue Dot family portrait in 1990 and crossed the heliopause into interstellar space in 2012. It carries one of the two Golden Records. The attitude (dish to Earth) is illustrative.",
+      "source": "NASA NSSDCA master catalogue 1977-084A; JPL Voyager mission status"
+    },
+    {
+      "id": "voyager2",
+      "name": "Voyager 2",
+      "aliases": ["Voyager II", "VGR2", "Voyager"],
+      "kind": "probe",
+      "model": "voyager",
+      "operator": "NASA / Jet Propulsion Laboratory",
+      "launchUtc": "1977-08-20T14:29:00Z",
+      "launchNote": "Titan IIIE-Centaur from Cape Canaveral",
+      "massKg": 722,
+      "size": "3.7 m dish, 13 m magnetometer boom",
+      "radiusM": 4,
+      "influenceRadiusM": 1000000,
+      "trajectory": {
+        "nodes": [
+          { "body": "earth", "utc": "1977-08-20T14:29:00Z", "caKm": 6600, "label": "Launch" },
+          { "body": "jupiter", "utc": "1979-07-09T22:29:00Z", "caKm": 721670, "label": "Jupiter flyby" },
+          { "body": "saturn", "utc": "1981-08-26T03:24:00Z", "caKm": 161000, "label": "Saturn flyby" },
+          { "body": "uranus", "utc": "1986-01-24T17:59:00Z", "caKm": 107000, "label": "Uranus flyby" },
+          { "body": "neptune", "utc": "1989-08-25T03:56:00Z", "caKm": 29240, "label": "Neptune flyby" }
+        ],
+        "nodeSource": "NASA NSSDCA master catalogue 1977-076A and the JPL Voyager mission timeline (closest-approach times; distances from the planet's centre, rounded)",
+        "coast": {
+          "epochJd": 2461041.5,
+          "posKm": [5.868355260926653e9, -9.041448125119234e9, -1.82553166497318e10],
+          "velKmS": [4.203428908881701, -4.06727477603076, -14.10257573629858],
+          "source": "JPL Horizons, Voyager 2 (-32), heliocentric ICRF geometric state at 2026-Jan-01 00:00 TDB (trajectory Voyager_2_ST+refit2022_m)"
+        }
+      },
+      "facts": [
+        { "label": "Entered interstellar space", "value": "5 November 2018" },
+        { "label": "Power", "value": "3 plutonium RTGs (470 W at launch)", "approximate": true }
+      ],
+      "description": "The only spacecraft to have visited all four giant planets: Jupiter (1979), Saturn (1981), Uranus (1986) and Neptune (1989), using each one's gravity to reach the next. Neptune threw it south of the plane of the planets; it crossed into interstellar space in 2018. It carries the second Golden Record. The attitude (dish to Earth) is illustrative.",
+      "source": "NASA NSSDCA master catalogue 1977-076A; JPL Voyager mission status"
+    },
+    {
+      "id": "newhorizons",
+      "name": "New Horizons",
+      "aliases": ["New Horizons", "NH", "Pluto probe", "Pluto Kuiper Belt Express"],
+      "kind": "probe",
+      "model": "newhorizons",
+      "operator": "NASA / Johns Hopkins APL / Southwest Research Institute",
+      "launchUtc": "2006-01-19T19:00:00Z",
+      "launchNote": "Atlas V 551 from Cape Canaveral",
+      "massKg": 478,
+      "size": "2.1 m dish on a 2.7 m wide triangular body",
+      "radiusM": 2,
+      "influenceRadiusM": 1000000,
+      "trajectory": {
+        "nodes": [
+          { "body": "earth", "utc": "2006-01-19T19:00:00Z", "caKm": 6600, "label": "Launch" },
+          { "body": "jupiter", "utc": "2007-02-28T05:43:00Z", "caKm": 2304535, "label": "Jupiter flyby" },
+          { "body": "pluto", "utc": "2015-07-14T11:49:57Z", "caKm": 13660, "label": "Pluto flyby" }
+        ],
+        "nodeSource": "NASA NSSDCA master catalogue 2006-001A and the Johns Hopkins APL New Horizons mission timeline (closest-approach times; distances from the body's centre, rounded)",
+        "coast": {
+          "epochJd": 2461041.5,
+          "posKm": [2.993398464408334e9, -8.40867266345953e9, -3.284781812757813e9],
+          "velKmS": [5.316429662287472, -11.6802572686501, -4.527002459653176],
+          "source": "JPL Horizons, New Horizons (-98), heliocentric ICRF geometric state at 2026-Jan-01 00:00 TDB (trajectory NH_merged)"
+        }
+      },
+      "facts": [
+        { "label": "Passed Arrokoth", "value": "1 January 2019 (43.4 AU from the Sun)" },
+        { "label": "Power", "value": "1 plutonium RTG (about 245 W at launch)", "approximate": true }
+      ],
+      "description": "The first spacecraft to explore Pluto. It left Earth faster than any probe before it, picked up speed at Jupiter in 2007, flew 12,500 km above Pluto on 14 July 2015 and passed the small Kuiper belt object Arrokoth on New Year's Day 2019. It is still working, deep in the Kuiper belt. The attitude (dish to Earth) is illustrative.",
+      "source": "NASA NSSDCA master catalogue 2006-001A; Johns Hopkins APL New Horizons mission pages"
+    },
+    {
+      "id": "pioneer10",
+      "name": "Pioneer 10",
+      "aliases": ["Pioneer", "Pioneer F", "Pioneer X"],
+      "kind": "probe",
+      "model": "pioneer",
+      "operator": "NASA / Ames Research Center",
+      "launchUtc": "1972-03-03T01:49:00Z",
+      "launchNote": "Atlas-Centaur from Cape Canaveral",
+      "massKg": 258,
+      "size": "2.74 m dish, 6.6 m magnetometer boom",
+      "radiusM": 3,
+      "influenceRadiusM": 1000000,
+      "trajectory": {
+        "nodes": [
+          { "body": "earth", "utc": "1972-03-03T01:49:00Z", "caKm": 6600, "label": "Launch" },
+          { "body": "jupiter", "utc": "1973-12-04T02:26:00Z", "caKm": 203000, "label": "Jupiter flyby" }
+        ],
+        "nodeSource": "NASA NSSDCA master catalogue 1972-012A (closest-approach time; distance from Jupiter's centre, rounded)",
+        "coast": {
+          "epochJd": 2461041.5,
+          "posKm": [3.572051547995207e9, 1.848207759063094e10, 9.202806962362263e9],
+          "velKmS": [1.226191726066673, 10.56942822365516, 5.240090410176068],
+          "source": "JPL Horizons, Pioneer 10 (-23), heliocentric ICRF geometric state at 2026-Jan-01 00:00 TDB (trajectory pioneer_10_merged, an extrapolation: no tracking since 2003)"
+        }
+      },
+      "silentSinceUtc": "2003-01-23T00:00:00Z",
+      "facts": [
+        { "label": "Last signal received", "value": "23 January 2003" },
+        { "label": "Power", "value": "4 plutonium RTGs (155 W at launch)", "approximate": true }
+      ],
+      "description": "The first spacecraft to cross the asteroid belt and the first to fly past Jupiter (December 1973), which flung it out of the Solar System. Its last faint signal was heard in January 2003; it coasts on silently towards the constellation Taurus, carrying a gold-anodised plaque that shows where it came from. Its position today is an extrapolation.",
+      "source": "NASA NSSDCA master catalogue 1972-012A; NASA Ames Pioneer project"
+    },
+    {
+      "id": "pioneer11",
+      "name": "Pioneer 11",
+      "aliases": ["Pioneer", "Pioneer G", "Pioneer XI"],
+      "kind": "probe",
+      "model": "pioneer",
+      "operator": "NASA / Ames Research Center",
+      "launchUtc": "1973-04-06T02:11:00Z",
+      "launchNote": "Atlas-Centaur from Cape Canaveral",
+      "massKg": 259,
+      "size": "2.74 m dish, 6.6 m magnetometer boom",
+      "radiusM": 3,
+      "influenceRadiusM": 1000000,
+      "trajectory": {
+        "nodes": [
+          { "body": "earth", "utc": "1973-04-06T02:11:00Z", "caKm": 6600, "label": "Launch" },
+          { "body": "jupiter", "utc": "1974-12-03T05:21:00Z", "caKm": 114300, "label": "Jupiter flyby" },
+          {
+            "label": "waypoint above the Solar System",
+            "jdTdb": 2443144.5,
+            "posKm": [-2.109860115640783e8, 5.052435872175831e8, 3.976427426250882e8],
+            "source": "JPL Horizons, Pioneer 11 (-24), heliocentric ICRF position at 1977-Jan-01 00:00 TDB: Jupiter and Saturn were on opposite sides of the Sun, so the arc between them needs a third point to fix its plane"
+          },
+          { "body": "saturn", "utc": "1979-09-01T16:31:00Z", "caKm": 81000, "label": "Saturn flyby" }
+        ],
+        "nodeSource": "NASA NSSDCA master catalogue 1973-019A (closest-approach times; distances from the planet's centre, rounded)",
+        "coast": {
+          "epochJd": 2461041.5,
+          "posKm": [4.256117842570765e9, -1.664179996312646e10, -2.674794367068328e9],
+          "velKmS": [4.038025189861361, -10.23605673406373, -1.785141284990727],
+          "source": "JPL Horizons, Pioneer 11 (-24), heliocentric ICRF geometric state at 2026-Jan-01 00:00 TDB (trajectory pioneer_11_merged, an extrapolation: no tracking since 1995)"
+        }
+      },
+      "silentSinceUtc": "1995-11-24T00:00:00Z",
+      "facts": [
+        { "label": "Last signal received", "value": "24 November 1995", "approximate": true },
+        { "label": "Power", "value": "4 plutonium RTGs (155 W at launch)", "approximate": true }
+      ],
+      "description": "Sister ship of Pioneer 10. It used Jupiter's gravity in 1974 to swing back across the whole Solar System and became the first spacecraft to fly past Saturn, in September 1979. Contact was lost in 1995; it coasts on towards the constellation Scutum with a copy of the Pioneer plaque. Its position today is an extrapolation.",
+      "source": "NASA NSSDCA master catalogue 1973-019A; NASA Ames Pioneer project"
+    }
+  ]
+}
