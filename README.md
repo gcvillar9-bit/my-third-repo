@@ -23,6 +23,9 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
   cycle and differential rotation, and an H-alpha solar filter (Settings > Sky).
 - The asteroid and Kuiper belts: up to 400,000 bodies on GPU Kepler orbits (Kirkwood gaps, Hildas, Trojans,
   plutinos).
+- Ten famous comets on their real orbits (Halley, Hale-Bopp, Hyakutake, NEOWISE, 67P and more): a dark nucleus
+  you can fly to, a coma, a straight blue ion tail and a curved dust tail that grow as the comet nears the Sun
+  (approximate away from each comet's recorded apparition).
 
 **Worlds**
 
