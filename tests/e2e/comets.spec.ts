@@ -120,15 +120,17 @@ test('halley-nucleus: a dark rock lit from the right inside the coma glow', asyn
   await page.screenshot({ path: 'artifacts/comets/halley-nucleus.png' });
   expect(await page.evaluate(() => window.__universe!.errors())).toEqual([]);
   expect(problems).toEqual([]);
-  // The nucleus is at the centre; its sunlit side (right) is far brighter than its night side (left).
-  const day = await probe(page, 252, 135, 10);
-  const night = await probe(page, 205, 150, 8);
+  // The nucleus is at the centre (the label marks it); its sunlit side (right) is far brighter than its
+  // night side (lower left).
+  const h = await head(page, 'halley');
+  const day = await probe(page, h.x, h.y + 15, 10);
+  const night = await probe(page, h.x - 64, h.y + 73, 6);
   expect(lum(day)).toBeGreaterThan(0.08);
   expect(lum(day)).toBeLessThan(0.9); // exposed for the surface, not blown out
   expect(lum(day)).toBeGreaterThan(4 * lum(night));
   // The coma glows faintly around it and brightens towards the nucleus, without washing out the frame.
   const far = lum(await probe(page, 20, 20, 16));
-  const near = lum(await probe(page, 300, 120, 10));
+  const near = lum(await probe(page, h.x + 80, h.y - 40, 10));
   expect(far).toBeGreaterThan(0.001);
   expect(far).toBeLessThan(0.25);
   expect(near).toBeGreaterThan(far);
