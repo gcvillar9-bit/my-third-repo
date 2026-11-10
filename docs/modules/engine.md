@@ -107,7 +107,8 @@ Core services, render pipeline, camera and app shell. Contracts: `src/core/contr
   0.05 (0.1 below ~26 fps), at most once per 1.2 s; it steps up only after 4 s at ≥ ~57 fps, and an upscale
   followed by a downscale within 6 s doubles that hold (up to 60 s), so it settles instead of pumping. A single stall
   over 250 ms resets the window; `STALL_STREAK` (4) of them in a row are the frame rate itself and step the scale
-  down by 0.1 per cooldown (a machine at a few frames a second used to be ignored forever). Setting `render.dynamicResolution` (group Performance, on by default, persisted);
+  down by 0.1 per cooldown (a machine at a few frames a second used to be ignored forever). Neither it nor automatic quality measures
+  anything until the splash has lifted: frames drawn while the first view loads are slow on any machine. Setting `render.dynamicResolution` (group Performance, on by default, persisted);
   setting `render.perfStats` ("Show performance stats", off by default, persisted; `?perf=1` forces it on at boot)
   shows the stats-gl graphs (GPU only with timer queries, else "GPU n/a") and a line with the scale, drawing-buffer
   size, fps and draw calls (`src/app/perf-overlay.ts`, updated from `render.onAfterFrame`). It measures whole frames, so a
