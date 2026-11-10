@@ -266,30 +266,95 @@ function ToursMenu({ ui }: { ui: UiController }) {
   );
 }
 
+interface CreditEntry {
+  module: string;
+  id: string;
+  url?: string;
+  licenseName?: string;
+  licenseUrl?: string;
+  attribution?: string;
+}
+
+/** Third-party data and imagery with their licences, from the generated credits.json. */
+function CreditsList({ ui }: { ui: UiController }) {
+  const [entries, setEntries] = useState<CreditEntry[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    ui.ctx.assets
+      .json<{ entries: CreditEntry[] }>('credits.json')
+      .then((c) => live && setEntries(c.entries))
+      .catch(() => live && setFailed(true));
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (failed) return <p class="cz-desc">The credits could not be loaded. They are also in CREDITS.md.</p>;
+  if (!entries) return <p class="cz-desc">Loading…</p>;
+  return (
+    <ul class="cz-credits">
+      {entries.map((e) => (
+        <li key={`${e.module}/${e.id}`}>
+          <span class="cz-result-name">{e.attribution ?? e.id}</span>
+          <span class="cz-result-sub">
+            {e.module}
+            {e.licenseName && ' · '}
+            {e.licenseName &&
+              (e.licenseUrl ? (
+                <a href={e.licenseUrl} target="_blank" rel="noopener">
+                  {e.licenseName}
+                </a>
+              ) : (
+                e.licenseName
+              ))}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function HelpPanel({ ui }: { ui: UiController }) {
   const close = () => (ui.helpOpen.value = false);
+  const [credits, setCredits] = useState(false);
   return (
     <div class="cz-palette-wrap cz-help-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
-      <div class="cz-panel cz-help-panel" role="dialog" aria-label="Controls">
-        <PanelHead title="Controls" onClose={close} hint="Close (Esc or ?)" />
-        <div class="cz-help-grid">
-          {HELP_SECTIONS.map((s) => (
-            <section key={s.title}>
-              <h3>{s.title}</h3>
-              <table>
-                <tbody>
-                  {s.rows.map(([k, t]) => (
-                    <tr key={k + t}>
-                      <td>
-                        <kbd>{k}</kbd>
-                      </td>
-                      <td>{t}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
-          ))}
+      <div class="cz-panel cz-help-panel" role="dialog" aria-label={credits ? 'Credits' : 'Controls'}>
+        <PanelHead
+          title={credits ? 'Data and image credits' : 'Controls'}
+          onClose={close}
+          hint="Close (Esc or ?)"
+        />
+        {credits ? (
+          <CreditsList ui={ui} />
+        ) : (
+          <div class="cz-help-grid">
+            {HELP_SECTIONS.map((s) => (
+              <section key={s.title}>
+                <h3>{s.title}</h3>
+                <table>
+                  <tbody>
+                    {s.rows.map(([k, t]) => (
+                      <tr key={k + t}>
+                        <td>
+                          <kbd>{k}</kbd>
+                        </td>
+                        <td>{t}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            ))}
+          </div>
+        )}
+        <div class="cz-help-foot">
+          <button class="cz-btn cz-credits-btn" onClick={() => setCredits(!credits)}>
+            {credits ? 'Back to the controls' : 'Data and image credits'}
+          </button>
+          <span class="cz-credit">
+            Real data where it exists; what is modelled says “simulated” or “approximate”.
+          </span>
         </div>
       </div>
     </div>

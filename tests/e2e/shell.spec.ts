@@ -86,6 +86,11 @@ test(
     await page.keyboard.press('?');
     const help = page.locator('.cz-help-panel');
     await expect(help).toContainText('land on the selected or nearest world');
+    // The same panel lists the data and image credits with their licences.
+    await help.locator('.cz-credits-btn').click();
+    await expect(help.locator('.cz-credits li').first()).toBeVisible();
+    expect(await help.locator('.cz-credits li').count()).toBeGreaterThan(50);
+    await expect(help.locator('.cz-credits')).toContainText('Creative Commons');
     await page.keyboard.press('Escape');
     await expect(help).toHaveCount(0);
 

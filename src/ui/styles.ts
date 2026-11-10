@@ -99,6 +99,11 @@ button.cz-accuracy:hover { background: rgba(255, 255, 255, 0.1); }
 .cz-help-grid td { padding: 2px 0; vertical-align: top; }
 .cz-help-grid td:first-child { white-space: nowrap; padding-right: 10px; width: 1%; }
 .cz-help-grid kbd { font-size: 11px; opacity: 1; color: #9cc3ff; border-color: rgba(156, 195, 255, 0.3); padding: 1px 5px; }
+.cz-help-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); }
+.cz-credits { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow: auto; -webkit-user-select: text; user-select: text; }
+.cz-credits li { display: flex; flex-direction: column; gap: 1px; padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+.cz-credits .cz-result-sub { white-space: normal; }
+.cz-credits a { color: #9cc3ff; }
 .cz-caption { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); max-width: 70vw; text-align: center; font-size: 16px;
   text-shadow: 0 1px 6px #000; color: #f1f5fb; }
 .cz-toasts { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; z-index: 9; }
