@@ -85,6 +85,9 @@ test('paleo earth-lgm-21ka: ice sheet over Canada', async ({ page }) => {
 test('paleo earth-dusk-66ma: the Sun sets in deep time and the night has no city lights', async ({
   page,
 }) => {
+  // Once night falls the star field is drawn in full, which software rendering does at a few frames a
+  // second: the last third of the 120 frames takes most of the time, close to the default budget.
+  test.setTimeout(300_000);
   // The warm-up frames run the clock for 9 minutes at 1 h/s: the Sun is still about 6 deg up.
   const { probe } = await open(page, 'earth-dusk-66ma', []);
   const SKY: Box = [140, 20, 200, 40];
