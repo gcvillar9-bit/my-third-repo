@@ -990,6 +990,17 @@ export interface CameraApi {
   nearestSurface(): { bodyId: string; altitude: number } | null;
   /** Notified on mode/target/goto start and end. Returns unsubscribe. */
   subscribe(listener: () => void): () => void;
+  /**
+   * Flies straight down to the ground under the camera on `bodyId` (default: the nearest body)
+   * and starts walking. Resolves false when the body has no surface or the flight is cancelled.
+   */
+  land?(bodyId?: string): Promise<boolean>;
+  /** Whether walk mode can start now (a solid surface within reach under the camera). */
+  canWalk?(): boolean;
+  /** Analog movement from on-screen controls or a gamepad, each axis −1..1 (added to the keys). */
+  setVirtualInput?(v: { forward?: number; right?: number; up?: number; roll?: number }): void;
+  /** Adds a look rotation, radians (touch and gamepad sticks). */
+  addLook?(yaw: number, pitch: number): void;
 }
 
 // ---------------------------------------------------------------------------------------
