@@ -93,3 +93,34 @@ export function circleOverlap(r1: number, r2: number, d: number): number {
   const k = (-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2);
   return r1 * r1 * Math.acos(a1) + r2 * r2 * Math.acos(a2) - 0.5 * Math.sqrt(Math.max(k, 0));
 }
+
+/**
+ * CPU twin of facet.glsl cosmosSphereFactor: the factor k that moves a facet point on the unit
+ * sphere's chord (`unit`, |unit| < 1) along the view ray `d` (camera to point, same space) onto
+ * the sphere: |unit + (k - 1) d| = 1.
+ */
+export function sphereFactor(unit: Vec3d, d: Vec3d): number {
+  const a = d.x * d.x + d.y * d.y + d.z * d.z;
+  const b = unit.x * d.x + unit.y * d.y + unit.z * d.z;
+  const c = unit.x * unit.x + unit.y * unit.y + unit.z * unit.z - 1;
+  const disc = b * b - a * c;
+  if (c >= 0 || disc <= 0 || a <= 0) return 1;
+  const s = Math.sqrt(disc);
+  const t = b < 0 ? c / (s - b) : -c / (s + b);
+  return Math.min(4, Math.max(0.02, 1 + t));
+}
+
+/**
+ * CPU twin of facet.glsl cosmosCurveFactor: P is the camera-relative fragment, u the local
+ * vertical (unit), rho the true surface radius there and delta how far P lies below it.
+ */
+export function curveFactor(P: Vec3d, u: Vec3d, rho: number, delta: number): number {
+  const a = P.x * P.x + P.y * P.y + P.z * P.z;
+  const b = (rho - delta) * (P.x * u.x + P.y * u.y + P.z * u.z);
+  const c = -delta * (2 * rho - delta);
+  const disc = b * b - a * c;
+  if (delta <= 0 || disc <= 0 || a <= 0) return 1;
+  const s = Math.sqrt(disc);
+  const t = b < 0 ? c / (s - b) : -c / (s + b);
+  return Math.min(4, Math.max(0.02, 1 + t));
+}
