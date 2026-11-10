@@ -306,9 +306,12 @@ export async function boot(): Promise<Engine | undefined> {
   });
   let lastFrameMs = 0;
   let bootedMs = 0;
+  // Frames drawn while the first view loads (shader compiles, texture uploads) are slow on any
+  // machine: resolution and quality are only governed once the splash has lifted.
+  let governed = false;
   const tickDynamic = (ms: number) => {
     // A hidden page is throttled by the browser: its frame times say nothing about the machine.
-    if (document.hidden) {
+    if (document.hidden || !governed) {
       lastFrameMs = 0;
       return;
     }
@@ -448,6 +451,8 @@ export async function boot(): Promise<Engine | undefined> {
       clearTimeout(slowTimer);
       stopSplashProgress();
       splash.done();
+      autoQ.reset();
+      governed = true;
       startOnboarding(ui, env);
     })();
   }
