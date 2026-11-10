@@ -5,10 +5,11 @@ star and galaxy catalogues place everything that can be known; physically motiva
 in the rest and are labelled "simulated" or "approximate". Everything renders live in WebGL2 at true scale, with
 real luminances and an automatic exposure, like a camera.
 
-**Live:** https://gcvillar9-bit.github.io/my-third-repo/ (desktop browser with WebGL2; Chrome, Edge, Safari or Firefox)
+**Live:** https://gcvillar9-bit.github.io/my-third-repo/ (any current browser with WebGL2; best on a desktop or laptop, usable on tablets and phones)
 
-New here? Press **▶ Tour** (top right) for _Cosmic Zoom_, a three-minute guided flight from the Apollo 11 boot prints
-to the largest structures in the universe and back home. Or press `/` and type any name.
+New here? Press **Tours** (top right) for _Cosmic Zoom_, a three-minute guided flight from the Apollo 11 boot
+prints to the largest structures in the universe and back home, or one of four other tours. Press **Explore** to
+browse places by theme, or `/` and type any name. Click any world to select it, and **Land** to walk on it.
 
 ## Features
 
@@ -22,6 +23,12 @@ to the largest structures in the universe and back home. Or press `/` and type a
   cycle and differential rotation, and an H-alpha solar filter (Settings > Sky).
 - The asteroid and Kuiper belts: up to 400,000 bodies on GPU Kepler orbits (Kirkwood gaps, Hildas, Trojans,
   plutinos).
+- Ten famous comets on their real orbits (Halley, Hale-Bopp, Hyakutake, NEOWISE, 67P and more): a dark nucleus
+  you can fly to, a coma, a straight blue ion tail and a curved dust tail that grow as the comet nears the Sun
+  (approximate away from each comet's recorded apparition).
+- Eight spacecraft where they really are: the International Space Station and Hubble circling Earth, the James
+  Webb telescope at L2, and Voyager 1 and 2, Pioneer 10 and 11 and New Horizons on their way out of the Solar
+  System, each a recognisable model with its path and an info card (positions approximate, and labelled so).
 
 **Worlds**
 
@@ -74,18 +81,27 @@ to the largest structures in the universe and back home. Or press `/` and type a
 
 **Showtime**
 
-- Guided tour _Cosmic Zoom_ (palette: "Tour: Cosmic Zoom", or the ▶ Tour button): pause, skip, Esc to leave.
+- Five guided tours (the Tours button or `T`): _Cosmic Zoom_, _Grand Tour of the Solar System_, _Earth Through
+  Time_ (Pangaea to tonight's city lights), _Black Holes_ and _Stars and the Galaxy_. Pause, skip, Esc to leave.
+- Explore (`X`): about a hundred places grouped by theme, from the planets and their best sights to deep time,
+  cities through history, black holes and the cosmic web.
+- Land anywhere: select a rocky or icy world and press Land (or `Shift`+`G`) to fly down to the ground under you
+  and walk, with latitude, longitude and height in the HUD.
 - Photo mode (`P`): hides the interface, sets the field of view (5-120°) and exposure, and saves a PNG with a
   credits line.
-- Search palette, info cards, time controls (warp up to 10 Myr/s, pause, any date: click the date and type `66 Ma`,
-  `21 ka`, `500 BC` or `1066`, or pick an era), HUD with speed, distance and light-travel time,
-  and shareable links to any view.
+- Search palette, info cards with a short description of every Solar System body, time controls (warp up to
+  10 Myr/s, pause, any date: click the date and type `66 Ma`, `21 ka`, `500 BC` or `1066`, or pick an era), HUD
+  with speed, distance and light-travel time, and shareable links to any view.
+- Touch screens: drag to look, pinch to fly, an on-screen stick to move. Gamepads work too.
 
 ## Controls
 
 | Key               | Action                                                                |
 | ----------------- | --------------------------------------------------------------------- |
 | `/` or `Ctrl`+`K` | Search and fly anywhere                                               |
+| `X`               | Explore: browse places by theme                                       |
+| `T`               | Guided tours                                                          |
+| Click             | Select a world or a label (double-click flies there)                  |
 | Drag              | Look around                                                           |
 | `W` `A` `S` `D`   | Fly (`R` / `F` up and down, `Q` / `E` roll)                           |
 | Wheel or `[` `]`  | Change speed                                                          |
@@ -94,20 +110,32 @@ to the largest structures in the universe and back home. Or press `/` and type a
 | `N`               | Back to the present                                                   |
 | Click the date    | Type a date or an age (`66 Ma`, `21 ka`, `500 BC`, `1066`)            |
 | `G`               | Go to the selection; near a surface, walk (`Shift` run, `Space` jump) |
+| `Shift`+`G`       | Land on the selected or nearest world                                 |
+| `Home`            | Back to Earth                                                         |
 | `O`               | Orbit or free camera                                                  |
 | `I`               | Info card                                                             |
 | `P`               | Photo mode                                                            |
 | `Shift`+`C`       | Constellation lines                                                   |
+| `Shift`+`O`       | Orbit lines                                                           |
+| `Shift`+`L`       | Labels                                                                |
+| `Shift`+`F`       | Full screen                                                           |
 | `H`               | Hide the interface                                                    |
 | `L`               | Copy a link to this view                                              |
 | `M`               | Mute or unmute sound (also the speaker button in the top bar)         |
-| `?`               | Keyboard help                                                         |
+| `?`               | All controls                                                          |
 | `Esc`             | Close panels, leave the tour or photo mode                            |
+
+On a touch screen: one finger looks around, a pinch flies forward or back, the stick moves, a tap selects and a
+double tap flies there.
+
+With a gamepad: the left stick flies or walks, the right stick looks, the triggers go down and up, the bumpers
+roll, the d-pad changes speed, `A` jumps and `Y` lands, walks or takes off.
 
 ## Performance
 
-- Quality presets in the settings panel (⚙): potato, low, medium, high, ultra. The default is cheap enough for a
-  laptop; high and ultra add terrain detail, stars and memory.
+- Quality in the settings panel (⚙): automatic, or potato, low, medium, high, ultra. Automatic starts at medium
+  (low on phones and tablets) and steps down by itself when the frame rate stays low; a fixed choice is
+  remembered. High and ultra add terrain detail, stars and memory.
 - Dynamic resolution lowers the render scale when frames take too long and raises it again when there is headroom.
 - Settings (⚙) > Performance > "Show performance stats (FPS / CPU / GPU)" turns the stats-gl meter on and off at
   runtime (remembered; `?perf=1` forces it on). Browsers without GPU timer queries show "GPU n/a". `?q=<preset>`

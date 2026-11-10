@@ -29,6 +29,7 @@ Static browser app (three.js WebGL2, Vite, TypeScript) for flying through a real
 - **Depth:** log depth, near 0.05 m, far 1e27 m. Every `ShaderMaterial`/`RawShaderMaterial` must include `src/render/chunks/depth.glsl`; a conventions test enforces this.
 - **Light:** shaders output `L[cd/m²] * uExposure` (pre-exposure). Use the shared uniforms from `render.uniforms`.
 - **GLSL:** separate `.glsl` files imported with `?raw`.
+- **Curved meshes:** flat facets sag below a sphere (1-2 km on a planet). Anything drawn as a faceted sphere or shell that writes depth must slide its fragments onto the true surface with `src/render/chunks/facet.glsl` (`FACET_GLSL`), or the mesh grid shows through the atmosphere.
 - **Assets:** never hard-code `/` URLs. Use `assets.url('data/<m>/x.bin')` or `import.meta.env.BASE_URL + 'data/...'`. The site is served from `/my-third-repo/`, and the base can be overridden with env `BASE`.
 - **Workers:** `new Worker(new URL('./x.worker.ts', import.meta.url), { type: 'module' })` with comlink `expose`.
 - **Hand-entered numbers:** keep them in JSON rows with a `source` field. Show uncertain values as `approximate` in the UI.
@@ -41,7 +42,8 @@ Static browser app (three.js WebGL2, Vite, TypeScript) for flying through a real
 - Flow: `await __universe.ready()`, then `renderFrames(4)`, then screenshot to `artifacts/<module>/<bookmark>.png`. rAF is off in test mode.
 - Assert semantic pixel probes (`probe`), `errors()` empty and `stats()` budgets. Never golden images.
 - At most 4 bookmarks per spec, 120 s per test. Read at most 6 screenshots per package.
-- Run only through `pnpm e2e` (flock on `/tmp/universe-pw.lock`) with your `E2E_PORT`. Never run `playwright install` locally: browsers are in `/opt/pw-browsers` (chromium-1194, SwiftShader).
+- Run only through `pnpm e2e` (flock on `/tmp/universe-pw.lock`) with your `E2E_PORT`. Never run `playwright install` locally: browsers are in `/opt/pw-browsers` (SwiftShader). If the installed build is not the one this Playwright expects (chromium-1194), point `E2E_CHROMIUM` at the installed `chrome-headless-shell` binary.
+- `tests/e2e/sweep.spec.ts` renders every bookmark and checks for errors (about ninety views, not in the smoke run): run it before a release.
 - Default server is `vite build` + `vite preview`; set `E2E_SERVER=dev` locally for the dev server. CI runs every `@smoke`-tagged test.
 
 ## Network

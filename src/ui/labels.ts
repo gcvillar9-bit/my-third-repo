@@ -84,6 +84,24 @@ const KIND_PRIORITY: Partial<Record<BodyKind, number>> = {
 };
 const ALWAYS: ReadonlySet<BodyKind> = new Set(['star', 'planet', 'dwarf', 'galaxy', 'blackhole', 'cluster']);
 
+/** Stellar-mass black holes are labelled within this distance (m, about 300 light-years); supermassive ones always. */
+export const STELLAR_BH_LABEL_RANGE = 3e18;
+/** Schwarzschild radius above which a black hole counts as supermassive for labelling, m. */
+const SUPERMASSIVE_RS = 1e8;
+/** Beyond this distance a label belongs to the night sky (stars, nebulae, galaxies), m. */
+export const SKY_LABEL_DISTANCE = 1e14;
+
+/**
+ * Whether a body's label is suppressed: far stellar-mass black holes (six of them used to be
+ * named in every view of the sky from home), and anything of the night sky while the camera
+ * stands in daylight under an atmosphere, where none of it can be seen.
+ */
+export function bodyLabelHidden(b: Pick<Body, 'kind' | 'radius'>, d: number, daylight: boolean): boolean {
+  if (b.kind === 'blackhole' && b.radius < SUPERMASSIVE_RS && d > STELLAR_BH_LABEL_RANGE) return true;
+  if (!daylight) return false;
+  return b.kind === 'galaxy' || b.kind === 'cluster' || b.kind === 'blackhole' || d > SKY_LABEL_DISTANCE;
+}
+
 /** Label priority of a body (labelPriority wins; else kind plus a size term). */
 export const bodyPriority = (b: Body): number =>
   b.labelPriority ??
@@ -122,6 +140,8 @@ export interface LabelOverlayDeps {
   emphasis(): { target: string | null; selection: string | null };
   onClick(item: LabelItem): void;
   onDoubleClick(item: LabelItem): void;
+  /** True while the camera is in daylight under an atmosphere (the stars are washed out). */
+  daylight?(view: ViewState): boolean;
 }
 
 /** Pooled DOM overlay. `update(view)` runs in render.onAfterFrame. */
@@ -174,6 +194,7 @@ export class LabelOverlay {
     const cssH = this.el.clientHeight || view.viewport[1];
     const pxAngle = view.fovY / cssH;
     const { target, selection } = this.deps.emphasis();
+    const daylight = this.deps.daylight?.(view) ?? false;
     const items: LabelItem[] = [];
     const occluders: Occluder[] = [];
     const rel = vec3();
@@ -189,6 +210,7 @@ export class LabelOverlay {
         // The polar radius: ground-level labels on an oblate body sit inside its equatorial sphere.
         occluders.push({ id: b.id, c: vec3(rel.x, rel.y, rel.z), r: b.radius * (1 - (b.oblateness ?? 0)) });
       const emph = b.id === target || b.id === selection;
+      if (!emph && bodyLabelHidden(b, d, daylight)) continue;
       if (pr > 0.4 * cssH && !emph) continue;
       if (!ALWAYS.has(b.kind) && !emph && d > 3000 * b.radius) continue;
       items.push({
@@ -217,17 +239,21 @@ export class LabelOverlay {
         continue;
       }
       if (!project(rel, view.worldQuat, view.fovY, cssW, cssH, proj)) continue;
-      if (proj.x < -50 || proj.x > cssW + 50 || proj.y < -20 || proj.y > cssH + 20) continue;
+      if (proj.x < 0 || proj.x > cssW || proj.y < 0 || proj.y > cssH + 20) continue;
       if (occluded(rel, occluders, it.id)) continue;
       const d = Math.hypot(rel.x, rel.y, rel.z);
+      if (daylight && d > SKY_LABEL_DISTANCE && it.id !== target && it.id !== selection) continue;
       const off = it.radius ? Math.min(cssH, Math.atan2(it.radius, d) / pxAngle) : 0;
       const { w, h } = labelSize(it.text);
       const pri = it.priority + (it.id === target ? 1000 : 0) + (it.id === selection ? 500 : 0);
+      // A label whose anchor is in view stays whole: near the right edge it slides left over its
+      // anchor instead of being cut off.
+      const left = Math.max(2, Math.min(proj.x + 4 + off * 0.7, cssW - w - 2));
       cands.push({
         item: { ...it, priority: pri },
         x: proj.x,
         y: proj.y,
-        left: proj.x + 4 + off * 0.7,
+        left,
         top: proj.y - h - 2 - off * 0.7,
         w,
         h,

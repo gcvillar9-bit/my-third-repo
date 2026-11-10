@@ -1,0 +1,30 @@
+{
+  "module": "comets",
+  "assets": [
+    {
+      "id": "celestia_comets_ssc",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/comets.ssc",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Celestia Development Team and contributors (CelestiaContent data/comets.ssc: Grant Hutchison, Chris Laurel, DaveBowman2001, AstroChara, Pedro J. Garcia); elements from NASA/JPL SBDB and Horizons",
+      "outputs": ["data/comets/comets.json"],
+      "sha256": "c7d6d243d9cac28cd7ba4271b15abff2f55c6d4f351c33c12a10ee4d1c0d2f6e",
+      "bytes": 24515
+    },
+    {
+      "id": "stellarium_ssystem_minor",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/data/ssystem_minor.ini",
+      "license": "GPL-2.0-or-later",
+      "attribution": "Stellarium contributors (data/ssystem_minor.ini): 1997-apparition elements of C/1995 O1 (Hale-Bopp)",
+      "outputs": ["data/comets/comets.json"],
+      "note": "No per-file .license sidecar upstream; Stellarium's default licence GPL-2.0-or-later applies. Only the Hale-Bopp orbit is taken from this file.",
+      "sha256": "542cb04829d8d728674d65a325eb761f9cac7bc00a25b6e2bbd95674f18e5846",
+      "bytes": 325722
+    },
+    {
+      "id": "comets_catalog_table",
+      "license": "reference",
+      "attribution": "Comet selection, brightness laws (H, K) fitted to reported visual peak magnitudes, 12P/Pons-Brooks elements (JPL SBDB, rounded), nucleus shapes (Keller et al. 1986, Sierks et al. 2015) and tail appearance weights hand-entered with a source per block in src/modules/comets/catalog.json; approximate",
+      "outputs": ["data/comets/comets.json"]
+    }
+  ]
+}

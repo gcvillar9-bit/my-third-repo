@@ -10,7 +10,7 @@ import { FOLD_HOLD_RATE, SolarEphemeris } from './ephemeris';
 import { infoCard, searchEntries } from './facts';
 import { bodyFromRow, buildFrameDefs } from './frames';
 import { createRings, createSunGlow } from './render/extras';
-import { createOrbits } from './render/orbits';
+import { createOrbits, ORBITS_SETTING } from './render/orbits';
 import { createPoints } from './render/points';
 import { SceneState } from './render/scene-state';
 import { MODULE_ID, createShading } from './render/shading';
@@ -77,7 +77,18 @@ const solarSystem: UniverseModule = {
     );
 
     registry.addRenderable(createPoints(scene, render.uniforms.uExposure, tints));
-    registry.addRenderable(createOrbits(eph, scene));
+    let orbitsOn = true;
+    registry.addSetting({
+      id: ORBITS_SETTING,
+      label: 'Orbit lines (Shift+O)',
+      group: 'Sky',
+      type: 'boolean',
+      default: true,
+      persist: true,
+      description: 'The paths of the planets, dwarf planets and moons.',
+      onChange: (v) => (orbitsOn = v === true),
+    });
+    registry.addRenderable(createOrbits(eph, scene, () => orbitsOn));
     registry.addRenderable(createSunGlow(scene, render.uniforms.uExposure));
     const saturn = rowsById.get('saturn');
     const saturnBody = bodies.find((b) => b.id === 'saturn');

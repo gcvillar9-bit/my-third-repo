@@ -11,7 +11,7 @@ import { photo } from '../modules/photo/public';
 import { tours } from '../modules/tours/public';
 import { uiActions } from './actions';
 import { App } from './app';
-import { UiController } from './controller';
+import { HOME_BOOKMARK, LABELS_SETTING, ORBITS_SETTING, UiController } from './controller';
 import { LabelOverlay } from './labels';
 import { safeStorage, SettingsStoreImpl } from './settings';
 import { UI_CSS } from './styles';
@@ -41,6 +41,7 @@ export const mountUi: MountUi = (root: HTMLElement, ctx: UiContext): UiApi => {
     labels = new LabelOverlay(root, {
       registry: ctx.registry,
       emphasis: () => ({ target: ctx.camera.target, selection: ui.selection.value }),
+      daylight: (view) => ui.daylight(view),
       onClick: (it) => ui.select(it.id),
       onDoubleClick: (it) => {
         const t = ui.targetOf(it.target ?? it.id);
@@ -52,12 +53,14 @@ export const mountUi: MountUi = (root: HTMLElement, ctx: UiContext): UiApi => {
     root.appendChild(shell);
     render(createElement(App, { ui }), shell);
     ctx.render.onAfterFrame((view) => {
-      labels!.visible = ui.hudVisible.value;
+      labels!.visible = ui.hudVisible.value && settings.get(LABELS_SETTING) !== false;
       labels!.update(view);
       ui.frame(view);
     });
     installKeys(ui, ctx);
-    uiActions.openHelp = () => (ui.helpOpen.value = true);
+    installPointer(ui, root);
+    uiActions.openHelp = () => ui.openPanel('help');
+    uiActions.openExplore = () => ui.openPanel('explore');
     ui.refreshTime();
     if (ctx.env.debug && !ctx.env.test) {
       void import('./debug-gui')
@@ -85,8 +88,90 @@ export const mountUi: MountUi = (root: HTMLElement, ctx: UiContext): UiApi => {
   };
 };
 
+/** Largest pointer travel (CSS px) and press time (ms) that still count as a click on the view. */
+const CLICK_SLOP_PX = 5;
+const CLICK_MAX_MS = 400;
+/** Two taps this close in time and place are a double-tap (touch has no dblclick on a canvas). */
+const DOUBLE_TAP_MS = 350;
+
+/**
+ * Selection in the 3D view: a click (or tap) on a world selects it and a double-click flies
+ * there. The canvas keeps its own handlers for looking around; a press that travels is a drag,
+ * never a selection. Also notes the first touch, which brings up the on-screen flight controls.
+ */
+function installPointer(ui: UiController, root: HTMLElement): void {
+  const canvas = document.querySelector<HTMLCanvasElement>('#app canvas');
+  if (!canvas) return;
+  let down: { x: number; y: number; t: number; id: number } | null = null;
+  let lastTap: { x: number; y: number; t: number; id: string } | null = null;
+  const size = () => ({
+    w: root.clientWidth || window.innerWidth,
+    h: root.clientHeight || window.innerHeight,
+  });
+  window.addEventListener(
+    'pointerdown',
+    (e) => {
+      if (e.pointerType === 'touch') ui.touchSeen.value = true;
+    },
+    { capture: true, passive: true },
+  );
+  canvas.addEventListener('pointerdown', (e) => {
+    down =
+      e.button === 0 && e.isPrimary ? { x: e.clientX, y: e.clientY, t: e.timeStamp, id: e.pointerId } : null;
+  });
+  canvas.addEventListener('pointerup', (e) => {
+    const d = down;
+    down = null;
+    if (!d || d.id !== e.pointerId || photo.active || !ui.hudVisible.value) return;
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > CLICK_SLOP_PX || e.timeStamp - d.t > CLICK_MAX_MS)
+      return;
+    const { w, h } = size();
+    const id = ui.pick(e.clientX, e.clientY, w, h);
+    if (!id) {
+      lastTap = null;
+      return;
+    }
+    const again =
+      lastTap !== null &&
+      lastTap.id === id &&
+      e.timeStamp - lastTap.t < DOUBLE_TAP_MS &&
+      Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 4 * CLICK_SLOP_PX;
+    lastTap = again ? null : { x: e.clientX, y: e.clientY, t: e.timeStamp, id };
+    if (again) {
+      const t = ui.targetOf(id);
+      if (t) ui.fly(t, id);
+    } else ui.select(id);
+  });
+  canvas.addEventListener('pointercancel', () => (down = null));
+  const onFullscreen = () =>
+    (ui.fullscreen.value = !!(
+      document.fullscreenElement ??
+      (document as { webkitFullscreenElement?: Element }).webkitFullscreenElement
+    ));
+  document.addEventListener('fullscreenchange', onFullscreen);
+  document.addEventListener('webkitfullscreenchange', onFullscreen);
+}
+
 function installKeys(ui: UiController, ctx: UiContext): void {
   const { clock, camera } = ctx;
+  const toggleSetting = (id: string, on: string, off: string) => {
+    if (!ui.settings.definitions().some((d) => d.id === id)) return;
+    const v = ui.settings.get(id) !== true;
+    ui.settings.set(id, v);
+    ui.toast(v ? on : off, 'info', 1200);
+  };
+  // Shift+G lands; capture phase, ahead of the camera's own G (walk toggle).
+  window.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.code !== 'KeyG' || !e.shiftKey || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isEditable(e.target) || ui.paletteOpen.value || photo.active) return;
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      ui.land(ui.selection.value);
+    },
+    true,
+  );
   window.addEventListener('keydown', (e) => {
     if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
@@ -94,9 +179,9 @@ function installKeys(ui: UiController, ctx: UiContext): void {
       return;
     }
     if (e.key === 'Escape') {
-      if (ui.paletteOpen.value) ui.paletteOpen.value = false;
-      else if (ui.settingsOpen.value) ui.settingsOpen.value = false;
-      else ui.showInfo(null);
+      // One Escape closes one thing: with a panel or card open, the tour underneath keeps running
+      // (this listener is registered before the tours module's).
+      if (ui.closeTop()) e.stopImmediatePropagation();
       return;
     }
     if (isEditable(e.target) || e.ctrlKey || e.metaKey || e.altKey || ui.paletteOpen.value || photo.active)
@@ -107,8 +192,21 @@ function installKeys(ui: UiController, ctx: UiContext): void {
         ui.paletteOpen.value = true;
         return;
       case '?':
-        ui.helpOpen.value = !ui.helpOpen.value;
+        ui.openPanel('help', !ui.helpOpen.value);
         return;
+    }
+    if (e.shiftKey) {
+      switch (e.code) {
+        case 'KeyO':
+          toggleSetting(ORBITS_SETTING, 'Orbit lines on', 'Orbit lines off');
+          return;
+        case 'KeyL':
+          toggleSetting(LABELS_SETTING, 'Labels on', 'Labels off');
+          return;
+        case 'KeyF':
+          ui.toggleFullscreen();
+          return;
+      }
     }
     switch (e.code) {
       case 'Comma':
@@ -141,6 +239,7 @@ function installKeys(ui: UiController, ctx: UiContext): void {
         break;
       }
       case 'KeyO':
+        if (e.shiftKey) return;
         camera.setMode(camera.mode === 'orbit' ? 'free' : 'orbit');
         ui.toast(`Camera: ${camera.mode}`, 'info', 1200);
         break;
@@ -148,8 +247,21 @@ function installKeys(ui: UiController, ctx: UiContext): void {
         ui.hudVisible.value = !ui.hudVisible.value;
         break;
       case 'KeyL':
+        if (e.shiftKey) return;
         void ui.copyLink();
         break;
+      case 'KeyX':
+        ui.openPanel('explore', !ui.exploreOpen.value);
+        return;
+      case 'KeyT':
+        if (tours.status()) return;
+        ui.openPanel('tours', !ui.toursOpen.value);
+        return;
+      case 'Home': {
+        const home = ctx.registry.bookmark(HOME_BOOKMARK);
+        if (home) ui.fly(home, home.lookAt ?? null);
+        return;
+      }
       case 'KeyM': {
         // Mute/unmute (audio module); a no-op without it.
         if (!ui.settings.definitions().some((d) => d.id === AUDIO_ENABLED_SETTING)) return;

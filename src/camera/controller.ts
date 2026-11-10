@@ -41,6 +41,7 @@ import {
 import { Flight } from './autopilot';
 import { clampAboveGround, EYE_HEIGHT, GroundProviders, MIN_ALTITUDE } from './collision-hook';
 import { applyFree, emptyInput, type FlightInput } from './free';
+import { pickPad, readPad, type PadLike } from './gamepad';
 import { applyOrbit } from './orbit';
 import { surfaceGravity, Walker, WALK_RANGE, type WalkPose } from './walk';
 import { clampK, K_DEFAULT, SpeedController, targetSpeed } from './speed';
@@ -67,6 +68,11 @@ export interface CameraDeps {
   jd: () => JD;
   /** Invoked when goto() receives a bookmark (the app applies jd/rate/ev). */
   onBookmark?: (bm: Bookmark) => void;
+  /**
+   * Whether a body has ground to stand on (default: every solid body that is not a star). The
+   * app passes the terrain's rule, which leaves out gas giants, comets and spacecraft.
+   */
+  walkable?: (b: Body) => boolean;
 }
 
 export interface NearestInfo {
@@ -81,7 +87,25 @@ interface ActiveFlight {
   t: number;
   resolve: (ok: boolean) => void;
   finish: () => void;
+  /** Landing flights end on the ground under `dir` (unit, body-fixed), wherever it turns out to be. */
+  land?: { body: Body; dir: Vec3d };
+  /** Field of view at the start and end of the flight (eased in between), radians. */
+  fov0: number;
+  fov1: number;
 }
+
+/** Analog movement from on-screen controls or a gamepad, each axis −1..1 (added to the keys). */
+export interface VirtualInput {
+  forward: number;
+  right: number;
+  up: number;
+  roll: number;
+}
+
+/** Time constant of the movement easing in free flight, s (keys start and stop softly). */
+export const MOVE_TAU = 0.12;
+/** Free-flight dolly per unit of pinch (ln of the finger-spread ratio), in altitudes. */
+export const PINCH_GAIN = 1.5;
 
 export class CameraController implements CameraApi {
   private st: CameraState = { frame: SSB_FRAME, local: vec3(0, 0, 1e12), quat: quat(), fovY: DEFAULT_FOV };
@@ -98,6 +122,16 @@ export class CameraController implements CameraApi {
   private viewportHeight = 270;
   private walker: Walker | null = null;
   private walkBody: Body | null = null;
+  /** Analog input per source (on-screen controls, gamepad); `virtual` is their clamped sum. */
+  private virtualBy = new Map<string, VirtualInput>();
+  private virtual: VirtualInput = { forward: 0, right: 0, up: 0, roll: 0 };
+  /** Gamepad polling (set by attach in a real session) and the buttons held at the last poll. */
+  private pads: (() => readonly (PadLike | null)[]) | null = null;
+  private padHeld = { faster: false, slower: false, land: false };
+  /** Eased movement input (camera axes), so flight starts and stops without a jolt. */
+  private move = vec3();
+  /** Pending pinch dolly, ln of the finger-spread ratio (positive = forward). */
+  private dolly = 0;
 
   constructor(private readonly deps: CameraDeps) {
     if (!deps.frames.has(this.st.frame)) this.st.frame = deps.frames.rootId;
@@ -121,7 +155,7 @@ export class CameraController implements CameraApi {
     const { frames, registry } = this.deps;
     const n = this.computeNearest();
     const b = n ? registry.body(n.bodyId) : undefined;
-    if (!n || !b || !SOLID.has(b.kind) || b.kind === 'star' || n.altitude > WALK_RANGE) return false;
+    if (!n || !this.walkable(b) || n.altitude > WALK_RANGE) return false;
     const fixed = b.fixedFrame && frames.has(b.fixedFrame) ? b.fixedFrame : b.frame;
     const jd = this.deps.jd();
     const pose: WalkPose = {
@@ -144,6 +178,63 @@ export class CameraController implements CameraApi {
     this.walkBody = null;
   }
 
+  /** A body with ground to stand on. */
+  private walkable(b: Body | undefined): b is Body {
+    return !!b && SOLID.has(b.kind) && b.kind !== 'star' && (this.deps.walkable?.(b) ?? true);
+  }
+
+  /** Whether walk mode can start right now (walkable ground within WALK_RANGE below the camera). */
+  canWalk(): boolean {
+    const n = this.nearest;
+    const b = n ? this.deps.registry.body(n.bodyId) : undefined;
+    return !!n && this.walkable(b) && n.altitude <= WALK_RANGE && !this.active;
+  }
+
+  /**
+   * Flies straight down to the ground under the camera on `bodyId` (default: the nearest body)
+   * and starts walking there. The end point follows the ground as its relief loads, so the
+   * flight never ends inside a mountain or hanging above a basin. Resolves false when the body
+   * has no surface to stand on (stars, unknown ids) or the flight is cancelled.
+   */
+  land(bodyId?: string): Promise<boolean> {
+    const { frames, registry } = this.deps;
+    const id = bodyId ?? this.computeNearest()?.bodyId;
+    const b = id ? registry.body(id) : undefined;
+    if (!this.walkable(b) || !frames.has(b.frame)) return Promise.resolve(false);
+    const fixed = b.fixedFrame && frames.has(b.fixedFrame) ? b.fixedFrame : b.frame;
+    const jd = this.deps.jd();
+    const p = frames.convertPoint(this.st.frame, this.st.local, fixed, jd, vec3());
+    if (!(v3len(p) > 0)) return Promise.resolve(false);
+    const dir = v3normalize(vec3(), p);
+    const pos = v3scale(vec3(), dir, b.radius + this.ground.heightAt(b.id, dir) + EYE_HEIGHT);
+    // Face the way the view pointed, levelled; looking straight down, face "screen up" instead.
+    const q = this.quatIn(fixed, jd);
+    let heading = qrotate(vec3(), q, vec3(0, 0, -1));
+    heading = v3sub(heading, heading, v3scale(vec3(), dir, v3dot(heading, dir)));
+    if (v3len(heading) < 0.2) {
+      heading = qrotate(vec3(), q, vec3(0, 1, 0));
+      heading = v3sub(heading, heading, v3scale(vec3(), dir, v3dot(heading, dir)));
+    }
+    if (v3len(heading) < 1e-6) heading = Math.abs(dir.z) < 0.9 ? vec3(0, 0, 1) : vec3(1, 0, 0);
+    const quatEnd = qlookRotation(quat(), v3normalize(heading, heading), dir);
+    const done = this.goto({
+      id: `land:${b.id}`,
+      title: `Surface of ${b.name}`,
+      frame: fixed,
+      pos,
+      quat: quatEnd,
+      lookAt: b.id,
+      mode: 'walk',
+    });
+    if (this.active) {
+      this.active.land = { body: b, dir };
+      // The HUD shows where the descent is heading from its first frame.
+      this._target = b.id;
+      this.emit();
+    }
+    return done;
+  }
+
   private walkStep(dt: number): void {
     const b = this.walkBody!;
     const { frames } = this.deps;
@@ -163,8 +254,11 @@ export class CameraController implements CameraApi {
         right: input.right,
         yaw: input.yaw,
         pitch: input.pitch,
-        run: k.has('ShiftLeft') || k.has('ShiftRight'),
-        jump: k.has('Space'),
+        run:
+          k.has('ShiftLeft') ||
+          k.has('ShiftRight') ||
+          Math.hypot(this.virtual.forward, this.virtual.right) > 0.95,
+        jump: k.has('Space') || this.virtual.up > 0.5,
       },
       dt,
       (dir) => b.radius + this.ground.heightAt(b.id, dir),
@@ -185,6 +279,36 @@ export class CameraController implements CameraApi {
   }
   get speed(): number {
     return this.speedCtl.speed;
+  }
+  /**
+   * Sets analog movement from one source, on-screen controls by default (axes left out keep
+   * their value). Sources add up, so a gamepad at rest does not cancel the on-screen stick.
+   */
+  setVirtualInput(v: Partial<VirtualInput>, source = 'screen'): void {
+    const prev = this.virtualBy.get(source) ?? { forward: 0, right: 0, up: 0, roll: 0 };
+    const c = (x: number | undefined, old: number) =>
+      x === undefined ? old : Math.min(1, Math.max(-1, Number.isFinite(x) ? x : 0));
+    this.virtualBy.set(source, {
+      forward: c(v.forward, prev.forward),
+      right: c(v.right, prev.right),
+      up: c(v.up, prev.up),
+      roll: c(v.roll, prev.roll),
+    });
+    const sum = { forward: 0, right: 0, up: 0, roll: 0 };
+    for (const s of this.virtualBy.values()) {
+      sum.forward += s.forward;
+      sum.right += s.right;
+      sum.up += s.up;
+      sum.roll += s.roll;
+    }
+    const k = (x: number) => Math.min(1, Math.max(-1, x));
+    this.virtual = { forward: k(sum.forward), right: k(sum.right), up: k(sum.up), roll: k(sum.roll) };
+    if (this.active && (this.virtual.forward || this.virtual.right || this.virtual.up)) this.cancelGoto();
+  }
+  /** Adds a look rotation, radians (touch and gamepad sticks; the mouse drag uses the same path). */
+  addLook(yaw: number, pitch: number): void {
+    this.look.yaw += yaw;
+    this.look.pitch += pitch;
   }
   get traveling(): boolean {
     return this.active !== null;
@@ -291,8 +415,12 @@ export class CameraController implements CameraApi {
       newTarget = b.id;
     }
     const w0 = Math.max(1, this.nearest?.altitude ?? v3len(v3sub(vec3(), look, p0)));
+    // A view that names no field of view gets the normal one back (a bookmark's telescope view
+    // used to stay on for every flight after it).
+    const fov0 = this.st.fovY;
+    const fov1 = bm?.fovY ?? DEFAULT_FOV;
     const finish = () => {
-      if (bm?.fovY) this.st.fovY = bm.fovY;
+      this.st.fovY = fov1;
       this._target = newTarget;
       if (bm?.mode === 'walk') this.enterWalk();
       else if (bm?.mode) this._mode = bm.mode;
@@ -311,22 +439,67 @@ export class CameraController implements CameraApi {
     }
     const flight = new Flight({ p0, p1, q0, q1, look, w0, w1, duration: opts.duration });
     return new Promise<boolean>((resolve) => {
-      this.active = { flight, frame, t: 0, resolve, finish };
+      this.active = { flight, frame, t: 0, resolve, finish, fov0, fov1 };
       this.emit();
     });
   }
 
   // ----- per-frame update -----
+  /** Polls the gamepad (when one is connected) into the analog input, look and one-shot actions. */
+  pollGamepad(dt: number, pads: readonly (PadLike | null)[]): void {
+    const pad = pickPad(pads);
+    if (!pad) {
+      if (this.virtualBy.has('pad')) this.setVirtualInput({ forward: 0, right: 0, up: 0, roll: 0 }, 'pad');
+      return;
+    }
+    const c = readPad(pad);
+    this.setVirtualInput({ forward: c.forward, right: c.right, up: c.up, roll: c.roll }, 'pad');
+    // Look rate follows the field of view, like the mouse drag.
+    const k = (this.st.fovY / DEFAULT_FOV) * dt;
+    if (c.yaw || c.pitch) this.addLook(c.yaw * k, c.pitch * k);
+    const h = this.padHeld;
+    if (c.faster && !h.faster) this.speedFactor = this._k * 1.25;
+    if (c.slower && !h.slower) this.speedFactor = this._k / 1.25;
+    if (c.land && !h.land) {
+      if (this._mode === 'walk') this.setMode('free');
+      else if (this.canWalk()) this.setMode('walk');
+      else void this.land();
+    }
+    h.faster = c.faster;
+    h.slower = c.slower;
+    h.land = c.land;
+  }
+
   /** Advances the camera by dt real seconds. */
   update(dt: number): void {
+    if (this.pads) {
+      try {
+        this.pollGamepad(dt, this.pads());
+      } catch {
+        // A browser that refuses gamepad access (permissions policy): keyboard and mouse still work.
+        this.pads = null;
+      }
+    }
     if (this.active) {
       const a = this.active;
       a.t += dt;
+      if (a.land) {
+        // The ground may only become known (or finer) during the descent: follow it.
+        const { body, dir } = a.land;
+        v3scale(a.flight.spec.p1, dir, body.radius + this.ground.heightAt(body.id, dir) + EYE_HEIGHT);
+      }
       const pose = { local: vec3(), quat: quat() };
       const done = a.flight.sample(a.t, pose);
       this.st.frame = a.frame;
       this.st.local = pose.local;
       this.st.quat = pose.quat;
+      // Zoom eases with the flight (in log space, like the distance).
+      const z = Math.min(1, a.t / Math.max(a.flight.duration, 1e-6));
+      this.st.fovY = a.fov0 * (a.fov1 / a.fov0) ** (z * z * (3 - 2 * z));
+      // Look input during a flight is dropped, not saved up for one jolt on arrival.
+      this.look.yaw = this.look.pitch = 0;
+      this.move.x = this.move.y = this.move.z = 0;
+      this.dolly = 0;
       if (done) {
         this.active = null;
         a.finish();
@@ -342,7 +515,25 @@ export class CameraController implements CameraApi {
         this.orbitStep(tgt, input, dt);
       } else {
         const v = this.speedCtl.update(targetSpeed(this._k, this.nearestDistance()), dt);
+        // Ease the movement axes so pressing and releasing a key ramps the speed (MOVE_TAU).
+        const k = 1 - Math.exp(-dt / MOVE_TAU);
+        const m = this.move;
+        m.x += (input.right - m.x) * k;
+        m.y += (input.up - m.y) * k;
+        m.z += (input.forward - m.z) * k;
+        if (Math.hypot(m.x, m.y, m.z) < 1e-3 && !input.right && !input.up && !input.forward)
+          m.x = m.y = m.z = 0;
+        input.right = m.x;
+        input.up = m.y;
+        input.forward = m.z;
         applyFree(this.st, input, v, dt);
+        if (this.dolly) {
+          // Pinch: move along the view by a fraction of the altitude (exact in log space).
+          const f = qrotate(vec3(), this.st.quat, vec3(0, 0, -1));
+          const step = this.nearestDistance() * (1 - Math.exp(-PINCH_GAIN * this.dolly));
+          this.st.local = v3add(vec3(), this.st.local, v3scale(f, f, step));
+          this.dolly = 0;
+        }
         this.collide();
       }
     }
@@ -439,10 +630,12 @@ export class CameraController implements CameraApi {
     const k = this.keys;
     const has = (...codes: string[]) => (codes.some((c) => k.has(c)) ? 1 : 0);
     const input = emptyInput();
-    input.forward = has('KeyW') - has('KeyS');
-    input.right = has('KeyD') - has('KeyA');
-    input.up = has('KeyR', 'Space') - has('KeyF', 'KeyC');
-    input.roll = has('KeyE') - has('KeyQ');
+    const c = (x: number) => Math.min(1, Math.max(-1, x));
+    const vi = this.virtual;
+    input.forward = c(has('KeyW') - has('KeyS') + vi.forward);
+    input.right = c(has('KeyD') - has('KeyA') + vi.right);
+    input.up = c(has('KeyR', 'Space') - has('KeyF', 'KeyC') + vi.up);
+    input.roll = c(has('KeyE') - has('KeyQ') + vi.roll);
     input.yaw = this.look.yaw + (has('ArrowLeft') - has('ArrowRight')) * LOOK_RATE * dt;
     input.pitch = this.look.pitch + (has('ArrowUp') - has('ArrowDown')) * LOOK_RATE * dt;
     this.look.yaw = this.look.pitch = 0;
@@ -465,6 +658,8 @@ export class CameraController implements CameraApi {
       if (e.code === 'BracketLeft') this.speedFactor = this._k / 1.25;
       else if (e.code === 'BracketRight') this.speedFactor = this._k * 1.25;
       else {
+        // Shift+F (full screen) and Shift+C (constellation lines) are shortcuts, not "fly down".
+        if (e.shiftKey && (e.code === 'KeyF' || e.code === 'KeyC')) return;
         this.keys.add(e.code);
         if (this.active && /^Key[WASDRFCQE]$|^Space$/.test(e.code)) this.cancelGoto();
       }
@@ -490,14 +685,35 @@ export class CameraController implements CameraApi {
     // jumps by more than MAX_LOOK_JUMP of the viewport height (pointer re-entry, capture glitches)
     // only re-bases the drag instead of throwing the view.
     let drag: { id: number; x: number; y: number } | null = null;
+    // Touch: one finger looks around; two fingers pinch to move along the view (zoom in orbit).
+    const touches = new Map<number, { x: number; y: number }>();
+    let spread = 0;
+    const fingerSpread = (): number => {
+      const [a, b] = [...touches.values()];
+      return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+    };
     const endDrag = (e: PointerEvent) => {
+      if (touches.delete(e.pointerId)) {
+        spread = 0;
+        // The finger that stays down takes over the look drag from where it is.
+        const rest = [...touches.entries()][0];
+        drag = touches.size === 1 && rest ? { id: rest[0], x: rest[1].x, y: rest[1].y } : null;
+        if (el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture?.(e.pointerId);
+        return;
+      }
       if (!drag || e.pointerId !== drag.id) return;
       drag = null;
       if (el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture?.(e.pointerId);
     };
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
-      drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      if (e.pointerType === 'touch') {
+        touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (touches.size >= 2) {
+          spread = fingerSpread();
+          drag = null;
+        } else drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      } else drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
       try {
         el.setPointerCapture?.(e.pointerId);
       } catch {
@@ -505,6 +721,24 @@ export class CameraController implements CameraApi {
       }
     };
     const onMove = (e: PointerEvent) => {
+      const touch = touches.get(e.pointerId);
+      if (touch) {
+        touch.x = e.clientX;
+        touch.y = e.clientY;
+        if (touches.size >= 2) {
+          const d = fingerSpread();
+          if (spread > 0 && d > 0) {
+            const r = Math.log(d / spread);
+            if (this._mode === 'orbit') this.look.zoom *= Math.exp(-r);
+            else if (this._mode === 'free') {
+              this.dolly += r;
+              if (this.active) this.cancelGoto();
+            }
+          }
+          spread = d;
+          return;
+        }
+      }
       if (!drag || e.pointerId !== drag.id) return;
       if (e.pointerType !== 'touch' && (e.buttons & 1) === 0) {
         endDrag(e);
@@ -525,6 +759,13 @@ export class CameraController implements CameraApi {
       if (this._mode === 'orbit') this.look.zoom *= Math.exp(e.deltaY * 0.001);
       else this.speedFactor = this._k * Math.exp(-e.deltaY * 0.0015);
     };
+    // Gamepads are polled each frame once one has announced itself (browsers hide them until a
+    // button is pressed).
+    const onPad = () => {
+      if (typeof navigator !== 'undefined' && typeof navigator.getGamepads === 'function')
+        this.pads = () => navigator.getGamepads();
+    };
+    window.addEventListener('gamepadconnected', onPad);
     window.addEventListener('keydown', onWalkKey, true);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
@@ -536,6 +777,8 @@ export class CameraController implements CameraApi {
     el.addEventListener('lostpointercapture', onUp);
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => {
+      window.removeEventListener('gamepadconnected', onPad);
+      this.pads = null;
       window.removeEventListener('keydown', onWalkKey, true);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);

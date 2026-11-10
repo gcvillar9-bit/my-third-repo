@@ -1,0 +1,311 @@
+{
+  "about": "Hand-entered selection of famous comets for tools/build-comets.mjs. Orbits, radii, albedos and rotation periods come from the downloaded catalogues named in `celestia` / `stellarium` (assets/manifest/comets.json) unless a row carries its own `elements` or `physical` block. Everything written in this file is hand-entered: brightness laws m = H + 5 log10(delta) + K log10(r) fitted to widely reported visual peak magnitudes, appearance weights for the procedural tails, and rough nucleus shapes. Each block has a `source` and is `approximate`.",
+  "display": {
+    "source": "Appearance constants of the procedural coma and tail model (docs/modules/comets.md); not measurements.",
+    "approximate": true,
+    "activityFadeAU": [3.5, 5.0],
+    "comaRadiusKm": 100000,
+    "tailGain": 4,
+    "tailFalloff": 0.5
+  },
+  "comets": [
+    {
+      "id": "halley",
+      "name": "Halley's Comet",
+      "short": "Halley",
+      "designation": "1P/Halley",
+      "celestia": "1P Halley",
+      "aliases": ["Halley", "Comet Halley", "1P", "1P/Halley"],
+      "apparition": "1986 perihelion (Giotto and Vega flybys)",
+      "photometry": {
+        "H": 4.0,
+        "K": 8,
+        "source": "Hand-entered fit to the 1986 apparition: total visual magnitude about +3 in early March 1986 (r 0.8 AU, delta 0.9 AU), as reported in ICQ visual light curves",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.3,
+        "ion": 0.2,
+        "gas": 0.4,
+        "source": "Appearance weights (dusty comet with a clear ion tail in 1986 wide-field photographs); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.52, 0.5], "offset": [0, 0, 0] }],
+        "source": "Giotto HMC: about 15 x 8 x 8 km (Keller et al. 1986), rounded",
+        "approximate": true
+      }
+    },
+    {
+      "id": "encke",
+      "name": "Comet Encke",
+      "short": "Encke",
+      "designation": "2P/Encke",
+      "celestia": "2P Encke",
+      "aliases": ["Encke", "2P", "2P/Encke", "Encke's Comet"],
+      "apparition": "shortest known period of a bright comet (3.3 yr)",
+      "photometry": {
+        "H": 11.0,
+        "K": 10,
+        "source": "Hand-entered fit: about magnitude 6-7 near perihelion (r 0.34 AU) at delta 1 AU, typical of recent returns",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.03,
+        "ion": 0.12,
+        "gas": 0.9,
+        "source": "Appearance weights (gas-rich, almost no visible dust tail); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.75, 0.7], "offset": [0, 0, 0] }],
+        "source": "Generic elongated nucleus; radar and light-curve axis ratios are uncertain",
+        "approximate": true
+      }
+    },
+    {
+      "id": "pons-brooks",
+      "name": "Comet Pons-Brooks",
+      "short": "Pons-Brooks",
+      "designation": "12P/Pons-Brooks",
+      "aliases": ["Pons-Brooks", "12P", "12P/Pons-Brooks", "Devil Comet"],
+      "apparition": "2024 perihelion (seen near the April 2024 total solar eclipse)",
+      "elements": {
+        "center": "sun",
+        "q": 0.7808,
+        "e": 0.9546,
+        "i": 74.19,
+        "node": 255.86,
+        "argPeri": 198.99,
+        "tp": 2460421.63,
+        "epoch": 2460421.63,
+        "source": "Hand-entered from the JPL Small-Body Database orbit for the 2024 apparition (perihelion 2024-04-21.13 TT, q 0.781 AU), rounded; not in Celestia comets.ssc",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 17,
+        "albedo": 0.04,
+        "rotationHours": 57,
+        "source": "Hand-entered: effective radius about 17 km (Ye et al. 2020 estimate), rotation about 57 h (2024 coma-morphology studies); both uncertain",
+        "approximate": true
+      },
+      "photometry": {
+        "H": 4.5,
+        "K": 10,
+        "source": "Hand-entered fit: about magnitude 4.5 near the April 2024 perihelion (r 0.78 AU, delta 1.6 AU), outbursts ignored",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.15,
+        "ion": 0.18,
+        "gas": 0.7,
+        "source": "Appearance weights (green coma, long ion tail in 2024 photographs); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.85, 0.8], "offset": [0, 0, 0] }],
+        "source": "Generic nucleus; the shape is unknown",
+        "approximate": true
+      }
+    },
+    {
+      "id": "67p",
+      "name": "67P/Churyumov-Gerasimenko",
+      "short": "67P",
+      "designation": "67P/Churyumov-Gerasimenko",
+      "celestia": "67P Churyumov-Gerasimenko",
+      "aliases": ["67P", "Churyumov-Gerasimenko", "Chury", "Rosetta comet"],
+      "apparition": "2015 perihelion (Rosetta and Philae)",
+      "photometry": {
+        "H": 10.0,
+        "K": 10,
+        "source": "Hand-entered fit: about magnitude 9 at the November 2021 return (r 1.21 AU, delta 0.42 AU)",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.2,
+        "ion": 0.03,
+        "gas": 0.3,
+        "source": "Appearance weights (dusty Jupiter-family comet, faint ion tail); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [
+          { "axes": [0.95, 0.76, 0.42], "offset": [-0.28, 0, -0.1] },
+          { "axes": [0.6, 0.53, 0.42], "offset": [0.55, 0, 0.32] }
+        ],
+        "source": "Rosetta OSIRIS: body lobe about 4.1 x 3.3 x 1.8 km, head lobe about 2.6 x 2.3 x 1.8 km (Sierks et al. 2015), as two overlapping ellipsoids",
+        "approximate": true
+      }
+    },
+    {
+      "id": "swift-tuttle",
+      "name": "Comet Swift-Tuttle",
+      "short": "Swift-Tuttle",
+      "designation": "109P/Swift-Tuttle",
+      "celestia": "109P Swift-Tuttle",
+      "aliases": ["Swift-Tuttle", "109P", "109P/Swift-Tuttle", "Perseid parent comet"],
+      "apparition": "1992 perihelion; parent of the Perseid meteors",
+      "photometry": {
+        "H": 4.5,
+        "K": 10,
+        "source": "Hand-entered fit: about magnitude 5 in November 1992 (r 0.96 AU, delta 1.2 AU)",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.15,
+        "ion": 0.12,
+        "gas": 0.6,
+        "source": "Appearance weights; procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.85, 0.8], "offset": [0, 0, 0] }],
+        "source": "Generic nucleus; the shape is unknown",
+        "approximate": true
+      }
+    },
+    {
+      "id": "hale-bopp",
+      "name": "Comet Hale-Bopp",
+      "short": "Hale-Bopp",
+      "designation": "C/1995 O1 (Hale-Bopp)",
+      "celestia": "C 1995 O1 (Hale-Bopp)",
+      "stellarium": "C_1995O1",
+      "aliases": ["Hale-Bopp", "C/1995 O1", "Great Comet of 1997"],
+      "apparition": "1997 perihelion (Great Comet of 1997)",
+      "photometry": {
+        "H": -1.0,
+        "K": 7.5,
+        "source": "Hand-entered fit: peak total visual magnitude about -0.8 around 1997-04-01 (r 0.91 AU, delta 1.36 AU)",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.4,
+        "ion": 0.15,
+        "gas": 0.2,
+        "source": "Appearance weights (broad curved dust tail and a separate blue ion tail in 1997 photographs); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.9, 0.85], "offset": [0, 0, 0] }],
+        "source": "Generic nucleus; the shape is unknown",
+        "approximate": true
+      }
+    },
+    {
+      "id": "hyakutake",
+      "name": "Comet Hyakutake",
+      "short": "Hyakutake",
+      "designation": "C/1996 B2 (Hyakutake)",
+      "celestia": "C 1996 B2 (Hyakutake)",
+      "aliases": ["Hyakutake", "C/1996 B2", "Great Comet of 1996"],
+      "apparition": "1996 close approach to Earth (0.10 AU on 25 March 1996)",
+      "photometry": {
+        "H": 5.0,
+        "K": 6.5,
+        "source": "Hand-entered fit: about magnitude 0 at the 1996-03-25 close approach (r 1.07 AU, delta 0.10 AU)",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.06,
+        "ion": 0.4,
+        "gas": 0.9,
+        "ionLength": 3,
+        "source": "Appearance weights (blue-green gas comet with a very long ion tail, weak dust tail); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.8, 0.75], "offset": [0, 0, 0] }],
+        "source": "Generic nucleus; the shape is unknown",
+        "approximate": true
+      }
+    },
+    {
+      "id": "mcnaught",
+      "name": "Comet McNaught",
+      "short": "McNaught",
+      "designation": "C/2006 P1 (McNaught)",
+      "celestia": "C 2006 P1 (McNaught)",
+      "aliases": ["McNaught", "C/2006 P1", "Great Comet of 2007"],
+      "apparition": "2007 perihelion (Great Comet of 2007, 0.17 AU from the Sun)",
+      "photometry": {
+        "H": 3.0,
+        "K": 10,
+        "source": "Hand-entered fit: about magnitude -5 at the 2007-01-12 perihelion (r 0.17 AU, delta 0.82 AU) and -2 a week later",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.5,
+        "ion": 0.03,
+        "gas": 0.1,
+        "source": "Appearance weights (enormous fanned dust tail in January 2007 photographs); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.85, 0.8], "offset": [0, 0, 0] }],
+        "source": "Generic nucleus; the shape is unknown",
+        "approximate": true
+      }
+    },
+    {
+      "id": "neowise",
+      "name": "Comet NEOWISE",
+      "short": "NEOWISE",
+      "designation": "C/2020 F3 (NEOWISE)",
+      "celestia": "C 2020 F3 (NEOWISE)",
+      "aliases": ["NEOWISE", "C/2020 F3", "Great Comet of 2020"],
+      "apparition": "2020 perihelion (naked-eye comet of July 2020)",
+      "photometry": {
+        "H": 6.3,
+        "K": 10,
+        "source": "Hand-entered fit: about magnitude 1 on 2020-07-05 (r 0.30 AU, delta 1.1 AU) and 3.5 on 2020-07-23 (r 0.63 AU, delta 0.69 AU)",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.4,
+        "ion": 0.15,
+        "gas": 0.3,
+        "source": "Appearance weights (curved yellow dust tail and a straight blue ion tail in July 2020 photographs); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.8, 0.75], "offset": [0, 0, 0] }],
+        "source": "Generic nucleus; the shape is unknown",
+        "approximate": true
+      }
+    },
+    {
+      "id": "tsuchinshan-atlas",
+      "name": "Comet Tsuchinshan-ATLAS",
+      "short": "Tsuchinshan-ATLAS",
+      "designation": "C/2023 A3 (Tsuchinshan-ATLAS)",
+      "celestia": "C 2023 A3 (Tsuchinshan-ATLAS)",
+      "elementsOverride": {
+        "tp": 2460581.24,
+        "source": "Perihelion time hand-entered (2024-09-27.74 TT, as published by the MPC and JPL): the mean anomaly of the Celestia row puts the passage 9.5 days early",
+        "approximate": true
+      },
+      "aliases": ["Tsuchinshan-ATLAS", "C/2023 A3", "Great Comet of 2024", "A3"],
+      "apparition": "2024 perihelion (naked-eye comet of October 2024)",
+      "photometry": {
+        "H": 4.0,
+        "K": 7.5,
+        "source": "Hand-entered fit: about magnitude 0.5 in mid-October 2024 (r 0.56 AU, delta 0.47 AU); the forward-scattering peak near 2024-10-09 is not modelled",
+        "approximate": true
+      },
+      "look": {
+        "dust": 0.45,
+        "ion": 0.04,
+        "gas": 0.15,
+        "source": "Appearance weights (long dust tail in October 2024 photographs); procedural",
+        "approximate": true
+      },
+      "shape": {
+        "lobes": [{ "axes": [1, 0.85, 0.8], "offset": [0, 0, 0] }],
+        "source": "Generic nucleus; the shape is unknown",
+        "approximate": true
+      }
+    }
+  ]
+}

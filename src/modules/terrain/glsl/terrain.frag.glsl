@@ -15,22 +15,40 @@ varying vec3 vViewPos;
 varying vec3 vDirBody;
 varying vec3 vNormalBody;
 varying float vHeight;
+varying float vSkirt;
+
+// Coarse tiles (seen from thousands of km) have flat facets that sag below the curved surface, by
+// 0.03% of the radius on a root tile: 1 km on Mars, 2 km on Earth. That printed the tile grid into
+// everything that reads depth, most visibly the atmosphere on the low presets. The interpolated
+// unit direction is shorter than 1 by exactly that sag (as a fraction of the radius), so the
+// fragment is slid back along its view ray onto the true surface (facet.glsl, local form). The
+// gate keeps float noise (1e-7 of the radius, half a metre) out of fine tiles, whose sag is
+// millimetres; skirts hang below the surface to hide cracks and stay where they are.
+float curvatureFactor(vec3 dirB, float shrink) {
+  float gate = smoothstep(1.0e-6, 4.0e-6, shrink);
+  if (gate <= 0.0 || vSkirt > 0.0) return 1.0;
+  float rho = 1.0 / length(dirB / uRadii) + vHeight;
+  return cosmosCurveFactor(vViewPos, uBodyToWorld * dirB, rho, rho * shrink * gate);
+}
 
 void main() {
   SurfaceInput s;
-  vec3 dirB = normalize(vDirBody);
+  float dirLen = length(vDirBody);
+  vec3 dirB = vDirBody / dirLen;
+  float curve = curvatureFactor(dirB, 1.0 - dirLen);
+  vec3 viewPos = vViewPos * curve;
   vec3 upB = normalize(dirB / (uRadii * uRadii));
   vec3 nB = normalize(vNormalBody);
-  s.viewPos = vViewPos;
-  s.viewDir = normalize(-vViewPos);
+  s.viewPos = viewPos;
+  s.viewDir = normalize(-viewPos);
   s.dirBody = dirB;
   s.uv = vec2(atan(dirB.y, dirB.x) * 0.15915494309 + 0.5, asin(clamp(dirB.z, -1.0, 1.0)) * 0.31830988618 + 0.5);
   s.height = vHeight;
-  s.sunDir = normalize(uSunPos - vViewPos);
+  s.sunDir = normalize(uSunPos - viewPos);
   s.sunIlluminance = uSunIlluminance;
-  s.shadow = sunVisibility(vViewPos);
-  s.pixelSize = length(vViewPos) * uPixelAngle;
-  s.localPos = transpose(uBodyToWorld) * vViewPos;
+  s.shadow = sunVisibility(viewPos);
+  s.pixelSize = length(viewPos) * uPixelAngle;
+  s.localPos = transpose(uBodyToWorld) * viewPos;
   for (int k = 0; k < SURFACE_DETAIL_BANDS; k++) s.detailOrigin[k] = uDetailOrigin[k];
   s.up = normalize(uBodyToWorld * upB);
 
@@ -66,5 +84,5 @@ void main() {
   s.slope = 1.0 - dot(s.normal, s.up);
   vec3 L = shadeSurface(s) * (1.0 + albedoMod);
   gl_FragColor = vec4(min(max(L, 0.0) * uExposure, vec3(60000.0)), 1.0);
-  LOG_DEPTH_FRAGMENT();
+  LOG_DEPTH_FRAGMENT_AT(curve);
 }

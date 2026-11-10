@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { Bookmark, TourDef } from '../../../src/core/contracts';
+import { BLACK_HOLES } from '../../../src/modules/tours/black-holes';
 import { COSMIC_ZOOM } from '../../../src/modules/tours/cosmic-zoom';
+import { EARTH_THROUGH_TIME } from '../../../src/modules/tours/earth-through-time';
+import { GRAND_TOUR } from '../../../src/modules/tours/grand-tour';
+import { STARLIGHT } from '../../../src/modules/tours/starlight';
 import { compileTour, DEFAULT_GOTO_S, TourPlayer, type TourActions } from '../../../src/modules/tours/player';
 
 interface Rec {
@@ -176,4 +180,55 @@ describe('Cosmic Zoom', () => {
         c.events.some((e) => e.step.type === 'caption' && e.time >= s.time && e.time <= s.time + 10),
       ).toBe(true);
   });
+});
+
+describe('every built-in tour', () => {
+  const all = [COSMIC_ZOOM, GRAND_TOUR, EARTH_THROUGH_TIME, BLACK_HOLES, STARLIGHT];
+
+  it('has a unique id, a title and a description', () => {
+    expect(new Set(all.map((t) => t.id)).size).toBe(all.length);
+    for (const t of all) {
+      expect(t.title.length, t.id).toBeGreaterThan(3);
+      expect(t.description?.length ?? 0, t.id).toBeGreaterThan(20);
+    }
+  });
+
+  for (const tour of all) {
+    it(`${tour.id}: opens with a caption, captions every stop, ends at home at real time`, () => {
+      expect(tour.steps[0].type).toBe('caption');
+      const gotos = tour.steps.flatMap((s) => (s.type === 'goto' ? [s.target] : []));
+      expect(gotos.every((t) => typeof t === 'string')).toBe(true);
+      // The last stop is the bookmark that puts the clock back to now.
+      expect(gotos[gotos.length - 1]).toBe('earth-now');
+      const c = compileTour(tour, () => true);
+      expect(c.stops.length).toBeGreaterThanOrEqual(6);
+      expect(c.total, 'length in seconds').toBeGreaterThan(100);
+      expect(c.total).toBeLessThan(330);
+      for (const s of c.stops)
+        expect(
+          c.events.some((e) => e.step.type === 'caption' && e.time >= s.time && e.time <= s.time + 10),
+          `caption at stop ${String(s.target)}`,
+        ).toBe(true);
+      // Captions stay readable: no stop is shorter than its caption needs (about 14 characters a second).
+      const captions = c.events.filter((e) => e.step.type === 'caption');
+      for (let i = 0; i < captions.length; i++) {
+        const step = captions[i].step as { text: string };
+        const until = captions[i + 1]?.time ?? c.total;
+        expect(until - captions[i].time, step.text.slice(0, 40)).toBeGreaterThanOrEqual(
+          Math.min(12, step.text.length / 25),
+        );
+      }
+      // Any time warp is put back before the end.
+      const rates = tour.steps.flatMap((s) => (s.type === 'timeRate' ? [s.rate] : []));
+      if (rates.length) expect(rates[rates.length - 1]).toBe(1);
+    });
+
+    it(`${tour.id}: still runs to the end when every optional stop is missing`, () => {
+      const gotos = tour.steps.flatMap((s) => (s.type === 'goto' ? [s.target as string] : []));
+      const { rec, player } = play(tour, 1 / 30, gotos.slice(1, -1));
+      expect(player.done).toBe(true);
+      const flown = rec.log.filter((l) => l.includes(' goto ')).map((l) => l.split(' ')[2]);
+      expect(flown).toEqual([gotos[0], 'earth-now']);
+    });
+  }
 });

@@ -28,8 +28,15 @@ export async function writeWebp(input, outPath, opts = {}) {
   const { width, height = width ? Math.round(width / 2) : undefined, quality = 85 } = opts;
   mkdirSync(dirname(outPath), { recursive: true });
   let s = img(input);
+  if (!opts.alpha) {
+    // Drop an unwanted alpha channel before resizing. sharp runs its operations in a fixed order
+    // (resize, which premultiplies by alpha, comes before removeAlpha), so a colour map whose alpha
+    // is a mask (Celestia's io.png: alpha 0 almost everywhere) came out black. Decode to plain RGB
+    // first when the source has alpha.
+    if ((await s.metadata()).hasAlpha)
+      s = img(await s.removeAlpha().raw().toBuffer({ resolveWithObject: true }));
+  }
   if (width) s = s.resize(width, height, { fit: 'fill', kernel: opts.kernel ?? 'lanczos3' });
-  if (!opts.alpha) s = s.removeAlpha();
   const webp =
     opts.nearLossless != null
       ? { nearLossless: true, quality: opts.nearLossless, effort: 6 }

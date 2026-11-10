@@ -11,7 +11,9 @@
  * - upscale only after `upHoldMs` of frames at or below `fastMs` (vsync 60 Hz or better);
  * - an upscale that is followed by a downscale within `oscillationMs` doubles the upscale hold
  *   (up to 60 s), so a scene that cannot sustain the higher step settles instead of oscillating;
- * - intervals above `stallMs` (tab hidden, GC, asset upload) reset the window.
+ * - a single interval above `stallMs` (tab hidden, GC, asset upload) resets the window, but
+ *   `STALL_STREAK` of them in a row are the frame rate itself (a machine drawing a few frames a
+ *   second): they scale down two steps per cooldown instead of being ignored forever.
  */
 export interface DynamicResOptions {
   min: number;
@@ -41,6 +43,8 @@ export const DYNAMIC_RES_DEFAULTS: DynamicResOptions = {
 
 const MAX_HOLD_MS = 60_000;
 const WINDOW_CAP = 256;
+/** Consecutive intervals above `stallMs` that count as a slow frame rate rather than a hitch. */
+export const STALL_STREAK = 4;
 
 export class DynamicResolution {
   readonly opts: DynamicResOptions;
@@ -55,6 +59,7 @@ export class DynamicResolution {
   private fastFor = 0;
   private upHold: number;
   private _mean = 0;
+  private stalls = 0;
 
   constructor(opts: Partial<DynamicResOptions> = {}, initial = 1) {
     this.opts = { ...DYNAMIC_RES_DEFAULTS, ...opts };
@@ -85,6 +90,7 @@ export class DynamicResolution {
     this.winMs = 0;
     this.fastFor = 0;
     this.upHold = this.opts.upHoldMs;
+    this.stalls = 0;
   }
 
   /**
@@ -98,8 +104,15 @@ export class DynamicResolution {
       this.n = 0;
       this.winMs = 0;
       this.fastFor = 0;
-      return null;
+      if (++this.stalls < STALL_STREAK) return null;
+      // Every frame is this slow: report it as the frame time and shed resolution quickly.
+      this._mean = dtMs;
+      if (this.time - this.lastChange < o.cooldownMs || this._scale <= o.min) return null;
+      this._scale = this.clamp(this._scale - 2 * o.step);
+      this.lastChange = this.time;
+      return this._scale;
     }
+    this.stalls = 0;
     if (this.n < WINDOW_CAP) this.win[this.n++] = dtMs;
     this.winMs += dtMs;
     if (this.winMs < o.windowMs) return null;

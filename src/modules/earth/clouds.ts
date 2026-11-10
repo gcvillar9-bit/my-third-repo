@@ -19,7 +19,7 @@ import {
 import type { Body, Renderable, ViewState } from '../../core/contracts';
 import { qrotateInv, quat, v3len, vec3 } from '../../core/math64';
 import { SUN_RGB, solarIlluminance } from '../../core/photometry';
-import { DEPTH_GLSL } from '../../render/chunks/index';
+import { DEPTH_GLSL, FACET_GLSL } from '../../render/chunks/index';
 import cloudFrag from './glsl/cloud.frag.glsl?raw';
 import cloudVert from './glsl/cloud.vert.glsl?raw';
 import { CLOUD_ALTITUDE_M, EARTH_PRELUDE, apparentPx, setWorldToBody } from './shading';
@@ -102,7 +102,7 @@ export function createCloudShell(deps: CloudShellDeps): Renderable {
   };
   const material = new ShaderMaterial({
     vertexShader: `${DEPTH_GLSL}\n${cloudVert}`,
-    fragmentShader: `${DEPTH_GLSL}\n${EARTH_PRELUDE}\n${cloudFrag}`,
+    fragmentShader: `${DEPTH_GLSL}\n${FACET_GLSL}\n${EARTH_PRELUDE}\n${cloudFrag}`,
     uniforms,
     transparent: true,
     depthTest: true,

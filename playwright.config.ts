@@ -11,6 +11,9 @@ const PORT = Number(process.env.E2E_PORT ?? 4173);
 const BASE_PATH = '/my-third-repo/';
 const HOST = '127.0.0.1';
 const useDevServer = process.env.E2E_SERVER === 'dev' && !process.env.CI;
+// Optional browser binary for machines whose pre-installed Chromium is not the build this
+// Playwright version expects (never run `playwright install` there). Unset in CI.
+const executablePath = process.env.E2E_CHROMIUM || undefined;
 
 const serverCommand = useDevServer
   ? `pnpm exec vite --host ${HOST} --port ${PORT} --strictPort`
@@ -36,6 +39,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'off',
     launchOptions: {
+      executablePath,
       args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
     },
   },

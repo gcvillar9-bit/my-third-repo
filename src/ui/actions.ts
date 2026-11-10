@@ -3,6 +3,8 @@
  * the visible shell is mounted; before that (or with the UI hidden) they are no-ops.
  */
 export const uiActions = {
-  /** Opens the '?' keyboard-help overlay. */
+  /** Opens the '?' controls panel. */
   openHelp: (): void => {},
+  /** Opens the Explore panel. */
+  openExplore: (): void => {},
 };

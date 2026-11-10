@@ -1,7 +1,8 @@
 /**
  * First-visit hint card (P5-B). Shown once per browser (localStorage flag, every access wrapped in
  * try/catch), never in test mode and never when the UI is hidden (?ui=0). The card lists the main
- * controls, links to the '?' help overlay and starts the Cosmic Zoom tour.
+ * controls (keys, or gestures on touch screens), opens the Explore panel or the controls panel
+ * and starts the Cosmic Zoom tour.
  */
 import type { AppEnv, UiApi } from '../core/contracts';
 import { COSMIC_ZOOM_ID, tours } from '../modules/tours/public';
@@ -41,12 +42,22 @@ export function markOnboarded(storage: Storage | null): void {
 }
 
 export const HINTS: readonly [string, string][] = [
-  ['/', 'search anything: planets, stars, galaxies, bookmarks'],
-  ['WASD + drag', 'fly and look around'],
-  ['wheel', 'change speed'],
+  ['Explore', 'browse planets, places and eras by theme (X)'],
+  ['/', 'search anything by name'],
+  ['Drag + WASD', 'look around and fly; the wheel changes speed'],
+  ['Click', 'select a world; double-click flies there'],
+  ['Land', 'set down on a world and walk (G takes off again)'],
   [', .', 'slow down or speed up time'],
-  ['G', 'walk when near a surface'],
-  ['P', 'photo mode'],
+];
+
+/** The same card on touch screens, where there are no keys. */
+export const TOUCH_HINTS: readonly [string, string][] = [
+  ['Explore', 'browse planets, places and eras by theme'],
+  ['Drag', 'look around with one finger'],
+  ['Pinch', 'fly forward or back'],
+  ['Stick', 'move; the arrows go up and down'],
+  ['Tap', 'select a world; double-tap flies there'],
+  ['Land', 'set down on a world and walk'],
 ];
 
 const CSS = `
@@ -56,7 +67,7 @@ const CSS = `
 .cz-onboard h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: #fff; }
 .cz-onboard ul { margin: 0 0 10px; padding: 0; list-style: none; }
 .cz-onboard li { display: flex; gap: 8px; margin: 2px 0; }
-.cz-onboard kbd { min-width: 78px; font: 11px ui-monospace, monospace; color: #9cc3ff; }
+.cz-onboard kbd { min-width: 86px; flex: none; font: 11px ui-monospace, monospace; color: #9cc3ff; }
 .cz-onboard .row { display: flex; gap: 6px; flex-wrap: wrap; }
 .cz-onboard button { font: inherit; color: inherit; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 6px; padding: 3px 10px; cursor: pointer; }
@@ -79,7 +90,8 @@ export function startOnboarding(_ui: UiApi, env: AppEnv): void {
   const h = document.createElement('h2');
   h.textContent = 'Welcome to Cosmos';
   const list = document.createElement('ul');
-  for (const [key, text] of HINTS) {
+  const touch = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  for (const [key, text] of touch ? TOUCH_HINTS : HINTS) {
     const li = document.createElement('li');
     const k = document.createElement('kbd');
     k.textContent = key;
@@ -100,7 +112,8 @@ export function startOnboarding(_ui: UiApi, env: AppEnv): void {
     row.appendChild(b);
   };
   button('▶ Take the tour', () => tours.start(COSMIC_ZOOM_ID), 'primary');
-  button('All keys (?)', () => uiActions.openHelp());
+  button('Explore', () => uiActions.openExplore());
+  button('All controls', () => uiActions.openHelp());
   button('Got it', () => {});
   card.append(h, list, row);
   (document.getElementById('ui') ?? document.body).appendChild(card);

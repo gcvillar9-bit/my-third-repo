@@ -12,7 +12,7 @@
 import type { Vec3d } from '../../core/contracts';
 import type { TerrainStats, TerrainSystem } from './system';
 
-export { DEFAULT_HEIGHT_MODULE } from './defaults';
+export { DEFAULT_HEIGHT_MODULE, terrainEligible } from './defaults';
 export { MAX_LEVEL, PATCH_N } from './cube';
 export { TERRAIN_PRIORITY, TERRAIN_PROVIDER_ID, HANDOFF_RADII } from './system';
 export type { TerrainStats } from './system';

@@ -19,14 +19,23 @@ import { DynamicResolution } from '../render/dynamic-res';
 import { DEFAULT_TEST_EV } from '../render/exposure';
 import { EngineRenderer } from '../render/renderer';
 import { mountUi } from '../ui/index';
+import {
+  AutoQuality,
+  bindQualityControl,
+  devicePreset,
+  initialQuality,
+  storeAutoLevel,
+  storeQualityChoice,
+} from './auto-quality';
 import { PerfOverlay } from './perf-overlay';
 import { discoverModules, initModules } from './discover';
 import { parseEnv } from './env';
 import { Loop, TEST_DT } from './loop';
 import { startOnboarding } from './onboarding';
+import { createSplash } from './splash';
 import { captureErrors, installTestApi, recordError } from './test-api';
 import { instantOf, parseHash, stateFromCamera, UrlSync, type UrlState } from './url-state';
-import { terrainStats } from '../modules/terrain/public';
+import { terrainEligible, terrainStats } from '../modules/terrain/public';
 
 /** Sim instant used in test mode when no ?t= is given (deterministic screenshots). */
 export const TEST_DEFAULT_TIME = '2026-01-01T00:00:00Z';
@@ -44,9 +53,37 @@ export interface Engine {
   registry: RegistryImpl;
 }
 
+/** localStorage, or null when blocked (private mode, sandboxed iframe). */
+function sessionStore(): Storage | null {
+  try {
+    const s = globalThis.localStorage;
+    s?.getItem('cosmos.probe');
+    return s ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Frames drawn behind the splash before and after the first view's assets arrive. */
+const SPLASH_FRAMES = 3;
+/** Longest wait for the first view's assets before the splash lifts anyway, ms. */
+const SPLASH_MAX_WAIT_MS = 8000;
+/** A boot still behind the splash after this long gets a hint and a Reload button, ms. */
+const SPLASH_SLOW_MS = 45_000;
+/** Automatic quality steps are remembered for the next visit only after this long, ms. */
+const AUTO_REMEMBER_AFTER_MS = 60_000;
+
 export async function boot(): Promise<Engine | undefined> {
   const env = parseEnv(window.location.search, import.meta.env.BASE_URL, import.meta.env.DEV);
   const test = env.test;
+  const splash = createSplash();
+  // Tests screenshot and click the page straight away: no splash there.
+  if (test) splash.remove();
+  // Stalled downloads or a first frame that never comes: say so instead of loading forever.
+  const slowTimer = setTimeout(
+    () => splash.slow('This is taking a while. Check your connection, or reload to try again.'),
+    SPLASH_SLOW_MS,
+  );
   // ?test=1&live=1: the test API plus a normal session (rAF loop, mouse/keyboard input, URL sync,
   // initial view from the hash). Used by the input regression spec.
   const live = test && env.params.get('live') === '1';
@@ -61,7 +98,15 @@ export async function boot(): Promise<Engine | undefined> {
   const canvas = document.createElement('canvas');
   container.appendChild(canvas);
 
-  const quality = new QualityStateImpl(parseQuality(env.params.get('q')), test);
+  // Quality: tests take `?q=` literally; real sessions remember the choice and may lower it.
+  const store = test ? null : sessionStore();
+  const choice = test
+    ? { preset: parseQuality(env.params.get('q')), auto: false }
+    : initialQuality(env.params.get('q'), store, {
+        coarsePointer: window.matchMedia?.('(pointer: coarse)').matches ?? false,
+        memoryGb: (navigator as { deviceMemory?: number }).deviceMemory,
+      });
+  const quality = new QualityStateImpl(choice.preset, test);
   const budget = new ResourceBudgetImpl(() => ResourceBudgetImpl.mb(quality.knobs.gpuBudgetMB));
   const frames = new FrameTreeImpl();
   addStandardFrames(frames);
@@ -85,6 +130,9 @@ export async function boot(): Promise<Engine | undefined> {
     });
   } catch (e) {
     container.textContent = 'Cosmos needs WebGL2, which this browser does not provide.';
+    splash.fail(
+      'Cosmos needs WebGL2, which this browser or device does not provide. Try a current Chrome, Edge, Firefox or Safari with hardware acceleration on.',
+    );
     throw e;
   }
 
@@ -114,8 +162,15 @@ export async function boot(): Promise<Engine | undefined> {
   };
 
   const assets = new AssetLoaderImpl(env.baseUrl, budget);
+  const stopSplashProgress = assets.subscribe((p) => splash.progress(p.loaded, p.total));
   const workers = new WorkerPoolImpl();
-  const camera = new CameraController({ frames, registry, jd: () => clock.jd, onBookmark });
+  const camera = new CameraController({
+    frames,
+    registry,
+    jd: () => clock.jd,
+    onBookmark,
+    walkable: terrainEligible,
+  });
   const uiCtx: UiContext = { frames, clock, registry, render, assets, workers, quality, camera, budget, env };
   const ui = mountUi(document.getElementById('ui') ?? document.body, uiCtx);
   const ctx: ModuleContext = { ...uiCtx, registry, ui };
@@ -227,13 +282,54 @@ export async function boot(): Promise<Engine | undefined> {
       quality.setDynamicScale(1);
     },
   });
+  // Automatic quality: without an explicit choice, a session that stays slow at the lowest
+  // dynamic resolution steps one preset down (and starts there next time).
+  let autoQuality = choice.auto;
+  const autoQ = new AutoQuality();
+  autoQ.reset();
+  bindQualityControl({
+    get auto() {
+      return autoQuality;
+    },
+    choose(mode) {
+      autoQuality = mode === 'auto';
+      storeQualityChoice(store, mode === 'auto' ? null : mode);
+      autoQ.reset();
+      if (mode === 'auto') {
+        const start = devicePreset({
+          coarsePointer: window.matchMedia?.('(pointer: coarse)').matches ?? false,
+          memoryGb: (navigator as { deviceMemory?: number }).deviceMemory,
+        });
+        if (quality.preset !== start) quality.set(start);
+      } else if (quality.preset !== mode) quality.set(mode);
+    },
+  });
   let lastFrameMs = 0;
+  let bootedMs = 0;
   const tickDynamic = (ms: number) => {
+    // A hidden page is throttled by the browser: its frame times say nothing about the machine.
+    if (document.hidden) {
+      lastFrameMs = 0;
+      return;
+    }
+    bootedMs ||= ms;
     const dt = lastFrameMs ? ms - lastFrameMs : 0;
     lastFrameMs = ms;
-    if (!dynOn) return;
-    const s = dyn.sample(dt);
-    if (s !== null) quality.setDynamicScale(s);
+    if (dynOn) {
+      const s = dyn.sample(dt);
+      if (s !== null) quality.setDynamicScale(s);
+    }
+    if (!autoQuality || test) return;
+    const atMin = !dynOn || quality.dynamicScale <= DYNAMIC_SCALE_BOUNDS[quality.preset][0] + 1e-6;
+    // Without dynamic resolution there is no smoothed frame time: use the raw interval.
+    const next = autoQ.sample(dt, dynOn ? dyn.meanMs : dt, atMin, quality.preset);
+    if (!next) return;
+    quality.set(next);
+    // A slow first minute is often the page still loading: only later steps are remembered.
+    if (ms - bootedMs > AUTO_REMEMBER_AFTER_MS) storeAutoLevel(store, next);
+    ui.toast(`Graphics quality lowered to "${next}" for a smoother flight. Change it in Settings (⚙).`, {
+      durationMs: 8000,
+    });
   };
   // Performance overlay (stats-gl): a persisted setting, off by default; ?perf=1 forces it on at boot.
   const perf = new PerfOverlay({
@@ -304,6 +400,7 @@ export async function boot(): Promise<Engine | undefined> {
         altitude: camera.nearestSurface()?.altitude ?? null,
       }),
       resolution: () => ({ ...render.size, dynamicScale: quality.dynamicScale }),
+      bookmarks: () => registry.bookmarks().map((b) => b.id),
       compileAll: async () => {
         await render.compileAll();
         return render.stats().programs;
@@ -311,12 +408,48 @@ export async function boot(): Promise<Engine | undefined> {
     });
   }
 
+  // A lost WebGL context (GPU reset, driver update, out of memory) cannot be repaired piecemeal:
+  // say so, and reload once the browser hands a context back. The link keeps the view.
+  let contextLost = false;
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    contextLost = true;
+    clearTimeout(slowTimer);
+    loop.stop();
+    splash.fail(
+      'The graphics context was lost (the GPU was reset or ran out of memory). Reload to carry on from the same view.',
+    );
+  });
+  canvas.addEventListener('webglcontextrestored', () => window.location.reload());
+
   if (!interactive) {
+    clearTimeout(slowTimer);
     loop.frame(TEST_DT);
   } else {
     camera.attach(canvas);
     loop.start();
-    startOnboarding(ui, env);
+    // The splash lifts once the first view has drawn with its assets (or after a bounded wait),
+    // so the first thing on screen is a finished frame rather than textures popping in.
+    void (async () => {
+      const frames0 = render.stats().frame;
+      // Resolves false when the context is lost meanwhile: the failure screen then stays up.
+      const framesDrawn = (n: number) =>
+        new Promise<boolean>((resolve) => {
+          const tick = () => {
+            if (contextLost) resolve(false);
+            else if (render.stats().frame - frames0 >= n) resolve(true);
+            else setTimeout(tick, 50);
+          };
+          tick();
+        });
+      if (!(await framesDrawn(SPLASH_FRAMES))) return;
+      await Promise.race([assets.whenIdle(), new Promise((r) => setTimeout(r, SPLASH_MAX_WAIT_MS))]);
+      if (!(await framesDrawn(2 * SPLASH_FRAMES))) return;
+      clearTimeout(slowTimer);
+      stopSplashProgress();
+      splash.done();
+      startOnboarding(ui, env);
+    })();
   }
   return { ctx, loop, render, camera, frames, registry };
 }
