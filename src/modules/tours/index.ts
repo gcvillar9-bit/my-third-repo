@@ -1,5 +1,5 @@
 /**
- * tours (P5-B): registers the Cosmic Zoom tour, a palette entry per tour ("Tour: Cosmic Zoom")
+ * tours (P5-B): registers the built-in tours (TOURS), a palette entry per tour ("Tour: Cosmic Zoom")
  * and plays tours with TourPlayer, ticked from render.onBeforeFrame with the real frame time
  * (fixed 1/60 s in test mode). Esc exits, the overlay pauses and skips. `?tour=<id>` starts a
  * tour after boot and `?tourspeed=<k>` plays it k times faster (e2e).
@@ -8,13 +8,19 @@ import type { Bookmark, ModuleContext, UniverseModule } from '../../core/contrac
 import { qfromAxisAngle, qmul, qnormalize, qrotate, quat, v3add, v3sub, vec3 } from '../../core/math64';
 import { photo } from '../photo/public';
 import { CONSTELLATIONS_SETTING, LINE_BOOKMARKS } from '../starsystems/public';
+import { BLACK_HOLES } from './black-holes';
 import { COSMIC_ZOOM } from './cosmic-zoom';
+import { EARTH_THROUGH_TIME } from './earth-through-time';
+import { GRAND_TOUR } from './grand-tour';
+import { STARLIGHT } from './starlight';
 import { TourOverlay } from './overlay';
 import { TourPlayer, type TourActions } from './player';
 import { provideTours, TOUR_ENTRY_PREFIX, TOURS_MODULE_ID } from './public';
 
 const ZERO = vec3();
 const UP = vec3(0, 1, 0);
+/** Every built-in tour, in menu order. */
+export const TOURS = [COSMIC_ZOOM, GRAND_TOUR, EARTH_THROUGH_TIME, BLACK_HOLES, STARLIGHT] as const;
 
 function makeActions(ctx: ModuleContext): TourActions {
   const { registry, frames, camera, clock, ui } = ctx;
@@ -63,8 +69,8 @@ const isEditable = (t: EventTarget | null): boolean =>
 const toursModule: UniverseModule = {
   id: TOURS_MODULE_ID,
   init(ctx) {
-    const { registry, render, clock, env } = ctx;
-    registry.addTour(COSMIC_ZOOM);
+    const { registry, render, clock, env, ui } = ctx;
+    for (const t of TOURS) registry.addTour(t);
     registry.addSearch({
       id: 'tours',
       entries: () =>
@@ -89,11 +95,18 @@ const toursModule: UniverseModule = {
 
     const end = () => {
       if (!player) return;
+      const finished = player.done;
       player.stop();
       player = null;
       overlay?.dispose();
       overlay = null;
       if (clock.rate !== rateBefore) clock.setRate(rateBefore);
+      // A tour left early may leave the clock on one of its stops' dates (66 Ma, AD 117 ...).
+      const nowJd = Date.now() / 86_400_000 + 2440587.5;
+      if (!finished && !env.test && Math.abs(clock.jd - nowJd) > 2)
+        ui.toast('The clock is still on the tour’s date. Press N (or Now) to return to the present.', {
+          durationMs: 7000,
+        });
     };
     const control = {
       start(id: string): boolean {
