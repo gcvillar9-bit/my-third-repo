@@ -131,7 +131,7 @@ export function buildBookmarks(fleet: readonly Craft[], eph: Ephemeris): Bookmar
         'jwst-l2',
         'James Webb Space Telescope at L2',
         jd,
-        fillEv(1.01 * AU) - 0.5,
+        fillEv(1.01 * AU) - 1.5,
         { pos: vec3(16, -10, 8), target: vec3(0.5, 0, 2.4), up: vec3(0, 0, 1) },
         'Webb from its cold side: the gold honeycomb of 18 hexagonal mirror segments standing on the silver kite-shaped sunshield, the secondary mirror on its tripod in front; black space behind (this side never sees the Sun, so it is lit by fill light only).',
         56,
@@ -150,10 +150,10 @@ export function buildBookmarks(fleet: readonly Craft[], eph: Ephemeris): Bookmar
         'voyager1-looking-back',
         'Voyager 1 looking back at the Sun',
         jd,
-        sunlitEv(rSun(v1, jd)) - 1.5,
-        { pos: vec3(2.1, 6.7, -1.9), target: vec3(-1.76, -5.54, 13.4), up: vec3(0.954, -0.3, 0) },
+        sunlitEv(rSun(v1, jd)) - 2,
+        { pos: vec3(2.1, 6.7, -1.9), target: vec3(-2.15, -6.77, 12.24), up: vec3(0.954, -0.3, 0) },
         'Voyager 1 in the foreground seen from behind: the back of the white dish, the dark ten-sided bus, the boom with three RTGs and the long magnetometer boom; beyond it the Sun as one brilliant star (Earth is lost in its glare), 170 AU away.',
-        65,
+        75,
       ),
     );
   }
