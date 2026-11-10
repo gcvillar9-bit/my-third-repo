@@ -86,7 +86,7 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
 - Search palette, info cards with a short description of every Solar System body, time controls (warp up to
   10 Myr/s, pause, any date: click the date and type `66 Ma`, `21 ka`, `500 BC` or `1066`, or pick an era), HUD
   with speed, distance and light-travel time, and shareable links to any view.
-- Touch screens: drag to look, pinch to fly, an on-screen stick to move.
+- Touch screens: drag to look, pinch to fly, an on-screen stick to move. Gamepads work too.
 
 ## Controls
 
@@ -121,6 +121,9 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
 
 On a touch screen: one finger looks around, a pinch flies forward or back, the stick moves, a tap selects and a
 double tap flies there.
+
+With a gamepad: the left stick flies or walks, the right stick looks, the triggers go down and up, the bumpers
+roll, the d-pad changes speed, `A` jumps and `Y` lands, walks or takes off.
 
 ## Performance
 

@@ -69,6 +69,17 @@ export const HELP_SECTIONS: readonly { title: string; rows: readonly (readonly [
     ],
   },
   {
+    title: 'Gamepad',
+    rows: [
+      ['Left stick', 'fly or walk'],
+      ['Right stick', 'look around'],
+      ['Triggers', 'down and up; bumpers roll'],
+      ['D-pad', 'faster or slower flight'],
+      ['A', 'jump when walking'],
+      ['Y', 'land, walk or take off'],
+    ],
+  },
+  {
     title: 'Touch',
     rows: [
       ['One finger', 'look around'],

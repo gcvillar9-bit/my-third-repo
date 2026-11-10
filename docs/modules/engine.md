@@ -67,6 +67,10 @@ Core services, render pipeline, camera and app shell. Contracts: `src/core/contr
   view by `PINCH_GAIN` altitudes per e-fold of finger spread (zoom in orbit mode); a finger that stays down takes
   over the drag. `setVirtualInput({forward, right, up, roll})` adds analog axes to the keys (on-screen stick; a
   full deflection runs in walk mode and `up` jumps); `addLook(yaw, pitch)` adds look rotations.
+- Gamepad (`src/camera/gamepad.ts`, pure mapping; polled in `update` once a pad has connected): left stick moves,
+  right stick looks (rate scaled by the field of view, dead zone 0.15, squared response), triggers down/up,
+  bumpers roll, d-pad up/down changes the speed factor per press, A jumps, Y lands / walks / takes off. Analog
+  sources add up (`setVirtualInput(v, source)`), so a pad at rest does not cancel the on-screen stick.
 
 ## App (`src/app`)
 

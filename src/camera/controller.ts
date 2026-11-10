@@ -41,6 +41,7 @@ import {
 import { Flight } from './autopilot';
 import { clampAboveGround, EYE_HEIGHT, GroundProviders, MIN_ALTITUDE } from './collision-hook';
 import { applyFree, emptyInput, type FlightInput } from './free';
+import { pickPad, readPad, type PadLike } from './gamepad';
 import { applyOrbit } from './orbit';
 import { surfaceGravity, Walker, WALK_RANGE, type WalkPose } from './walk';
 import { clampK, K_DEFAULT, SpeedController, targetSpeed } from './speed';
@@ -113,7 +114,12 @@ export class CameraController implements CameraApi {
   private viewportHeight = 270;
   private walker: Walker | null = null;
   private walkBody: Body | null = null;
+  /** Analog input per source (on-screen controls, gamepad); `virtual` is their clamped sum. */
+  private virtualBy = new Map<string, VirtualInput>();
   private virtual: VirtualInput = { forward: 0, right: 0, up: 0, roll: 0 };
+  /** Gamepad polling (set by attach in a real session) and the buttons held at the last poll. */
+  private pads: (() => readonly (PadLike | null)[]) | null = null;
+  private padHeld = { faster: false, slower: false, land: false };
   /** Eased movement input (camera axes), so flight starts and stops without a jolt. */
   private move = vec3();
   /** Pending pinch dolly, ln of the finger-spread ratio (positive = forward). */
@@ -261,16 +267,29 @@ export class CameraController implements CameraApi {
   get speed(): number {
     return this.speedCtl.speed;
   }
-  /** Sets analog movement from on-screen controls (axes left out keep their value). */
-  setVirtualInput(v: Partial<VirtualInput>): void {
-    const c = (x: number | undefined, prev: number) =>
-      x === undefined ? prev : Math.min(1, Math.max(-1, Number.isFinite(x) ? x : 0));
-    this.virtual = {
-      forward: c(v.forward, this.virtual.forward),
-      right: c(v.right, this.virtual.right),
-      up: c(v.up, this.virtual.up),
-      roll: c(v.roll, this.virtual.roll),
-    };
+  /**
+   * Sets analog movement from one source, on-screen controls by default (axes left out keep
+   * their value). Sources add up, so a gamepad at rest does not cancel the on-screen stick.
+   */
+  setVirtualInput(v: Partial<VirtualInput>, source = 'screen'): void {
+    const prev = this.virtualBy.get(source) ?? { forward: 0, right: 0, up: 0, roll: 0 };
+    const c = (x: number | undefined, old: number) =>
+      x === undefined ? old : Math.min(1, Math.max(-1, Number.isFinite(x) ? x : 0));
+    this.virtualBy.set(source, {
+      forward: c(v.forward, prev.forward),
+      right: c(v.right, prev.right),
+      up: c(v.up, prev.up),
+      roll: c(v.roll, prev.roll),
+    });
+    const sum = { forward: 0, right: 0, up: 0, roll: 0 };
+    for (const s of this.virtualBy.values()) {
+      sum.forward += s.forward;
+      sum.right += s.right;
+      sum.up += s.up;
+      sum.roll += s.roll;
+    }
+    const k = (x: number) => Math.min(1, Math.max(-1, x));
+    this.virtual = { forward: k(sum.forward), right: k(sum.right), up: k(sum.up), roll: k(sum.roll) };
     if (this.active && (this.virtual.forward || this.virtual.right || this.virtual.up)) this.cancelGoto();
   }
   /** Adds a look rotation, radians (touch and gamepad sticks; the mouse drag uses the same path). */
@@ -409,8 +428,41 @@ export class CameraController implements CameraApi {
   }
 
   // ----- per-frame update -----
+  /** Polls the gamepad (when one is connected) into the analog input, look and one-shot actions. */
+  pollGamepad(dt: number, pads: readonly (PadLike | null)[]): void {
+    const pad = pickPad(pads);
+    if (!pad) {
+      if (this.virtualBy.has('pad')) this.setVirtualInput({ forward: 0, right: 0, up: 0, roll: 0 }, 'pad');
+      return;
+    }
+    const c = readPad(pad);
+    this.setVirtualInput({ forward: c.forward, right: c.right, up: c.up, roll: c.roll }, 'pad');
+    // Look rate follows the field of view, like the mouse drag.
+    const k = (this.st.fovY / DEFAULT_FOV) * dt;
+    if (c.yaw || c.pitch) this.addLook(c.yaw * k, c.pitch * k);
+    const h = this.padHeld;
+    if (c.faster && !h.faster) this.speedFactor = this._k * 1.25;
+    if (c.slower && !h.slower) this.speedFactor = this._k / 1.25;
+    if (c.land && !h.land) {
+      if (this._mode === 'walk') this.setMode('free');
+      else if (this.canWalk()) this.setMode('walk');
+      else void this.land();
+    }
+    h.faster = c.faster;
+    h.slower = c.slower;
+    h.land = c.land;
+  }
+
   /** Advances the camera by dt real seconds. */
   update(dt: number): void {
+    if (this.pads) {
+      try {
+        this.pollGamepad(dt, this.pads());
+      } catch {
+        // A browser that refuses gamepad access (permissions policy): keyboard and mouse still work.
+        this.pads = null;
+      }
+    }
     if (this.active) {
       const a = this.active;
       a.t += dt;
@@ -685,6 +737,13 @@ export class CameraController implements CameraApi {
       if (this._mode === 'orbit') this.look.zoom *= Math.exp(e.deltaY * 0.001);
       else this.speedFactor = this._k * Math.exp(-e.deltaY * 0.0015);
     };
+    // Gamepads are polled each frame once one has announced itself (browsers hide them until a
+    // button is pressed).
+    const onPad = () => {
+      if (typeof navigator !== 'undefined' && typeof navigator.getGamepads === 'function')
+        this.pads = () => navigator.getGamepads();
+    };
+    window.addEventListener('gamepadconnected', onPad);
     window.addEventListener('keydown', onWalkKey, true);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
@@ -696,6 +755,8 @@ export class CameraController implements CameraApi {
     el.addEventListener('lostpointercapture', onUp);
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => {
+      window.removeEventListener('gamepadconnected', onPad);
+      this.pads = null;
       window.removeEventListener('keydown', onWalkKey, true);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
