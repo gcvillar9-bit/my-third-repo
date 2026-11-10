@@ -1,6 +1,9 @@
 import { boot } from './app/boot';
 import { createSplash } from './app/splash';
 
+// Tells the splash's watchdog (index.html) that the script arrived and is running.
+document.documentElement.setAttribute('data-cosmos', 'starting');
+
 boot().catch((err: unknown) => {
   console.error('[cosmos] boot failed', err);
   const splash = createSplash();

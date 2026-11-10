@@ -102,7 +102,8 @@
         padding: 5px 14px;
         cursor: pointer;
       }
-      #boot.failed button {
+      #boot.failed button,
+      #boot.slow button {
         display: inline-block;
       }
     </style>
@@ -119,6 +120,17 @@
       </div>
     </div>
     <noscript>Cosmos needs JavaScript and WebGL2.</noscript>
+    <script>
+      // If the app's script has not started after 20 s (blocked, or the connection dropped), say so
+      // and offer a reload. A script that does arrive later carries on and lifts the splash as usual.
+      setTimeout(function () {
+        var boot = document.getElementById('boot');
+        if (!boot || document.documentElement.hasAttribute('data-cosmos')) return;
+        boot.classList.add('slow');
+        boot.querySelector('.boot-sub').textContent =
+          'This is taking a while. Check your connection, or reload to try again.';
+      }, 20000);
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
