@@ -5,9 +5,20 @@
  * tails rise to the upper right and the Sun stays out of frame on the left.
  */
 import type { Bookmark, Vec3d } from '../../core/contracts';
-import { qlookRotation, quat, v3cross, v3dot, v3len, v3normalize, v3scale, vec3 } from '../../core/math64';
+import {
+  qlookRotation,
+  qrotate,
+  quat,
+  v3cross,
+  v3dot,
+  v3len,
+  v3normalize,
+  v3scale,
+  vec3,
+} from '../../core/math64';
 import { parseInstant } from '../../core/time';
 import { AU } from '../../core/units';
+import { nucleusSpin } from './nucleus';
 import type { Comet } from './scene';
 
 const DEG = Math.PI / 180;
@@ -54,7 +65,7 @@ export const TAIL_VIEWS: readonly TailView[] = [
     azimuth: 200,
     roll: 24,
     fovDeg: 50,
-    ev: -8,
+    ev: -6,
     lookTarget:
       "Halley's Comet a month after its 1986 perihelion (the week of the Giotto flyby), seen from 0.4 AU above its " +
       'orbital plane in a long exposure: the bright head at the lower left, a narrow straight blue ion tail ' +
@@ -70,11 +81,11 @@ export const TAIL_VIEWS: readonly TailView[] = [
     lag: 0.06,
     distance: 0.8,
     elevation: 58,
-    side: 1,
+    side: -1,
     azimuth: 200,
     roll: 24,
     fovDeg: 50,
-    ev: -7,
+    ev: -4.5,
     lookTarget:
       'Comet Hale-Bopp days after its 1997 perihelion, seen from 0.8 AU above its orbital plane: a brilliant ' +
       'white head at the lower left, a straight blue ion tail towards the upper right and a wide, bright, ' +
@@ -145,6 +156,7 @@ export function tailBookmark(comet: Comet, view: TailView): Bookmark {
   };
 }
 
+export const NUCLEUS_VIEW_RADII = 3.4;
 export const HALLEY_NUCLEUS_ISO = '1986-03-14T00:03:00Z';
 /** Close-up of Halley's nucleus at the time of the Giotto flyby: sunlit from the right, coma glow around it. */
 export function nucleusBookmark(comet: Comet): Bookmark {
@@ -152,17 +164,21 @@ export function nucleusBookmark(comet: Comet): Bookmark {
   const p = comet.orbit.stateAt(jd, vec3());
   const sun = v3scale(vec3(), v3normalize(vec3(), p), -1);
   const w = comet.orbit.W;
-  const t = v3cross(vec3(), w, sun);
-  // 55 degrees of phase, a little above the orbital plane, 4.5 radii out.
-  const dir = v3normalize(
+  // 55 degrees of phase, swung around the Sun's direction to where the nucleus's long axis (mesh x at the
+  // flyby instant) is seen most nearly broadside.
+  const long = qrotate(
     vec3(),
-    combine(vec3(), [
-      [Math.cos(55 * DEG), sun],
-      [Math.sin(55 * DEG), t],
-      [0.3, w],
-    ]),
+    nucleusSpin(comet.row.id, comet.row.physical.rotationHours, jd, quat()),
+    vec3(1, 0, 0),
   );
-  const pos = v3scale(vec3(), dir, 4.5 * comet.body.radius);
+  const across = v3cross(vec3(), long, sun);
+  const side = v3len(across) > 1e-6 ? v3normalize(across, across) : v3cross(across, w, sun);
+  if (v3dot(side, w) < 0) v3scale(side, side, -1);
+  const dir = combine(vec3(), [
+    [Math.cos(55 * DEG), sun],
+    [Math.sin(55 * DEG), side],
+  ]);
+  const pos = v3scale(vec3(), dir, NUCLEUS_VIEW_RADII * comet.body.radius);
   const fwd = v3scale(vec3(), dir, -1);
   return {
     id: HALLEY_NUCLEUS_BOOKMARK,
@@ -172,10 +188,10 @@ export function nucleusBookmark(comet: Comet): Bookmark {
     quat: qlookRotation(quat(), fwd, rolledUp(fwd, sun, 0)),
     lookAt: comet.body.id,
     jd,
-    ev: 9.5,
+    ev: 12.8,
     fovY: 50 * DEG,
     lookTarget:
-      "Halley's nucleus from 32 km at the time of the Giotto flyby: a dark, elongated, lumpy rock about 15 km long " +
+      "Halley's nucleus from 25 km at the time of the Giotto flyby: a dark, elongated, lumpy rock about 15 km long " +
       'at the centre, lit by the Sun from the right with a rough terminator and its night side on the left, ' +
       'silhouetted against the faint glow of the inner coma.',
   };

@@ -3,6 +3,9 @@
  * ellipsoidal lobes (67P's "duck") roughened by value noise. The mesh is scaled so its largest extent is 1;
  * the renderable scales it by the body radius, so the camera's collision sphere always encloses it.
  */
+import type { Quatd } from '../../core/contracts';
+import { qfromAxisAngle, vec3 } from '../../core/math64';
+import { JD_J2000 } from '../../core/units';
 import type { CometShape } from './data';
 
 /** Deterministic 32-bit hash of a string (seed per comet). */
@@ -13,6 +16,17 @@ export function hashString(s: string): number {
     h = Math.imul(h, 16777619);
   }
   return h >>> 0;
+}
+
+/**
+ * Orientation of a nucleus at `jd` (mesh axes into world axes): a slow spin about a fixed, comet-specific
+ * axis with the catalogued period. The real pole directions are not modelled.
+ */
+export function nucleusSpin(id: string, rotationHours: number | undefined, jd: number, out: Quatd): Quatd {
+  const seed = hashString(id);
+  const axis = vec3(((seed & 255) / 255 - 0.5) * 0.9, (((seed >> 8) & 255) / 255 - 0.5) * 0.9, 1);
+  const turns = ((jd - JD_J2000) * 24) / (rotationHours ?? 12);
+  return qfromAxisAngle(out, axis, 2 * Math.PI * (turns - Math.floor(turns)));
 }
 
 function hash3(x: number, y: number, z: number, seed: number): number {

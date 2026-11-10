@@ -55,9 +55,13 @@ export function comaRadius(row: CometRow, rAU: number, display: CometDisplay): n
   return Math.min(8e8, Math.max(2.5e7, size));
 }
 
-/** Mean surface brightness of the coma disk, cd/m^2 (the reference level of the tails). */
-export function comaMeanLuminance(row: CometRow, rAU: number, display: CometDisplay): number {
-  const rc = comaRadius(row, rAU, display);
+/**
+ * Reference surface brightness of the tails, cd/m^2: the coma's light spread over a disk of its 1 AU
+ * radius. (Using the actual coma radius, which shrinks near the Sun, would overstate the tails of
+ * sun-skirting comets by orders of magnitude.)
+ */
+export function tailReferenceLuminance(row: CometRow, rAU: number, display: CometDisplay): number {
+  const rc = comaRadius(row, 1, display);
   return comaIntensity(row, rAU, display) / (Math.PI * rc * rc);
 }
 
@@ -92,8 +96,10 @@ export interface TailCurve {
   pos: Float64Array;
   /** Gaussian cross-section sigma per point, m. */
   sigma: Float64Array;
-  /** Peak surface brightness per point, cd/m^2. */
+  /** Peak surface brightness of the ribbon drawn along the curve, cd/m^2. */
   lum: Float64Array;
+  /** Face-on surface brightness of the sheet spanned between neighbouring curves (dust fan), cd/m^2. */
+  fan: Float64Array;
 }
 
 export function createCurve(count: number): TailCurve {
@@ -102,6 +108,7 @@ export function createCurve(count: number): TailCurve {
     pos: new Float64Array(3 * count),
     sigma: new Float64Array(count),
     lum: new Float64Array(count),
+    fan: new Float64Array(count),
   };
 }
 
@@ -109,7 +116,7 @@ export const ION_POINTS = 24;
 
 /**
  * Ion tail: straight along the Sun-comet line, narrow, brightness falling gently from the coma level and
- * fading out over the last 40% of its length. `sunToComet` in m.
+ * tapering to zero at the tip. `sunToComet` in m.
  */
 export function ionTail(row: CometRow, sunToComet: Vec3d, display: CometDisplay, out?: TailCurve): TailCurve {
   const c = out ?? createCurve(ION_POINTS);
@@ -118,26 +125,26 @@ export function ionTail(row: CometRow, sunToComet: Vec3d, display: CometDisplay,
   const len = ionTailLength(row, rAU, display);
   const dir = antiSunward(sunToComet, vec3());
   const rc = comaRadius(row, rAU, display);
-  const root = display.tailGain * row.look.ion * comaMeanLuminance(row, rAU, display);
+  const root = display.tailGain * row.look.ion * tailReferenceLuminance(row, rAU, display);
   for (let k = 0; k < n; k++) {
     const u = k / (n - 1);
     const s = len * u * u; // denser near the head
     c.pos[3 * k] = dir.x * s;
     c.pos[3 * k + 1] = dir.y * s;
     c.pos[3 * k + 2] = dir.z * s;
-    c.sigma[k] = 0.22 * rc + 0.022 * s;
-    c.lum[k] =
-      len > 0 ? root * (1 + s / rc) ** -(0.8 * display.tailFalloff) * (1 - smoothstep(0.6, 1, u)) : 0;
+    c.sigma[k] = 0.22 * rc + 0.026 * s;
+    // u^2 = s / len: the brightness tapers along the whole length and reaches zero at the tip.
+    c.lum[k] = len > 0 ? root * (1 + s / rc) ** -(display.tailFalloff + 0.15) * (1 - u * u) ** 1.5 : 0;
   }
   return c;
 }
 
 /** Radiation-pressure ratios of the syndynes and their share of the dust light (sums to 1). */
 export const DUST_BETAS: readonly number[] = [0.03, 0.07, 0.15, 0.3, 0.55, 0.9, 1.4];
-export const DUST_WEIGHTS: readonly number[] = [0.07, 0.12, 0.18, 0.21, 0.19, 0.14, 0.09];
+export const DUST_WEIGHTS: readonly number[] = [0.05, 0.09, 0.15, 0.21, 0.22, 0.17, 0.11];
 export const DUST_POINTS = 26;
 /** Oldest grains drawn, days. */
-export const DUST_MAX_AGE_DAYS = 90;
+export const DUST_MAX_AGE_DAYS = 45;
 
 const acc = vec3();
 function accel(mu: number, x: number, y: number, z: number, sun: Vec3d): Vec3d {
@@ -236,7 +243,7 @@ export function dustTail(
   const rAU = rNow / AU;
   const maxLen = dustTailLength(row, rAU, display);
   const rc = comaRadius(row, rAU, display);
-  const root = display.tailGain * row.look.dust * comaMeanLuminance(row, rAU, display);
+  const root = display.tailGain * row.look.dust * tailReferenceLuminance(row, rAU, display);
   const g = GM_SUN / (rNow * rNow);
   const tPeri = orbit.timeFromPerihelion(jd);
   const nExp = row.photometry.K / 2.5 - 2; // production ~ r^-nExp once illumination (r^-2) is taken out
@@ -249,7 +256,7 @@ export function dustTail(
     const vEject = (300 * Math.sqrt(beta)) / Math.sqrt(Math.max(rAU, 0.05));
     for (let k = 0; k < n; k++) {
       const u = k / (n - 1);
-      const age = ageMax * u * u;
+      const age = ageMax * u ** 1.6;
       if (k === 0 || maxLen <= 0) {
         c.pos[3 * k] = c.pos[3 * k + 1] = c.pos[3 * k + 2] = 0;
         c.sigma[k] = 0.3 * rc;
@@ -271,21 +278,22 @@ export function dustTail(
       c.pos[3 * k + 1] = y;
       c.pos[3 * k + 2] = z;
       const s = Math.hypot(x, y, z);
-      c.sigma[k] = Math.hypot(0.3 * rc, vEject * age);
+      c.sigma[k] = Math.max(Math.hypot(0.3 * rc, vEject * age), 0.07 * s);
       const rGrain = Math.hypot(pe.x - sunOffset.x, pe.y - sunOffset.y, pe.z - sunOffset.z);
       // Dust made when the comet was more (or less) active, lit at the grain's present distance.
       const history = Math.min(4, Math.max(0.25, (rNow / rEmit) ** nExp * (rNow / rGrain) ** 2));
       c.lum[k] =
-        root *
-        DUST_WEIGHTS[j] *
-        (1 + s / rc) ** -display.tailFalloff *
-        history *
-        (1 - smoothstep(0.55, 1, u));
+        root * DUST_WEIGHTS[j] * (1 + s / rc) ** -display.tailFalloff * history * (1 - smoothstep(0.7, 1, u));
     }
   }
-  // Widen each syndyne to the gap to its neighbours so the fan is continuous rather than striped.
+  // Split each syndyne's light between a ribbon of its own width and the sheet between neighbouring
+  // syndynes. With w the width a ribbon covers at its peak and d the gap to its neighbours, f = w / (w + d)
+  // is the share of the neighbourhood the ribbon fills: close to the head the curves coincide and the
+  // ribbons carry everything, further out the fan is a smooth sheet with faint striae along the syndynes.
+  // Ribbon l f^2 over w plus sheet l f (1 + f) over d adds up to the same light per unit length, l w.
   for (let j = 0; j < curves.length; j++) {
     const c = curves[j];
+    c.fan[0] = 0;
     for (let k = 1; k < c.count; k++) {
       const [x, y, z] = [c.pos[3 * k], c.pos[3 * k + 1], c.pos[3 * k + 2]];
       let gap = 0;
@@ -298,7 +306,11 @@ export function dustTail(
         gap += distToCurve(x, y, z, curves[j + 1]);
         m++;
       }
-      if (m) c.sigma[k] = Math.max(c.sigma[k], (0.6 * gap) / m);
+      const w = c.sigma[k] * Math.sqrt(2 * Math.PI);
+      const f = w / (w + (m ? gap / m : 0));
+      const l = c.lum[k];
+      c.lum[k] = l * f * f;
+      c.fan[k] = l * f * (1 + f);
     }
   }
   return curves;

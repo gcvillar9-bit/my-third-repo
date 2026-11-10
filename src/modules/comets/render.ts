@@ -24,13 +24,13 @@ import {
   type IUniform,
 } from 'three';
 import type { Renderable, ViewState } from '../../core/contracts';
-import { v3add, vec3 } from '../../core/math64';
+import { quat, v3add, vec3 } from '../../core/math64';
 import { SUN_RGB, luminance, planetPointIlluminance, solarIlluminance } from '../../core/photometry';
-import { JD_J2000 } from '../../core/units';
 import { DEPTH_GLSL, NOISE_GLSL } from '../../render/chunks/index';
 import comaGlsl from './glsl/coma.glsl?raw';
 import nucleusGlsl from './glsl/nucleus.glsl?raw';
 import pointGlsl from './glsl/point.glsl?raw';
+import sheetGlsl from './glsl/sheet.glsl?raw';
 import tailGlsl from './glsl/tail.glsl?raw';
 import {
   DUST_BETAS,
@@ -44,8 +44,8 @@ import {
   smoothstep,
   type TailCurve,
 } from './model';
-import { buildNucleus, hashString } from './nucleus';
-import type { CometScene, CometView } from './scene';
+import { buildNucleus, hashString, nucleusSpin } from './nucleus';
+import { COMA_EXTENT, type CometScene, type CometView } from './scene';
 import { AU } from '../../core/units';
 
 const split = (src: string): [string, string] => {
@@ -59,7 +59,7 @@ const unitLuminance = ([r, g, b]: Rgb): Rgb => {
   return [r / l, g / l, b / l];
 };
 /** Sunlight scattered by dust (slightly reddened), C2/CN gas glow, and CO+ ion emission; luminance 1. */
-export const DUST_COLOR = unitLuminance([1.0, 0.9, 0.7]);
+export const DUST_COLOR = unitLuminance([1.0, 0.93, 0.78]);
 export const GAS_COLOR = unitLuminance([0.5, 1.0, 0.78]);
 export const ION_COLOR = unitLuminance([0.22, 0.45, 1.0]);
 
@@ -74,8 +74,11 @@ export const NUCLEUS_POINT_PX = 1;
 export const NUCLEUS_FULL_PX = 3;
 /** Tails are rebuilt when the date moves by this many days. */
 export const TAIL_REFRESH_DAYS = 0.02;
-/** Integral of the coma cut-off 1 - smoothstep(0.3, 1, x) over 0..1 (normalises the column to I). */
-export const COMA_CUT_INTEGRAL = 0.65;
+/** The 1/b rise of the coma column levels off inside this many nucleus radii (the dust is still being
+ * accelerated and most of the gas glow forms further out), so the nucleus stays visible in its own haze. */
+export const COMA_CORE_RADII = 1.3;
+/** Integral over x = b / Rc of the coma cut-off exp(-x) (1 - smoothstep(2.4, 3, x)): normalises the column to I. */
+export const COMA_CUT_INTEGRAL = 0.93;
 
 /** Writes curves as camera-facing ribbon vertices (two per point) starting at vertex `base`. */
 export function writeRibbon(
@@ -144,11 +147,66 @@ interface Ribbon {
   bytes: number;
 }
 
+/**
+ * Writes the dust fan as a sheet: one row of vertices per syndyne plus a phantom row beyond each outer
+ * syndyne (brightness zero) so that the fan's edges are soft. Returns the number of vertices written.
+ */
+export function writeSheet(curves: readonly TailCurve[], pos: Float32Array, lum: Float32Array): number {
+  const rows = curves.length + 2;
+  const n = curves[0].count;
+  const EDGE = 0.8;
+  for (let r = 0; r < rows; r++) {
+    const j = Math.min(curves.length - 1, Math.max(0, r - 1));
+    const phantom = r === 0 || r === rows - 1;
+    // The neighbour a phantom row is mirrored through.
+    const o = r === 0 ? Math.min(1, curves.length - 1) : Math.max(0, curves.length - 2);
+    const c = curves[j];
+    const d = curves[o];
+    for (let k = 0; k < n; k++) {
+      const v = r * n + k;
+      for (let a = 0; a < 3; a++) {
+        const x = c.pos[3 * k + a];
+        pos[3 * v + a] = phantom ? x + EDGE * (x - d.pos[3 * k + a]) : x;
+      }
+      lum[v] = phantom ? 0 : c.fan[k];
+    }
+  }
+  return rows * n;
+}
+
+/** Triangle indices of a sheet of `rows` x `cols` vertices. */
+export function sheetIndex(rows: number, cols: number): Uint16Array {
+  const idx = new Uint16Array((rows - 1) * (cols - 1) * 6);
+  let t = 0;
+  for (let r = 0; r < rows - 1; r++) {
+    for (let k = 0; k < cols - 1; k++) {
+      const v = r * cols + k;
+      idx[t++] = v;
+      idx[t++] = v + cols;
+      idx[t++] = v + 1;
+      idx[t++] = v + 1;
+      idx[t++] = v + cols;
+      idx[t++] = v + cols + 1;
+    }
+  }
+  return idx;
+}
+
+interface Sheet {
+  mesh: Mesh;
+  geometry: BufferGeometry;
+  material: ShaderMaterial;
+  pos: Float32Array;
+  lum: Float32Array;
+  bytes: number;
+}
+
 interface Visual {
   nucleus?: { mesh: Mesh; material: ShaderMaterial; bytes: number };
   coma?: { mesh: Mesh; material: ShaderMaterial };
   ion?: Ribbon;
   dust?: Ribbon;
+  fan?: Sheet;
   ionCurve?: TailCurve;
   dustCurves?: TailCurve[];
   tailJd: number;
@@ -178,12 +236,13 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
   const [comaVs, comaFs] = split(comaGlsl);
   const [tailVs, tailFs] = split(tailGlsl);
   const [pointVs, pointFs] = split(pointGlsl);
+  const [sheetVs, sheetFs] = split(sheetGlsl);
   const pixelAngle = { value: 1e-3 };
 
   // ---- nuclei --------------------------------------------------------------------------------------
   const q = new Quaternion();
   const m4 = new Matrix4();
-  const axis = new Vector3();
+  const spin = quat();
   const buildNucleusMesh = (v: CometView): NonNullable<Visual['nucleus']> => {
     const { row } = v.comet;
     const seed = hashString(row.id);
@@ -237,12 +296,8 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
         mesh.visible = true;
         mesh.position.set(v.rel.x, v.rel.y, v.rel.z);
         mesh.scale.setScalar(R);
-        // Slow spin about a fixed, comet-specific axis.
-        const seed = hashString(v.comet.row.id);
-        axis.set(((seed & 255) / 255 - 0.5) * 0.9, (((seed >> 8) & 255) / 255 - 0.5) * 0.9, 1).normalize();
-        const hours = v.comet.row.physical.rotationHours ?? 12;
-        const turns = ((view.jd - JD_J2000) * 24) / hours;
-        q.setFromAxisAngle(axis, 2 * Math.PI * (turns - Math.floor(turns)));
+        nucleusSpin(v.comet.row.id, v.comet.row.physical.rotationHours, view.jd, spin);
+        q.set(spin.x, spin.y, spin.z, spin.w);
         mesh.quaternion.copy(q);
         const u = material.uniforms;
         (u.uBodyToWorld.value as Matrix3).setFromMatrix4(m4.makeRotationFromQuaternion(q));
@@ -301,6 +356,7 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
       fragmentShader: `${DEPTH_GLSL}\n${comaFs}`,
       uniforms: {
         uCenter: { value: new Vector3() },
+        uSunDir: { value: new Vector3(1, 0, 0) },
         uRc: { value: 1 },
         uSoft: { value: 1 },
         uK: { value: new Vector3() },
@@ -360,6 +416,36 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
     };
   };
 
+  const buildSheet = (v: CometView): Sheet => {
+    const rows = DUST_BETAS.length + 2;
+    const pos = new Float32Array(3 * rows * DUST_POINTS);
+    const lum = new Float32Array(rows * DUST_POINTS);
+    const index = sheetIndex(rows, DUST_POINTS);
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(pos, 3).setUsage(DynamicDrawUsage));
+    geometry.setAttribute('aLum', new BufferAttribute(lum, 1).setUsage(DynamicDrawUsage));
+    geometry.setIndex(new BufferAttribute(index, 1));
+    const w = v.comet.orbit.W;
+    const material = new ShaderMaterial({
+      vertexShader: `${DEPTH_GLSL}\n${sheetVs}`,
+      fragmentShader: `${DEPTH_GLSL}\n${sheetFs}`,
+      uniforms: {
+        uColor: { value: new Vector3(...DUST_COLOR) },
+        uNormal: { value: new Vector3(w.x, w.y, w.z) },
+        uExposure: exposure,
+      },
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      side: DoubleSide,
+    });
+    const mesh = new Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.name = `comets.fan.${v.comet.row.id}`;
+    glowGroup.add(mesh);
+    return { mesh, geometry, material, pos, lum, bytes: pos.byteLength + lum.byteLength + index.byteLength };
+  };
+
   const upload = (r: Ribbon) => {
     (r.geometry.getAttribute('position') as BufferAttribute).needsUpdate = true;
     (r.geometry.getAttribute('aTangent') as BufferAttribute).needsUpdate = true;
@@ -386,6 +472,11 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
       let base = 0;
       for (const c of vis.dustCurves) base = writeRibbon(c, base, vis.dust.pos, vis.dust.tan, vis.dust.par);
       upload(vis.dust);
+      if (vis.fan) {
+        writeSheet(vis.dustCurves, vis.fan.pos, vis.fan.lum);
+        (vis.fan.geometry.getAttribute('position') as BufferAttribute).needsUpdate = true;
+        (vis.fan.geometry.getAttribute('aLum') as BufferAttribute).needsUpdate = true;
+      }
     }
     vis.tailJd = jd;
   };
@@ -435,11 +526,12 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
           const coma = (vis.coma ??= buildComa(v));
           coma.mesh.visible = true;
           coma.mesh.position.set(v.rel.x, v.rel.y, v.rel.z);
-          coma.mesh.scale.setScalar(1.08 * v.comaRadius);
+          coma.mesh.scale.setScalar(1.08 * COMA_EXTENT * v.comaRadius);
           const u = coma.material.uniforms;
           (u.uCenter.value as Vector3).set(v.rel.x, v.rel.y, v.rel.z);
+          (u.uSunDir.value as Vector3).set(v.toSun.x / v.rSun, v.toSun.y / v.rSun, v.toSun.z / v.rSun);
           u.uRc.value = v.comaRadius;
-          u.uSoft.value = Math.max(0.9 * R, 0.6 * v.dist * view.pixelAngle);
+          u.uSoft.value = Math.max(COMA_CORE_RADII * R, 0.6 * v.dist * view.pixelAngle);
           const kI = (v.intensity * v.resolved) / (2 * Math.PI * Math.PI * COMA_CUT_INTEGRAL * v.comaRadius);
           (u.uK.value as Vector3).set(kI * color[0], kI * color[1], kI * color[2]);
         } else if (vis.coma) vis.coma.mesh.visible = false;
@@ -457,6 +549,7 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
         }
         if (showDust && !vis.dust) {
           vis.dust = buildRibbon(v, 'dust', DUST_BETAS.length, DUST_POINTS);
+          vis.fan = buildSheet(v);
           stale = true;
         }
         if ((showIon || showDust) && stale) rebuildTails(v, vis, view.jd);
@@ -468,13 +561,17 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
           vis.dust.mesh.visible = showDust;
           if (showDust) vis.dust.mesh.position.set(v.rel.x, v.rel.y, v.rel.z);
         }
+        if (vis.fan) {
+          vis.fan.mesh.visible = showDust;
+          if (showDust) vis.fan.mesh.position.set(v.rel.x, v.rel.y, v.rel.z);
+        }
       }
       pPosAttr.needsUpdate = true;
       pFluxAttr.needsUpdate = true;
     },
     memoryBytes() {
       let bytes = pPos.byteLength + pFlux.byteLength + comaBytes;
-      for (const v of visuals) bytes += (v.ion?.bytes ?? 0) + (v.dust?.bytes ?? 0);
+      for (const v of visuals) bytes += (v.ion?.bytes ?? 0) + (v.dust?.bytes ?? 0) + (v.fan?.bytes ?? 0);
       return bytes;
     },
     dispose() {
@@ -483,11 +580,11 @@ export function createCometRenderables(deps: CometRenderDeps): CometRenderables 
       comaGeometry.dispose();
       for (const v of visuals) {
         v.coma?.material.dispose();
-        for (const r of [v.ion, v.dust]) {
+        for (const r of [v.ion, v.dust, v.fan]) {
           r?.geometry.dispose();
           r?.material.dispose();
         }
-        v.coma = v.ion = v.dust = undefined;
+        v.coma = v.ion = v.dust = v.fan = undefined;
       }
     },
   };

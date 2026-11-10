@@ -9,6 +9,7 @@ import {
   HALLEY_BOOKMARK,
   HALLEY_NUCLEUS_BOOKMARK,
   NEOWISE_BOOKMARK,
+  NUCLEUS_VIEW_RADII,
   buildBookmarks,
 } from '../../../src/modules/comets/bookmarks';
 import type { CometRow, CometsFile } from '../../../src/modules/comets/data';
@@ -548,7 +549,7 @@ describe('comet nucleus, facts, search and bookmarks', () => {
       expect(v3len(b.pos) / AU).toBeGreaterThan(0.1);
     }
     const nuc = bms.find((b) => b.id === HALLEY_NUCLEUS_BOOKMARK)!;
-    expect(v3len(nuc.pos)).toBeCloseTo(4.5 * comet('halley').body.radius, 0);
+    expect(v3len(nuc.pos)).toBeCloseTo(NUCLEUS_VIEW_RADII * comet('halley').body.radius, 0);
     const sky = bms.find((b) => b.id === NEOWISE_BOOKMARK)!;
     expect(sky.frame).toBe('earth');
     expect(v3len(sky.pos)).toBeCloseTo(6e7, -2);

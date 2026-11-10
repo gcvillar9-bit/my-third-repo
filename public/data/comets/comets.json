@@ -5,8 +5,8 @@
     "approximate": true,
     "activityFadeAU": [3.5, 5],
     "comaRadiusKm": 100000,
-    "tailGain": 1,
-    "tailFalloff": 0.65
+    "tailGain": 4,
+    "tailFalloff": 0.5
   },
   "comets": [
     {
@@ -52,8 +52,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.22,
-        "ion": 0.3,
+        "dust": 0.3,
+        "ion": 0.2,
         "gas": 0.4,
         "source": "Appearance weights (dusty comet with a clear ion tail in 1986 wide-field photographs); procedural",
         "approximate": true
@@ -109,7 +109,7 @@
       },
       "look": {
         "dust": 0.03,
-        "ion": 0.2,
+        "ion": 0.12,
         "gas": 0.9,
         "source": "Appearance weights (gas-rich, almost no visible dust tail); procedural",
         "approximate": true
@@ -155,8 +155,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.12,
-        "ion": 0.3,
+        "dust": 0.15,
+        "ion": 0.18,
         "gas": 0.7,
         "source": "Appearance weights (green coma, long ion tail in 2024 photographs); procedural",
         "approximate": true
@@ -200,8 +200,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.15,
-        "ion": 0.05,
+        "dust": 0.2,
+        "ion": 0.03,
         "gas": 0.3,
         "source": "Appearance weights (dusty Jupiter-family comet, faint ion tail); procedural",
         "approximate": true
@@ -257,8 +257,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.12,
-        "ion": 0.25,
+        "dust": 0.15,
+        "ion": 0.12,
         "gas": 0.6,
         "source": "Appearance weights; procedural",
         "approximate": true
@@ -303,8 +303,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.28,
-        "ion": 0.3,
+        "dust": 0.4,
+        "ion": 0.15,
         "gas": 0.2,
         "source": "Appearance weights (broad curved dust tail and a separate blue ion tail in 1997 photographs); procedural",
         "approximate": true
@@ -349,8 +349,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.05,
-        "ion": 0.6,
+        "dust": 0.06,
+        "ion": 0.4,
         "gas": 0.9,
         "ionLength": 3,
         "source": "Appearance weights (blue-green gas comet with a very long ion tail, weak dust tail); procedural",
@@ -395,8 +395,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.4,
-        "ion": 0.05,
+        "dust": 0.5,
+        "ion": 0.03,
         "gas": 0.1,
         "source": "Appearance weights (enormous fanned dust tail in January 2007 photographs); procedural",
         "approximate": true
@@ -440,8 +440,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.28,
-        "ion": 0.3,
+        "dust": 0.4,
+        "ion": 0.15,
         "gas": 0.3,
         "source": "Appearance weights (curved yellow dust tail and a straight blue ion tail in July 2020 photographs); procedural",
         "approximate": true
@@ -487,8 +487,8 @@
         "approximate": true
       },
       "look": {
-        "dust": 0.32,
-        "ion": 0.08,
+        "dust": 0.45,
+        "ion": 0.04,
         "gas": 0.15,
         "source": "Appearance weights (long dust tail in October 2024 photographs); procedural",
         "approximate": true

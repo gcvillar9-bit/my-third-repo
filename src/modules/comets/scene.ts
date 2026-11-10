@@ -40,6 +40,8 @@ export interface CometView {
 }
 
 /** Coma radius in pixels below which it is drawn as a point only, and above which as a volume only. */
+/** The coma glow reaches this many coma radii (exponential outskirts). */
+export const COMA_EXTENT = 3;
 export const COMA_POINT_PX = 1;
 export const COMA_FULL_PX = 3;
 
@@ -81,7 +83,7 @@ export class CometScene {
       v.activity = activityFade(rAU, this.display);
       v.intensity = comaIntensity(row, rAU, this.display);
       v.comaRadius = comaRadius(row, rAU, this.display);
-      const px = v.comaRadius / (Math.max(v.dist, 1) * view.pixelAngle);
+      const px = (COMA_EXTENT * v.comaRadius) / (Math.max(v.dist, 1) * view.pixelAngle);
       v.resolved = smoothstep(COMA_POINT_PX, COMA_FULL_PX, px);
       const e = v.intensity / Math.max(v.dist * v.dist, 1);
       v.magnitude = e > 0 ? -2.5 * Math.log10(e / LUX_MAG0) : Infinity;
