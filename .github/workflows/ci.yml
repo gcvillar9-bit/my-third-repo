@@ -31,7 +31,9 @@ jobs:
 
   e2e-smoke:
     needs: verify
-    runs-on: ubuntu-latest
+    # Pinned: the Playwright version this project uses cannot install its browser on the image
+    # ubuntu-latest now points to (Ubuntu 26.04).
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       E2E_PORT: 4173
