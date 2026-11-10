@@ -82,7 +82,7 @@ additive without depth writes (the nucleus is opaque).
   (missing counts as on). Near-parabolic orbits are drawn out to 45 AU.
 - Cost: nothing is built for a dormant comet. An active comet in view adds 5 draw calls (coma, ion ribbon, dust
   ribbons, dust sheet, plus the nucleus when it spans a pixel) and about 1,000 triangles; the points and orbit lines
-  are one call each. GPU memory is under 100 KB per active comet.
+  are one call each. GPU memory is about 150 KB per active comet.
 
 ## UI hooks
 

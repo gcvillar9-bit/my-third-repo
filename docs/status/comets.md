@@ -18,8 +18,7 @@
 - Tail brightness is an empirical law with a gain of 4 so tails read at the night exposure: their integrated light
   is overstated (the head's magnitude is physical). No forward-scattering brightening.
 - One element set per comet: approximate away from its apparition (Halley's 2061 return is seven months late).
-- No jets, no nucleus self-shadowing, made-up spin axes, no walk-mode ground provider, no ion-tail aberration.
-- Hale-Bopp's dust tail is narrower than in photographs.
+- No jets, self-shadowing, real spin axes, walk-mode ground or ion-tail aberration; Hale-Bopp's dust tail is narrow.
 - Photometry H and K, 12P/Pons-Brooks and the Tsuchinshan-ATLAS perihelion time are hand-entered and could not be
   checked online from this environment; they are flagged approximate.
 - Only `comets.spec.ts` and `smoke.spec.ts` were run; other specs were not re-run with comets present (an active
