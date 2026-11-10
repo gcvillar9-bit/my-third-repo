@@ -135,6 +135,7 @@ const spacecraft: UniverseModule = {
           hasFrame: (id: string) => frames.has(id),
           enabled: () => enabled,
           trajectories,
+          focus: () => ctx.camera.target ?? ui.selection,
         };
         registry.addRenderable(m.createModels(deps));
         registry.addRenderable(m.createOverlay(deps));

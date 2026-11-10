@@ -598,3 +598,18 @@ describe('models', () => {
     expect(overlayGlsl.split(/^\/\/#fragment$/m).length).toBe(2);
   });
 });
+
+describe('paths and the scale of the view', () => {
+  it('hides a path far larger than the neighbourhood the camera is in', async () => {
+    const { neighbourhoodWeight } = await import('../../../src/modules/spacecraft/render');
+    const AU = 1.495978707e11;
+    // Voyager 1's path (170 AU) from 12,756 km above Earth: gone. From 70 AU out: drawn.
+    expect(neighbourhoodWeight(170 * AU, 1.2756e7)).toBe(0);
+    expect(neighbourhoodWeight(170 * AU, 20 * AU)).toBe(1);
+    // In between it fades, and an unknown neighbourhood hides nothing.
+    const mid = neighbourhoodWeight(60 * AU, AU);
+    expect(mid).toBeGreaterThan(0);
+    expect(mid).toBeLessThan(1);
+    expect(neighbourhoodWeight(170 * AU, Infinity)).toBe(1);
+  });
+});

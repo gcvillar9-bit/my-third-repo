@@ -50,9 +50,24 @@ export interface RenderDeps {
   hasFrame(id: string): boolean;
   enabled(): boolean;
   trajectories(): boolean;
+  /** The camera's target body id, if any (its path is always drawn). */
+  focus(): string | null;
+}
+
+/**
+ * Weight of a path or halo of size `extent` (m) seen by a camera `dNear` (m) from the nearest
+ * surface: like the planets' orbit lines, a path far larger than the neighbourhood the camera is
+ * in is hidden, so the probes' paths do not cross every view of Earth. 1 up to 30 times the
+ * neighbourhood, 0 from 100 times.
+ */
+export function neighbourhoodWeight(extent: number, dNear: number): number {
+  if (!(dNear > 0) || !Number.isFinite(dNear)) return 1;
+  return 1 - smooth(30, 100, extent / dNear);
 }
 
 const ZERO: Readonly<Vec3d> = Object.freeze(vec3());
+/** Size of Webb's halo orbit about L2 for the fade with view scale, m (about 800,000 km across). */
+const HALO_EXTENT_M = 8e8;
 const smooth = (a: number, b: number, x: number): number => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
@@ -328,6 +343,13 @@ export function createOverlay(deps: RenderDeps): Renderable {
       const earth = deps.hasFrame('earth');
       if (earth) view.toCamera('earth', ZERO, earthRel);
       const drawLines = deps.trajectories();
+      const near = view.nearestSurface();
+      const focus = deps.focus();
+      /** Paths and halos fade with the scale of the view unless their craft is where the camera is. */
+      const scaleWeight = (id: string, extent: number): number =>
+        id === focus || near?.bodyId === id
+          ? 1
+          : neighbourhoodWeight(extent, near ? near.altitude : Infinity);
       used = 0;
       deps.fleet.forEach((craft, i) => {
         mAlpha[i] = 0;
@@ -357,7 +379,8 @@ export function createOverlay(deps: RenderDeps): Renderable {
         } else if (motion instanceof HaloMotion) {
           if (view.jd < motion.settledJd) return;
           motion.ring(view.jd, HALO_SEGMENTS, scratch);
-          polyline(scratch, HALO_SEGMENTS, sunRel, true, cv.weight, near0, near1, false);
+          const w = cv.weight * scaleWeight(row.id, HALO_EXTENT_M);
+          if (w >= 0.01) polyline(scratch, HALO_SEGMENTS, sunRel, true, w, near0, near1, false);
         } else if (motion instanceof ProbeMotion) {
           const path = pathOf(motion, row.id, view.jd);
           if (path.count < 2) return;
@@ -366,7 +389,10 @@ export function createOverlay(deps: RenderDeps): Renderable {
           path.pts[last] = cv.rel.x - sunRel.x;
           path.pts[last + 1] = cv.rel.y - sunRel.y;
           path.pts[last + 2] = cv.rel.z - sunRel.z;
-          polyline(path.pts, path.count, sunRel, false, cv.weight, near0, near1, true);
+          const w =
+            cv.weight *
+            scaleWeight(row.id, Math.hypot(path.pts[last], path.pts[last + 1], path.pts[last + 2]));
+          if (w >= 0.01) polyline(path.pts, path.count, sunRel, false, w, near0, near1, true);
         }
       });
       mPosAttr.needsUpdate = true;

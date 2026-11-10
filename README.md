@@ -26,6 +26,9 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
 - Ten famous comets on their real orbits (Halley, Hale-Bopp, Hyakutake, NEOWISE, 67P and more): a dark nucleus
   you can fly to, a coma, a straight blue ion tail and a curved dust tail that grow as the comet nears the Sun
   (approximate away from each comet's recorded apparition).
+- Eight spacecraft where they really are: the International Space Station and Hubble circling Earth, the James
+  Webb telescope at L2, and Voyager 1 and 2, Pioneer 10 and 11 and New Horizons on their way out of the Solar
+  System, each a recognisable model with its path and an info card (positions approximate, and labelled so).
 
 **Worlds**
 

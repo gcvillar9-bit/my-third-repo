@@ -101,7 +101,16 @@ export const EXPLORE_GROUPS: readonly ExploreGroup[] = [
     id: 'spacecraft',
     title: 'Spacecraft',
     blurb: 'Stations, telescopes and the probes leaving the Solar System.',
-    items: ['iss-over-earth', 'hubble', 'jwst-l2', 'voyager1-looking-back', 'new-horizons'],
+    items: [
+      'iss-over-earth',
+      'hubble-over-earth',
+      'jwst-l2',
+      'voyager1-looking-back',
+      'new-horizons',
+      'voyager2',
+      'pioneer10',
+      'pioneer11',
+    ],
   },
   {
     id: 'earth',

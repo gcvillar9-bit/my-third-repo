@@ -32,6 +32,12 @@ This pass looked at every saved view, fixed what was wrong, and added the things
   [Hale-Bopp in 1997](https://gcvillar9-bit.github.io/my-third-repo/#b=hale-bopp-1997),
   [Halley's nucleus](https://gcvillar9-bit.github.io/my-third-repo/#b=halley-nucleus) and
   [NEOWISE in the sky](https://gcvillar9-bit.github.io/my-third-repo/#b=neowise-2020-sky).
+- **Spacecraft**: the [International Space Station](https://gcvillar9-bit.github.io/my-third-repo/#b=iss-over-earth),
+  [Hubble](https://gcvillar9-bit.github.io/my-third-repo/#b=hubble-over-earth),
+  [Webb at L2](https://gcvillar9-bit.github.io/my-third-repo/#b=jwst-l2),
+  [Voyager 1 looking back at the Sun](https://gcvillar9-bit.github.io/my-third-repo/#b=voyager1-looking-back) and
+  [New Horizons](https://gcvillar9-bit.github.io/my-third-repo/#b=new-horizons); search also finds Voyager 2 and
+  the Pioneers.
 - **Touch screens and gamepads**: drag to look, pinch to fly, an on-screen stick; or sticks and triggers on a pad.
 - **Controls panel** (`?`) with every key by theme and the data credits; switches for orbit lines (`Shift`+`O`)
   and labels (`Shift`+`L`); full screen (`Shift`+`F`); `Home` flies back to Earth.
