@@ -209,6 +209,8 @@ export class UiController {
   readonly toursOpen = signal(false);
   readonly accuracyOpen = signal(false);
   readonly fullscreen = signal(false);
+  /** A guided tour is running (the Tours button becomes Stop). */
+  readonly touring = signal(false);
   /** A touch has been seen this session (hybrid laptops report a fine pointer). */
   readonly touchSeen = signal(false);
   readonly hudVisible = signal(true);
@@ -506,6 +508,8 @@ export class UiController {
   frame(view: ViewState): void {
     const t = view.timeReal;
     this.lastView = view;
+    const touring = tours.status() !== null;
+    if (this.touring.value !== touring) this.touring.value = touring;
     if (!view.test && t - this.lastHud < 0.1 && this.lastHud >= 0) return;
     this.lastHud = t;
     const { camera, registry, frames } = this.ctx;

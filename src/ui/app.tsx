@@ -838,8 +838,7 @@ const canFullscreen = (): boolean => {
 
 export function App({ ui }: { ui: UiController }) {
   const hud = ui.hudVisible.value;
-  const touring = tours.status() !== null;
-  void ui.hud.value; // the tour button follows the tour's state at HUD rate
+  const touring = ui.touring.value;
   return (
     <div class="cz-root">
       {hud && (

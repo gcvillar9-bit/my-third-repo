@@ -67,12 +67,18 @@ export const GRAND_TOUR: TourDef = {
       text: 'Saturn: its main rings span about 280,000 km yet are mostly only some ten metres thick, countless pieces of water ice from dust to boulders.',
     },
     { type: 'orbit', target: 'saturn', degrees: 30, duration: 10 },
-    { type: 'goto', target: 'uranus-rings', duration: 7 },
+    { type: 'goto', target: 'uranus', duration: 7 },
     {
       type: 'caption',
       text: 'Uranus: an ice giant tipped over by 98 degrees, so each pole spends decades in sunlight and then decades in darkness during its 84-year orbit.',
     },
-    { type: 'wait', seconds: 9 },
+    { type: 'orbit', target: 'uranus', degrees: 20, duration: 8 },
+    { type: 'goto', target: 'uranus-rings', duration: 5 },
+    {
+      type: 'caption',
+      text: 'Its thirteen rings are narrow and as dark as coal. They were found in 1977, when they dimmed a star passing behind them.',
+    },
+    { type: 'wait', seconds: 8 },
     { type: 'goto', target: 'neptune', duration: 7 },
     {
       type: 'caption',
