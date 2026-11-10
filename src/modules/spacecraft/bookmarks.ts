@@ -150,9 +150,9 @@ export function buildBookmarks(fleet: readonly Craft[], eph: Ephemeris): Bookmar
         'voyager1-looking-back',
         'Voyager 1 looking back at the Sun',
         jd,
-        sunlitEv(rSun(v1, jd)) - 2,
+        sunlitEv(rSun(v1, jd)) - 1,
         { pos: vec3(2.1, 6.7, -1.9), target: vec3(-2.15, -6.77, 12.24), up: vec3(0.954, -0.3, 0) },
-        'Voyager 1 in the foreground seen from behind: the back of the white dish, the dark ten-sided bus, the boom with three RTGs and the long magnetometer boom; beyond it the Sun as one brilliant star (Earth is lost in its glare), 170 AU away.',
+        'Voyager 1 on the left seen from behind: the back of the white dish, the dark ten-sided bus, the RTG boom, the long lattice magnetometer boom and two thin whip antennas; far to the right the Sun, 170 AU away: a brilliant star in a wide glare that hides Earth (the craft shows its shadowed side, so the view is exposed for the fill light).',
         75,
       ),
     );
