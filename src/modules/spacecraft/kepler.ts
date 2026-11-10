@@ -38,7 +38,8 @@ export interface State {
 /**
  * Propagates the state (r0, v0) by `dt` seconds (either sign) around a point mass `mu`.
  * Solves the universal Kepler equation for χ with a bracketed Newton iteration: the equation is
- * monotonic in χ, so a step that leaves the bracket falls back to bisection and always converges.
+ * monotonic in χ, so a step that leaves the bracket (or stalls) falls back to bisection and the
+ * iteration always converges.
  */
 export function propagate(r0: Vec3d, v0: Vec3d, dt: number, mu: number, outR: Vec3d, outV?: Vec3d): Vec3d {
   const r0n = v3len(r0);
@@ -53,9 +54,11 @@ export function propagate(r0: Vec3d, v0: Vec3d, dt: number, mu: number, outR: Ve
   const k2 = 1 - alpha * r0n;
   const target = sqrtMu * dt;
   // F(χ) = k1 χ² C + k2 χ³ S + r0 χ − √μ dt, increasing in χ (dF/dχ = r > 0).
+  // Far beyond the root of a hyperbola cosh and sinh overflow: there F has the sign of χ.
   const F = (x: number): number => {
     const z = alpha * x * x;
-    return k1 * x * x * stumpffC(z) + k2 * x * x * x * stumpffS(z) + r0n * x - target;
+    const f = k1 * x * x * stumpffC(z) + k2 * x * x * x * stumpffS(z) + r0n * x - target;
+    return Number.isFinite(f) ? f : x > 0 ? Infinity : -Infinity;
   };
   const dF = (x: number): number => {
     const z = alpha * x * x;
@@ -70,18 +73,34 @@ export function propagate(r0: Vec3d, v0: Vec3d, dt: number, mu: number, outR: Ve
     hi *= 2;
   }
   if (sign < 0) [lo, hi] = [hi, lo];
+  // Newton, falling back to bisection whenever a step leaves the bracket or stops halving it
+  // (far from the root of a hyperbola F is exponential and plain Newton only creeps).
   let x = 0.5 * (lo + hi);
-  for (let i = 0; i < 100; i++) {
-    const f = F(x);
-    if (f > 0) hi = x;
-    else lo = x;
-    let next = x - f / dF(x);
-    if (!(next > lo && next < hi)) next = 0.5 * (lo + hi);
-    if (Math.abs(next - x) <= 1e-15 * Math.abs(x) || hi - lo <= 1e-15 * Math.abs(x)) {
-      x = next;
-      break;
+  let fx = F(x);
+  let df = dF(x);
+  let dxOld = hi - lo;
+  let dx = dxOld;
+  for (let i = 0; i < 200; i++) {
+    const newtonOut = ((x - hi) * df - fx) * ((x - lo) * df - fx) > 0;
+    if (
+      newtonOut ||
+      !Number.isFinite(df) ||
+      !Number.isFinite(fx) ||
+      Math.abs(2 * fx) > Math.abs(dxOld * df)
+    ) {
+      dxOld = dx;
+      dx = 0.5 * (hi - lo);
+      x = lo + dx;
+    } else {
+      dxOld = dx;
+      dx = fx / df;
+      x -= dx;
     }
-    x = next;
+    if (Math.abs(dx) <= 4e-16 * Math.abs(x)) break;
+    fx = F(x);
+    df = dF(x);
+    if (fx < 0) lo = x;
+    else hi = x;
   }
   const z = alpha * x * x;
   const C = stumpffC(z);

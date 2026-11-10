@@ -275,6 +275,30 @@ export class HaloMotion implements CraftMotion {
     return v3addScaled(out, out, ez, o[2]);
   }
 
+  /**
+   * The halo ellipse as it stands at `jd` (the rotating frame frozen at that instant): `n` points
+   * relative to the Sun appended to `out` as xyz triples, starting at the craft.
+   */
+  ring(jd: JD, n: number, out: number[]): void {
+    const h = this.halo;
+    const l2 = this.l2Heliocentric(jd, vec3());
+    const ex = v3normalize(vec3(), l2);
+    const ez = v3normalize(vec3(), v3addScaled(vec3(), ECLIPTIC_NORTH, ex, -v3dot(ECLIPTIC_NORTH, ex)));
+    const ey = v3cross(vec3(), ez, ex);
+    const th0 = (2 * Math.PI * (jd - h.epochJd)) / h.periodDays;
+    for (let k = 0; k < n; k++) {
+      const th = th0 + (2 * Math.PI * k) / n;
+      const o = [0, 1, 2].map(
+        (i) => (h.centerKm[i] + h.cosKm[i] * Math.cos(th) + h.sinKm[i] * Math.sin(th)) * KM,
+      );
+      out.push(
+        l2.x + ex.x * o[0] + ey.x * o[1] + ez.x * o[2],
+        l2.y + ex.y * o[0] + ey.y * o[1] + ez.y * o[2],
+        l2.z + ex.z * o[0] + ey.z * o[1] + ez.z * o[2],
+      );
+    }
+  }
+
   heliocentric(jd: JD, out: Vec3d): Vec3d {
     this.haloHeliocentric(jd, out);
     if (jd >= this.settledJd) return out;
