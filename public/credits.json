@@ -56,6 +56,48 @@
       "licenseText": null
     },
     {
+      "module": "comets",
+      "id": "celestia_comets_ssc",
+      "url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/data/comets.ssc",
+      "license": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "attribution": "Celestia Development Team and contributors (CelestiaContent data/comets.ssc: Grant Hutchison, Chris Laurel, DaveBowman2001, AstroChara, Pedro J. Garcia); elements from NASA/JPL SBDB and Horizons",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/comets/comets.json"],
+      "licenseText": null
+    },
+    {
+      "module": "comets",
+      "id": "stellarium_ssystem_minor",
+      "url": "https://raw.githubusercontent.com/Stellarium/stellarium/master/data/ssystem_minor.ini",
+      "license": "GPL-2.0-or-later",
+      "licenseName": "GNU General Public License v2.0 or later",
+      "licenseUrl": "https://spdx.org/licenses/GPL-2.0-or-later.html",
+      "attribution": "Stellarium contributors (data/ssystem_minor.ini): 1997-apparition elements of C/1995 O1 (Hale-Bopp)",
+      "copyright": [],
+      "flags": [],
+      "note": "No per-file .license sidecar upstream; Stellarium's default licence GPL-2.0-or-later applies. Only the Hale-Bopp orbit is taken from this file.",
+      "outputs": ["data/comets/comets.json"],
+      "licenseText": null
+    },
+    {
+      "module": "comets",
+      "id": "comets_catalog_table",
+      "url": null,
+      "license": "reference",
+      "licenseName": "Published reference data (facts, cited)",
+      "licenseUrl": null,
+      "attribution": "Comet selection, brightness laws (H, K) fitted to reported visual peak magnitudes, 12P/Pons-Brooks elements (JPL SBDB, rounded), nucleus shapes (Keller et al. 1986, Sierks et al. 2015) and tail appearance weights hand-entered with a source per block in src/modules/comets/catalog.json; approximate",
+      "copyright": [],
+      "flags": [],
+      "note": null,
+      "outputs": ["data/comets/comets.json"],
+      "licenseText": null
+    },
+    {
       "module": "earth",
       "id": "nasa_gibs_blue_marble_ng",
       "url": null,
