@@ -41,6 +41,7 @@ export const mountUi: MountUi = (root: HTMLElement, ctx: UiContext): UiApi => {
     labels = new LabelOverlay(root, {
       registry: ctx.registry,
       emphasis: () => ({ target: ctx.camera.target, selection: ui.selection.value }),
+      daylight: (view) => ui.daylight(view),
       onClick: (it) => ui.select(it.id),
       onDoubleClick: (it) => {
         const t = ui.targetOf(it.target ?? it.id);

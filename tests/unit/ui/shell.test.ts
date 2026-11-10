@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { SearchEntry } from '../../../src/core/contracts';
 import { HELP_SECTIONS, HELP_TEXT } from '../../../src/ui/app';
-import { formatLatLon, pickCandidate, PICK_SLOP_PX, TEST_BOOKMARK } from '../../../src/ui/controller';
+import {
+  formatLatLon,
+  inDaylight,
+  pickCandidate,
+  PICK_SLOP_PX,
+  TEST_BOOKMARK,
+} from '../../../src/ui/controller';
+import { bodyLabelHidden, STELLAR_BH_LABEL_RANGE } from '../../../src/ui/labels';
 import { EXPLORE_GROUPS, resolveExplore, type ExploreLookup } from '../../../src/ui/explore';
 import { SearchIndex } from '../../../src/ui/search';
 
@@ -128,5 +135,34 @@ describe('help and housekeeping', () => {
   it('recognises test-only bookmarks by their title', () => {
     expect(TEST_BOOKMARK.test('Terrain jitter A (test)')).toBe(true);
     expect(TEST_BOOKMARK.test('Earth: dawn from 400 km')).toBe(false);
+  });
+});
+
+describe('labels of the night sky', () => {
+  const down = { x: 0, y: 0, z: -6.4e6 }; // camera to the centre of the world: up is +z
+
+  it('daylight needs air, a low camera and a Sun above civil dusk', () => {
+    const noon = { x: 0, y: 0, z: 1.5e11 };
+    const dusk = { x: 1.5e11, y: 0, z: -0.05 * 1.5e11 };
+    const night = { x: 1.5e11, y: 0, z: -0.3 * 1.5e11 };
+    expect(inDaylight(true, 2, down, noon)).toBe(true);
+    expect(inDaylight(true, 2, down, dusk)).toBe(true);
+    expect(inDaylight(true, 2, down, night)).toBe(false);
+    expect(inDaylight(false, 2, down, noon)).toBe(false); // the Moon: black sky at noon
+    expect(inDaylight(true, 400e3, down, noon)).toBe(false); // orbit
+  });
+
+  it('hides far stellar black holes always, and the whole night sky in daylight', () => {
+    const stellar = { kind: 'blackhole' as const, radius: 6e4 };
+    const sgra = { kind: 'blackhole' as const, radius: 1.27e10 };
+    expect(bodyLabelHidden(stellar, 2 * STELLAR_BH_LABEL_RANGE, false)).toBe(true);
+    expect(bodyLabelHidden(stellar, 0.5 * STELLAR_BH_LABEL_RANGE, false)).toBe(false);
+    expect(bodyLabelHidden(sgra, 2.5e20, false)).toBe(false);
+    expect(bodyLabelHidden(sgra, 2.5e20, true)).toBe(true);
+    // In daylight the Moon and the planets keep their labels; a promoted star does not.
+    expect(bodyLabelHidden({ kind: 'moon', radius: 1.7e6 }, 3.8e8, true)).toBe(false);
+    expect(bodyLabelHidden({ kind: 'planet', radius: 7e7 }, 8e11, true)).toBe(false);
+    expect(bodyLabelHidden({ kind: 'star', radius: 7e8 }, 4e16, true)).toBe(true);
+    expect(bodyLabelHidden({ kind: 'star', radius: 7e8 }, 1.5e11, true)).toBe(false);
   });
 });

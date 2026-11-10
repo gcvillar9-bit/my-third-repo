@@ -25,6 +25,7 @@ import {
   frameLabel,
   logScaleFraction,
 } from './format';
+import { ATMOSPHERE_BODY_IDS } from '../modules/atmosphere/public';
 import { ORBITS_SETTING } from '../modules/solar-system/public';
 import { CONSTELLATIONS_SETTING, LINE_BOOKMARKS } from '../modules/starsystems/public';
 import { terrainEligible } from '../modules/terrain/public';
@@ -83,6 +84,30 @@ export function formatLatLon(p: { x: number; y: number; z: number }): string {
   const lon = (Math.atan2(p.y, p.x) * 180) / Math.PI;
   const f = (v: number, pos: string, neg: string) => `${Math.abs(v).toFixed(2)}°${v >= 0 ? pos : neg}`;
   return `${f(lat, 'N', 'S')} ${f(lon, 'E', 'W')}`;
+}
+
+/** Below this height over a world with an atmosphere, a Sun above the horizon means a daylit sky, m. */
+export const DAYLIGHT_ALTITUDE = 60_000;
+/** Sine of the Sun's elevation below which the sky is dark enough for stars (about −6°, civil dusk). */
+export const DAYLIGHT_SIN_ELEVATION = -0.1;
+
+/**
+ * Daylight test from plain vectors (camera to body centre and camera to Sun, any common axes):
+ * the camera is low over a world with air and the Sun is higher than civil dusk.
+ */
+export function inDaylight(
+  hasAir: boolean,
+  altitude: number,
+  toBody: { x: number; y: number; z: number },
+  toSun: { x: number; y: number; z: number },
+): boolean {
+  if (!hasAir || !(altitude < DAYLIGHT_ALTITUDE)) return false;
+  const rb = Math.hypot(toBody.x, toBody.y, toBody.z);
+  const rs = Math.hypot(toSun.x, toSun.y, toSun.z);
+  if (!(rb > 0) || !(rs > 0)) return false;
+  // Local up is away from the body centre.
+  const sinEl = -(toBody.x * toSun.x + toBody.y * toSun.y + toBody.z * toSun.z) / (rb * rs);
+  return sinEl > DAYLIGHT_SIN_ELEVATION;
 }
 
 /** A body the camera could set down on: rocky or icy, not a star or a gas giant. */
@@ -382,6 +407,14 @@ export class UiController {
     } catch {
       this.toast('Full screen is not available here', 'warn');
     }
+  }
+
+  /** True while the camera stands in daylight under an atmosphere (labels of the night sky hide). */
+  daylight(view: ViewState): boolean {
+    const near = view.nearestSurface();
+    const b = near ? this.ctx.registry.body(near.bodyId) : undefined;
+    if (!near || !b || !ATMOSPHERE_BODY_IDS.includes(b.id)) return false;
+    return inDaylight(true, near.altitude, view.toCamera(b.frame, vec3(), vec3()), view.sunToCamera(vec3()));
   }
 
   /** Body under a point of the view (CSS px), or null. */

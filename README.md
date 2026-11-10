@@ -77,7 +77,7 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
 
 - Five guided tours (the Tours button or `T`): _Cosmic Zoom_, _Grand Tour of the Solar System_, _Earth Through
   Time_ (Pangaea to tonight's city lights), _Black Holes_ and _Stars and the Galaxy_. Pause, skip, Esc to leave.
-- Explore (`X`): more than ninety places grouped by theme, from the planets and their best sights to deep time,
+- Explore (`X`): about a hundred places grouped by theme, from the planets and their best sights to deep time,
   cities through history, black holes and the cosmic web.
 - Land anywhere: select a rocky or icy world and press Land (or `Shift`+`G`) to fly down to the ground under you
   and walk, with latitude, longitude and height in the HUD.

@@ -584,6 +584,8 @@ export class CameraController implements CameraApi {
       if (e.code === 'BracketLeft') this.speedFactor = this._k / 1.25;
       else if (e.code === 'BracketRight') this.speedFactor = this._k * 1.25;
       else {
+        // Shift+F (full screen) and Shift+C (constellation lines) are shortcuts, not "fly down".
+        if (e.shiftKey && (e.code === 'KeyF' || e.code === 'KeyC')) return;
         this.keys.add(e.code);
         if (this.active && /^Key[WASDRFCQE]$|^Space$/.test(e.code)) this.cancelGoto();
       }
