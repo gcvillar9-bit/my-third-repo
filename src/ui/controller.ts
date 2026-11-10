@@ -271,6 +271,8 @@ export class UiController {
   select(id: string | null): void {
     batch(() => {
       this.selection.value = id;
+      // The info card takes the place of the settings and tours panels.
+      if (id) this.settingsOpen.value = this.toursOpen.value = false;
       this.showInfo(id);
     });
   }
@@ -398,16 +400,20 @@ export class UiController {
 
   toggleFullscreen(): void {
     const doc = document as Document & {
-      webkitExitFullscreen?: () => void;
+      webkitExitFullscreen?: () => unknown;
       webkitFullscreenElement?: Element;
     };
-    const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => void };
+    const el = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => unknown };
+    const refused = () => this.toast('Full screen is not available here', 'warn');
     try {
-      if (doc.fullscreenElement ?? doc.webkitFullscreenElement)
-        void (doc.exitFullscreen ?? doc.webkitExitFullscreen)?.call(doc);
-      else void (el.requestFullscreen ?? el.webkitRequestFullscreen)?.call(el);
+      const leaving = !!(doc.fullscreenElement ?? doc.webkitFullscreenElement);
+      const call = leaving
+        ? (doc.exitFullscreen ?? doc.webkitExitFullscreen)?.call(doc)
+        : (el.requestFullscreen ?? el.webkitRequestFullscreen)?.call(el);
+      // The standard methods return a promise that rejects when the browser says no.
+      if (call instanceof Promise) call.catch(refused);
     } catch {
-      this.toast('Full screen is not available here', 'warn');
+      refused();
     }
   }
 
