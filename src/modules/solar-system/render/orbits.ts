@@ -23,6 +23,8 @@ import { conicFromState, conicPoint, type Conic } from '../kepler';
 import type { SceneState } from './scene-state';
 
 export const ORBIT_SEGMENTS = 256;
+/** Setting id of the orbit-lines switch (other modules that draw orbits may follow it too). */
+export const ORBITS_SETTING = 'solar-system.orbits';
 
 const smooth = (a: number, b: number, x: number): number => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -50,6 +52,8 @@ interface OrbitLine {
   conic: Conic;
   mu: number;
   line: LineLoop;
+  /** Peak opacity: moon orbits are drawn quieter than the planets' so they frame, not cage, the planet. */
+  gain: number;
   pos: Float32Array;
   alpha: Float32Array;
   posAttr: BufferAttribute;
@@ -57,7 +61,12 @@ interface OrbitLine {
   material: ShaderMaterial;
 }
 
-export function createOrbits(eph: SolarEphemeris, scene: SceneState): Renderable {
+export function createOrbits(
+  eph: SolarEphemeris,
+  scene: SceneState,
+  /** The "Orbit lines" setting. */
+  enabled: () => boolean = () => true,
+): Renderable {
   const group = new Group();
   group.name = 'solar-system.orbits';
   const [vs, fs] = orbitGlsl.split(/^\/\/#fragment$/m);
@@ -95,6 +104,7 @@ export function createOrbits(eph: SolarEphemeris, scene: SceneState): Renderable
       conic: kep ?? { a: 1, e: 0, P: vec3(1, 0, 0), Q: vec3(0, 1, 0) },
       mu: eph.mu(row.id),
       line,
+      gain: row.kind === 'moon' ? 0.3 : 0.5,
       pos,
       alpha,
       posAttr,
@@ -130,6 +140,10 @@ export function createOrbits(eph: SolarEphemeris, scene: SceneState): Renderable
     layer: 'transparent',
     object: group,
     update(view: ViewState) {
+      if (!enabled()) {
+        for (const o of lines) o.line.visible = false;
+        return;
+      }
       // Scale of the current neighbourhood: orbits far larger than it are hidden (from near a
       // planet only its moons' orbits remain; from interplanetary space all of them show).
       let dNear = Infinity;
@@ -176,7 +190,7 @@ export function createOrbits(eph: SolarEphemeris, scene: SceneState): Renderable
         }
         o.posAttr.needsUpdate = true;
         o.alphaAttr.needsUpdate = true;
-        o.material.uniforms.uOpacity.value = 0.5 * op;
+        o.material.uniforms.uOpacity.value = o.gain * op;
         o.line.visible = true;
       }
     },

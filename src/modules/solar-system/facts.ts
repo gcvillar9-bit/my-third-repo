@@ -7,8 +7,14 @@ import { v3len, vec3 } from '../../core/math64';
 import { AU, C, G } from '../../core/units';
 import type { BodyRow } from './data';
 import { equatorialRadius, gmSI } from './data';
+import descriptions from './descriptions.json';
 import type { SolarEphemeris } from './ephemeris';
 import { conicFromState, keplerPeriodDays } from './kepler';
+
+/** One-paragraph description per body id (descriptions.json, hand-written with sources). */
+export const DESCRIPTIONS: ReadonlyMap<string, string> = new Map(
+  descriptions.bodies.map((d) => [d.id, d.text]),
+);
 
 const AE_PERIOD: Record<string, AeBody> = {
   mercury: AeBody.Mercury,
@@ -132,6 +138,7 @@ export function infoCard(
     title: row.name,
     subtitle: subtitle(row, rowsById),
     facts: bodyFacts(row, eph, jd),
+    description: DESCRIPTIONS.get(row.id),
     credit:
       'Data: bodies.json (IAU WGCCRE, JPL, Celestia); ephemerides: astronomy-engine and Kepler elements',
   };

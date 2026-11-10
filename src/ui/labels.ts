@@ -217,17 +217,22 @@ export class LabelOverlay {
         continue;
       }
       if (!project(rel, view.worldQuat, view.fovY, cssW, cssH, proj)) continue;
-      if (proj.x < -50 || proj.x > cssW + 50 || proj.y < -20 || proj.y > cssH + 20) continue;
+      if (proj.x < 0 || proj.x > cssW || proj.y < 0 || proj.y > cssH + 20) continue;
       if (occluded(rel, occluders, it.id)) continue;
       const d = Math.hypot(rel.x, rel.y, rel.z);
       const off = it.radius ? Math.min(cssH, Math.atan2(it.radius, d) / pxAngle) : 0;
       const { w, h } = labelSize(it.text);
       const pri = it.priority + (it.id === target ? 1000 : 0) + (it.id === selection ? 500 : 0);
+      // A label whose anchor is in view stays whole: it flips to the left of the anchor rather
+      // than being cut by the right edge (and never starts left of the view).
+      let left = proj.x + 4 + off * 0.7;
+      if (left + w > cssW - 2 && proj.x <= cssW) left = Math.max(2, proj.x - 4 - off * 0.7 - w);
+      if (left < 2 && proj.x >= 0) left = 2;
       cands.push({
         item: { ...it, priority: pri },
         x: proj.x,
         y: proj.y,
-        left: proj.x + 4 + off * 0.7,
+        left,
         top: proj.y - h - 2 - off * 0.7,
         w,
         h,

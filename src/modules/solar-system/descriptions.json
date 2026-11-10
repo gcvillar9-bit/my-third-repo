@@ -1,0 +1,220 @@
+{
+  "about": "One short description per Solar System body for the info card. Hand-written from the cited public fact pages; figures are rounded.",
+  "sources": {
+    "nasa": "NASA Solar System Exploration, planet, moon and dwarf-planet overview and facts pages (science.nasa.gov/solar-system)",
+    "nssdc": "NASA NSSDCA planetary fact sheets",
+    "missions": "Mission results as summarised by NASA/ESA mission pages (Galileo, Juno, Cassini, Voyager 2, New Horizons, Dawn, MESSENGER, Magellan, LRO)"
+  },
+  "bodies": [
+    {
+      "id": "sun",
+      "text": "A yellow dwarf star about 4.6 billion years old that holds 99.86% of the mass of the Solar System. Its core fuses some 600 million tonnes of hydrogen into helium every second; the light you see left the surface 8 minutes before reaching Earth.",
+      "source": "nasa, nssdc"
+    },
+    {
+      "id": "mercury",
+      "text": "The smallest planet and the closest to the Sun. It turns three times for every two orbits, has almost no atmosphere, and swings from about 430 °C by day to −180 °C at night; ice survives in permanently shadowed polar craters.",
+      "source": "nasa, missions (MESSENGER)"
+    },
+    {
+      "id": "venus",
+      "text": "Nearly Earth's twin in size, but the hottest planet: a carbon-dioxide atmosphere 92 times as dense as ours holds the surface near 465 °C under clouds of sulphuric acid. It rotates backwards, and a day there lasts longer than its year.",
+      "source": "nasa, missions (Magellan)"
+    },
+    {
+      "id": "earth",
+      "text": "The largest rocky planet and the only world known to carry life. Liquid water covers 71% of its surface, plate tectonics keeps reshaping it, and a magnetic field and ozone layer shield it from the Sun.",
+      "source": "nasa, nssdc"
+    },
+    {
+      "id": "moon",
+      "text": "Earth's only natural satellite, most likely formed from the debris of a giant impact about 4.5 billion years ago. It keeps one face toward Earth, raises the tides, and is the only other world people have walked on (12 astronauts, 1969 to 1972).",
+      "source": "nasa, missions (Apollo, LRO)"
+    },
+    {
+      "id": "mars",
+      "text": "A cold desert world half the width of Earth, red from iron oxide dust. It has the tallest volcano known (Olympus Mons, about 22 km), the 4,000 km canyon system Valles Marineris, polar caps of water and carbon-dioxide ice, and dry river valleys from a wetter past.",
+      "source": "nasa, nssdc"
+    },
+    {
+      "id": "phobos",
+      "text": "The larger and inner of Mars's two small moons, a dark, cratered body about 22 km across. It orbits in under 8 hours, faster than Mars turns, and is slowly spiralling inward.",
+      "source": "nasa"
+    },
+    {
+      "id": "deimos",
+      "text": "The smaller, outer moon of Mars, about 12 km across and smoothed by a thick blanket of dust. From the Martian surface it would look like a bright star.",
+      "source": "nasa"
+    },
+    {
+      "id": "jupiter",
+      "text": "The largest planet: a gas giant of hydrogen and helium with more than twice the mass of all the other planets together. Its Great Red Spot is a storm wider than Earth that has raged for centuries, and it has faint rings and more than 90 known moons.",
+      "source": "nasa, missions (Juno)"
+    },
+    {
+      "id": "io",
+      "text": "The most volcanically active body known. Tides raised by Jupiter and its neighbouring moons heat Io's interior, feeding hundreds of volcanoes and lava lakes and painting the surface with sulphur compounds.",
+      "source": "nasa, missions (Galileo, Juno)"
+    },
+    {
+      "id": "europa",
+      "text": "A moon slightly smaller than ours with a bright shell of water ice, cracked and almost free of craters. Beneath the ice lies a salty ocean holding about twice as much water as all of Earth's oceans.",
+      "source": "nasa, missions (Galileo)"
+    },
+    {
+      "id": "ganymede",
+      "text": "The largest moon in the Solar System, bigger than the planet Mercury, and the only moon known to generate its own magnetic field. Dark, ancient terrain alternates with lighter grooved bands, over a deep internal ocean.",
+      "source": "nasa, missions (Galileo, Juno)"
+    },
+    {
+      "id": "callisto",
+      "text": "The outermost of Jupiter's four large moons and one of the most heavily cratered surfaces known, almost unchanged for about 4 billion years. The giant ringed basin Valhalla spans roughly 3,800 km.",
+      "source": "nasa, missions (Galileo)"
+    },
+    {
+      "id": "amalthea",
+      "text": "A small, potato-shaped inner moon of Jupiter, about 170 km long and one of the reddest objects in the Solar System, probably coloured by sulphur from Io. Dust knocked off it feeds one of Jupiter's faint rings.",
+      "source": "nasa"
+    },
+    {
+      "id": "himalia",
+      "text": "The largest of Jupiter's irregular outer moons, about 140 km across, on a tilted orbit some 11 million km out. It is probably a captured asteroid, or a fragment of one.",
+      "source": "nasa"
+    },
+    {
+      "id": "saturn",
+      "text": "A gas giant less dense than water, circled by the most spectacular rings in the Solar System: countless pieces of water ice, from dust to boulders. A six-sided jet stream surrounds its north pole, and it has well over a hundred known moons.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "mimas",
+      "text": "A small icy moon of Saturn, about 400 km across, dominated by the crater Herschel, a third as wide as the moon itself. Its gravity helps clear the Cassini Division in Saturn's rings.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "enceladus",
+      "text": "A small, brilliantly white moon that reflects almost all the sunlight reaching it. Jets of water vapour and ice grains shoot from fractures near its south pole, fed by a global salty ocean under the ice, and supply Saturn's E ring.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "tethys",
+      "text": "An icy moon of Saturn about 1,060 km across, made almost entirely of water ice. The canyon Ithaca Chasma runs three quarters of the way around it, and the crater Odysseus spans 450 km.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "dione",
+      "text": "An icy moon of Saturn about 1,120 km across. Bright streaks on its trailing side turned out to be cliffs of clean ice hundreds of metres high.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "rhea",
+      "text": "Saturn's second-largest moon, about 1,530 km across: a heavily cratered ball of ice and rock with a very thin trace of oxygen and carbon dioxide around it.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "titan",
+      "text": "Saturn's largest moon and the only moon with a thick atmosphere, mostly nitrogen, hazy and orange. Methane rains onto its surface and collects in rivers, lakes and seas; the Huygens probe landed there in 2005.",
+      "source": "nasa, missions (Cassini-Huygens)"
+    },
+    {
+      "id": "hyperion",
+      "text": "A tumbling, sponge-like moon of Saturn about 270 km long. Its low density and deep, dark-floored pits make it look like a pumice stone, and it rotates chaotically.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "iapetus",
+      "text": "A two-toned moon of Saturn: one hemisphere is as dark as coal and the other as bright as snow. A ridge up to 20 km high runs along much of its equator.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "phoebe",
+      "text": "A dark outer moon of Saturn, about 210 km across, that orbits backwards. It is probably a captured body from the outer Solar System, and its dust forms a vast faint ring.",
+      "source": "nasa, missions (Cassini)"
+    },
+    {
+      "id": "uranus",
+      "text": "An ice giant tipped onto its side, with its axis tilted 98 degrees, so each pole has 42 years of sunlight and then 42 of darkness. Methane in its hydrogen and helium atmosphere colours it blue-green; it has 13 known rings.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "miranda",
+      "text": "The smallest of Uranus's five large moons, about 470 km across, with a patchwork surface of ridges, grooves and cliffs. Verona Rupes is among the tallest cliffs known, perhaps 20 km high.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "ariel",
+      "text": "The brightest of Uranus's large moons, about 1,160 km across, crossed by wide fault valleys with smooth floors that suggest fairly recent geological activity.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "umbriel",
+      "text": "The darkest of Uranus's large moons, about 1,170 km across, old and heavily cratered. A bright ring on the floor of the crater Wunda stands out near its equator.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "titania",
+      "text": "The largest moon of Uranus, about 1,580 km across, made of roughly equal parts ice and rock and cut by long canyons.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "oberon",
+      "text": "The outermost large moon of Uranus, about 1,520 km across: an old, heavily cratered surface with dark material on some crater floors.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "neptune",
+      "text": "The most distant planet, an ice giant 30 times farther from the Sun than Earth, found in 1846 from predictions made with mathematics. Its winds are the fastest measured on any planet, about 2,000 km/h.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "proteus",
+      "text": "The largest of Neptune's inner moons, about 420 km across: dark, irregular, and nearly as large as a body can be without gravity pulling it into a sphere.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "triton",
+      "text": "Neptune's largest moon, and the only large moon that orbits backwards, which marks it as a captured Kuiper belt object. Its surface of frozen nitrogen is about −235 °C, with dark plumes rising from geysers.",
+      "source": "nasa, missions (Voyager 2)"
+    },
+    {
+      "id": "nereid",
+      "text": "A moon of Neptune about 350 km across on one of the most eccentric orbits of any moon, swinging between about 1.4 and 9.7 million km from the planet.",
+      "source": "nasa"
+    },
+    {
+      "id": "pluto",
+      "text": "A dwarf planet of the Kuiper belt, smaller than our Moon. New Horizons found a heart-shaped plain of nitrogen ice, mountains of water ice and a thin blue haze when it flew past in 2015.",
+      "source": "nasa, missions (New Horizons)"
+    },
+    {
+      "id": "charon",
+      "text": "Pluto's largest moon, half as wide as Pluto itself, so the pair circle a point in the space between them and always show each other the same face. Its north pole is stained dark red.",
+      "source": "nasa, missions (New Horizons)"
+    },
+    {
+      "id": "ceres",
+      "text": "The largest object in the asteroid belt and the only dwarf planet in the inner Solar System, about 940 km across. The bright spots in Occator crater are salts left by briny water that reached the surface.",
+      "source": "nasa, missions (Dawn)"
+    },
+    {
+      "id": "vesta",
+      "text": "The second most massive asteroid, about 525 km across, with a layered interior like a small planet. A giant impact at its south pole dug the Rheasilvia basin and scattered fragments, some of which fall on Earth as meteorites.",
+      "source": "nasa, missions (Dawn)"
+    },
+    {
+      "id": "eris",
+      "text": "A dwarf planet of the scattered disc, almost as large as Pluto and more massive. Its discovery in 2005 led to the 2006 definition of a planet; it takes about 560 years to circle the Sun.",
+      "source": "nasa"
+    },
+    {
+      "id": "haumea",
+      "text": "An egg-shaped dwarf planet of the Kuiper belt that spins once in under 4 hours, stretching it to about 2,100 km along its longest axis. It has two moons and a ring.",
+      "source": "nasa"
+    },
+    {
+      "id": "makemake",
+      "text": "A dwarf planet of the Kuiper belt about 1,430 km across, reddish and covered in frozen methane. It was discovered in 2005 and has one known moon.",
+      "source": "nasa"
+    }
+  ]
+}

@@ -10,6 +10,7 @@
  */
 export { MODULE_ID as SOLAR_SYSTEM_MODULE_ID, CITY_LUMINANCE } from './render/shading';
 export { SPHERE_PROVIDER_ID } from './render/sphere';
+export { ORBITS_SETTING } from './render/orbits';
 export { BODIES_PATH, ATMOSPHERE_BODIES, texturePath } from './data';
 export type { BodiesFile, BodyRow, ElementsRow, RotationRow } from './data';
 export { SUNVIEW_SUFFIX, fixedFrameId, sunviewFrameId } from './frames';

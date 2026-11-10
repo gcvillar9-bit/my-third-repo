@@ -118,6 +118,18 @@ export class SearchIndex {
     return this.byIdMap.get(id);
   }
 
+  /** Entry whose name or an alias equals `name` (case and accents ignored); highest priority wins. */
+  byName(name: string): SearchEntry | undefined {
+    if (!this.fuse) this.build();
+    const q = norm(name);
+    let best: SearchEntry | undefined;
+    for (const e of this.entries) {
+      if (norm(e.name) !== q && !e.aliases?.some((a) => norm(a) === q)) continue;
+      if (!best || (e.priority ?? 0) > (best.priority ?? 0)) best = e;
+    }
+    return best;
+  }
+
   search(text: string, limit = 12): SearchResult[] {
     const fuse = this.fuse ?? this.build();
     const q = norm(text);
