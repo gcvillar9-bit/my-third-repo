@@ -8,16 +8,19 @@ downloaded. The model and its sources are in `cloud/model.json`, and every value
 
 ## The model (`generate.ts`, three-free, float64)
 
-| Step            | Model                                                                                                                                                                                                                                                                                                                                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Semi-major axis | dN/da is a continuous piecewise power law over 250, 2,000, 50,000 and 100,000 AU with slopes 1.5, −1.5 and −3.5 (Duncan, Quinn & Tremaine 1987: n(r) ∝ r^−3.5). Points are drawn from the flatter law 0.5, −1, −2 (inverse CDF) and carry `w = true / sampling` (both 1 at 2,000 AU, so w ≤ 1: 0.125 at 250 AU, 0.2 at 50,000, 0.07 at 100,000). This gives the thin outer cloud a third of the points. |
-| Eccentricity    | A smoothstep in ln a from 1,500 to 12,000 AU picks thermal orbits, f(e) = 2e up to e = 1 − 38/a (Heisler & Tremaine 1986). The rest are detached, with perihelion uniform in 38-90 AU (sednoid-like).                                                                                                                                                                                                   |
-| Orientation     | A smoothstep in ln a from 8,000 to 25,000 AU picks isotropic orbits. The rest form a disc near the ecliptic: inclination Rayleigh with σ 12°, node and perihelion argument uniform.                                                                                                                                                                                                                     |
-| Galactic tide   | Orbit-averaged vertical tide: the node precesses about the north Galactic pole at −(ν²/2n) cos i_G (1 + 1.5e²)/√(1 − e²), with ν² = 4πGρ₀ (ρ₀ = 0.1 M☉/pc³, 5.65e−15 yr⁻²) and \|rate\| capped at n/2. It acts over 4.5 Gyr: about 0.2 rad at a = 1,000 AU, 2 rad at 3,000 AU, and many turns beyond 6,000 AU (phase-mixed). That twists the inner disc into the spiral of Nesvorný et al. (2025).      |
-| Phase           | Mean anomaly at J2000 is uniform.                                                                                                                                                                                                                                                                                                                                                                       |
+| Step            | Model                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Semi-major axis | dN/da is a continuous piecewise power law over 250, 2,000, 50,000 and 100,000 AU with slopes 1.5, −1.5 and −3.5 (Duncan, Quinn & Tremaine 1987: n(r) ∝ r^−3.5). Points are drawn from the flatter law 0.5, −1, −2 (inverse CDF) and carry `w = true / sampling` (both 1 at 2,000 AU, so w ≤ 1: 0.125 at 250 AU, 0.2 at 50,000, 0.07 at 100,000). This gives the thin outer cloud a third of the points.                                                                                                                                  |
+| Eccentricity    | A smooth blend in ln a from 1,500 to 12,000 AU, `e = (1 − T)·e_det + T·e_th`: detached orbits with perihelion uniform in 38-90 AU (sednoid-like) close in, thermal orbits f(e) = 2e up to e = 1 − 38/a far out (Heisler & Tremaine 1986).                                                                                                                                                                                                                                                                                                |
+| Orientation     | A smoothstep in ln a from 8,000 to 25,000 AU picks isotropic orbits. The rest form a disc near the ecliptic: inclination Rayleigh with σ 12°, node and perihelion argument uniform.                                                                                                                                                                                                                                                                                                                                                      |
+| Galactic tide   | Orbit-averaged vertical tide: the node precesses about the north Galactic pole at −(ν²/2n) cos i_G (1 + 1.5e²)/√(1 − e²), with ν² = 4πGρ₀ (ρ₀ = 0.1 M☉/pc³, 5.65e−15 yr⁻²) and \|rate\| capped at n/2. The rate uses the typical eccentricity at that semi-major axis (not the orbit's own) with 15% log-normal scatter. Over 4.5 Gyr the twist is about 0.2 rad at a = 1,000 AU, 0.85 rad at 3,000 AU and keeps turning steadily out to about 11,000 AU. That twists the inner disc into the S-shaped spiral of Nesvorný et al. (2025). |
+| Phase           | Mean anomaly at J2000 is uniform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-Assumed, not sourced: the rise below 2,000 AU, the cut-off beyond 50,000 AU, the thermal and isotropic
-transition ranges, and e and i_G frozen at their initial values under the tide. Passing stars are left out of the
+Assumed, not sourced: the rise below 2,000 AU, the cut-off beyond 50,000 AU, the eccentricity blend and the
+isotropic transition range, e and i_G frozen at their initial values under the tide, and the tide rate taken
+from the typical eccentricity at each semi-major axis (under the tide an orbit's eccentricity and inclination
+oscillate together, so its long-term rate is closer to the population's than its present eccentricity
+suggests). Passing stars are left out of the
 dynamics (their effect is folded into the isotropic outer cloud). Each point draws exactly 8 random numbers,
 so any prefix of the cloud is the same for any count and any batching.
 
@@ -86,15 +89,15 @@ at boot.
 
 ## Bookmarks (`bookmarks.ts`, frame `sun`, 2026-01-01)
 
-All three views look at the Sun along the Galactic pole, with ecliptic north up. The dark polar sky lies
-behind the cloud. An untwisted ecliptic disc would look mirror-symmetric left to right in these views; the
-tide's twist makes the upper-left and lower-right quadrants brighter.
+`oort-cloud` and `oort-inside` look at the Sun along the Galactic pole, with ecliptic north up, so the dark
+polar sky lies behind the cloud. `oort-spiral` looks from within the ecliptic plane, where the twist shows best.
 
 - `oort-cloud`: 170,000 AU above the north Galactic pole, fovY 70°, EV −2. A bright but not blown-out
   inner cloud sits inside a grainy round halo that fades into the star field.
-- `oort-spiral`: 22,000 AU above the north Galactic pole, fovY 60°, EV 0.5. A speckled haze surrounds a
-  bright, slightly flattened core; the haze is brighter upper left and lower right. The scale shells and
-  the tracks of the bodies part cross it.
+- `oort-spiral`: 24,000 AU from the Sun in the ecliptic plane, towards the Galactic pole's projection on it,
+  ecliptic north up, fovY 60°, EV 0.5. The inner cloud is a bright bar through the Sun, tilted from upper left
+  to lower right and bending gently into an S as it turns with distance. Grainy at 20,000 points, clear at
+  150,000. The 10,000 AU shell is seen face-on around it.
 - `oort-inside`: 30,000 AU on the south Galactic side, looking back at the Sun, fovY 70°, EV 0. A dark
   starry sky speckled with cloud points, and a glow around the Sun.
 
@@ -103,7 +106,9 @@ tide's twist makes the upper-left and lower-right quadrants brighter.
 - `tests/unit/oort/cloud.test.ts` covers determinism and the prefix property, the weights, perihelia at or
   beyond 38 AU, and the weighted inner (2,000-20,000 AU) to outer ratio, which is within 6% of the analytic
   4.58. It also checks the twist: the 600-1,200 AU mean normal lies within 15° of the ecliptic pole, and the
-  2,500-3,500 AU mean normal is rotated backwards about the Galactic pole by the predicted angle.
+  2,500-3,500 AU mean normal is rotated backwards about the Galactic pole by the predicted angle. The spiral
+  stays coherent: projected along the Galactic pole, the disc's ellipticity is above 0.2 in every annulus from
+  1,500 to 8,000 AU and its long axis turns steadily with radius.
   Further cases: an isotropic outer cloud (mean |cos i| near 0.5), float32 Kepler emulation (no NaN; position
   error below 1e−5 a up to e = 0.9997), float32 phase within 1e−3 rad up to the rebase threshold, and rebase
   invariance against a float64 emulation of the shader. The rest cover the density slope (−3.2 to −3.8), the
@@ -112,16 +117,14 @@ tide's twist makes the upper-left and lower-right quadrants brighter.
   between), the contrast boost, the near-field bound and the shader carrying the same law.
 - `tests/e2e/oort.spec.ts` (480×270, potato) has two tests. `oort-cloud` (`@smoke`): centre 11 px in
   0.15-0.6 (0.52 measured), every box at 60 px ≥ 0.01 (min 0.018), the 110 px ring ≥ 0.003 on average
-  (0.020) and corners < 0.001. `oort-spiral`: (UL + LR)/(UR + LL) > 1.2 (about 1.4 measured). Both check
+  (0.020) and corners < 0.001. `oort-spiral`: (UL + LR)/(UR + LL) > 2.5 near the Sun and > 1.7 along the arms (3.7 and 2.4 measured), and the bar's angle turns by more than 7° between 20 and 60 px. It is also the regression test for a frame that once went black in this exact view (see the line shader of the bodies part). Both check
   `errors()` and `stats().points ≥ 20,000`. `tests/e2e/oort-bodies.spec.ts` (bodies part) also passes with
   the cloud on: the sky between the shells of `sednoid-orbits` stays dark.
 
 ## Known gaps
 
-- No spiral arms show, at potato or at medium (150,000 points, checked once): it is a model limit, not a
-  point-count one. Most orbits are very eccentric and spend their time between a and 2a, so the points at a
-  given distance come from a spread of semi-major axes, and hence of twist angles, too wide for arms, and
-  the disc is thick (σ 12°). The twist reads as a mirror-asymmetric, leaning core.
+- The spiral is a tilted bar with a gentle S-bend, not crisp arms: most orbits are very eccentric, so the points
+  at one distance come from a range of semi-major axes and twist angles, and the disc is thick (σ 12°).
 - At `gliese-710-flyby` (40,000 AU) the inner cloud is a dense field of dots: not saturated, but it competes
   with the 10,000 AU shell.
 - Passing stars, the eccentricity and inclination cycles of the tide, and the planets' scattering are not
@@ -184,6 +187,9 @@ in their source text.
   `shared.lineFade` (0 within 200 AU of the Sun and beyond 260,000 AU). Tracks and stars also follow the app-wide
   orbit-lines switch, shells the `oort.markers` setting.
 - Shell alpha = `lineFade · markers · smoothstep(0.008, 0.03, R/d) · smoothstep(0.02, 0.2, d/R)`.
+- The line shader discards fragments whose alpha is not in (0, 1]: hidden lines cost nothing, and an invalid
+  alpha (seen once on a sub-pixel shell segment exactly face-on to the camera) can never reach the HDR buffer,
+  where bloom would spread it over the whole frame. Hidden shell circles keep real positions for the same reason.
 - Orbit alpha = `max(emphasis, lineFade) · orbitLines`; the selected or targeted object's line shows everywhere.
 - The objects themselves are always drawn. The registry labels bodies of kind `dwarf` from any distance, so the
   four sednoid names appear in inner views as Pluto's does.
