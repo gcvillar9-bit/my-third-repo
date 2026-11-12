@@ -65,16 +65,57 @@ const FACTS = factsJson as unknown as {
   sources: Record<string, { citation: string; url: string; retrieved: string }>;
   galaxies: Record<string, FactRow[]>;
 };
-const measuredFacts = (id: string): InfoFact[] =>
-  (FACTS.galaxies[id] ?? [])
-    .filter((r) => !r.key.startsWith('_'))
-    .map((r) => ({
+/** Raw measured rows of a gallery galaxy (all keys, including those the card does not show). */
+export const factRows = (id: string): readonly FactRow[] => FACTS.galaxies[id] ?? [];
+/** Numeric measured value by key, if the sources have one. */
+export const factNumber = (id: string, key: string): number | undefined => {
+  const v = factRows(id).find((r) => r.key === key)?.value;
+  return typeof v === 'number' ? v : undefined;
+};
+
+/** Rows shown on the info card, in this order (the rest only shape the simulated model). */
+const CARD_KEYS = [
+  'rc3Type',
+  'morphType',
+  'inclinationDeg',
+  'colorBV',
+  'pitchDeg',
+  'barRadiusArcsec',
+  'bulgeToTotal',
+  'ringRadiusKpc',
+  'jetLengthKpc',
+  'outflowExtentKpc',
+  'tailLengthKpc',
+  'bhMassMsun',
+];
+const ARCSEC = Math.PI / 648000;
+
+function measuredFacts(g: NamedGalaxy): InfoFact[] {
+  const rows = factRows(g.id);
+  const out: InfoFact[] = [];
+  for (const key of CARD_KEYS) {
+    const r = rows.find((x) => x.key === key);
+    if (!r || (key === 'morphType' && rows.some((x) => x.key === 'rc3Type'))) continue;
+    const fact: InfoFact = {
       label: r.label,
       value: r.value,
       ...(r.unit !== undefined ? { unit: r.unit } : {}),
       ...(r.approximate ? { approximate: true } : {}),
       source: FACTS.sources[r.source]?.citation ?? r.source,
-    }));
+    };
+    if (key === 'barRadiusArcsec' && typeof r.value === 'number') {
+      // Angular size on the sky to kpc at the catalogue distance (projected, hence approximate).
+      fact.value = Number((r.value * ARCSEC * g.distSunMpc * 1e3).toPrecision(2));
+      fact.unit = 'kpc';
+      fact.approximate = true;
+    } else if (key === 'bhMassMsun' && typeof r.value === 'number') {
+      fact.value = Number((r.value / 1e6).toPrecision(3));
+      fact.unit = 'million solar masses';
+    }
+    out.push(fact);
+  }
+  return out;
+}
 
 const DEG = Math.PI / 180;
 const SOURCE = 'CelestiaContent galaxies.dsc (NGC/IC, RC3, NED-1D)';
@@ -221,7 +262,7 @@ export function createNamedInfo(): InfoProvider {
       return {
         title: g.title,
         subtitle: g.subtitle,
-        facts: [...galaxyFacts(g.distSunMpc, g.type, g.radiusKpc, g.absMag), ...measuredFacts(g.id)],
+        facts: [...galaxyFacts(g.distSunMpc, g.type, g.radiusKpc, g.absMag), ...measuredFacts(g)],
         description: `The light we see from ${g.title} left it about ${myr} million years ago.`,
         simulated: true,
         credit:
