@@ -38,7 +38,7 @@
       "short": "2012 VP113",
       "designation": "2012 VP113",
       "group": "sednoid",
-      "kind": "dwarf",
+      "kind": "minor",
       "aliases": ["VP113", "Biden", "sednoid"],
       "elements": {
         "center": "sun",
@@ -69,7 +69,7 @@
       "short": "Leleakuhonua",
       "designation": "(541132) Leleakuhonua",
       "group": "sednoid",
-      "kind": "dwarf",
+      "kind": "minor",
       "aliases": ["541132 Leleakuhonua", "2015 TG387", "The Goblin", "sednoid"],
       "elements": {
         "center": "sun",
@@ -100,7 +100,7 @@
       "short": "Ammonite",
       "designation": "2023 KQ14",
       "group": "sednoid",
-      "kind": "dwarf",
+      "kind": "minor",
       "aliases": ["2023 KQ14", "Ammonite", "sednoid"],
       "elements": {
         "center": "sun",
