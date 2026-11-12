@@ -9,6 +9,12 @@
       "outputs": ["data/galaxies/galaxies.bin", "data/galaxies/names.json"],
       "sha256": "a47fef00f31304f440f3be47e49b482ff4ea31441e5e74b3623828cbf45d8245",
       "bytes": 4158160
+    },
+    {
+      "id": "galaxies_gallery_facts",
+      "license": "reference",
+      "attribution": "Measured structure of the 54 gallery galaxies, hand-entered with a source per row in src/modules/galaxies/gallery-facts.json: HyperLEDA (Makarov et al. 2014, A&A 570, A13); RC3 (de Vaucouleurs et al. 1991, VizieR VII/155); S4G bars (Herrera-Endoqui et al. 2015, A&A 582, A86), decompositions (Salo et al. 2015, ApJS 219, 4) and pitch angles (Diaz-Garcia et al. 2019, A&A 631, A94); individual papers for black-hole masses, rings, jet, outflow and tidal tail. The 3D appearance (src/modules/galaxies/looks.json) is simulated",
+      "outputs": []
     }
   ]
 }
