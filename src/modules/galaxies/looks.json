@@ -1,0 +1,583 @@
+{
+  "note": "Every value in this file is simulated (artistic styling chosen by eye so each portrait is recognisable), not measured. Keys named like measured inputs (pitchDeg, armCount, armClass, barRadiusFrac, barClass, bulgeToTotal, ringRadiusFrac, inclinationDeg, colorBV, tStage) are hand-picked stand-ins used only where gallery-facts.json has no measured value (measured values always win). inclinationDeg stand-ins tilt the catalogue disc where the catalogue orientation is clearly not edge-on enough. Fractions are relative to the catalogue radius; angles in degrees.",
+  "source": "simulated (hand-tuned styling, no measurements)",
+  "looks": {
+    "m31": {
+      "bulgeToTotal": 0.3,
+      "bulgeReFrac": 0.055,
+      "bulgeFlat": 0.75,
+      "bulgeMaxFrac": 0.35,
+      "bulgeTeff": 3900,
+      "discScaleFrac": 0.25,
+      "pitchDeg": 15,
+      "armCount": 2,
+      "armClass": 6,
+      "armContrast": 0.85,
+      "oldArmContrast": 0.45,
+      "flocculence": 0.3,
+      "ringWidthFrac": 0.05,
+      "ringStrength": 0.5,
+      "dustTau": 1.8,
+      "dustSmooth": 0.25,
+      "dustRingFrac": 0.46,
+      "dustRingWidthFrac": 0.045,
+      "dustRingTau": 3.5,
+      "hiiCount": 180,
+      "lopsided": 0.08,
+      "lopsidedAngleDeg": 40
+    },
+    "m33": {
+      "bulgeToTotal": 0.03,
+      "bulgeReFrac": 0.03,
+      "discScaleFrac": 0.26,
+      "pitchDeg": 32,
+      "armCount": 2,
+      "armClass": 3,
+      "flocculence": 0.8,
+      "dustTau": 0.6,
+      "hiiCount": 220,
+      "hiiShare": 0.25,
+      "youngTeff": 10000,
+      "knots": [
+        {
+          "x": 0.42,
+          "y": 0.28,
+          "size": 0.035,
+          "share": 0.25
+        }
+      ]
+    },
+    "lmc": {
+      "bulgeToTotal": 0.02,
+      "barRadiusFrac": 0.35,
+      "barAngleDeg": 20,
+      "barAxisRatio": 0.28,
+      "barOffsetKpc": [0.6, -0.3],
+      "armCount": 1,
+      "armClass": 2,
+      "pitchDeg": 30,
+      "flocculence": 0.6,
+      "lopsided": 0.4,
+      "lopsidedAngleDeg": 200,
+      "dustTau": 0.3,
+      "hiiCount": 120,
+      "hiiShare": 0.3,
+      "knots": [
+        {
+          "x": 0.42,
+          "y": 0.2,
+          "size": 0.045,
+          "share": 0.35
+        }
+      ]
+    },
+    "smc": {
+      "bulgeToTotal": 0.02,
+      "barRadiusFrac": 0.45,
+      "barAngleDeg": 50,
+      "barAxisRatio": 0.35,
+      "armCount": 1,
+      "armClass": 1,
+      "pitchDeg": 35,
+      "flocculence": 0.9,
+      "lopsided": 0.3,
+      "lopsidedAngleDeg": 330,
+      "dustTau": 0.2,
+      "hiiCount": 140,
+      "hiiShare": 0.3,
+      "tail": {
+        "lengthFrac": 0.35,
+        "strength": 0.9,
+        "widthFrac": 0.12,
+        "angleDeg": 330
+      }
+    },
+    "m87": {
+      "bulgeReFrac": 0.3,
+      "bulgeN": 3.5,
+      "bulgeFlat": 0.92,
+      "bulgeMaxFrac": 1.3,
+      "bulgeTeff": 4400,
+      "polar": {
+        "kind": "jet",
+        "share": 0.004,
+        "widthFrac": 0.0015,
+        "openingDeg": 0.6,
+        "color": [0.75, 0.85, 1],
+        "losDeg": 70,
+        "paDeg": 60
+      }
+    },
+    "m81": {
+      "bulgeReFrac": 0.07,
+      "bulgeTeff": 4000,
+      "armCount": 2,
+      "armClass": 12,
+      "armContrast": 0.85,
+      "flocculence": 0.1,
+      "dustTau": 1.2,
+      "dustSmooth": 0.25,
+      "hiiCount": 120
+    },
+    "m82": {
+      "bulgeToTotal": 0.12,
+      "bulgeReFrac": 0.05,
+      "bulgeFlat": 0.5,
+      "discScaleFrac": 0.22,
+      "hOldFrac": 0.06,
+      "hYoungFrac": 0.03,
+      "hDustFrac": 0.015,
+      "armClass": 1,
+      "armContrast": 0.15,
+      "flocculence": 1,
+      "barClass": "AB",
+      "dustTau": 6,
+      "dustSmooth": 0.9,
+      "hiiShare": 0.3,
+      "hiiCount": 200,
+      "lopsided": 0.2,
+      "inclinationDeg": 80,
+      "knots": [
+        {
+          "x": 0.05,
+          "y": 0,
+          "size": 0.06,
+          "share": 0.25
+        },
+        {
+          "x": -0.08,
+          "y": 0.02,
+          "size": 0.05,
+          "share": 0.15
+        }
+      ],
+      "dustBlobs": [
+        {
+          "x": 0.2,
+          "y": 0.05,
+          "size": 0.08,
+          "elong": 2.5,
+          "angleDeg": 10,
+          "tau": 4
+        },
+        {
+          "x": -0.3,
+          "y": -0.1,
+          "size": 0.07,
+          "elong": 2,
+          "angleDeg": -20,
+          "tau": 4
+        },
+        {
+          "x": 0.45,
+          "y": -0.15,
+          "size": 0.06,
+          "elong": 2,
+          "angleDeg": 40,
+          "tau": 3
+        }
+      ],
+      "polar": {
+        "kind": "cones",
+        "share": 0.06,
+        "widthFrac": 0.05,
+        "openingDeg": 25,
+        "color": [1, 0.18, 0.22],
+        "axis": [0, 0, 1]
+      }
+    },
+    "m104": {
+      "bulgeReFrac": 0.16,
+      "bulgeFlat": 0.65,
+      "bulgeMaxFrac": 0.9,
+      "bulgeN": 3,
+      "bulgeTeff": 4100,
+      "pitchDeg": 6,
+      "armClass": 4,
+      "flocculence": 0.4,
+      "hOldFrac": 0.012,
+      "hDustFrac": 0.006,
+      "dustTau": 0.4,
+      "dustHoleFrac": 0.5,
+      "dustRingFrac": 0.75,
+      "dustRingWidthFrac": 0.06,
+      "dustRingTau": 4,
+      "ringRadiusFrac": 0.75,
+      "ringWidthFrac": 0.07,
+      "ringStrength": 0.5,
+      "inclinationDeg": 84,
+      "edgeFrac": 0.95
+    },
+    "m51": {
+      "armCount": 2,
+      "armClass": 12,
+      "armContrast": 0.95,
+      "oldArmContrast": 0.85,
+      "flocculence": 0.05,
+      "dustTau": 3.5,
+      "dustSmooth": 0.1,
+      "dustLaneShift": 0.1,
+      "hDustFrac": 0.016,
+      "hiiCount": 260,
+      "hiiShare": 0.25,
+      "youngTeff": 11000,
+      "tail": {
+        "lengthFrac": 0.45,
+        "strength": 1,
+        "widthFrac": 0.06,
+        "toIndex": 4625
+      }
+    },
+    "cena": {
+      "bulgeToTotal": 0.75,
+      "bulgeReFrac": 0.22,
+      "bulgeFlat": 0.85,
+      "bulgeMaxFrac": 1.1,
+      "bulgeN": 3,
+      "bulgeTeff": 4300,
+      "edgeFrac": 0.8,
+      "discScaleFrac": 0.3,
+      "hYoungFrac": 0.02,
+      "hDustFrac": 0.02,
+      "youngBoost": 4,
+      "armClass": 3,
+      "flocculence": 0.6,
+      "barClass": "A",
+      "dustTau": 6,
+      "dustSmooth": 0.85,
+      "dustHoleFrac": 0.02,
+      "hiiCount": 120,
+      "hiiShare": 0.35,
+      "inclinationDeg": 72,
+      "warp": {
+        "ampFrac": 0.12,
+        "startFrac": 0.2,
+        "angleDeg": 30
+      }
+    },
+    "m101": {
+      "armCount": 4,
+      "armClass": 5,
+      "armContrast": 0.85,
+      "flocculence": 0.4,
+      "lopsided": 0.35,
+      "lopsidedAngleDeg": 60,
+      "hiiCount": 320,
+      "hiiShare": 0.3,
+      "youngTeff": 10500,
+      "knots": [
+        {
+          "x": 0.55,
+          "y": -0.2,
+          "size": 0.025,
+          "share": 0.06
+        },
+        {
+          "x": 0.6,
+          "y": 0.05,
+          "size": 0.02,
+          "share": 0.05
+        },
+        {
+          "x": -0.45,
+          "y": 0.5,
+          "size": 0.02,
+          "share": 0.04
+        }
+      ]
+    },
+    "m74": {
+      "armCount": 2,
+      "armClass": 12,
+      "armContrast": 0.92,
+      "oldArmContrast": 0.6,
+      "flocculence": 0.05,
+      "hiiCount": 240,
+      "hiiShare": 0.25
+    },
+    "m83": {
+      "armCount": 2,
+      "armClass": 9,
+      "armContrast": 0.9,
+      "oldArmContrast": 0.5,
+      "barAxisRatio": 0.3,
+      "barDustTau": 1.8,
+      "nucleusShare": 0.08,
+      "hiiCount": 260,
+      "hiiShare": 0.3
+    },
+    "m63": {
+      "armClass": 2,
+      "armCount": 3,
+      "flocculence": 0.85,
+      "armContrast": 0.6,
+      "hiiCount": 220,
+      "dustSmooth": 0.6
+    },
+    "m64": {
+      "armClass": 4,
+      "flocculence": 0.3,
+      "armContrast": 0.5,
+      "dustTau": 0.6,
+      "dustBlobs": [
+        {
+          "x": 0,
+          "y": 0.18,
+          "size": 0.14,
+          "elong": 2.2,
+          "angleDeg": 0,
+          "tau": 8
+        },
+        {
+          "x": 0.15,
+          "y": 0.12,
+          "size": 0.07,
+          "elong": 2,
+          "angleDeg": -40,
+          "tau": 3
+        }
+      ],
+      "hDustFrac": 0.03,
+      "bulgeFlat": 0.7
+    },
+    "m94": {
+      "armClass": 4,
+      "flocculence": 0.5,
+      "armContrast": 0.4,
+      "ringWidthFrac": 0.025,
+      "ringStrength": 4,
+      "ring2": {
+        "radiusFrac": 0.85,
+        "widthFrac": 0.08,
+        "strength": 0.9
+      },
+      "edgeFrac": 1
+    },
+    "m77": {
+      "nucleusShare": 0.25,
+      "nucleusSizeFrac": 0.008,
+      "innerBar": {
+        "radiusFrac": 0.12,
+        "strength": 1
+      },
+      "ringRadiusFrac": 0.1,
+      "ringStrength": 0.6,
+      "ring2": {
+        "radiusFrac": 0.75,
+        "widthFrac": 0.07,
+        "strength": 1
+      },
+      "armClass": 6,
+      "flocculence": 0.4
+    },
+    "m106": {
+      "armClass": 6,
+      "flocculence": 0.3,
+      "lopsided": 0.15,
+      "nucleusShare": 0.05,
+      "hiiCount": 200
+    },
+    "m100": {
+      "armCount": 2,
+      "armClass": 12,
+      "armContrast": 0.9,
+      "ringRadiusFrac": 0.08,
+      "ringStrength": 0.6,
+      "hiiCount": 260,
+      "hiiShare": 0.25
+    },
+    "m61": {
+      "armCount": 3,
+      "armClass": 8,
+      "lopsided": 0.15,
+      "hiiCount": 260,
+      "hiiShare": 0.25
+    },
+    "m66": {
+      "armCount": 2,
+      "armClass": 7,
+      "lopsided": 0.3,
+      "lopsidedAngleDeg": 120,
+      "dustTau": 2,
+      "dustSmooth": 0.3,
+      "hiiCount": 180
+    },
+    "ngc1300": {
+      "armCount": 2,
+      "armClass": 12,
+      "armContrast": 0.92,
+      "oldArmContrast": 0.6,
+      "flocculence": 0,
+      "barAxisRatio": 0.22,
+      "barDustTau": 2.5,
+      "hiiCount": 160
+    },
+    "ngc1365": {
+      "armCount": 2,
+      "armClass": 12,
+      "armContrast": 0.9,
+      "barAxisRatio": 0.25,
+      "barDustTau": 3,
+      "nucleusShare": 0.05,
+      "hiiCount": 200
+    },
+    "ngc6946": {
+      "armCount": 4,
+      "armClass": 4,
+      "flocculence": 0.45,
+      "hiiCount": 320,
+      "hiiShare": 0.3,
+      "youngTeff": 10500
+    },
+    "ngc253": {
+      "flocculence": 0.6,
+      "dustTau": 3,
+      "dustSmooth": 0.7,
+      "hDustFrac": 0.012,
+      "nucleusShare": 0.05,
+      "hiiCount": 200
+    },
+    "ngc4565": {
+      "bulgeReFrac": 0.03,
+      "bulgeFlat": 0.6,
+      "bulgeMaxFrac": 0.15,
+      "hOldFrac": 0.012,
+      "hYoungFrac": 0.005,
+      "hDustFrac": 0.004,
+      "dustTau": 2.5,
+      "dustSmooth": 0.6
+    },
+    "ngc891": {
+      "hOldFrac": 0.02,
+      "hDustFrac": 0.008,
+      "dustTau": 3,
+      "dustSmooth": 0.8,
+      "flocculence": 0.5
+    },
+    "ngc4631": {
+      "flocculence": 0.9,
+      "hOldFrac": 0.03,
+      "hYoungFrac": 0.02,
+      "hiiCount": 260,
+      "hiiShare": 0.3,
+      "warp": {
+        "ampFrac": 0.05,
+        "startFrac": 0.3,
+        "angleDeg": 0
+      }
+    },
+    "ngc3628": {
+      "hDustFrac": 0.02,
+      "dustTau": 4,
+      "dustSmooth": 0.8,
+      "warp": {
+        "ampFrac": 0.06,
+        "startFrac": 0.5,
+        "angleDeg": 90
+      }
+    },
+    "m102": {
+      "inclinationDeg": 88,
+      "armContrast": 0,
+      "oldArmContrast": 0,
+      "hiiCount": 0,
+      "youngBoost": 0.3,
+      "hOldFrac": 0.03,
+      "hDustFrac": 0.003,
+      "dustTau": 1.5,
+      "dustSmooth": 1,
+      "dustHoleFrac": 0.1
+    },
+    "antennae": {
+      "tail": {
+        "count": 2,
+        "strength": 2,
+        "widthFrac": 0.5,
+        "pitchDeg": 25,
+        "angleDeg": 200
+      },
+      "nucleus2": {
+        "x": 1,
+        "y": 0.55,
+        "size": 0.2,
+        "amp": 1.4
+      },
+      "lopsided": 0.4,
+      "flocculence": 0.9,
+      "hiiCount": 300,
+      "hiiShare": 0.35,
+      "youngBoost": 1.4,
+      "dustTau": 1.5,
+      "dustSmooth": 0.7,
+      "discScaleFrac": 0.2,
+      "edgeFrac": 0.8,
+      "bulgeToTotal": 0.08,
+      "bulgeReFrac": 0.04
+    },
+    "ngc5195": {
+      "armClass": 1,
+      "armContrast": 0.1,
+      "flocculence": 0.9,
+      "youngBoost": 0.3,
+      "hiiCount": 0,
+      "dustTau": 2.5,
+      "dustSmooth": 0.9,
+      "dustBlobs": [
+        {
+          "x": 0.1,
+          "y": -0.15,
+          "size": 0.12,
+          "elong": 2.5,
+          "angleDeg": 30,
+          "tau": 3
+        },
+        {
+          "x": -0.2,
+          "y": 0.1,
+          "size": 0.08,
+          "elong": 2,
+          "angleDeg": -50,
+          "tau": 2
+        }
+      ]
+    },
+    "m32": {
+      "bulgeReFrac": 0.12,
+      "bulgeN": 4,
+      "bulgeMaxFrac": 1.2
+    },
+    "m110": {
+      "bulgeReFrac": 0.35,
+      "bulgeN": 1.5,
+      "dustBlobs": [
+        {
+          "x": 0.05,
+          "y": 0.08,
+          "size": 0.05,
+          "tau": 1.5
+        },
+        {
+          "x": -0.1,
+          "y": -0.04,
+          "size": 0.04,
+          "tau": 1.2
+        }
+      ]
+    },
+    "ngc6822": {
+      "barRadiusFrac": 0.4,
+      "barAxisRatio": 0.35,
+      "flocculence": 0.9,
+      "hiiCount": 150,
+      "hiiShare": 0.3,
+      "knots": [
+        {
+          "x": 0.3,
+          "y": 0.35,
+          "size": 0.05,
+          "share": 0.15
+        }
+      ]
+    }
+  }
+}

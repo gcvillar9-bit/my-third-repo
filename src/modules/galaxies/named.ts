@@ -1,7 +1,8 @@
 /**
- * The ten named galaxies (generated src/modules/galaxies/named.json, from the catalogue): bookmarks,
- * search entries, info cards and labels. Bookmarks live in the `universe` frame (supergalactic axes,
- * origin Milky Way centre) so they work before galaxies.bin has loaded.
+ * The named galaxies: the original ten (generated named.json) and the 54-galaxy gallery (gallery.json,
+ * first ten = NAMED), both from the catalogue: bookmarks, search entries, info cards and labels.
+ * Bookmarks live in the `universe` frame (supergalactic axes, origin Milky Way centre) so they work
+ * before galaxies.bin has loaded. Measured facts (gallery-facts.json) load on demand (facts.ts).
  */
 import {
   ROOT_FRAME,
@@ -16,6 +17,7 @@ import {
 } from '../../core/contracts';
 import { qlookRotation, qrotate, quat, v3cross, v3len, v3normalize, vec3 } from '../../core/math64';
 import { KPC, LY, MPC } from '../../core/units';
+import galleryJson from './gallery.json';
 import namedJson from './named.json';
 
 export interface NamedGalaxy {
@@ -33,9 +35,23 @@ export interface NamedGalaxy {
   absMag: number;
   quat: [number, number, number, number];
   source: string;
+  /** Catalogue designation (gallery rows only). */
+  key?: string;
 }
 
 export const NAMED: readonly NamedGalaxy[] = (namedJson as unknown as { galaxies: NamedGalaxy[] }).galaxies;
+/** The ten named galaxies plus 44 more (generated gallery.json); the first ten equal NAMED. */
+export const GALLERY: readonly NamedGalaxy[] = (galleryJson as unknown as { galaxies: NamedGalaxy[] })
+  .galaxies;
+export const gallery = (id: string): NamedGalaxy => {
+  const g = GALLERY.find((x) => x.id === id);
+  if (!g) throw new Error(`galaxies: unknown gallery galaxy ${id}`);
+  return g;
+};
+const NAMED_COUNT = NAMED.length;
+/** New gallery labels appear only this close to the galaxy. */
+const GALLERY_LABEL_RANGE = 6 * MPC;
+
 const DEG = Math.PI / 180;
 const SOURCE = 'CelestiaContent galaxies.dsc (NGC/IC, RC3, NED-1D)';
 export const galaxyId = (g: NamedGalaxy): string => `gal:${g.id}`;
@@ -139,7 +155,7 @@ export function namedBookmark(g: NamedGalaxy): Bookmark {
 }
 
 export function createNamedSearch(): SearchProvider {
-  const entries: SearchEntry[] = NAMED.map((g) => ({
+  const entries: SearchEntry[] = GALLERY.map((g) => ({
     id: galaxyId(g),
     name: g.title,
     aliases: g.aliases,
@@ -174,31 +190,32 @@ export function galaxyFacts(distSunMpc: number, type: string, radiusKpc: number,
 export function createNamedInfo(): InfoProvider {
   return {
     id: 'galaxies.named',
-    info(id): InfoCard | null {
-      const g = NAMED.find((x) => galaxyId(x) === id);
+    info(id): Promise<InfoCard> | null {
+      const g = GALLERY.find((x) => galaxyId(x) === id);
       if (!g) return null;
       const myr = Number(((g.distSunMpc * MPC) / LY / 1e6).toPrecision(3));
-      return {
+      // The measured rows (gallery-facts.json) load on demand, off the startup path.
+      return import('./facts').then(({ measuredFacts }) => ({
         title: g.title,
         subtitle: g.subtitle,
-        facts: galaxyFacts(g.distSunMpc, g.type, g.radiusKpc, g.absMag),
+        facts: [...galaxyFacts(g.distSunMpc, g.type, g.radiusKpc, g.absMag), ...measuredFacts(g)],
         description: `The light we see from ${g.title} left it about ${myr} million years ago.`,
         simulated: true,
         credit:
-          'Position, size, type and brightness from the catalogue; the image is a procedural morphology impostor.',
-      };
+          'Position, size, type and brightness from the catalogue; structural values from the cited sources; the 3D appearance is simulated.',
+      }));
     },
   };
 }
 
 /** Labels for the named galaxies once the camera has left the Milky Way's neighbourhood. */
 export function createNamedLabels(visible: () => boolean): LabelSource {
-  const items: LabelItem[] = NAMED.map((g) => ({
+  const items: LabelItem[] = GALLERY.map((g, i) => ({
     id: galaxyId(g),
     text: g.title,
     frame: ROOT_FRAME,
     local: posM(g),
-    priority: 5,
+    priority: i < NAMED_COUNT ? 5 : 4,
     radius: g.radiusKpc * KPC,
     color: '#c9d7ff',
     target: galaxyId(g),
@@ -209,7 +226,14 @@ export function createNamedLabels(visible: () => boolean): LabelSource {
     id: 'galaxies.named',
     labels(view, out: LabelItem[]) {
       if (!visible() || v3len(view.toCamera(ROOT_FRAME, zero, t)) < 30 * KPC) return;
-      for (const item of items) out.push(item);
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (i >= NAMED_COUNT) {
+          const d = view.toCamera(ROOT_FRAME, item.local, t);
+          if (v3len(d) > GALLERY_LABEL_RANGE) continue;
+        }
+        out.push(item);
+      }
     },
   };
 }

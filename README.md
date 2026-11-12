@@ -77,8 +77,12 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
 
 **Deep universe**
 
-- 10,936 real galaxies (Celestia catalogue) placed in 3D, with oriented spiral and elliptical images up close:
-  Andromeda, the Magellanic Clouds, M33, M81/M82, the Whirlpool, the Sombrero, Centaurus A and the Virgo cluster.
+- 10,936 real galaxies (Celestia catalogue) placed in 3D. 54 of them are named and visitable (search, info
+  card, label): every Messier galaxy plus the Magellanic Clouds, Centaurus A, the Sculptor, Needle, Whale,
+  Fireworks and Antennae galaxies, NGC 1300 and more. Each is a 3D model you can fly around and through,
+  shaped by its measured bulge, bar, arm pitch and colour (sources on the info card); the appearance itself is
+  simulated. Try the bookmarks `whirlpool`, `sombrero`, `m87-jet`, `pinwheel`, `ngc-1300`, `needle`,
+  `centaurus-a`, `cigar`, `antennae` and `inside-m31`.
   Info cards give distance in light-years and megaparsecs and the light-travel time.
 - Beyond them, a simulated cosmic web of filaments and voids out to 800 Mpc (labelled "simulated").
 - The Great Attractor and Laniakea, our home supercluster: a toy model of the cosmic flow (about 1,000 animated

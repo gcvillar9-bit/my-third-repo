@@ -41,16 +41,17 @@ All three downloads are sha256-pinned in `assets/manifest/nebulae.json` and proc
 
 ## Planned for later phases (DESIGN 4.1, not yet fetched)
 
-| Source                                                                                        | Licence                       | Phase / package               |
-| --------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------- |
-| three.js `waternormals.jpg`                                                                   | MIT                           | P2 earth                      |
-| three-globe `earth-topology.png`, `earth-water.png`                                           | MIT; NASA/ETOPO public domain | P2-C surfaces                 |
-| CelestiaContent `moon-normal.png`, `mars-normal.png`                                          | GPL-2.0-or-later              | P2-C surfaces                 |
-| CelestiaContent `comets.ssc`, `asteroids.ssc` (small bodies), `galaxies.dsc`, `globulars.dsc` | GPL-2.0-or-later              | P3-B, P4, P5-A                |
-| Stellarium modern sky culture `index.json`                                                    | CC BY-SA 4.0                  | P4-C starsystems              |
-| d3-celestial `mw.json`, `constellations.json` (npm 0.7.35)                                    | BSD-3-Clause                  | P4 Milky Way calibration test |
-| OpenNGC `NGC.csv`, `addendum.csv`                                                             | CC BY-SA 4.0                  | P4-C starsystems              |
-| Open Exoplanet Catalogue                                                                      | MIT                           | P4-C exoplanets               |
+| Source                                                                                                          | Licence                       | Phase / package               |
+| --------------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------- |
+| three.js `waternormals.jpg`                                                                                     | MIT                           | P2 earth                      |
+| three-globe `earth-topology.png`, `earth-water.png`                                                             | MIT; NASA/ETOPO public domain | P2-C surfaces                 |
+| CelestiaContent `moon-normal.png`, `mars-normal.png`                                                            | GPL-2.0-or-later              | P2-C surfaces                 |
+| CelestiaContent `comets.ssc`, `asteroids.ssc` (small bodies), `galaxies.dsc`, `globulars.dsc`                   | GPL-2.0-or-later              | P3-B, P4, P5-A                |
+| Stellarium modern sky culture `index.json`                                                                      | CC BY-SA 4.0                  | P4-C starsystems              |
+| d3-celestial `mw.json`, `constellations.json` (npm 0.7.35)                                                      | BSD-3-Clause                  | P4 Milky Way calibration test |
+| OpenNGC `NGC.csv`, `addendum.csv`                                                                               | CC BY-SA 4.0                  | P4-C starsystems              |
+| Gallery galaxy structure, hand-entered (`src/modules/galaxies/gallery-facts.json`: HyperLEDA, RC3, S4G, papers) | Cited facts (row `source`)    | galaxies                      |
+| Open Exoplanet Catalogue                                                                                        | MIT                           | P4-C exoplanets               |
 
 ## Deep time (paleo)
 

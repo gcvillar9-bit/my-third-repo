@@ -3,4 +3,11 @@
  * the named galaxies (universe-frame positions in Mpc), e.g. for tours.
  */
 export { decodeGalaxies, GALAXY_TYPES, galaxyQuat, type GalaxyData } from './format';
-export { NAMED as NAMED_GALAXIES, galaxyId, namedBookmark, type NamedGalaxy } from './named';
+export {
+  GALLERY as GALLERY_GALAXIES,
+  NAMED as NAMED_GALAXIES,
+  gallery,
+  galaxyId,
+  namedBookmark,
+  type NamedGalaxy,
+} from './named';

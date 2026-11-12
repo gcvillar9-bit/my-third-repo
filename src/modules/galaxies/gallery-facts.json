@@ -1,0 +1,4041 @@
+{
+  "sources": {
+    "hyperleda": {
+      "citation": "Makarov D., Prugniel P., Terekhova N., Courtois H., Vauglin I. 2014, A&A 570, A13 (HyperLEDA, table meandata)",
+      "url": "http://atlas.obs-hp.fr/hyperleda/fG.cgi?n=meandata&c=o&of=1,leda,simbad&nra=l&nakd=1&d=objname%2Ctype%2Ct%2Cbar%2Cring%2Cmultiple%2Cincl%2Cpa%2Clogd25%2Clogr25%2Cbvtc%2Cvmaxg&sql=objname%20IN%20%28%27NGC0224%27%2C%27NGC0598%27%2C%27NGC4486%27%2C%27NGC3031%27%2C%27NGC3034%27%2C%27NGC4594%27%2C%27NGC5194%27%2C%27NGC5128%27%2C%27NGC0221%27%2C%27NGC0205%27%2C%27NGC4472%27%2C%27NGC5195%27%2C%27NGC4579%27%2C%27NGC4621%27%2C%27NGC4649%27%2C%27NGC4303%27%2C%27NGC5055%27%2C%27NGC4826%27%2C%27NGC3623%27%2C%27NGC3627%27%2C%27NGC0628%27%2C%27NGC1068%27%2C%27NGC5236%27%2C%27NGC4374%27%2C%27NGC4382%27%2C%27NGC4406%27%2C%27NGC4501%27%2C%27NGC4552%27%2C%27NGC4569%27%2C%27NGC4548%27%2C%27NGC4736%27%2C%27NGC3351%27%2C%27NGC3368%27%2C%27NGC4192%27%2C%27NGC4254%27%2C%27NGC4321%27%2C%27NGC5457%27%2C%27NGC5866%27%2C%27NGC3379%27%2C%27NGC4258%27%2C%27NGC3556%27%2C%27NGC3992%27%2C%27NGC0253%27%2C%27NGC1300%27%2C%27NGC1365%27%2C%27NGC4565%27%2C%27NGC0891%27%2C%27NGC6946%27%2C%27NGC4038%27%2C%27NGC4631%27%2C%27NGC6822%27%2C%27NGC3628%27%2C%27PGC0017223%27%2C%27PGC0003085%27%2C%27PGC17223%27%2C%27PGC3085%27%2C%27ESO056-115%27%2C%27LMC%27%2C%27SMC%27%2C%27NGC0292%27%2C%27NGC292%27%2C%27NGC0292%27%29&ob=&a=csv%5B%2C%5D",
+      "retrieved": "2026-11-12"
+    },
+    "rc3": {
+      "citation": "de Vaucouleurs G., de Vaucouleurs A., Corwin H.G., Buta R.J., Paturel G., Fouque P. 1991, Third Reference Catalogue of Bright Galaxies (VizieR VII/155/rc3, coded type decoded with the table in mtypes.tex)",
+      "url": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=VII/155/rc3&name=<NGC name> (53 per-galaxy queries listed in raw/rc3_urls.txt); decoding table https://vizier.cfa.harvard.edu/ftp/cats/VII/155/mtypes.tex",
+      "retrieved": "2026-11-12"
+    },
+    "he15": {
+      "citation": "Herrera-Endoqui M., Diaz-Garcia S., Laurikainen E., Salo H. 2015, A&A 582, A86 (VizieR J/A+A/582/A86 table2, features in S4G)",
+      "url": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J/A%2BA/582/A86/table2&-out.max=unlimited&-out.all=1",
+      "retrieved": "2026-11-12"
+    },
+    "dg19": {
+      "citation": "Diaz-Garcia S. et al. 2019, A&A 631, A94 (VizieR J/A+A/631/A94 tablea1, spiral pitch angles in S4G)",
+      "url": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J/A%2BA/631/A94/tablea1&-out.max=unlimited&-out.all=1",
+      "retrieved": "2026-11-12"
+    },
+    "salo15": {
+      "citation": "Salo H. et al. 2015, ApJS 219, 4 (VizieR J/ApJS/219/4 table7, S4G pipeline 4 multi-component decompositions; component codes per arXiv:1503.06550 Sec. 3)",
+      "url": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J/ApJS/219/4/table7&-out.max=unlimited&-out.all=1",
+      "retrieved": "2026-11-12"
+    },
+    "eht2019": {
+      "citation": "Event Horizon Telescope Collaboration 2019, First M87 Event Horizon Telescope Results. VI. The Shadow and Mass of the Central Black Hole (arXiv:1906.11243 abstract)",
+      "url": "https://arxiv.org/abs/1906.11243",
+      "retrieved": "2026-11-12"
+    },
+    "wiki_m87": {
+      "citation": "Wikipedia, Messier 87 (sentence \"extends at least 1.5 kiloparsecs (5,000 light-years) from the nucleus\"; no inline citation in the article)",
+      "url": "https://en.wikipedia.org/wiki/Messier_87",
+      "retrieved": "2026-11-12"
+    },
+    "wiki_m31": {
+      "citation": "European Space Agency ISO result of 1998 as cited by Wikipedia, Andromeda Galaxy (\"a particularly prominent ring formed at a radius of 32,000 ly (9.8 kpc) from the core\")",
+      "url": "https://en.wikipedia.org/wiki/Andromeda_Galaxy",
+      "retrieved": "2026-11-12"
+    },
+    "bender2005": {
+      "citation": "Bender R., Kormendy J., Bower G. et al. 2005, HST STIS spectroscopy of the triple nucleus of M31 (arXiv:astro-ph/0509839 abstract)",
+      "url": "https://arxiv.org/abs/astro-ph/0509839",
+      "retrieved": "2026-11-12"
+    },
+    "jardel2011": {
+      "citation": "Jardel J.R., Gebhardt K., Shen J. et al. 2011, Orbit-Based Dynamical Models of the Sombrero Galaxy (NGC 4594) (arXiv:1107.1238 abstract)",
+      "url": "https://arxiv.org/abs/1107.1238",
+      "retrieved": "2026-11-12"
+    },
+    "shopbell1998": {
+      "citation": "Shopbell P.L., Bland-Hawthorn J. 1998, The Asymmetric Wind in M82 (arXiv:astro-ph/9708038, Section on deep H-alpha imaging)",
+      "url": "https://arxiv.org/pdf/astro-ph/9708038",
+      "retrieved": "2026-11-12"
+    },
+    "waller2001": {
+      "citation": "Waller W.H., Fanelli M.N., Keel W.C. et al. 2001, Ultraviolet Signposts of Resonant Dynamics in the Starburst-Ringed Sab Galaxy, M94 (NGC 4736) (arXiv:astro-ph/0011101 abstract)",
+      "url": "https://arxiv.org/abs/astro-ph/0011101",
+      "retrieved": "2026-11-12"
+    },
+    "lodato2003": {
+      "citation": "Lodato G., Bertin G. 2003, Non-Keplerian rotation in the nucleus of NGC 1068: evidence for a massive accretion disk? (arXiv:astro-ph/0211113 abstract)",
+      "url": "https://arxiv.org/abs/astro-ph/0211113",
+      "retrieved": "2026-11-12"
+    },
+    "herrnstein2005": {
+      "citation": "Herrnstein J.R., Moran J.M., Greenhill L.J., Trotter A.S. 2005, The Geometry of and Mass Accretion Rate through the Maser Accretion Disk in NGC 4258 (arXiv:astro-ph/0504405, introduction)",
+      "url": "https://arxiv.org/pdf/astro-ph/0504405",
+      "retrieved": "2026-11-12"
+    },
+    "neumayer2010": {
+      "citation": "Neumayer N. 2010, The Supermassive Black Hole at the Heart of Centaurus A: Revealed by Gas- and Stellar Kinematics (arXiv:1002.0965 abstract)",
+      "url": "https://arxiv.org/abs/1002.0965",
+      "retrieved": "2026-11-12"
+    },
+    "hibbard2001": {
+      "citation": "Hibbard J.E., van der Hulst J.M., Barnes J.E., Rich R.M. 2001, High-resolution HI Mapping of NGC 4038/9 (\"The Antennae\"), AJ 122 (arXiv:astro-ph/0110581, Section 3.1)",
+      "url": "https://arxiv.org/pdf/astro-ph/0110581",
+      "retrieved": "2026-11-12"
+    }
+  },
+  "galaxies": {
+    "m31": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 72.17,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 35,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 177.8,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.3917,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.744,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(s)b",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAS3.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "ringRadiusKpc",
+        "label": "Star-forming ring radius",
+        "value": 9.8,
+        "unit": "kpc",
+        "source": "wiki_m31",
+        "approximate": true,
+        "_note": "Article gives 32,000 ly (9.8 kpc) from the core, citing ESA/ISO 1998."
+      },
+      {
+        "key": "bhMassMsun",
+        "label": "Black hole mass",
+        "value": 140000000,
+        "unit": "Msun",
+        "source": "bender2005",
+        "_note": "M_bh = 1.4 x 10^8 Msun from the kinematics of the P3 disc (abstract)."
+      }
+    ],
+    "m33": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 5.9,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 55.01,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 22.67,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 62.09,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.5916,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.467,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(s)cd",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAS6.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "lmc": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SBm",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 9.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 35.35,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 170,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 645.7,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.8511,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.432,
+        "unit": "mag",
+        "source": "hyperleda"
+      }
+    ],
+    "smc": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SBm",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 8.9,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 61.67,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 45,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 299.9,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.5998,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.355,
+        "unit": "mag",
+        "source": "hyperleda"
+      }
+    ],
+    "m87": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.3,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 26.43,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 7.112,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9376,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.925,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "bhMassMsun",
+        "label": "Black hole mass",
+        "value": 6500000000,
+        "unit": "Msun",
+        "source": "eht2019",
+        "_note": "M = 6.5 +/- 0.2(stat) +/- 0.7(sys) x 10^9 Msun, from the EHT shadow with an adopted distance of 16.8 Mpc."
+      },
+      {
+        "key": "jetLengthKpc",
+        "label": "Visible jet length",
+        "value": 1.5,
+        "unit": "kpc",
+        "source": "wiki_m87",
+        "approximate": true,
+        "_note": "Article states the jet extends \"at least\" 1.5 kpc from the nucleus; a lower limit."
+      }
+    ],
+    "m81": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sab",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 2.4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 62.71,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 157,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 21.63,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.52,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.82,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(s)ab",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAS2.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 12.55,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 2 fitted logarithmic segments; spiral-fit quality flag 1."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.458,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m82": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "S?",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 7.2,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 76.91,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 65.75,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 10.99,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.4645,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.675,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "I0 sp",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .I.0../ (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "outflowExtentKpc",
+        "label": "H-alpha superwind extent",
+        "value": 3.5,
+        "unit": "kpc",
+        "source": "shopbell1998",
+        "approximate": true,
+        "_note": "Deep H-alpha imaging shows outflow filaments to radial distances of at least 3.5 kpc to the north and 2 kpc to the south (limited by the imaged field); a lower limit."
+      }
+    ],
+    "m104": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sa",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 1.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 59.44,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 89.3,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 8.453,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.5808,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.878,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(s)a sp",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAS1./ (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.826,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bz, quality 4, 5 = most reliable)."
+      },
+      {
+        "key": "bhMassMsun",
+        "label": "Black hole mass",
+        "value": 660000000,
+        "unit": "Msun",
+        "source": "jardel2011",
+        "_note": "(6.6 +/- 0.4) x 10^8 Msun from orbit-based models (abstract)."
+      }
+    ],
+    "m51": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SABb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 32.6,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 163,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 13.71,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.8511,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.549,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(s)bc pec",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAS4P. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 14.92,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 6 fitted logarithmic segments; spiral-fit quality flag 1."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.128,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "cena": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "S0",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -2.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 45.33,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 32.17,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 25.59,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.7816,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.873,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "S0 pec",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .L...P. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "bhMassMsun",
+        "label": "Black hole mass",
+        "value": 55000000,
+        "unit": "Msun",
+        "source": "neumayer2010",
+        "approximate": true,
+        "_note": "(5.5 +/- 3.0) x 10^7 Msun from stellar kinematics (3 sigma errors); gas kinematics gives 4.5 (+1.7/-1.0) x 10^7 Msun."
+      }
+    ],
+    "m32": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.8,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 170,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 7.745,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.6281,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.801,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "cE2",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type CE.2... (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m110": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.8,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 170,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 16.22,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.5916,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.768,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "E5 pec",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .E.5.P. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m49": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.8,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 50.3,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 156.4,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 10.21,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.8204,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.929,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "E2",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .E.2... (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.632,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 4, 5 = most reliable)."
+      }
+    ],
+    "ngc5195": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SBa",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 0.6,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 40.55,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 79,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 5.495,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.7925,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.842,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "I0 pec",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .I.0.P. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 40.1,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 52.0 arcsec. Quality flag 52.3."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.253,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbar, quality 3, 5 = most reliable)."
+      }
+    ],
+    "m58": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 2.8,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 41.86,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 90.22,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 5.012,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.7656,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.748,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(rs)b",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXT3.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 40.7,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 47.3 arcsec. Quality flag 47.7."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.113,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbarf, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m59": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.8,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 72.64,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 164.7,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 4.55,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.7047,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.904,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "E5",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .E.5... (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m60": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.6,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 51.66,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 104.6,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 6.776,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.8035,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.933,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "E2",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .E.2... (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m61": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sbc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "ringFlag",
+        "label": "Ring flag (HyperLEDA)",
+        "value": "R",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 18.06,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 6.887,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9528,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.493,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(rs)bc",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXT4.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 36.1,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 37.7 arcsec. Quality flag 56.3."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 23.04,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 5 fitted logarithmic segments; spiral-fit quality flag 2."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.091,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m63": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sbc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 54.87,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 103,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 11.83,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.6053,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.659,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(rs)bc",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAT4.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 8.06,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 7 fitted logarithmic segments; spiral-fit quality flag 2."
+      }
+    ],
+    "m64": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SABa",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 2.2,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 63.99,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 114,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 10.52,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.507,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.742,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "(R)SA(rs)ab",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type RSAT2.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.28,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m65": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sa",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 173.3,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 7.638,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.2576,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.781,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(rs)a",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXT1.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 39.3,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Quality flag ."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.26,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m66": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 67.51,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 168.2,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 10.28,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.4487,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.628,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(s)b",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXS3.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 66.4,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 67.2 arcsec. Quality flag 59.9."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 21,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 4 fitted logarithmic segments; spiral-fit quality flag 1."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.091,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbar, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m74": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 5.2,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 19.77,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 9.886,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9441,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.48,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(s)c",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAS5.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 18.29,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 7 fitted logarithmic segments; spiral-fit quality flag 2."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.065,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m77": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 34.7,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 72.65,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 6.109,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.8356,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.685,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "(R)SA(rs)b",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type RSAT3.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.376,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdd, quality 4, 5 = most reliable)."
+      },
+      {
+        "key": "bhMassMsun",
+        "label": "Black hole mass",
+        "value": 8000000,
+        "unit": "Msun",
+        "source": "lodato2003",
+        "approximate": true,
+        "_note": "(8.0 +/- 0.3) x 10^6 Msun from fitting the water-maser rotation curve with a self-gravitating disc model."
+      }
+    ],
+    "m83": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 5,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 15.3,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 13.61,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9661,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.587,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(s)c",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXS5.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 114.9,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 118.5 arcsec. Quality flag 129.9."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 18.15,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 4 fitted logarithmic segments; spiral-fit quality flag 2."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.08,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbarf, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m84": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 39.61,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 133.4,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 7.413,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.869,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.931,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "E1",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .E.1... (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.646,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 3, 5 = most reliable)."
+      }
+    ],
+    "m85": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "S0-a",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -1.3,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 45.19,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 6.95,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.7691,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.839,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(s)0+ pec",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .LAS+P. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m86": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.8,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 66.46,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 127.8,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 11.53,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.7311,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.904,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "E3",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .E.3... (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m88": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3.3,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 62.95,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 138.2,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 8.65,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.5058,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.623,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(rs)b",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAT3.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 19.17,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 8 fitted logarithmic segments; spiral-fit quality flag 2."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.059,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m89": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.6,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 13.83,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 8.128,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.984,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.937,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "E0-1",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .E.0+.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m90": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sab",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 2.4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 70.86,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 22.33,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 9.12,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.4188,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.605,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(rs)ab",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXT2.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 98.1,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Quality flag ."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.146,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbar, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m91": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "ringFlag",
+        "label": "Ring flag (HyperLEDA)",
+        "value": "R",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 36.86,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 150,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 5.546,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.8147,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.753,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SB(rs)b",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SBT3.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 59.7,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 76.9 arcsec. Quality flag 74.6."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 8.64,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 5 fitted logarithmic segments; spiral-fit quality flag 2."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.105,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbarf, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m94": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SABa",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 2.3,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "ringFlag",
+        "label": "Ring flag (HyperLEDA)",
+        "value": "R",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 31.77,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 105,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 7.745,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.863,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.718,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "(R)SA(r)ab",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type RSAR2.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.42,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdd, quality 4, 5 = most reliable)."
+      },
+      {
+        "key": "ringRadiusKpc",
+        "label": "Inner starburst ring radius",
+        "value": 1.1,
+        "unit": "kpc",
+        "source": "waller2001",
+        "_note": "Bright inner ring of HII regions at R = 48 arcsec = 1.1 kpc (abstract)."
+      }
+    ],
+    "m95": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "ringFlag",
+        "label": "Ring flag (HyperLEDA)",
+        "value": "R",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 54.64,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 10.68,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 7.228,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.6152,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.729,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SB(r)b",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SBR3.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 51.4,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 71.8 arcsec. Quality flag 74.8."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.147,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbarf, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m96": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sab",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 2.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "ringFlag",
+        "label": "Ring flag (HyperLEDA)",
+        "value": "R",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 51.07,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 4.57,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 8.26,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.6668,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.796,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(rs)ab",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXT2.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 55.6,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 74.9 arcsec. Quality flag 84.5."
+      }
+    ],
+    "m98": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SABb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 2.6,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 152.4,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 11.04,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.241,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.662,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(s)ab",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXS2.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 101,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Quality flag ."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.157,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m99": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 5.2,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 20.13,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 5.035,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9419,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.51,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA(s)c",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SAS5.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 20.78,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 5 fitted logarithmic segments; spiral-fit quality flag 1."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.045,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m100": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SABb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 24,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 6.095,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9183,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.657,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(s)bc",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXS4.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 59.2,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 67.2 arcsec. Quality flag 62.0."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 21.35,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 4 fitted logarithmic segments; spiral-fit quality flag 2."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.098,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m101": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SABc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 5.9,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 16.05,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 23.99,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9616,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.437,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(rs)cd",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXT6.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 19.18,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 6 fitted logarithmic segments; spiral-fit quality flag 2."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.05,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "m102": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "S0-a",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -1.3,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 126.5,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 6.31,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.4315,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.784,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SA0+ sp",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .LA.+./ (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m105": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "E",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": -4.8,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 40.14,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 71,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 4.887,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.877,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.927,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "E1",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .E.1... (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "m106": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sbc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 68.33,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 150,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 16.98,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.4266,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.602,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(s)bc",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXS4.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 96.8,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Quality flag ."
+      },
+      {
+        "key": "bhMassMsun",
+        "label": "Black hole mass (maser disc)",
+        "value": 38000000,
+        "unit": "Msun",
+        "source": "herrnstein2005",
+        "_note": "Central binding mass of 3.8 x 10^7 Msun required by the Keplerian maser rotation curve (adopted distance 7.2 Mpc)."
+      }
+    ],
+    "m108": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 5.9,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 67.53,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 79,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 3.981,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.4169,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.568,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SB(s)cd sp",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SBS6./ (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 85.7,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Quality flag ."
+      }
+    ],
+    "m109": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sbc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 47.36,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 74.57,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 7.063,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.6982,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.705,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SB(rs)bc",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SBT4.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 55.7,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 74.2 arcsec. Quality flag 69.6."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 12.13,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 7 fitted logarithmic segments; spiral-fit quality flag 1."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.062,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbarfn, quality 5, 5 = most reliable)."
+      }
+    ],
+    "ngc253": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SABc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 5.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 52.48,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 26.79,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.171,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.689,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(s)c",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXS5.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 115.8,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Quality flag ."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.283,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bd, quality 5, 5 = most reliable)."
+      }
+    ],
+    "ngc1300": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sbc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 4,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 61.8,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 104.6,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 5.943,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.514,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.586,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SB(rs)bc",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SBT4.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 80.7,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 80.9 arcsec. Quality flag 84.5."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 14.68,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 4 fitted logarithmic segments; spiral-fit quality flag 2."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.073,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbarf, quality 5, 5 = most reliable)."
+      }
+    ],
+    "ngc1365": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3.2,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 62.64,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 23.39,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 12.02,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.5105,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.605,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SB(s)b",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SBS3.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 90.4,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Deprojected semi-major axis (dsma) = 138.0 arcsec. Quality flag 137.3."
+      },
+      {
+        "key": "pitchDeg",
+        "label": "Spiral arm pitch angle",
+        "value": 19.1,
+        "unit": "deg",
+        "source": "dg19",
+        "_note": "Mean pitch angle (column Pmean) over 3 fitted logarithmic segments; spiral-fit quality flag 1."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.25,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bdbarfn, quality 5, 5 = most reliable)."
+      }
+    ],
+    "ngc4565": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3.2,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 135.2,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 16.75,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.1726,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.677,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 97,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Quality flag ."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.289,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bz, quality 4, 5 = most reliable)."
+      }
+    ],
+    "ngc891": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "Sb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 22,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 13.03,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.2323,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.697,
+        "unit": "mag",
+        "source": "hyperleda"
+      }
+    ],
+    "ngc6946": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SABc",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 5.9,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 18.26,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 11.4,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9506,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.408,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SAB(rs)cd",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SXT6.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "antennae": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SBm",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 8.9,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 51.94,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 5.42,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.6982,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.561,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SB(s)m pec",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SBS9P. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "tailLengthKpc",
+        "label": "Southern tidal tail length",
+        "value": 65,
+        "unit": "kpc",
+        "source": "hibbard2001",
+        "approximate": true,
+        "_note": "Projected radius of the southern tail from the system centre (11.6 arcmin) at the adopted 19.2 Mpc; the paper quotes tails extending 65 kpc in radius, about 110 kpc end to end."
+      }
+    ],
+    "ngc4631": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SBcd",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 6.5,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 90,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 85.65,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 14.45,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.1521,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.386,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "SB(s)d sp",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .SBS7./ (VizieR column \"type\"), using the coding table in mtypes.tex."
+      },
+      {
+        "key": "barRadiusArcsec",
+        "label": "Bar radius",
+        "value": 55,
+        "unit": "arcsec",
+        "source": "he15",
+        "_note": "Table column sma (Semi-major axis, observed, not deprojected) of the feature typed \"bar\"; semi-major axis is a radius, no conversion. Quality flag ."
+      },
+      {
+        "key": "bulgeToTotal",
+        "label": "Bulge-to-total light ratio",
+        "value": 0.917,
+        "source": "salo15",
+        "_note": "Fraction of total 3.6um model flux in the Sersic bulge component (model _bz, quality 4, 5 = most reliable)."
+      }
+    ],
+    "ngc6822": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "IB",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 9.8,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 16.91,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 15.42,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.9638,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "IB(s)m",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .IBS9.. (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ],
+    "ngc3628": [
+      {
+        "key": "morphType",
+        "label": "Morphological type",
+        "value": "SBb",
+        "source": "hyperleda"
+      },
+      {
+        "key": "tStage",
+        "label": "Hubble stage T",
+        "value": 3.1,
+        "source": "hyperleda"
+      },
+      {
+        "key": "barFlag",
+        "label": "Barred (HyperLEDA bar flag)",
+        "value": "B",
+        "source": "hyperleda"
+      },
+      {
+        "key": "inclinationDeg",
+        "label": "Inclination (from the axis ratio)",
+        "value": 79.3,
+        "unit": "deg",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "HyperLEDA derives this from the apparent axis ratio and type; it is unreliable for bulge-dominated and nearly edge-on galaxies. The scene orientation comes from the catalogue, not from this value."
+      },
+      {
+        "key": "positionAngleDeg",
+        "label": "Position angle",
+        "value": 103.6,
+        "unit": "deg",
+        "source": "hyperleda"
+      },
+      {
+        "key": "d25Arcmin",
+        "label": "Apparent diameter (D25)",
+        "value": 11.04,
+        "unit": "arcmin",
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 0.1*10^logd25 (logd25 in units of 0.1 arcmin)."
+      },
+      {
+        "key": "axisRatio",
+        "label": "Axis ratio b/a",
+        "value": 0.3119,
+        "source": "hyperleda",
+        "approximate": true,
+        "_note": "Computed as 10^-logr25."
+      },
+      {
+        "key": "colorBV",
+        "label": "Colour B-V (corrected)",
+        "value": 0.675,
+        "unit": "mag",
+        "source": "hyperleda"
+      },
+      {
+        "key": "rc3Type",
+        "label": "RC3 classification",
+        "value": "Sb pec sp",
+        "source": "rc3",
+        "_note": "Decoded from the RC3 coded type .S..3P/ (VizieR column \"type\"), using the coding table in mtypes.tex."
+      }
+    ]
+  }
+}
