@@ -212,6 +212,79 @@ describe('comet orbits', () => {
     expect(o.radiusAt(o.tp + 4e5) / AU).toBeGreaterThan(500); // never comes back
   });
 
+  describe('strongly hyperbolic orbit far from perihelion (3I/ATLAS)', () => {
+    const el = {
+      center: 'sun' as const,
+      q: 1.3572,
+      e: 6.145,
+      i: 175.1135,
+      node: 322.166,
+      argPeri: 128.004,
+      tp: 2460977.981,
+      epoch: 2460867.5,
+      periodDays: null,
+      source: 'x',
+    };
+    const o = new CometOrbit(el);
+    const YEAR = 365.25;
+    /** Distance from the hyperbolic anomaly: e sinh H - H = M, r = a (e cosh H - 1), a = q / (e - 1). */
+    const exactRadius = (days: number): number => {
+      const a = o.q / (o.e - 1);
+      const M = Math.sqrt(o.mu / a ** 3) * days * DAY;
+      let H = Math.sign(M) * Math.log((2 * Math.abs(M)) / o.e + 1);
+      for (let k = 0; k < 100; k++) H -= (o.e * Math.sinh(H) - H - M) / (o.e * Math.cosh(H) - 1);
+      return a * (o.e * Math.cosh(H) - 1);
+    };
+
+    it('matches the hyperbolic-anomaly distance 100,000 and 1.29 million years out', () => {
+      const vInf = Math.sqrt((o.mu * (o.e - 1)) / o.q);
+      expect(vInf / 1e3).toBeCloseTo(58, 0);
+      for (const years of [1e5, 1.29e6]) {
+        const r = o.radiusAt(o.tp + years * YEAR);
+        expect(Math.abs(r / exactRadius(years * YEAR) - 1), `${years} yr`).toBeLessThan(0.01);
+        // Asymptotically v_inf t.
+        expect(r / (vInf * years * YEAR * DAY)).toBeCloseTo(1, 1);
+        const v = vec3();
+        expect(v3len(o.stateAt(o.tp + years * YEAR, vec3(), v)) / r).toBeCloseTo(1, 12);
+        expect(v3len(v) / vInf).toBeCloseTo(1, 4);
+        const { iterations } = solveUniversal(o.q, o.e, o.mu, years * YEAR * DAY);
+        expect(iterations).toBeLessThan(15);
+      }
+      expect(o.radiusAt(o.tp + 1e5 * YEAR) / AU).toBeCloseTo(1.2233e6, -3);
+      expect(o.radiusAt(o.tp + 1.29e6 * YEAR) / AU).toBeCloseTo(1.578e7, -4);
+    });
+
+    it('is symmetric before and after perihelion', () => {
+      for (const years of [0.1, 50, 1e4, 1e5, 1.29e6, 1e8]) {
+        const after = o.radiusAt(o.tp + years * YEAR);
+        const before = o.radiusAt(o.tp - years * YEAR);
+        expect(Number.isFinite(after)).toBe(true);
+        expect(before / after, `${years} yr`).toBeCloseTo(1, 12);
+        expect(after / exactRadius(years * YEAR)).toBeCloseTo(1, 10);
+      }
+    });
+
+    it('leaves results within 50 years of perihelion unchanged', () => {
+      // Recorded from the solver before the hyperbolic start bound was added: [days, x, y, z] in m.
+      const recorded = [
+        [-18262.5, 36495223162058.016, -78628523181194.36, -29988518656258.05],
+        [-3000, 5858391615490.547, -13093287361313.707, -4981561902839.415],
+        [-100, -1332725777.5237885, -540736198672.8898, -192223026875.7935],
+        [-1, -195042578901.44434, -55938805469.13876, -9062279545.3281],
+        [0, -196506913452.83902, -50575628721.49597, -7073707844.177292],
+        [0.5, -197230370235.97708, -47891756051.8304, -6079093344.528657],
+        [30, -230388120148.4792, 110516022487.92264, 52095256957.4822],
+        [700, -543898150169.3111, 3353079360384.058, 1222627412103.4045],
+        [18262.5, -8058099299836.695, 85947479003621.8, 31012176819706.395],
+      ];
+      for (const [d, x, y, z] of recorded) {
+        const p = o.positionAt(o.tp + d, vec3());
+        const ref = vec3(x, y, z);
+        expect(v3len(v3sub(vec3(), p, ref)) / v3len(ref), `${d} d`).toBeLessThan(1e-9);
+      }
+    });
+  });
+
   it("puts Halley's perihelion on 1986-02-09 at 0.587 AU", () => {
     const { jd, qAU } = perihelion(comet('halley').orbit);
     expect(Math.abs(jd - jdOf('1986-02-09T12:00:00Z'))).toBeLessThan(1);

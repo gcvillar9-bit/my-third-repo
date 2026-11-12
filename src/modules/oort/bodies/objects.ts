@@ -3,9 +3,9 @@
  * objects.json, the per-frame float64 view of each, and the pure brightness and line-alpha rules.
  */
 import { SSB_FRAME, type Body, type FrameId, type Vec3d, type ViewState } from '../../../core/contracts';
-import { v3len, v3set, v3sub, vec3 } from '../../../core/math64';
+import { v3len, v3sub, vec3 } from '../../../core/math64';
 import { planetPointIlluminance } from '../../../core/photometry';
-import { AU, DAY } from '../../../core/units';
+import { AU } from '../../../core/units';
 import { CometOrbit } from '../../comets/public';
 import type { OortObjectRow } from './data';
 
@@ -41,38 +41,9 @@ export function makeObject(row: OortObjectRow, hasSun = true): OortObject {
   };
 }
 
-/**
- * State of an object at `jd` relative to its orbit centre (m, m/s). Bound orbits use CometOrbit. Unbound
- * ones are solved here in the hyperbolic anomaly F (e sinh F − F = M) with Newton's method from
- * asinh(M / e): CometOrbit's universal-variable iteration stops converging hundreds of thousands of years
- * from perihelion (its positions overflow by the Gliese 710 flyby), which these bookmarks reach.
- */
-export function objectState(o: OortObject, jd: number, pos: Vec3d, vel?: Vec3d): Vec3d {
-  const { orbit } = o;
-  if (orbit.e < 1) return orbit.stateAt(jd, pos, vel);
-  const { e, q, mu, P, Q } = orbit;
-  const A = q / (e - 1);
-  const n = Math.sqrt(mu / (A * A * A));
-  const M = n * (jd - orbit.tp) * DAY;
-  let F = Math.asinh(M / e);
-  for (let k = 0; k < 60; k++) {
-    const dF = (e * Math.sinh(F) - F - M) / (e * Math.cosh(F) - 1);
-    F -= dF;
-    if (Math.abs(dF) <= 1e-14 * (1 + Math.abs(F))) break;
-  }
-  const B = A * Math.sqrt(e * e - 1);
-  const ch = Math.cosh(F);
-  const sh = Math.sinh(F);
-  const x = A * (e - ch);
-  const y = B * sh;
-  if (vel) {
-    const Fdot = n / (e * ch - 1);
-    const vx = -A * sh * Fdot;
-    const vy = B * ch * Fdot;
-    v3set(vel, vx * P.x + vy * Q.x, vx * P.y + vy * Q.y, vx * P.z + vy * Q.z);
-  }
-  return v3set(pos, x * P.x + y * Q.x, x * P.y + y * Q.y, x * P.z + y * Q.z);
-}
+/** State of an object at `jd` relative to its orbit centre (m, m/s), bound or unbound. */
+export const objectState = (o: OortObject, jd: number, pos: Vec3d, vel?: Vec3d): Vec3d =>
+  o.orbit.stateAt(jd, pos, vel);
 
 /** Hyperbolic excess speed of an unbound orbit, m/s (0 when bound): v∞² = μ (e − 1) / q. */
 export const speedAtInfinity = (orbit: CometOrbit): number =>

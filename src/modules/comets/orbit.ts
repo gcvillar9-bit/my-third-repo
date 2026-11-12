@@ -86,6 +86,15 @@ export function solveUniversal(
   // Upper bounds of the root: the q chi term alone, and (hyperbola / parabola) the cubic term alone.
   let chi = T / q;
   if (e > 0) chi = Math.min(chi, Math.cbrt((6 * T) / e));
+  // Hyperbola: chi = H / sqrt(-alpha) in the hyperbolic anomaly H, and e sinh H - H = M >= (e - 1) sinh H
+  // bounds H by asinh(M / (e - 1)). The root grows only logarithmically with dt, so the power-law bounds
+  // above sit far above it far from perihelion: Newton then crawls down the exponential about one unit of H
+  // per step and ran out of iterations (unconverged positions of 1e37 AU 100,000 years out). This bound is
+  // within ln(e / (e - 1)) of the root, so a few steps suffice at any dt.
+  if (alpha < 0) {
+    const sa = Math.sqrt(-alpha);
+    chi = Math.min(chi, Math.asinh((T * sa * sa * sa) / (e - 1)) / sa);
+  }
   // Ellipse: the root lies within half a revolution, E <= pi.
   const chiMax = alpha > 0 ? Math.PI / Math.sqrt(alpha) : Infinity;
   if (chi > chiMax) chi = chiMax;

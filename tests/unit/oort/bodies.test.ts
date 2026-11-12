@@ -87,17 +87,17 @@ describe('oort objects', () => {
     }
   });
 
-  it('unbound states match CometOrbit near perihelion and stay finite a million years out', () => {
+  it('unbound states come from CometOrbit and stay on the asymptote a million years out', () => {
     for (const o of objects.filter((x) => x.row.group === 'interstellar')) {
       const tp = o.row.elements.tp;
-      for (const dt of [-300, -10, 0, 5, 400]) {
+      for (const dt of [-300, -10, 0, 5, 400, -1.3e6 * YEAR]) {
         const a = objectState(o, tp + dt, vec3());
         const b = o.orbit.positionAt(tp + dt, vec3());
-        expect(v3len(v3sub(vec3(), a, b)) / v3len(b)).toBeLessThan(1e-9);
+        expect(v3len(v3sub(vec3(), a, b)) / v3len(b)).toBeLessThan(1e-12);
       }
       const t = 1.3e6 * YEAR;
       const vel = vec3();
-      const p = objectState(o, tp + t, vec3(), vel);
+      const p = o.orbit.stateAt(tp + t, vec3(), vel);
       const vInf = speedAtInfinity(o.orbit);
       expect(v3len(p) / (vInf * t * DAY)).toBeCloseTo(1, 1);
       expect(v3len(vel) / vInf).toBeCloseTo(1, 3);

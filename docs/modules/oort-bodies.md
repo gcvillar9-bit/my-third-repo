@@ -20,9 +20,8 @@ in their source text.
 
 - **Objects** (`objects.ts`): a `CometOrbit` per row (comets' `public.ts`), a frame with the row id (parent `sun`, or
   `ssb` for Bernardinelli-Bernstein) and a `Body` (`simulated: true`, influence radius 200 radii clamped to
-  [1e6, 2e8] m). Unbound orbits are propagated by `objectState` in the hyperbolic anomaly F, because
-  `CometOrbit`'s universal-variable iteration stops converging (positions overflow) hundreds of thousands of years
-  from perihelion, which the flyby bookmarks reach. Validity range `oort.objects`: element epochs ± 200 years,
+  [1e6, 2e8] m). `objectState` propagates every orbit, bound or unbound, with `CometOrbit` (accurate millions of
+  years from perihelion, as the flyby bookmarks need). Validity range `oort.objects`: element epochs ± 200 years,
   `beyond: 'approximate'`.
 - **Passing stars** (`flybys.ts`): ICRS position and velocity from the astrometry
   (v_t = 4.74 μ d), straight-line motion `r(t) = r0 + v (t − t0)`, closest approach at `t* = −r0·v/|v|²`. Results:
@@ -87,7 +86,7 @@ in their source text.
 ## Tests
 
 - Unit `tests/unit/oort/bodies.test.ts`: sources and orbits for every row; Sedna's aphelion and perihelion; the
-  Bernardinelli-Bernstein aphelion; v∞ of the visitors; the hyperbolic solver against `CometOrbit` and a million
+  Bernardinelli-Bernstein aphelion; v∞ of the visitors; unbound states through `CometOrbit` a million
   years out; orbit sampling (closed, through q and Q, turning under 0.2 rad per sample); flyby closest approaches;
   past and future label wording; shell alpha (hidden at 1, 40 and 170 AU); line alpha with `lineFade` 0; edge-on
   circle fade; info cards; bookmarks.
