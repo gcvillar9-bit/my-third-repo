@@ -1,0 +1,70 @@
+{
+  "about": "Stars that pass through the Oort Cloud. The track is straight-line motion from the astrometry below (hand-entered, approximate); published closest approaches, which model the Galactic potential and the measurement errors, are quoted next to it.",
+  "trackHalfLengthAu": 250000,
+  "stars": [
+    {
+      "id": "gliese-710",
+      "name": "Gliese 710",
+      "aliases": ["GJ 710", "HIP 89825", "HD 168442", "Gliese 710 flyby"],
+      "spectral": "K7 V",
+      "teffK": 4100,
+      "absMagV": 8.26,
+      "massSun": 0.6,
+      "astrometry": {
+        "raDeg": 274.9618,
+        "decDeg": -1.9386,
+        "parallaxMas": 52.3963,
+        "pmRaMasYr": -0.414,
+        "pmDecMasYr": -0.108,
+        "rvKms": -14.42,
+        "epochYear": 2016.0,
+        "source": "Gaia DR3 (Gaia Collaboration 2023), as used by Bailer-Jones (2022); hand-entered",
+        "approximate": true
+      },
+      "published": [
+        {
+          "source": "Bailer-Jones (2022, ApJL 935, L9; Gaia DR3)",
+          "distancePc": 0.0636,
+          "distanceRangePc": [0.0595, 0.0678],
+          "timeMyr": 1.29
+        },
+        {
+          "source": "de la Fuente Marcos & de la Fuente Marcos (2022, RNAAS 6, 136; Gaia DR3)",
+          "distancePc": 0.052,
+          "distanceRangePc": [0.048, 0.056],
+          "timeMyr": 1.29
+        }
+      ],
+      "description": "An orange dwarf, now 62 light-years away in Serpens, heading almost straight at us at 14 km/s. In about 1.29 million years it will pass roughly 11,000-13,000 AU from the Sun, through the inner Oort Cloud, shining brighter than Jupiter. It is the closest stellar encounter known and should send a shower of comets inward over the following million years."
+    },
+    {
+      "id": "scholz-star",
+      "name": "Scholz's Star",
+      "aliases": ["WISE J0720-0846", "WISE J072003.20-084651.2", "Scholz's star flyby"],
+      "spectral": "M9.5 + T5 (red dwarf and brown dwarf)",
+      "teffK": 2700,
+      "absMagV": 19.1,
+      "massSun": 0.15,
+      "astrometry": {
+        "raDeg": 110.0133,
+        "decDeg": -8.7809,
+        "parallaxMas": 147.1,
+        "pmRaMasYr": -40.3,
+        "pmDecMasYr": -114.8,
+        "rvKms": 83.1,
+        "epochYear": 2016.0,
+        "source": "Gaia DR3 parallax and proper motion; radial velocity from Burgasser et al. (2015, AJ 149, 104); hand-entered",
+        "approximate": true
+      },
+      "published": [
+        {
+          "source": "Mamajek et al. (2015, ApJL 800, L17)",
+          "distancePc": 0.25,
+          "distanceRangePc": [0.18, 0.36],
+          "timeMyr": -0.07
+        }
+      ],
+      "description": "A dim red dwarf with a brown-dwarf companion, now 22 light-years away in Monoceros and receding at 83 km/s. About 70,000-80,000 years ago, while modern humans were spreading out of Africa, it grazed the outer Oort Cloud at roughly 50,000-70,000 AU. Even then it was too faint to see without a telescope."
+    }
+  ]
+}

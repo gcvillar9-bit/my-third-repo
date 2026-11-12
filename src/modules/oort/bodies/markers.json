@@ -1,0 +1,62 @@
+{
+  "about": "Reference shells centred on the Sun, drawn as three great circles each (ecliptic plane and two perpendicular planes) with one label.",
+  "shells": [
+    {
+      "id": "heliopause",
+      "radiusAu": 120,
+      "label": "Heliopause · 120 AU",
+      "color": [0.45, 0.75, 1.0],
+      "approximate": true,
+      "source": "Voyager 1 crossed the heliopause at 121.6 AU in August 2012 and Voyager 2 at 119 AU in November 2018 (NASA/JPL). The real boundary is not a sphere.",
+      "description": "Where the solar wind stops against the gas between the stars. Interstellar space begins here, but the Sun's gravity rules for a thousand times farther."
+    },
+    {
+      "id": "gravity-lens",
+      "radiusAu": 550,
+      "label": "Solar gravity lens focus · 550 AU",
+      "color": [1.0, 0.85, 0.45],
+      "approximate": true,
+      "source": "Eshleman (1979, Science 205, 1133): light grazing the Sun's edge comes to a focus from about 548 AU outward.",
+      "description": "From here outward the Sun's gravity focuses the light of whatever lies exactly behind it: a telescope placed here could map the surface of an exoplanet."
+    },
+    {
+      "id": "au-1000",
+      "radiusAu": 1000,
+      "label": "1,000 AU · 5.8 light-days",
+      "color": [0.7, 0.72, 0.8],
+      "source": "Exact: 1,000 AU / c = 5.78 days",
+      "description": "About where the inner edge of the Oort Cloud is usually put (1,000-2,000 AU). Voyager 1 will get here in about 300 years."
+    },
+    {
+      "id": "au-10000",
+      "radiusAu": 10000,
+      "label": "10,000 AU · 58 light-days",
+      "color": [0.7, 0.72, 0.8],
+      "source": "Exact: 10,000 AU / c = 57.8 days",
+      "description": "The heart of the inner Oort Cloud. An orbit this size takes a million years."
+    },
+    {
+      "id": "light-year",
+      "radiusAu": 63241.077,
+      "label": "1 light-year · 63,241 AU",
+      "color": [1.0, 0.95, 0.7],
+      "source": "IAU: 1 light-year = 9,460,730,472,580,800 m = 63,241.077 AU",
+      "description": "One light-year from the Sun: still inside the outer Oort Cloud."
+    },
+    {
+      "id": "au-100000",
+      "radiusAu": 100000,
+      "label": "100,000 AU · 1.58 light-years",
+      "color": [0.7, 0.72, 0.8],
+      "approximate": true,
+      "source": "Exact distance; as an edge it is nominal. The Sun's tidal (Jacobi) radius in the Galaxy is about 1.4 pc (280,000 AU) towards the Galactic centre, for Oort constants A = 15.3 and B = -11.9 km/s/kpc (Bovy 2017).",
+      "description": "The nominal outer edge of the Oort Cloud. Comets this far out are held so weakly that the Galaxy's tide and passing stars strip them away. Voyager 1 needs about 30,000 years to get past here."
+    }
+  ],
+  "voyager": {
+    "source": "NASA/JPL (Voyager mission status and 'Oort Cloud' fact sheet): about 300 years to reach the inner edge of the Oort Cloud and about 30,000 years to fly beyond it",
+    "yearsToInnerEdge": 300,
+    "yearsToExit": 30000,
+    "approximate": true
+  }
+}
