@@ -56,8 +56,18 @@ export interface GalaxyLayer extends Renderable {
 
 const v3 = (c: [number, number, number]) => new Vector3(c[0], c[1], c[2]);
 
-export function createGalaxyLayer(data: GalaxyData, atlas: MorphAtlas): GalaxyLayer {
+/**
+ * @param skip catalogue indices drawn by another pass (galaxy portraits): left out of the impostor
+ *   instances (their points still crossfade as usual)
+ */
+export function createGalaxyLayer(
+  data: GalaxyData,
+  atlas: MorphAtlas,
+  skip: ReadonlySet<number> = new Set(),
+): GalaxyLayer {
   const n = data.count;
+  const skipMask = new Uint8Array(n);
+  for (const i of skip) if (i >= 0 && i < n) skipMask[i] = 1;
   const rte = createRteUniforms();
   const shared: Record<string, IUniform> = {
     ...rte,
@@ -195,6 +205,7 @@ export function createGalaxyLayer(data: GalaxyData, atlas: MorphAtlas): GalaxyLa
         const dz = P[3 * i + 2] - cam.z;
         const d2 = dx * dx + dy * dy + dz * dz;
         if (R * R < pa2 * d2 || d2 < 0.36 * R * R) continue;
+        if (skipMask[i]) continue;
         if (panoOff) {
           const sx = P[3 * i] - sunPos.x;
           const sy = P[3 * i + 1] - sunPos.y;
