@@ -10,7 +10,9 @@ galaxies (search, info cards, labels, bookmarks). Source: `src/modules/galaxies/
   is dropped (the milkyway module draws it), leaving **10,936**.
 - `pnpm assets:build` (or `node tools/build-galaxies.mjs`) writes `public/data/galaxies/galaxies.bin`
   (295 KB), `public/data/galaxies/names.json` (up to three designations per galaxy, row = `nameIdx`) and
-  `src/modules/galaxies/named.json` (the ten named galaxies, bundled so bookmarks exist before the binary loads).
+  `src/modules/galaxies/named.json` (the ten named galaxies, bundled so bookmarks exist before the binary loads)
+  and `src/modules/galaxies/gallery.json` (`GALLERY`: those ten plus 44 more, each row also carrying `key`, its
+  catalogue designation).
 - Positions: RA/Dec (J2000) + `Distance` (ly) from the Sun → galactic (`ICRS_TO_GALACTIC`) → + `SSB_IN_MW`
   → supergalactic (`GALACTIC_TO_SUPERGALACTIC`), i.e. the `universe` frame (origin Milky Way centre), in Mpc.
   The tool keeps copies of the two matrices; the unit test cross-checks M31 against `src/core/frames.ts`.
@@ -59,10 +61,18 @@ Total 16 + 27N bytes. float32 Mpc is good to ~0.06 pc at 1 Mpc and ~40 pc at 660
 
 ## Named galaxies, bookmarks, settings
 
-- M31, M33, LMC, SMC, M87 (Virgo A), M81, M82, M104, M51, Centaurus A: search entries `gal:<id>` (fly to a
-  view with the galaxy filling about half the width), info cards (distance in Mly and Mpc, light-travel time,
-  Hubble type, diameter (approximate), absolute magnitude) and labels once the camera is > 30 kpc from the
-  Galactic centre.
+- `GALLERY` (`gallery.json`, 54 galaxies; the first ten are the original `NAMED` list that `named.json`,
+  `galaxyBookmarks()` and `NAMED_GALAXIES` still cover): search entries `gal:<id>` (fly to a view with the
+  galaxy filling about half the width), info cards and labels. The ten original galaxies (M31, M33, LMC, SMC,
+  M87, M81, M82, M104, M51, Centaurus A) are labelled (priority 5) once the camera is > 30 kpc from the
+  Galactic centre; the 44 additions get priority 4 and are labelled only within 6 Mpc of the galaxy.
+- Info cards: the catalogue facts (distance in Mly and Mpc, light-travel time, Hubble type, diameter
+  (approximate), absolute magnitude), then measured facts from `gallery-facts.json` for that id when present
+  (`sources` keyed by citation, `galaxies.<id>` rows `{key, label, value, unit?, source, approximate?}`; keys
+  starting with `_` are skipped). The 3D appearance is always marked simulated.
+- The Antennae are one entry anchored on NGC 4038: the catalogue places NGC 4039 at twice the distance, so
+  the pair is not adjacent in 3D. Companions have independent catalogue distances, so pairs (M51 and
+  NGC 5195, M32 and M31, ...) can be separated along the line of sight.
 - Bookmarks (`universe` frame): `m31-approach` (from the Milky Way side, M31 spanning ~1/3 of the width, EV −12),
   `local-group` (1.3 Mpc above the supergalactic plane, MW + Magellanic Clouds and M31 + M33 in frame, EV −12),
   `virgo-cluster` (M87 from 5 Mpc on our side, fovY 50°, EV −15).
