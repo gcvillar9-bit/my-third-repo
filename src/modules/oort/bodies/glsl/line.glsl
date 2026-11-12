@@ -15,6 +15,10 @@ void main() {
 varying float vAlpha;
 varying vec3 vColor;
 void main() {
+  // Hidden lines cost nothing, and a fragment whose interpolated alpha is not a number (seen on a
+  // sub-pixel segment exactly face-on to the camera) must never reach the HDR buffer: bloom would spread
+  // it over the whole frame.
+  if (!(vAlpha > 0.0 && vAlpha <= 1.0)) discard;
   gl_FragColor = vec4(vColor, vAlpha);
   LOG_DEPTH_FRAGMENT();
 }

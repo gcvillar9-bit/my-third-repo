@@ -360,11 +360,10 @@ export function createBodiesRenderables(deps: BodiesRenderDeps): BodiesRenderabl
           for (let k = 0; k < C; k++) {
             for (let e = 0; e < 2; e++) {
               const u = 3 * (c * (C + 1) + k + e);
-              if (a > 0.005) {
-                mPos[3 * o] = sunRel.x + R * unit[u];
-                mPos[3 * o + 1] = sunRel.y + R * unit[u + 1];
-                mPos[3 * o + 2] = sunRel.z + R * unit[u + 2];
-              }
+              // Always placed, also while hidden: a vertex left at the camera (w = 0) is not a valid line end.
+              mPos[3 * o] = sunRel.x + R * unit[u];
+              mPos[3 * o + 1] = sunRel.y + R * unit[u + 1];
+              mPos[3 * o + 2] = sunRel.z + R * unit[u + 2];
               mAlpha[o] = a > 0.005 ? a : 0;
               o++;
             }
