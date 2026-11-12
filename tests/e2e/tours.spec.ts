@@ -1,8 +1,14 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Cosmic Zoom in test mode: ?tour= starts it after boot and ?tourspeed=20 plays it 20x faster,
- * so a stop (flight + caption) takes about 45 frames at the fixed 1/60 s test step.
+ * Cosmic Zoom in test mode: ?tour= starts it after boot and ?tourspeed=60 plays it 60x faster, so one
+ * frame of the fixed 1/60 s test step is 1 s of tour time and a stop (flight + caption) takes about
+ * 15 frames. The loop looks at the tour every 5 frames, which is every 5 s of tour time.
+ *
+ * Keep the frame count low. Software rendering (CI) needs about half a second for each of these views,
+ * and the work queues in the GPU process: renderFrames returns at once and the next step that needs the
+ * pixels (the screenshot) waits for all of it. At 20x with 15 frames per look (the same tour times) this
+ * test drew about 125 frames and used 100 s of its 120 s on CI, so a slower runner ran out of time.
  */
 test(
   'tours: Cosmic Zoom changes captions and moves the camera through 3+ stops',
@@ -14,7 +20,7 @@ test(
       if (msg.type() === 'error') problems.push(`console: ${msg.text()}`);
     });
     page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
-    await page.goto('?test=1&q=potato&ui=1&b=earth-now&tour=cosmic-zoom&tourspeed=20');
+    await page.goto('?test=1&q=potato&ui=1&b=earth-now&tour=cosmic-zoom&tourspeed=60');
     await page.waitForFunction(() => window.__universe !== undefined);
     await page.evaluate(() => window.__universe!.ready());
     await page.evaluate(() => window.__universe!.renderFrames(4));
@@ -24,7 +30,7 @@ test(
     const captions = new Set<string>();
     const frames = new Set<string>();
     for (let i = 0; i < 40 && (targets.size < 4 || captions.size < 3 || frames.size < 3); i++) {
-      await page.evaluate(() => window.__universe!.renderFrames(15));
+      await page.evaluate(() => window.__universe!.renderFrames(5));
       const s = await page.evaluate(() => {
         const el = document.querySelector<HTMLElement>('.cz-tour');
         const api = window.__universe as unknown as { camera?: () => { frame: string } };
