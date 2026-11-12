@@ -1,5 +1,5 @@
 /**
- * Bodies part of the oort module (docs/modules/oort-bodies.md): real objects on the Oort Cloud's scale
+ * Bodies part of the oort module (docs/modules/oort.md): real objects on the Oort Cloud's scale
  * (four sednoids, comet Bernardinelli-Bernstein, three interstellar visitors) as frames and bodies on
  * two-body orbits with photometric points, a resolved sphere and orbit lines; the straight-line tracks of
  * two passing stars; labelled scale shells; info cards, search entries, labels and bookmarks. Shells,
