@@ -43,7 +43,12 @@
     "source": "Visibility enhancement (not physical): the real cloud is far below any visible brightness. Point brightness shows how many comets a point stands for, not how much sunlight they reflect.",
     "referenceCount": 150000,
     "pointSizePx": 2,
+    "maxPointSizePx": 20,
+    "cellFraction": 0.05,
     "nearFadeAu": [0.05, 2],
-    "note": "Tuning values (reference illuminance, clamp) are added here by the cloud package."
+    "referenceLux": 0.004,
+    "referenceDistanceAu": 1000,
+    "capLux": 1e-5,
+    "note": "A point of weight 1 at referenceDistanceAu gives referenceLux (times referenceCount / count and the brightness setting), falling as 1/d^2 so a haze's surface brightness does not depend on the viewing distance; one point never exceeds capLux (about Sirius, 1e-5 lux). A point's sprite is at least pointSizePx and grows up to maxPointSizePx with the patch it stands for, cellFraction * a at referenceCount points (about half the mean spacing of points). Tuned on the oort-cloud bookmark at EV -2: a white inner cloud and a faint halo."
   }
 }

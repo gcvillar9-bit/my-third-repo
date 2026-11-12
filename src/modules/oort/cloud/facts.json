@@ -1,0 +1,21 @@
+{
+  "about": "Hand-entered facts of the Oort Cloud info card (the population numbers come from model.json).",
+  "rows": [
+    {
+      "label": "Extent",
+      "value": "about 1,000-2,000 AU to about 100,000 AU",
+      "approximate": true,
+      "source": "Inner edge: Hills (1981, AJ 86, 1730) and the detached orbits of sednoids; outer edge: Oort (1950), Duncan, Quinn & Tremaine (1987, AJ 94, 1330), where the Galactic tide and passing stars strip comets from the Sun"
+    },
+    {
+      "label": "Predicted by",
+      "value": "Ernst Öpik (1932) and Jan Oort (1950)",
+      "source": "Öpik (1932, Proc. Am. Acad. Arts Sci. 67, 169); Oort (1950, Bull. Astron. Inst. Netherlands 11, 91)"
+    },
+    {
+      "label": "Observed",
+      "value": "never directly: its comets are far too small and dark; it is inferred from the orbits of long-period comets",
+      "source": "Oort (1950); Dones et al. (2015, Space Sci. Rev. 197, 191)"
+    }
+  ]
+}
