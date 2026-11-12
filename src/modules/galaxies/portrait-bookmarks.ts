@@ -1,12 +1,13 @@
 /**
- * Bookmarks showing galaxy portraits up close: 'whirlpool' (M51 from the Milky Way side, ~60% of the
- * width), 'sombrero' (M104, same framing), 'm87-jet' (the core of M87, ~6 kpc across) and 'inside-m31'
- * (3 kpc above Andromeda's disc, 12 kpc from its centre, looking across the disc at the bulge).
+ * Bookmarks showing galaxy portraits up close, all from the Milky Way side: 'whirlpool' (M51, ~60% of
+ * the width), 'sombrero' (M104), 'm87-jet' (the core of M87, ~6 kpc across), 'inside-m31' (3 kpc above
+ * Andromeda's disc, 12 kpc from its centre, looking across the disc at the bulge), 'pinwheel' (M101),
+ * 'ngc-1300', 'needle' (NGC 4565), 'centaurus-a', 'cigar' (M82 with its outflow) and 'antennae'.
  */
 import { ROOT_FRAME, type Bookmark } from '../../core/contracts';
 import { qlookRotation, quat, v3cross, v3normalize, vec3 } from '../../core/math64';
 import { KPC, MPC } from '../../core/units';
-import { approachBookmark, discNormal, fillDistance, named } from './named';
+import { approachBookmark, discNormal, fillDistance, gallery, named } from './named';
 
 const DEG = Math.PI / 180;
 /** Horizontal field of view at 16:9 for vertical fovY. */
@@ -67,5 +68,66 @@ export function portraitBookmarks(): Bookmark[] {
     lookTarget:
       "Inside Andromeda's disc, 3 kpc above the plane and 12 kpc from the centre: the disc's arms, dust and star-forming ring stretch across the lower view towards the bright bulge at the centre.",
   };
-  return [whirlpool, sombrero, m87Jet, insideM31];
+  const view = (
+    id: string,
+    galaxyId: string,
+    title: string,
+    frac: number,
+    lookTarget: string,
+    r?: number,
+  ) => {
+    const g = gallery(galaxyId);
+    return {
+      ...approachBookmark(g, id, fillDistance((r ?? g.radiusKpc) * KPC, frac, hfov169(fov)), fov),
+      title,
+      ev: PORTRAIT_EV,
+      lookTarget,
+    };
+  };
+  const more: Bookmark[] = [
+    view(
+      'pinwheel',
+      'm101',
+      'The Pinwheel Galaxy (M101)',
+      0.6,
+      'M101 nearly face-on: a lopsided, many-armed spiral strewn with pink star-forming knots around a small bright core.',
+    ),
+    view(
+      'ngc-1300',
+      'ngc1300',
+      'NGC 1300',
+      0.6,
+      'The barred spiral NGC 1300: a long straight bar with dark dust lanes along it and two arms sweeping out from its ends.',
+    ),
+    view(
+      'needle',
+      'ngc4565',
+      'The Needle Galaxy (NGC 4565)',
+      0.75,
+      'NGC 4565 exactly edge-on: a long thin needle of light split along its length by a dark dust lane, with a small bulge in the middle.',
+    ),
+    view(
+      'centaurus-a',
+      'cena',
+      'Centaurus A',
+      0.6,
+      'Centaurus A: a round yellowish elliptical body crossed by a broad, warped dark dust band lined with blue and pink star formation.',
+    ),
+    view(
+      'cigar',
+      'm82',
+      'The Cigar Galaxy (M82)',
+      0.45,
+      'M82 nearly edge-on: a dusty, clumpy starburst disc with red hydrogen-alpha outflow cones rising above and below its centre.',
+    ),
+    view(
+      'antennae',
+      'antennae',
+      'The Antennae (NGC 4038/4039)',
+      0.9,
+      'The Antennae: two colliding, distorted galaxy bodies full of pink star-forming knots, with two long curved tidal tails.',
+      60,
+    ),
+  ];
+  return [whirlpool, sombrero, m87Jet, insideM31, ...more];
 }

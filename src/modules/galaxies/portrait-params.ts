@@ -31,6 +31,10 @@ export interface PortraitMeasured {
   colorBV?: number;
   /** RC3 numeric stage T, -5..10. */
   tStage?: number;
+  /** Feature lengths: the polar jet, the bipolar outflow (cones) and the tidal tails, kpc. */
+  jetLengthKpc?: number;
+  outflowExtentKpc?: number;
+  tailLengthKpc?: number;
 }
 
 /** Hand-tuned styling row (looks.json): simulated, artistic values. Any measured key may also appear. */
@@ -92,7 +96,8 @@ export interface PortraitLook extends PortraitMeasured {
   knots?: { x: number; y: number; size: number; share: number }[];
   /** Tidal tail / bridge continuing arm 0 beyond the disc. */
   tail?: {
-    lengthFrac: number;
+    /** Length beyond the disc edge / radius (a measured tailLengthKpc wins). */
+    lengthFrac?: number;
     strength: number;
     widthFrac?: number;
     /** Catalogue index of the companion to aim at, or a fixed disc-plane angle, degrees. */
@@ -100,9 +105,29 @@ export interface PortraitLook extends PortraitMeasured {
     angleDeg?: number;
     /** Pitch of the tail beyond the disc (opens faster than the arms), degrees. */
     pitchDeg?: number;
+    /** 1 (arm 0) or 2 (arm 0 and the opposite one). */
+    count?: number;
   };
-  /** Second nucleus (merger): position / radius, size / radius, share of the bulge light. */
-  nucleus2?: { x: number; y: number; size: number; share: number };
+  /** Second body (merger): position / radius, scale length / radius, peak relative to the disc centre. */
+  nucleus2?: { x: number; y: number; size: number; amp: number };
+  /** Bright compact nucleus: share of the young light and size / radius. */
+  nucleusShare?: number;
+  nucleusSizeFrac?: number;
+  /** Second (outer) ring: radius / radius, width / radius, strength. */
+  ring2?: { radiusFrac: number; widthFrac?: number; strength: number };
+  /** Dust patches: position / radius, size / radius, elongation, angle (degrees), tau_V. */
+  dustBlobs?: { x: number; y: number; size: number; elong?: number; angleDeg?: number; tau: number }[];
+  /** Dust lanes along the bar's leading edges, tau_V. */
+  barDustTau?: number;
+  /**
+   * A bar the RC3 (optical) family does not list, e.g. an inner bar seen in the infrared: added even
+   * when the measured bar class is A. Radius / catalogue radius, strength 0..1.
+   */
+  innerBar?: { radiusFrac: number; strength: number };
+  /** Root the arms at the bar ends (default true when barred and no armPhaseDeg). */
+  armsFromBar?: boolean;
+  /** Radial map warp scale / radius (0: linear; set automatically for long tails). */
+  mapWarpFrac?: number;
   /** Disc warp: amplitude / radius at the edge, onset radius / radius, line-of-nodes angle, degrees. */
   warp?: { ampFrac: number; startFrac: number; angleDeg: number };
   /** Polar feature: bipolar cones or a one-sided jet. */
@@ -119,7 +144,8 @@ export interface PolarLook {
   kind: 'cones' | 'jet';
   /** Share of the total light. */
   share: number;
-  lengthFrac: number;
+  /** Length / radius (a measured jetLengthKpc or outflowExtentKpc wins). */
+  lengthFrac?: number;
   /** Base half-width / radius and cone half-opening, degrees. */
   widthFrac: number;
   openingDeg: number;
@@ -149,7 +175,16 @@ export interface PortraitParams {
   bulgeFlat: number;
   bulgeN: number;
   bulgeMaxKpc: number;
-  nucleus2: { x: number; y: number; size: number; share: number } | null;
+  nucleus2: { x: number; y: number; size: number; amp: number } | null;
+  nucleusShare: number;
+  nucleusSizeKpc: number;
+  ring2RadiusKpc: number;
+  ring2WidthKpc: number;
+  ring2Strength: number;
+  dustBlobs: { x: number; y: number; size: number; elong: number; angleRad: number; tau: number }[];
+  barDustTau: number;
+  armPhaseFromBar: boolean;
+  mapWarpKpc: number;
   discScaleKpc: number;
   edgeKpc: number;
   hOldKpc: number;
@@ -191,6 +226,7 @@ export interface PortraitParams {
     angleRad: number | null;
     toIndex?: number;
     pitchRad: number;
+    count: number;
   } | null;
   warpAmpKpc: number;
   warpStartKpc: number;
@@ -332,7 +368,7 @@ export function derivePortraitParams(input: PortraitInput): PortraitParams {
   const rDust = jit(0.2);
 
   const bv = pick('colorBV') ?? defaultBV(T);
-  let bt = clamp(pick('bulgeToTotal') ?? defaultBulgeToTotal(T), 0, 1);
+  let bt = clamp(pick('bulgeToTotal') ?? defaultBulgeToTotal(T), 0, 0.95);
   if (ell) bt = 1;
   const fPolar = look.polar ? clamp(look.polar.share, 0, 0.2) : 0;
   const rest = (1 - bt) * (1 - fPolar);
@@ -364,22 +400,42 @@ export function derivePortraitParams(input: PortraitInput): PortraitParams {
   // Bar.
   const barClass =
     pick('barClass') ?? (isBarredType(type) ? 'B' : irr ? 'B' : rBar < 0.3 && T > -3 ? 'AB' : 'A');
-  const barStrength = ell ? 0 : barClass === 'B' ? 1 : barClass === 'AB' ? 0.5 : 0;
-  const barFrac = pick('barRadiusFrac') ?? (barClass === 'B' ? 0.3 : 0.2) * rBarLen;
+  const inner = look.innerBar;
+  const classStrength = ell ? 0 : barClass === 'B' ? 1 : barClass === 'AB' ? 0.5 : 0;
+  const barStrength = inner && inner.strength > classStrength ? inner.strength : classStrength;
+  const barFrac = clamp(
+    inner && inner.strength > classStrength
+      ? inner.radiusFrac
+      : (pick('barRadiusFrac') ?? (barClass === 'B' ? 0.3 : 0.2) * rBarLen),
+    0.03,
+    0.5,
+  );
   const ringFrac = pick('ringRadiusFrac') ?? (T >= -2 && T <= 3 && rRing < 0.2 ? barFrac * 1.15 + 0.1 : 0);
 
   const discScale = R * (look.discScaleFrac ?? (irr ? 0.36 : 0.28));
   const reFrac = look.bulgeReFrac ?? (ell ? 0.28 : 0.035 + 0.12 * bt) * rRe;
   const ellFlat = type <= 7 ? 1 - type / 10 : 0.75;
   const tailLook = look.tail;
+  const tailLen = tailLook ? (m.tailLengthKpc ?? (tailLook.lengthFrac ?? 0.4) * R) : 0;
+  const edgeKpc = R * (look.edgeFrac ?? 1);
+  const mapExtentKpc = look.mapExtentFrac
+    ? look.mapExtentFrac * R
+    : tailLook
+      ? Math.max(1.05 * R, edgeKpc + tailLen * 1.04)
+      : 1.05 * R;
   const warp = look.warp;
   const pol = look.polar;
+  const polLen = pol
+    ? ((pol.kind === 'jet' ? m.jetLengthKpc : m.outflowExtentKpc) ?? (pol.lengthFrac ?? 0.2) * R)
+    : 0;
+  const ring2 = look.ring2;
   return {
     seed: input.index,
     type,
     tStage: T,
     radiusKpc: R,
-    mapExtentKpc: R * (look.mapExtentFrac ?? (tailLook ? 1 + tailLook.lengthFrac : 1.05)),
+    mapExtentKpc,
+    mapWarpKpc: look.mapWarpFrac !== undefined ? look.mapWarpFrac * R : mapExtentKpc > 1.6 * R ? 0.8 * R : 0,
     fBulge,
     fOld: ell ? 0 : fOld,
     fYoung: ell ? 0 : fYoung,
@@ -394,11 +450,26 @@ export function derivePortraitParams(input: PortraitInput): PortraitParams {
           x: look.nucleus2.x * R,
           y: look.nucleus2.y * R,
           size: look.nucleus2.size * R,
-          share: look.nucleus2.share,
+          amp: look.nucleus2.amp,
         }
       : null,
+    nucleusShare: clamp(look.nucleusShare ?? 0, 0, 0.8),
+    nucleusSizeKpc: R * (look.nucleusSizeFrac ?? 0.012),
+    ring2RadiusKpc: ring2 ? ring2.radiusFrac * R : 0,
+    ring2WidthKpc: ring2 ? (ring2.widthFrac ?? 0.05) * R : 1,
+    ring2Strength: ring2 ? ring2.strength : 0,
+    dustBlobs: (look.dustBlobs ?? []).map((d) => ({
+      x: d.x * R,
+      y: d.y * R,
+      size: d.size * R,
+      elong: d.elong ?? 1,
+      angleRad: (d.angleDeg ?? 0) * DEG,
+      tau: d.tau,
+    })),
+    barDustTau: barStrength > 0 ? (look.barDustTau ?? 0.6 * barStrength) : 0,
+    armPhaseFromBar: look.armsFromBar ?? look.armPhaseDeg === undefined,
     discScaleKpc: discScale,
-    edgeKpc: R * (look.edgeFrac ?? 1),
+    edgeKpc,
     hOldKpc: R * (look.hOldFrac ?? (irr ? 0.07 : 0.024)),
     hYoungKpc: R * (look.hYoungFrac ?? (irr ? 0.04 : 0.009)),
     hDustKpc: R * (look.hDustFrac ?? (irr ? 0.03 : 0.007)),
@@ -442,20 +513,19 @@ export function derivePortraitParams(input: PortraitInput): PortraitParams {
     dustHoleKpc: (look.dustHoleFrac ?? 0.08) * R,
     tail: tailLook
       ? {
-          lengthKpc: tailLook.lengthFrac * R,
+          lengthKpc: tailLen,
           strength: tailLook.strength,
           widthKpc: (tailLook.widthFrac ?? 0.05) * R,
           angleRad: tailLook.angleDeg !== undefined ? tailLook.angleDeg * DEG : null,
           toIndex: tailLook.toIndex,
           pitchRad: (tailLook.pitchDeg ?? 40) * DEG,
+          count: tailLook.count === 2 ? 2 : 1,
         }
       : null,
     warpAmpKpc: warp ? warp.ampFrac * R : 0,
     warpStartKpc: warp ? warp.startFrac * R : R,
     warpAngleRad: warp ? warp.angleDeg * DEG : 0,
-    polar: pol
-      ? { ...pol, color: normLum(pol.color), lengthKpc: pol.lengthFrac * R, widthKpc: pol.widthFrac * R }
-      : null,
+    polar: pol ? { ...pol, color: normLum(pol.color), lengthKpc: polLen, widthKpc: pol.widthFrac * R } : null,
     colors: {
       bulge: bb(look.bulgeTeff ?? (ell ? 4300 : 4000)),
       old: bb(look.oldTeff ?? lerp(4300, 5200, clamp((0.95 - bv) / 0.55, 0, 1))),

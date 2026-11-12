@@ -1,8 +1,10 @@
 /**
- * Galaxy portraits (background layer): a 3D emission/absorption model per "portrait" galaxy (the named
- * galaxies), drawn instead of the generic impostor from the same angular size where impostors start
- * (IMPOSTOR_LO..HI crossfade against the point) and kept at any distance, including from inside the
- * disc. One back-face box draw per visible portrait (at most PORTRAIT_MAX_DRAWS). Face-on maps and
+ * Galaxy portraits (background layer): a 3D emission/absorption model per "portrait" galaxy (the 54
+ * gallery galaxies), drawn instead of the generic impostor from the same angular size where impostors
+ * start (IMPOSTOR_LO..HI crossfade against the point) and kept at any distance, including from inside
+ * the disc. One back-face box draw per drawn portrait: the PORTRAIT_MAX_DRAWS largest on screen each
+ * frame; the impostor pass draws every other one (`select` gives it the per-frame mask). This module,
+ * looks.json and gallery-facts.json load lazily after the catalogue (off the startup path). Face-on maps and
  * bulge tables are baked lazily on the CPU the first time a galaxy qualifies (128² on potato, 256²
  * otherwise), cached (PORTRAIT_CACHE) and uploaded as half-float textures. Photometry: with dust off
  * the integrated flux equals the catalogue's (same E as the points and impostors).
@@ -26,15 +28,23 @@ import {
   Vector4,
   type IUniform,
 } from 'three';
-import { ROOT_FRAME, SSB_FRAME, type QualityPreset, type Quatd, type Renderable } from '../../core/contracts';
+import {
+  ROOT_FRAME,
+  SSB_FRAME,
+  type QualityPreset,
+  type Quatd,
+  type Renderable,
+  type ViewState,
+} from '../../core/contracts';
 import { qrotate, qset, quat, vec3 } from '../../core/math64';
 import { LUX_MAG0 } from '../../core/photometry';
 import { KPC, MPC } from '../../core/units';
 import { NOISE_GLSL } from '../../render/chunks';
 import { skyWeight } from '../milkyway/public';
 import { galaxyQuat, type GalaxyData } from './format';
+import { measuredForPortrait } from './facts';
 import looksJson from './looks.json';
-import { NAMED } from './named';
+import { GALLERY } from './named';
 import portraitShader from './portrait.glsl?raw';
 import {
   buildPortraitModel,
@@ -61,8 +71,13 @@ export interface PortraitEntry {
 
 export interface PortraitLayer extends Renderable {
   visible: boolean;
-  /** Catalogue indices drawn by this layer (the impostor pass skips them). */
+  /** Catalogue indices that have a portrait. */
   readonly indices: ReadonlySet<number>;
+  /**
+   * Chooses (and bakes) this frame's portraits; returns a per-catalogue-row mask of the galaxies drawn
+   * as portraits, which the impostor pass skips. Computed once per frame, whichever layer asks first.
+   */
+  select(view: ViewState): Uint8Array;
 }
 
 /** Most portrait draws per frame (the nearest / largest win). */
@@ -77,10 +92,13 @@ const LOOKS = (looksJson as unknown as { looks: Record<string, PortraitLook> }).
 /** Styling row of a named galaxy (simulated values), if any. */
 export const portraitLook = (id: string): PortraitLook | undefined => LOOKS[id];
 
-/** Phase-1 entries: the ten named galaxies. */
-export function namedPortraitEntries(): PortraitEntry[] {
-  return NAMED.map((g) => ({ id: g.id, index: g.index }));
+/** Entries for the 54 gallery galaxies with their measured inputs (gallery-facts.json, sanity-checked). */
+export function galleryPortraitEntries(): PortraitEntry[] {
+  return GALLERY.map((g) => ({ id: g.id, index: g.index, measured: measuredForPortrait(g).measured }));
 }
+
+/** Frames the warm-up mesh stays in the scene so the shader program links before the first portrait. */
+const WARM_FRAMES = 240;
 
 export const portraitIndices = (entries: readonly PortraitEntry[]): Set<number> =>
   new Set(entries.map((e) => e.index));
@@ -179,6 +197,39 @@ export function createPortraitLayer(
     }));
   let frame = 0;
   let bytes = 0;
+  const drawn = new Uint8Array(data.count);
+  let selectedFrame = -1;
+  const live: Slot[] = [];
+
+  // cosmos:no-depth (background layer: galaxy portraits are composited additively behind everything)
+  const makeMaterial = (uniforms: Record<string, IUniform>) =>
+    new ShaderMaterial({
+      vertexShader: `#define COSMOS_VERTEX\n${portraitShader}`,
+      fragmentShader: `#define LUT_N ${LUT_N}\n${NOISE_GLSL}\n${portraitShader}`,
+      uniforms,
+      side: BackSide,
+      blending: AdditiveBlending,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    });
+  // Warm-up: a degenerate (zero-area) mesh with the same program, visible for the first frames so the
+  // renderer links the program in the background before any portrait needs it.
+  const dummy = new DataTexture(new Uint16Array(4), 1, 1, RGBAFormat, HalfFloatType);
+  dummy.generateMipmaps = false;
+  dummy.minFilter = dummy.magFilter = LinearFilter;
+  dummy.needsUpdate = true;
+  const warmMat = makeMaterial({
+    uMap: { value: dummy },
+    uLut: { value: dummy },
+    uHalf: { value: new Vector3(1, 1, 1) },
+  });
+  const warm = new Mesh(box, warmMat);
+  warm.frustumCulled = false;
+  warm.scale.setScalar(1e-30);
+  warm.position.set(0, 0, -1);
+  warm.renderOrder = -10.4;
+  group.add(warm);
 
   const posOf = (i: number): number[] => [data.pos[3 * i], data.pos[3 * i + 1], data.pos[3 * i + 2]];
 
@@ -230,8 +281,10 @@ export function createPortraitLayer(
       uGain: { value: 0 },
       uPixAngle: { value: 1e-3 },
       uSteps: { value: 24 },
-      uMapExtent: { value: m.extent },
-      uMapTexel: { value: (2 * m.extent) / size },
+      uMapExtent: { value: m.gExtent },
+      uMapTexel: { value: (2 * m.gExtent) / size },
+      uMapRc: { value: m.mapWarpKpc },
+      uOuterSteps: { value: m.outerSteps },
       uLutMax: { value: m.lutMax },
       uSlabHalf: { value: m.slabHalf },
       uCylR: { value: m.cylR },
@@ -260,21 +313,11 @@ export function createPortraitLayer(
           p.polar ? (p.polar.kind === 'cones' ? 1 : 2) : 0,
         ),
       },
-      uDetail: { value: 1 / (0.9 * ((2 * m.extent) / size)) },
+      uDetail: { value: 1 / (0.9 * ((2 * m.gExtent) / size)) },
       uSeed: { value: (s.entry.index % 997) + 0.37 },
     };
     if (!s.material) {
-      // cosmos:no-depth (background layer: galaxy portraits are composited additively behind everything)
-      s.material = new ShaderMaterial({
-        vertexShader: `#define COSMOS_VERTEX\n${portraitShader}`,
-        fragmentShader: `#define LUT_N ${LUT_N}\n${NOISE_GLSL}\n${portraitShader}`,
-        uniforms: u,
-        side: BackSide,
-        blending: AdditiveBlending,
-        transparent: true,
-        depthTest: false,
-        depthWrite: false,
-      });
+      s.material = makeMaterial(u);
       s.mesh = new Mesh(box, s.material);
       s.mesh.frustumCulled = false;
       s.mesh.renderOrder = -10.4;
@@ -308,10 +351,13 @@ export function createPortraitLayer(
     object: group,
     visible: true,
     indices,
-    update(view) {
+    select(view) {
+      if (selectedFrame === view.frameIndex) return drawn;
+      selectedFrame = view.frameIndex;
       frame++;
-      group.visible = self.visible;
-      if (!self.visible) return;
+      for (const s of live) drawn[s.entry.index] = 0;
+      live.length = 0;
+      if (!self.visible) return drawn;
       view.frameQuat(ROOT_FRAME, q);
       group.quaternion.set(q.x, q.y, q.z, q.w);
       // Camera and Sun in universe axes, Mpc (float64), as renderables.ts.
@@ -327,7 +373,6 @@ export function createPortraitLayer(
       const sun = [cam.x + t.x / MPC, cam.y + t.y / MPC, cam.z + t.z / MPC];
       const pano = skyWeight(dSun);
       // Crossfade weights (same rules as the impostor, without its near fade-out).
-      const live: Slot[] = [];
       for (const s of slots) {
         const i = s.entry.index;
         const dx = data.pos[3 * i] - cam.x;
@@ -345,12 +390,12 @@ export function createPortraitLayer(
         );
         if (data.absMag[i] + 25 + 5 * Math.log10(Math.max(sd, 1e-9)) < PANO_MAG) w *= pano;
         s.w = w;
-        s.rank = w * rpx;
+        s.rank = rpx;
+        if (s.mesh) s.mesh.visible = false;
         if (w >= 1e-3) live.push(s);
-        else if (s.mesh) s.mesh.visible = false;
       }
+      // The largest on screen get portraits; the rest stay impostors.
       live.sort((a, b) => b.rank - a.rank);
-      for (let k = PORTRAIT_MAX_DRAWS; k < live.length; k++) if (live[k].mesh) live[k].mesh!.visible = false;
       live.length = Math.min(live.length, PORTRAIT_MAX_DRAWS);
       // Bake what is missing (all at once in tests; otherwise one per frame to bound the hitch).
       let budget = view.test ? live.length : 1;
@@ -364,6 +409,23 @@ export function createPortraitLayer(
         }
         bake(s, sun);
       }
+      // Not baked yet (bake budget): drawn by the impostor this frame.
+      for (let k = live.length - 1; k >= 0; k--) if (!live[k].model) live.splice(k, 1);
+      for (const s of live) drawn[s.entry.index] = 1;
+      return drawn;
+    },
+    update(view) {
+      group.visible = self.visible;
+      if (!self.visible) return;
+      self.select(view);
+      warm.visible = frame <= WARM_FRAMES;
+      view.frameQuat(ROOT_FRAME, q);
+      qset(qi, -q.x, -q.y, -q.z, q.w);
+      view.toCamera(ROOT_FRAME, zero, t);
+      qrotate(cam, qi, t);
+      cam.x = -cam.x / MPC;
+      cam.y = -cam.y / MPC;
+      cam.z = -cam.z / MPC;
       const unit = (m: PortraitModel) => (Math.max(m.half[0], m.half[2]) * KPC) / 1e6; // metres per scene unit
       for (const s of live) {
         const m = s.model;
@@ -400,6 +462,8 @@ export function createPortraitLayer(
         evict(s);
         s.material?.dispose();
       }
+      warmMat.dispose();
+      dummy.dispose();
       box.dispose();
     },
   };

@@ -26,7 +26,7 @@ import {
   Vector3,
   type IUniform,
 } from 'three';
-import { ROOT_FRAME, SSB_FRAME, type Quatd, type Renderable } from '../../core/contracts';
+import { ROOT_FRAME, SSB_FRAME, type Quatd, type Renderable, type ViewState } from '../../core/contracts';
 import { qrotate, qset, quat, vec3 } from '../../core/math64';
 import { blackbodyRgb, LUX_MAG0 } from '../../core/photometry';
 import { MPC } from '../../core/units';
@@ -52,22 +52,17 @@ const DEFINES = `#define IMPOSTOR_LO ${IMPOSTOR_LO.toFixed(2)}\n#define IMPOSTOR
 
 export interface GalaxyLayer extends Renderable {
   visible: boolean;
+  /**
+   * Per-frame mask (catalogue rows) of galaxies drawn by another pass (the portraits): left out of the
+   * impostor instances; their points still crossfade as usual. Null: none.
+   */
+  skip: ((view: ViewState) => Uint8Array) | null;
 }
 
 const v3 = (c: [number, number, number]) => new Vector3(c[0], c[1], c[2]);
 
-/**
- * @param skip catalogue indices drawn by another pass (galaxy portraits): left out of the impostor
- *   instances (their points still crossfade as usual)
- */
-export function createGalaxyLayer(
-  data: GalaxyData,
-  atlas: MorphAtlas,
-  skip: ReadonlySet<number> = new Set(),
-): GalaxyLayer {
+export function createGalaxyLayer(data: GalaxyData, atlas: MorphAtlas): GalaxyLayer {
   const n = data.count;
-  const skipMask = new Uint8Array(n);
-  for (const i of skip) if (i >= 0 && i < n) skipMask[i] = 1;
   const rte = createRteUniforms();
   const shared: Record<string, IUniform> = {
     ...rte,
@@ -169,6 +164,7 @@ export function createGalaxyLayer(
     layer: 'background',
     object: group,
     visible: true,
+    skip: null,
     update(view) {
       group.visible = self.visible;
       if (!self.visible) return;
@@ -197,6 +193,7 @@ export function createGalaxyLayer(
       const pa2 = (IMPOSTOR_LO * view.pixelAngle) ** 2;
       const panoOff = shared.uPanoFade.value < 1e-3;
       const P = data.pos;
+      const skipMask = self.skip ? self.skip(view) : null;
       let k = 0;
       for (let i = 0; i < n; i++) {
         const R = data.radiusKpc[i] * 1e-3;
@@ -205,7 +202,7 @@ export function createGalaxyLayer(
         const dz = P[3 * i + 2] - cam.z;
         const d2 = dx * dx + dy * dy + dz * dz;
         if (R * R < pa2 * d2 || d2 < 0.36 * R * R) continue;
-        if (skipMask[i]) continue;
+        if (skipMask && skipMask[i]) continue;
         if (panoOff) {
           const sx = P[3 * i] - sunPos.x;
           const sy = P[3 * i + 1] - sunPos.y;

@@ -1,13 +1,13 @@
 /**
- * The ten named galaxies (generated src/modules/galaxies/named.json, from the catalogue): bookmarks,
- * search entries, info cards and labels. Bookmarks live in the `universe` frame (supergalactic axes,
- * origin Milky Way centre) so they work before galaxies.bin has loaded.
+ * The named galaxies: the original ten (generated named.json) and the 54-galaxy gallery (gallery.json,
+ * first ten = NAMED), both from the catalogue: bookmarks, search entries, info cards and labels.
+ * Bookmarks live in the `universe` frame (supergalactic axes, origin Milky Way centre) so they work
+ * before galaxies.bin has loaded. Measured facts (gallery-facts.json) load on demand (facts.ts).
  */
 import {
   ROOT_FRAME,
   type Bookmark,
   type InfoCard,
-  type InfoFact,
   type InfoProvider,
   type LabelItem,
   type LabelSource,
@@ -17,7 +17,6 @@ import {
 } from '../../core/contracts';
 import { qlookRotation, qrotate, quat, v3cross, v3len, v3normalize, vec3 } from '../../core/math64';
 import { KPC, LY, MPC } from '../../core/units';
-import factsJson from './gallery-facts.json';
 import galleryJson from './gallery.json';
 import namedJson from './named.json';
 
@@ -52,70 +51,6 @@ export const gallery = (id: string): NamedGalaxy => {
 const NAMED_COUNT = NAMED.length;
 /** New gallery labels appear only this close to the galaxy. */
 const GALLERY_LABEL_RANGE = 6 * MPC;
-
-interface FactRow {
-  key: string;
-  label: string;
-  value: number | string;
-  unit?: string;
-  source: string;
-  approximate?: boolean;
-}
-const FACTS = factsJson as unknown as {
-  sources: Record<string, { citation: string; url: string; retrieved: string }>;
-  galaxies: Record<string, FactRow[]>;
-};
-/** Raw measured rows of a gallery galaxy (all keys, including those the card does not show). */
-export const factRows = (id: string): readonly FactRow[] => FACTS.galaxies[id] ?? [];
-/** Numeric measured value by key, if the sources have one. */
-export const factNumber = (id: string, key: string): number | undefined => {
-  const v = factRows(id).find((r) => r.key === key)?.value;
-  return typeof v === 'number' ? v : undefined;
-};
-
-/** Rows shown on the info card, in this order (the rest only shape the simulated model). */
-const CARD_KEYS = [
-  'rc3Type',
-  'morphType',
-  'inclinationDeg',
-  'colorBV',
-  'pitchDeg',
-  'barRadiusArcsec',
-  'bulgeToTotal',
-  'ringRadiusKpc',
-  'jetLengthKpc',
-  'outflowExtentKpc',
-  'tailLengthKpc',
-  'bhMassMsun',
-];
-const ARCSEC = Math.PI / 648000;
-
-function measuredFacts(g: NamedGalaxy): InfoFact[] {
-  const rows = factRows(g.id);
-  const out: InfoFact[] = [];
-  for (const key of CARD_KEYS) {
-    const r = rows.find((x) => x.key === key);
-    if (!r || (key === 'morphType' && rows.some((x) => x.key === 'rc3Type'))) continue;
-    const fact: InfoFact = {
-      label: r.label,
-      value: r.value,
-      ...(r.unit !== undefined ? { unit: r.unit } : {}),
-      ...(r.approximate ? { approximate: true } : {}),
-      source: FACTS.sources[r.source]?.citation ?? r.source,
-    };
-    if (key === 'barRadiusArcsec' && typeof r.value === 'number') {
-      // Angular size on the sky to kpc at the catalogue distance (projected, hence approximate).
-      fact.value = Number((r.value * ARCSEC * g.distSunMpc * 1e3).toPrecision(2));
-      fact.unit = 'kpc';
-      fact.approximate = true;
-    } else if (key === 'bhMassMsun' && typeof r.value === 'number') {
-      fact.value = Number((r.value / 1e6).toPrecision(3));
-      fact.unit = 'million solar masses';
-    }
-    out.push(fact);
-  }
-  return out;
-}
 
 const DEG = Math.PI / 180;
 const SOURCE = 'CelestiaContent galaxies.dsc (NGC/IC, RC3, NED-1D)';
@@ -255,11 +190,12 @@ export function galaxyFacts(distSunMpc: number, type: string, radiusKpc: number,
 export function createNamedInfo(): InfoProvider {
   return {
     id: 'galaxies.named',
-    info(id): InfoCard | null {
+    info(id): Promise<InfoCard> | null {
       const g = GALLERY.find((x) => galaxyId(x) === id);
       if (!g) return null;
       const myr = Number(((g.distSunMpc * MPC) / LY / 1e6).toPrecision(3));
-      return {
+      // The measured rows (gallery-facts.json) load on demand, off the startup path.
+      return import('./facts').then(({ measuredFacts }) => ({
         title: g.title,
         subtitle: g.subtitle,
         facts: [...galaxyFacts(g.distSunMpc, g.type, g.radiusKpc, g.absMag), ...measuredFacts(g)],
@@ -267,7 +203,7 @@ export function createNamedInfo(): InfoProvider {
         simulated: true,
         credit:
           'Position, size, type and brightness from the catalogue; structural values from the cited sources; the 3D appearance is simulated.',
-      };
+      }));
     },
   };
 }

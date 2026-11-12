@@ -17,8 +17,10 @@ uniform vec3 uCam;        // camera, galaxy-local kpc
 uniform float uGain;      // LUX_MAG0 · exposure · 10^(-0.4 (M + 25)) · 1e6 · crossfade weight
 uniform float uPixAngle;  // radians per pixel
 uniform int uSteps;
-uniform float uMapExtent; // kpc
-uniform float uMapTexel;  // kpc
+uniform bool uOuterSteps; // off-slab segments get N/4 steps (maps with long tails)
+uniform float uMapExtent; // warped half-extent g(E), kpc
+uniform float uMapTexel;  // warped texel, kpc
+uniform float uMapRc;     // radial map warp g(r) = Rc asinh(r / Rc); 0 = linear
 uniform float uLutMax;    // kpc
 uniform float uSlabHalf;
 uniform float uCylR;
@@ -130,8 +132,9 @@ void main() {
   vec2 sl = pClipSlab(ro, rd, tEnd);
   bool hasSlab = sl.y > sl.x;
   int N = max(4, uSteps);
-  int nA = hasSlab ? (sl.x > 0.0 ? 1 : 0) : N / 2;
-  int nB = hasSlab ? (sl.y < tEnd ? 1 : 0) : 0;
+  int nOff = uOuterSteps ? N / 4 : 1;
+  int nA = hasSlab ? (sl.x > 0.0 ? nOff : 0) : N / 2;
+  int nB = hasSlab ? (sl.y < tEnd ? nOff : 0) : 0;
   int nS = hasSlab ? N - nA - nB : 0;
   float jit = pIgn(gl_FragCoord.xy);
   // Bulge in the z-scaled space where it is spherical.
@@ -181,8 +184,11 @@ void main() {
       float zb = ro.z + rd.z * tb2 - z0;
       float tm = ta + pCentroid(za, zb, hc, jit) * dt;
       vec3 p = ro + rd * tm;
-      float lod = log2(max(1.0, (tb.x + tm) * uPixAngle / uMapTexel));
-      vec4 m = textureLod(uMap, p.xy / (2.0 * uMapExtent) + 0.5, lod);
+      float pr = length(p.xy);
+      float wk = uMapRc > 0.0 && pr > 1e-6 ? uMapRc * asinh(pr / uMapRc) / pr : 1.0;
+      float texel = uMapTexel * (uMapRc > 0.0 ? sqrt(1.0 + pr * pr / (uMapRc * uMapRc)) : 1.0);
+      float lod = log2(max(1.0, (tb.x + tm) * uPixAngle / texel));
+      vec4 m = textureLod(uMap, p.xy * wk / (2.0 * uMapExtent) + 0.5, lod);
       // Fine detail below the map resolution (mean ~1), fading out once a texel is sub-pixel.
       float fade = 1.0 - smoothstep(0.0, 1.5, lod);
       if (fade > 0.0) {

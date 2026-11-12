@@ -32,9 +32,11 @@ export interface PortraitContext {
 
 export interface PortraitModel {
   params: PortraitParams;
-  /** Map size (texels per side) and half-extent, kpc. */
+  /** Map size (texels per side), physical and warped half-extents, kpc, and the radial warp scale. */
   size: number;
   extent: number;
+  gExtent: number;
+  mapWarpKpc: number;
   /** size² × 4 floats: old, young, dust tau_V, HII. */
   map: Float32Array;
   /** LUT_N² floats: G(b, s) of the spherical (z-scaled) bulge profile. */
@@ -52,6 +54,8 @@ export interface PortraitModel {
   cylR: number;
   /** Resolved polar axis (unit, local) or null. */
   polarAxis: Rgb | null;
+  /** The map reaches far beyond the dust cylinder: march the off-slab segments with more steps. */
+  outerSteps: boolean;
   /** Arm 0 phase actually used (tail aiming may rotate it). */
   armPhaseRad: number;
 }
@@ -135,13 +139,62 @@ export function warpZ(p: PortraitParams, x: number, y: number): number {
   return p.warpAmpKpc * u * u * Math.sin(Math.atan2(y, x) - p.warpAngleRad);
 }
 
+/**
+ * Map grid. Texel centres are uniform in a warped radius g(r) = Rc asinh(r / Rc) (identity when Rc = 0),
+ * so long tidal tails fit in the map without starving the disc of texels. GLSL twin: pMapUv.
+ */
+export interface MapGrid {
+  size: number;
+  /** Physical half-extent (kpc) and warped half-extent G = g(E). */
+  extent: number;
+  gExtent: number;
+  /** Warp scale, kpc (0: linear map). */
+  rc: number;
+  /** Physical position (x, y) of each texel centre and the physical area it represents, kpc². */
+  xy: Float32Array;
+  area: Float32Array;
+}
+
+export const gOfR = (rc: number, r: number): number => (rc > 0 ? rc * Math.asinh(r / rc) : r);
+const rOfG = (rc: number, g: number) => (rc > 0 ? rc * Math.sinh(g / rc) : g);
+
+export function makeGrid(size: number, extent: number, rc: number): MapGrid {
+  const G = gOfR(rc, extent);
+  const xy = new Float32Array(2 * size * size);
+  const area = new Float32Array(size * size);
+  const tg = (2 * G) / size;
+  for (let j = 0; j < size; j++)
+    for (let i = 0; i < size; i++) {
+      const gx = (i + 0.5) * tg - G;
+      const gy = (j + 0.5) * tg - G;
+      const gr = Math.hypot(gx, gy);
+      const r = rOfG(rc, gr);
+      const k = gr > 1e-9 ? r / gr : 1;
+      const q = j * size + i;
+      xy[2 * q] = gx * k;
+      xy[2 * q + 1] = gy * k;
+      // dA = (r / g) (dr / dg) dA_g
+      area[q] = tg * tg * k * (rc > 0 ? Math.cosh(gr / rc) : 1);
+    }
+  return { size, extent, gExtent: G, rc, xy, area };
+}
+
+/** Fractional texel coordinates (texel centres at i + 0.5) of a physical point. */
+function texelCoords(grid: MapGrid, x: number, y: number): [number, number] {
+  const r = Math.hypot(x, y);
+  const k = r > 1e-9 ? gOfR(grid.rc, r) / r : 1;
+  const n = grid.size;
+  return [((x * k) / grid.gExtent) * 0.5 * n + 0.5 * n, ((y * k) / grid.gExtent) * 0.5 * n + 0.5 * n];
+}
+
 /** Bakes the face-on map (deterministic). */
 export function bakeMap(
   p: PortraitParams,
   size: number,
   ctx: PortraitContext = {},
-): { map: Float32Array; extent: number; phase0: number } {
+): { map: Float32Array; grid: MapGrid; phase0: number } {
   const E = p.mapExtentKpc;
+  const grid = makeGrid(size, E, p.mapWarpKpc);
   const map = new Float32Array(size * size * 4);
   const Rd = p.discScaleKpc;
   const rs = armStart(p);
@@ -152,124 +205,151 @@ export function bakeMap(
   const tail = p.tail;
   const tailEnd = tail ? Math.min(edge + tail.lengthKpc, 0.97 * E) : 0;
   const tailStart = tail ? 0.75 * edge : 0;
-  // Aim arm 0 so that its ridge reaches the tail direction at the tail's end.
+  // Arm phase: aimed so arm 0's tail reaches the tail direction, else rooted at the bar ends.
   const tailAngle = tail ? (ctx.tailAngleRad ?? tail.angleRad ?? null) : null;
   const tanT = tail ? Math.tan(tail.pitchRad) : 1;
   const phase0 =
     tail && tailAngle !== null
       ? tailAngle - Math.log(tailEnd / tailStart) / tanT - Math.log(tailStart / Rd) / tanP
-      : p.armPhaseRad;
+      : p.armPhaseFromBar && p.barStrength >= 0.5
+        ? p.barAngleRad - Math.log(Math.max(p.barLengthKpc, 1e-3) / Rd) / tanP
+        : p.armPhaseRad;
   const tailTheta0 = tail ? armRidgeTheta(p, phase0, tailStart, 0) : 0;
   const cosL = Math.cos(p.lopsidedAngleRad);
   const sinL = Math.sin(p.lopsidedAngleRad);
   const cb = Math.cos(p.barAngleRad);
   const sb = Math.sin(p.barAngleRad);
   const barL = Math.max(p.barLengthKpc, 1e-3);
+  const barW = p.barAxisRatio * barL;
   const rIn = 0.8 * rs;
   const ringW = Math.max(p.ringWidthKpc, 1e-3);
+  const ring2W = Math.max(p.ring2WidthKpc, 1e-3);
   const dRingW = Math.max(p.dustRingWidthKpc, 1e-3);
   const dNorm = Math.exp(1 / 1.3); // dust base = 1 at r = Rd
   const seed = p.seed;
-  const texel = (2 * E) / size;
+  const texel = (2 * grid.gExtent) / size;
   // Noise frequency: patches ~ 0.6 kpc scaled by the galaxy (spiral coordinates for flocculence).
   const fNoise = 1 / Math.max(0.04 * p.radiusKpc, 2 * texel);
-  for (let j = 0; j < size; j++) {
-    const y = ((j + 0.5) / size) * 2 * E - E;
-    for (let i = 0; i < size; i++) {
-      const x = ((i + 0.5) / size) * 2 * E - E;
-      const r = Math.hypot(x, y);
-      const th = Math.atan2(y, x);
-      const o = 4 * (j * size + i);
-      // Ragged outer edge for flocculent / irregular discs.
-      const th0 = Math.atan2(y, x);
-      const rag =
-        p.flocculence * 0.35 * (2 * fbm3(Math.cos(th0) * 1.4, Math.sin(th0) * 1.4, 0.5, seed + 21) - 1);
-      const edgeR = Math.min(edge * (1 + rag), 0.97 * E);
-      const taper = 1 - smoothstep(0.8 * edgeR, edgeR, r);
-      // Tail (beyond the disc edge too).
-      let tailV = 0;
-      if (tail && r > tailStart && r < tailEnd) {
-        // Tail ridge: arm 0 from tailStart outwards, with its own (more open) pitch.
-        const dth = wrapPi(th - tailTheta0 - Math.log(r / tailStart) / tanT);
+  const blobs = p.dustBlobs.map((d) => ({ ...d, c: Math.cos(d.angleRad), s: Math.sin(d.angleRad) }));
+  const n2 = p.nucleus2;
+  for (let q = 0; q < size * size; q++) {
+    const x = grid.xy[2 * q];
+    const y = grid.xy[2 * q + 1];
+    const r = Math.hypot(x, y);
+    const th = Math.atan2(y, x);
+    const o = 4 * q;
+    // Ragged outer edge for flocculent / irregular discs.
+    const rag = p.flocculence * 0.35 * (2 * fbm3(Math.cos(th) * 1.4, Math.sin(th) * 1.4, 0.5, seed + 21) - 1);
+    const edgeR = Math.min(edge * (1 + rag), 0.97 * E);
+    const taper = 1 - smoothstep(0.8 * edgeR, edgeR, r);
+    // Tails (beyond the disc edge too): arm 0 (and the opposite arm) with their own open pitch.
+    let tailV = 0;
+    if (tail && r > tailStart && r < tailEnd) {
+      const fade = smoothstep(tailStart, 0.95 * edge, r) * (1 - smoothstep(0.85 * tailEnd, tailEnd, r));
+      // Surface brightness falls slowly along the tail.
+      const fall = Math.exp(-(r - tailStart) / Math.max(tailEnd - tailStart, 1e-3));
+      const w = tail.widthKpc * (1 + (0.8 * (r - tailStart)) / (tailEnd - tailStart));
+      for (let k = 0; k < tail.count; k++) {
+        const dth = wrapPi(th - tailTheta0 - Math.PI * k - Math.log(r / tailStart) / tanT);
         const d = r * dth * Math.cos(tail.pitchRad);
-        const w = tail.widthKpc * (1 + (0.8 * (r - tailStart)) / (tailEnd - tailStart));
-        const fade = smoothstep(tailStart, 0.95 * edge, r) * (1 - smoothstep(0.85 * tailEnd, tailEnd, r));
-        const clump = 0.6 + 0.8 * vnoise3(x * fNoise * 1.5, y * fNoise * 1.5, 7.5, seed + 17);
-        tailV = tail.strength * Math.exp(-edge / Rd) * Math.exp(-((d / w) ** 2)) * fade * clump * 3;
+        const clump = 0.6 + 0.8 * vnoise3(x * fNoise * 1.5, y * fNoise * 1.5, 7.5 + k, seed + 17);
+        tailV += tail.strength * Math.exp(-edge / Rd) * Math.exp(-((d / w) ** 2)) * fade * clump * fall * 3;
       }
-      if (taper <= 0 && tailV <= 0) continue;
-      const lop = 1 + p.lopsided * Math.min(1, r / Rd) * (Math.cos(th) * cosL + Math.sin(th) * sinL);
-      const env = smoothstep(0.7 * rs, 1.3 * rs, r);
-      const phi = armPhase(p, phase0, r, th);
-      const s = 0.5 + 0.5 * Math.cos(phi);
-      const sharp = Math.pow(s, power);
-      // Flocculent patches in spiral coordinates (periodic in the spiral phase).
-      const u = phi / p.armCount;
-      const lr = Math.log(Math.max(r, 1e-3) / Rd);
-      const F = Math.max(
-        0,
-        1.7 * fbm3(Math.cos(u) * 2.2, Math.sin(u) * 2.2, lr * 3.5 + x * fNoise * 0.35, seed + 3) - 0.55,
-      );
-      const armY = sharp * (1 - p.flocculence) + p.flocculence * F * (0.5 + s) * 1.6;
-      // Large star-forming complexes and voids (flocculent / irregular discs).
-      const Fp = fbm3(x * fNoise * 0.3, y * fNoise * 0.3, 1.7, seed + 31);
-      const patch = 1 + p.flocculence * ((0.2 + 1.6 * Fp) ** 2 - 1);
-      // Old disc.
-      const base = Math.exp(-r / Rd) * lop * taper * (1 + 0.4 * (patch - 1));
-      let old = base * Math.max(0, 1 + p.oldArmContrast * env * (2 * Math.pow(s, 1.5) - 0.7));
-      let bar = 0;
-      if (p.barStrength > 0) {
-        const dx = x - p.barOffsetKpc[0];
-        const dy = y - p.barOffsetKpc[1];
-        const bx = dx * cb + dy * sb;
-        const by = -dx * sb + dy * cb;
-        bar =
-          p.barStrength *
-          Math.exp(-((Math.abs(bx) / barL) ** 3)) *
-          Math.exp(-((by / (p.barAxisRatio * barL)) ** 2));
-        old += 1.5 * bar * Math.exp(-barL / (3 * Rd));
-      }
-      const ringG = p.ringStrength > 0 ? Math.exp(-(((r - p.ringRadiusKpc) / ringW) ** 2)) : 0;
-      old += 0.4 * p.ringStrength * ringG * Math.exp(-p.ringRadiusKpc / Rd) * taper;
-      // Young disc.
-      const hole = 1 - Math.exp(-((r / Math.max(rIn, 1e-3)) ** 2));
-      const baseY = Math.exp(-r / (1.15 * Rd)) * lop * taper;
-      let youngV =
-        baseY *
-        hole *
-        patch *
-        (1 - p.armContrast + p.armContrast * armY * 1.6) *
-        Math.max(env, 1 - p.armContrast);
-      youngV += 0.35 * p.barStrength * bar * (p.tStage >= 9 ? 2.5 : 0.2) * Math.exp(-barL / (3 * Rd));
-      youngV += 4 * p.ringStrength * ringG * Math.exp(-p.ringRadiusKpc / (1.15 * Rd)) * taper;
-      // Dust (absolute tau_V): lanes on the inner edge of the arms.
-      const sIn = 0.5 + 0.5 * Math.cos(armPhase(p, phase0, r * (1 + p.dustLaneShift), th));
-      const lane = Math.pow(sIn, power * 1.3) * env;
-      const Fd = fbm3(x * fNoise * 0.9, y * fNoise * 0.9, 3.3, seed + 9);
-      const dHole = smoothstep(0.5 * p.dustHoleKpc, p.dustHoleKpc, r);
-      let dust =
-        p.dustTau *
-        Math.exp(-r / (1.3 * Rd)) *
-        dNorm *
-        lop *
-        taper *
-        dHole *
-        ((1 - p.dustSmooth) * lane * (0.7 + 0.6 * Fd) * 1.4 + p.dustSmooth * 0.5 * (0.4 + 1.2 * Fd));
-      dust += 0.5 * p.dustTau * p.ringStrength * ringG * taper;
-      if (p.dustRingTau > 0)
-        dust += p.dustRingTau * Math.exp(-(((r - p.dustRingKpc) / dRingW) ** 2)) * (0.8 + 0.4 * Fd);
-      old += 0.4 * tailV;
-      youngV += 0.6 * tailV;
-      map[o] = old;
-      map[o + 1] = youngV;
-      map[o + 2] = dust;
     }
+    if (taper <= 0 && tailV <= 0) continue;
+    const lop = 1 + p.lopsided * Math.min(1, r / Rd) * (Math.cos(th) * cosL + Math.sin(th) * sinL);
+    const env = smoothstep(0.7 * rs, 1.3 * rs, r);
+    const phi = armPhase(p, phase0, r, th);
+    const s = 0.5 + 0.5 * Math.cos(phi);
+    const sharp = Math.pow(s, power);
+    // Flocculent patches in spiral coordinates (periodic in the spiral phase).
+    const u = phi / p.armCount;
+    const lr = Math.log(Math.max(r, 1e-3) / Rd);
+    const F = Math.max(
+      0,
+      1.7 * fbm3(Math.cos(u) * 2.2, Math.sin(u) * 2.2, lr * 3.5 + x * fNoise * 0.35, seed + 3) - 0.55,
+    );
+    const armY = sharp * (1 - p.flocculence) + p.flocculence * F * (0.5 + s) * 1.6;
+    // Large star-forming complexes and voids (flocculent / irregular discs).
+    const Fp = fbm3(x * fNoise * 0.3, y * fNoise * 0.3, 1.7, seed + 31);
+    const patch = 1 + p.flocculence * ((0.2 + 1.6 * Fp) ** 2 - 1);
+    // Old disc.
+    const base = Math.exp(-r / Rd) * lop * taper * (1 + 0.4 * (patch - 1));
+    let old = base * Math.max(0, 1 + p.oldArmContrast * env * (2 * Math.pow(s, 1.5) - 0.7));
+    let bar = 0;
+    let barLane = 0;
+    if (p.barStrength > 0) {
+      const dx = x - p.barOffsetKpc[0];
+      const dy = y - p.barOffsetKpc[1];
+      const bx = dx * cb + dy * sb;
+      const by = -dx * sb + dy * cb;
+      bar = p.barStrength * Math.exp(-((Math.abs(bx) / barL) ** 3)) * Math.exp(-((by / barW) ** 2));
+      old += 1.5 * bar * Math.exp(-barL / (3 * Rd));
+      // Dust lanes along the bar's leading edges (point-symmetric).
+      const off = by - Math.sign(bx) * 0.55 * barW;
+      barLane =
+        Math.exp(-((off / (0.25 * barW)) ** 2)) *
+        Math.exp(-((Math.abs(bx) / (1.05 * barL)) ** 4)) *
+        smoothstep(0.15 * barL, 0.4 * barL, Math.abs(bx));
+    }
+    const ringG = p.ringStrength > 0 ? Math.exp(-(((r - p.ringRadiusKpc) / ringW) ** 2)) : 0;
+    old += 0.4 * p.ringStrength * ringG * Math.exp(-p.ringRadiusKpc / Rd) * taper;
+    const ring2G = p.ring2Strength > 0 ? Math.exp(-(((r - p.ring2RadiusKpc) / ring2W) ** 2)) : 0;
+    old += 1.2 * p.ring2Strength * ring2G * Math.exp(-p.ring2RadiusKpc / Rd) * taper;
+    // Young disc.
+    const hole = 1 - Math.exp(-((r / Math.max(rIn, 1e-3)) ** 2));
+    const baseY = Math.exp(-r / (1.15 * Rd)) * lop * taper;
+    let youngV =
+      baseY *
+      hole *
+      patch *
+      (1 - p.armContrast + p.armContrast * armY * 1.6) *
+      Math.max(env, 1 - p.armContrast);
+    youngV += 0.35 * p.barStrength * bar * (p.tStage >= 9 ? 2.5 : 0.2) * Math.exp(-barL / (3 * Rd));
+    youngV += 4 * p.ringStrength * ringG * Math.exp(-p.ringRadiusKpc / (1.15 * Rd)) * taper;
+    youngV += 0.8 * p.ring2Strength * ring2G * Math.exp(-p.ring2RadiusKpc / (1.15 * Rd)) * taper;
+    // Dust (absolute tau_V): lanes on the inner edge of the arms.
+    const sIn = 0.5 + 0.5 * Math.cos(armPhase(p, phase0, r * (1 + p.dustLaneShift), th));
+    const lane = Math.pow(sIn, power * 1.3) * env;
+    const Fd = fbm3(x * fNoise * 0.9, y * fNoise * 0.9, 3.3, seed + 9);
+    const dHole = smoothstep(0.5 * p.dustHoleKpc, p.dustHoleKpc, r);
+    let dust =
+      p.dustTau *
+      Math.exp(-r / (1.3 * Rd)) *
+      dNorm *
+      lop *
+      taper *
+      dHole *
+      ((1 - p.dustSmooth) * lane * (0.7 + 0.6 * Fd) * 1.4 + p.dustSmooth * 0.5 * (0.4 + 1.2 * Fd) * patch);
+    dust += 0.5 * p.dustTau * p.ringStrength * ringG * taper;
+    dust += p.barDustTau * barLane * (0.7 + 0.6 * Fd);
+    if (p.dustRingTau > 0)
+      dust += p.dustRingTau * Math.exp(-(((r - p.dustRingKpc) / dRingW) ** 2)) * (0.8 + 0.4 * Fd);
+    for (const d of blobs) {
+      const ax = (x - d.x) * d.c + (y - d.y) * d.s;
+      const ay = -(x - d.x) * d.s + (y - d.y) * d.c;
+      dust += d.tau * Math.exp(-((ax / (d.size * d.elong)) ** 2) - (ay / d.size) ** 2) * (0.6 + 0.8 * Fd);
+    }
+    // Second body (merger): an exponential blob in old and young light.
+    if (n2) {
+      const rr = Math.hypot(x - n2.x, y - n2.y) / Math.max(n2.size, 1e-3);
+      const b2 = Math.exp(-rr) * (1 + 0.4 * (patch - 1));
+      old += n2.amp * b2;
+      youngV += n2.amp * 0.8 * b2 * (0.5 + F);
+    }
+    old += 0.4 * tailV;
+    youngV += 0.6 * tailV;
+    map[o] = old;
+    map[o + 1] = youngV;
+    map[o + 2] = dust;
   }
-  // Second nucleus (old channel) as a share of the old light.
-  if (p.nucleus2) addGaussians(map, size, E, 0, [p.nucleus2]);
-  // HII knots: procedural along the arms (and ring), then named giant regions by share.
+  // Bright nucleus (young channel) as a share of the young light.
+  if (p.nucleusShare > 0)
+    addGaussians(map, grid, 1, [{ x: 0, y: 0, size: p.nucleusSizeKpc, share: p.nucleusShare }]);
+  // HII knots: procedural along the arms (ring, second body, tails), then named giant regions by share.
   const rnd = seededRandom(seed * 7 + 1);
   const hii = new Float32Array(size * size);
+  const outer = Math.max(edge, tailEnd);
   for (let k = 0; k < p.hiiCount; k++) {
     // Radius from r exp(-r / 1.1 Rd) by rejection between rIn and the edge.
     let r = 0;
@@ -278,74 +358,78 @@ export function bakeMap(
       if (rnd() < (r / Rd) * Math.exp(1 - r / (1.1 * Rd))) break;
     }
     let th: number;
-    const onRing = p.ringStrength > 0 && rnd() < 0.35;
-    if (onRing) {
+    const pick = rnd();
+    let cx = 0;
+    let cy = 0;
+    if (p.ringStrength > 0 && pick < 0.35) {
       r = p.ringRadiusKpc + ringW * 0.5 * gauss(rnd);
       th = rnd() * 2 * Math.PI;
+    } else if (n2 && pick < 0.6) {
+      r = n2.size * Math.abs(1.5 * gauss(rnd));
+      th = rnd() * 2 * Math.PI;
+      cx = n2.x;
+      cy = n2.y;
+    } else if (tail && pick > 0.9) {
+      r = tailStart + (tailEnd - tailStart) * 0.6 * rnd();
+      th = tailTheta0 + Math.PI * Math.floor(rnd() * tail.count) + Math.log(r / tailStart) / tanT;
     } else if (rnd() > p.flocculence * 0.7) {
       th = armRidgeTheta(p, phase0, r, Math.floor(rnd() * p.armCount)) + 0.12 * gauss(rnd);
     } else th = rnd() * 2 * Math.PI;
     const lop = 1 + p.lopsided * Math.min(1, r / Rd) * Math.cos(th - p.lopsidedAngleRad);
     const sz = p.hiiSizeKpc * (0.6 + 0.9 * rnd());
-    const amp = Math.exp(0.9 * gauss(rnd)) * lop * (1 - smoothstep(0.8 * edge, edge, r));
-    splat(hii, size, E, r * Math.cos(th), r * Math.sin(th), Math.max(sz, 0.5 * texel), amp);
+    const fadeK = cx || cy ? 1 : 1 - smoothstep(0.8 * outer, outer, r);
+    const amp = Math.exp(0.9 * gauss(rnd)) * lop * fadeK;
+    splat(hii, grid, cx + r * Math.cos(th), cy + r * Math.sin(th), Math.max(sz, 0.5 * texel), amp);
   }
   for (let q = 0; q < size * size; q++) map[4 * q + 3] = hii[q];
-  if (p.knots.length) addGaussians(map, size, E, 3, p.knots);
-  return { map, extent: E, phase0 };
+  if (p.knots.length) addGaussians(map, grid, 3, p.knots);
+  return { map, grid, phase0 };
 }
 
-/** Adds a Gaussian exp(-d²/s²) of amplitude a at (cx, cy) into a single-channel buffer. */
-function splat(
-  buf: Float32Array,
-  size: number,
-  E: number,
-  cx: number,
-  cy: number,
-  s: number,
-  a: number,
-): void {
-  const texel = (2 * E) / size;
-  const rad = 3 * s;
-  const i0 = Math.max(0, Math.floor((cx - rad + E) / texel));
-  const i1 = Math.min(size - 1, Math.ceil((cx + rad + E) / texel));
-  const j0 = Math.max(0, Math.floor((cy - rad + E) / texel));
-  const j1 = Math.min(size - 1, Math.ceil((cy + rad + E) / texel));
-  for (let j = j0; j <= j1; j++) {
-    const y = (j + 0.5) * texel - E;
+/** Adds a Gaussian exp(-d²/s²) of amplitude a at physical (cx, cy) into a single-channel buffer. */
+function splat(buf: Float32Array, grid: MapGrid, cx: number, cy: number, s: number, a: number): void {
+  const n = grid.size;
+  const [u, v] = texelCoords(grid, cx, cy);
+  // The warp only contracts (dg/dr <= 1), so a texel box of the linear radius is conservative.
+  const rad = (3 * s * n) / (2 * grid.gExtent) + 1;
+  const i0 = Math.max(0, Math.floor(u - rad));
+  const i1 = Math.min(n - 1, Math.ceil(u + rad));
+  const j0 = Math.max(0, Math.floor(v - rad));
+  const j1 = Math.min(n - 1, Math.ceil(v + rad));
+  for (let j = j0; j <= j1; j++)
     for (let i = i0; i <= i1; i++) {
-      const x = (i + 0.5) * texel - E;
-      buf[j * size + i] += a * Math.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (s * s));
+      const q = j * n + i;
+      const x = grid.xy[2 * q];
+      const y = grid.xy[2 * q + 1];
+      buf[q] += a * Math.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (s * s));
     }
-  }
 }
 
-/** Adds Gaussians carrying `share` of the channel's final sum each. */
+/** Adds Gaussians carrying `share` of the channel's final (area-weighted) sum each. */
 function addGaussians(
   map: Float32Array,
-  size: number,
-  E: number,
+  grid: MapGrid,
   ch: number,
   items: readonly { x: number; y: number; size: number; share: number }[],
 ): void {
+  const nn = grid.size * grid.size;
   let sum = 0;
-  for (let q = 0; q < size * size; q++) sum += map[4 * q + ch];
+  for (let q = 0; q < nn; q++) sum += map[4 * q + ch] * grid.area[q];
   const shares = Math.min(
     0.95,
     items.reduce((a, k) => a + k.share, 0),
   );
-  const texel = (2 * E) / size;
+  const minSize = grid.gExtent / grid.size;
   const target = sum > 0 ? sum / (1 - shares) : 1;
-  const buf = new Float32Array(size * size);
+  const buf = new Float32Array(nn);
   for (const k of items) {
     buf.fill(0);
-    const s = Math.max(k.size, 0.5 * texel);
-    splat(buf, size, E, k.x, k.y, s, 1);
+    splat(buf, grid, k.x, k.y, Math.max(k.size, minSize), 1);
     let bs = 0;
-    for (let q = 0; q < size * size; q++) bs += buf[q];
+    for (let q = 0; q < nn; q++) bs += buf[q] * grid.area[q];
     if (bs <= 0) continue;
     const a = (k.share * target) / bs;
-    for (let q = 0; q < size * size; q++) map[4 * q + ch] += a * buf[q];
+    for (let q = 0; q < nn; q++) map[4 * q + ch] += a * buf[q];
   }
 }
 
@@ -499,20 +583,25 @@ export function buildPortraitModel(
   size: number,
   ctx: PortraitContext = {},
 ): PortraitModel {
-  const { map, extent, phase0 } = bakeMap(p, size, ctx);
-  const texelArea = ((2 * extent) / size) ** 2;
+  const { map, grid, phase0 } = bakeMap(p, size, ctx);
+  const extent = grid.extent;
   const sums = [0, 0, 0, 0];
-  for (let q = 0; q < size * size; q++) for (let c = 0; c < 4; c++) sums[c] += map[4 * q + c];
-  const iOld = sums[0] * texelArea || 1;
-  const iYoung = sums[1] * texelArea || 1;
-  const iHii = sums[3] * texelArea || 1;
+  for (let q = 0; q < size * size; q++) for (let c = 0; c < 4; c++) sums[c] += map[4 * q + c] * grid.area[q];
+  const iOld = sums[0] || 1;
+  const iYoung = sums[1] || 1;
+  const iHii = sums[3] || 1;
+  // Dust lives inside the disc (and its rings); tails beyond it are marched as off-slab light.
+  const cylR = Math.min(
+    extent,
+    1.1 * Math.max(p.edgeKpc, p.dustRingKpc + 2 * p.dustRingWidthKpc, p.ring2RadiusKpc + 2 * p.ring2WidthKpc),
+  );
   const iBulge = bulgeIntegral(p);
   const iPolar = polarIntegral(p);
   const polarAxis = resolvePolarAxis(p, ctx);
   const slabHalf =
     SLAB_H * Math.max(p.hDustKpc, p.hYoungKpc) +
     Math.abs(p.warpAmpKpc) *
-      Math.max(1, ((extent - p.warpStartKpc) / Math.max(p.radiusKpc - p.warpStartKpc, 1e-3)) ** 2);
+      Math.max(1, ((cylR - p.warpStartKpc) / Math.max(p.radiusKpc - p.warpStartKpc, 1e-3)) ** 2);
   let hx = Math.max(extent, p.bulgeMaxKpc);
   let hz = Math.max(p.bulgeMaxKpc * p.bulgeFlat, slabHalf, 10 * p.hOldKpc + Math.abs(p.warpAmpKpc));
   if (p.polar && polarAxis) {
@@ -527,6 +616,8 @@ export function buildPortraitModel(
     params: p,
     size,
     extent,
+    gExtent: grid.gExtent,
+    mapWarpKpc: grid.rc,
     map,
     lut: bakeBulgeLut(p),
     lutMax: p.bulgeMaxKpc,
@@ -540,8 +631,9 @@ export function buildPortraitModel(
     integrals: { bulge: iBulge, old: iOld, young: iYoung, hii: iHii, polar: iPolar },
     half: [hx, hx, hz],
     slabHalf,
-    cylR: extent,
+    cylR,
     polarAxis,
+    outerSteps: extent > 1.5 * cylR,
     armPhaseRad: phase0,
   };
 }
@@ -549,8 +641,10 @@ export function buildPortraitModel(
 /** Bilinear map sample (GPU texel-centre convention, clamp to edge). */
 export function sampleMap(model: PortraitModel, x: number, y: number, out: number[]): number[] {
   const n = model.size;
-  const u = ((x / model.extent) * 0.5 + 0.5) * n - 0.5;
-  const v = ((y / model.extent) * 0.5 + 0.5) * n - 0.5;
+  const r = Math.hypot(x, y);
+  const k = r > 1e-9 ? gOfR(model.mapWarpKpc, r) / r : 1;
+  const u = ((x * k) / model.gExtent) * 0.5 * n + 0.5 * n - 0.5;
+  const v = ((y * k) / model.gExtent) * 0.5 * n + 0.5 * n - 0.5;
   const cu = Math.min(n - 1, Math.max(0, u));
   const cv = Math.min(n - 1, Math.max(0, v));
   const i0 = Math.min(n - 2, Math.floor(cu));
@@ -685,8 +779,11 @@ export function marchPortrait(model: PortraitModel, roIn: number[], rd: number[]
   const [s0, s1] = clipSlab(ro, rd, model.slabHalf, model.cylR, 0, tEnd);
   const hasSlab = s1 > s0;
   const N = Math.max(4, opt.steps);
-  const nA = hasSlab ? (s0 > 0 ? 1 : 0) : N >> 1;
-  const nB = hasSlab ? (s1 < tEnd ? 1 : 0) : 0;
+  // Off-slab segments: one interval, or a quarter of the steps when the map reaches far beyond the
+  // dust cylinder (tidal tails).
+  const nOff = model.outerSteps ? N >> 2 : 1;
+  const nA = hasSlab ? (s0 > 0 ? nOff : 0) : N >> 1;
+  const nB = hasSlab ? (s1 < tEnd ? nOff : 0) : 0;
   const nS = hasSlab ? N - nA - nB : 0;
   const j = opt.jitter ?? 0.5;
   const dustOn = opt.dust !== false;
