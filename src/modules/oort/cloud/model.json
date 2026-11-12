@@ -43,12 +43,15 @@
     "source": "Visibility enhancement (not physical): the real cloud is far below any visible brightness. Point brightness shows how many comets a point stands for, not how much sunlight they reflect.",
     "referenceCount": 150000,
     "pointSizePx": 2,
-    "maxPointSizePx": 20,
-    "cellFraction": 0.05,
+    "maxPointSizePx": 3,
     "nearFadeAu": [0.05, 2],
-    "referenceLux": 0.004,
+    "referenceLux": 0.00016,
     "referenceDistanceAu": 1000,
     "capLux": 1e-5,
-    "note": "A point of weight 1 at referenceDistanceAu gives referenceLux (times referenceCount / count and the brightness setting), falling as 1/d^2 so a haze's surface brightness does not depend on the viewing distance; one point never exceeds capLux (about Sirius, 1e-5 lux). A point's sprite is at least pointSizePx and grows up to maxPointSizePx with the patch it stands for, cellFraction * a at referenceCount points (about half the mean spacing of points). Tuned on the oort-cloud bookmark at EV -2: a white inner cloud and a faint halo."
+    "spacingFraction": 0.08,
+    "nearSpacings": 2.5,
+    "contrast": { "fromAu": 2000, "exponent": 1.4 },
+    "insideDim": { "fromAu": 2500, "toAu": 150000, "min": 0.004 },
+    "note": "All artificial. A point of weight 1 at referenceDistanceAu gives referenceLux (times referenceCount / count and the brightness setting), falling as 1/d^2 so a haze's surface brightness does not depend on the viewing distance; d is bounded below by nearSpacings mean spacings (spacingFraction * a at referenceCount points, scaled by count^-1/3), so the nearest points never outshine the haze they belong to; capLux (about Sirius) is a safety net. contrast multiplies points beyond fromAu by (a / fromAu)^exponent, flattening the true r^-2.5 fall of the column density that no display can show. insideDim dims the whole cloud from 1 beyond toAu to min at fromAu (smooth in ln d), so the sky inside the dense cloud stays dark. Sprites are pointSizePx, growing to maxPointSizePx with half a spacing."
   }
 }

@@ -29,6 +29,7 @@ import {
   rebase,
   type Cloud,
 } from './generate';
+import { insideDim, spacingFraction } from './display';
 import fragGlsl from './glsl/cloud.frag.glsl?raw';
 import vertGlsl from './glsl/cloud.vert.glsl?raw';
 import model from './model.json';
@@ -87,7 +88,9 @@ export function createCloudRenderable(deps: CloudDeps): CloudRenderable {
     uPixelAngle: { value: 1e-3 },
     uPointSize: { value: D.pointSizePx },
     uMaxPointSize: { value: D.maxPointSizePx },
-    uCellFrac: { value: 0 },
+    uSpacingFrac: { value: 0 },
+    uNearK: { value: D.nearSpacings },
+    uContrast: { value: new Vector2(D.contrast.fromAu, D.contrast.exponent) },
     uE0: { value: 0 },
     uD0: { value: D.referenceDistanceAu },
     uCapLux: { value: D.capLux },
@@ -211,10 +214,12 @@ export function createCloudRenderable(deps: CloudDeps): CloudRenderable {
       uniforms.uDt.value = (view.jd - cloud.baseJd) / DAYS_PER_KYR;
       uniforms.uFade.value = shared.cloudFade;
       uniforms.uPixelAngle.value = view.pixelAngle;
-      // Points stand for many comets: the integrated brightness does not depend on the preset.
-      uniforms.uE0.value = D.referenceLux * (D.referenceCount / cloud.count) * shared.brightness;
+      // Points stand for many comets: the integrated brightness does not depend on the preset. Inside the dense
+      // cloud the whole haze is dimmed (artificial, display.ts).
+      uniforms.uE0.value =
+        D.referenceLux * (D.referenceCount / cloud.count) * shared.brightness * insideDim(shared.sunDistAu);
       // Fewer points stand for bigger patches (spacing ~ count^(-1/3)).
-      uniforms.uCellFrac.value = D.cellFraction * Math.cbrt(D.referenceCount / cloud.count);
+      uniforms.uSpacingFrac.value = spacingFraction(cloud.count);
     },
     memoryBytes() {
       return cloud ? cloud.count * GPU_FLOATS_PER_POINT * 4 : 0;

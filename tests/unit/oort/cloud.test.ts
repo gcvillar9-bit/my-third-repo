@@ -11,6 +11,7 @@ import {
   buildCloudBookmarks,
 } from '../../../src/modules/oort/cloud/bookmarks';
 import { REBASE_KYR } from '../../../src/modules/oort/cloud/cloud';
+import { contrastBoost, insideDim, pointLux, spacingFraction } from '../../../src/modules/oort/cloud/display';
 import { buildDensity, densityAt, meanSpacingAu, regionAt } from '../../../src/modules/oort/cloud/density';
 import {
   CLOUD_INFO_ID,
@@ -347,6 +348,47 @@ describe('oort density', () => {
     expect(sunMagnitudeAt(1)).toBeCloseTo(-26.74, 6);
     expect(formatLightTime(499)).toBe('8.3 min');
     expect(formatLightTime(2.7 * 365.25 * 86400)).toBe('2.7 years');
+  });
+});
+
+describe('oort display law (artificial)', () => {
+  const D = model.display;
+
+  it('dims the cloud while the camera is inside its dense part', () => {
+    expect(insideDim(500)).toBeCloseTo(D.insideDim.min, 9);
+    expect(insideDim(2500)).toBeCloseTo(D.insideDim.min, 9);
+    expect(insideDim(D.insideDim.toAu)).toBe(1);
+    expect(insideDim(170_000)).toBe(1); // the whole-cloud view is not dimmed
+    let prev = 0;
+    for (let d = 1000; d < 200_000; d *= 1.2) {
+      expect(insideDim(d)).toBeGreaterThanOrEqual(prev);
+      prev = insideDim(d);
+    }
+    expect(insideDim(30_000)).toBeGreaterThan(0.5);
+    expect(insideDim(30_000)).toBeLessThan(0.8);
+  });
+
+  it('boosts the outer cloud as (a / 2000)^k, leaving the inner cloud as it is', () => {
+    expect(contrastBoost(500)).toBe(1);
+    expect(contrastBoost(2000)).toBe(1);
+    expect(contrastBoost(20_000)).toBeCloseTo(10 ** D.contrast.exponent, 9);
+  });
+
+  it('bounds the near field at a few mean spacings and falls as 1/d^2 beyond', () => {
+    const n = 20_000;
+    const a = 30_000;
+    const bound = D.nearSpacings * spacingFraction(n) * a;
+    expect(spacingFraction(D.referenceCount)).toBe(D.spacingFraction);
+    expect(spacingFraction(n)).toBeCloseTo(D.spacingFraction * Math.cbrt(7.5), 9);
+    const s = 1e-9; // keep below the safety cap
+    expect(pointLux(s, 1, a, 0, n)).toBe(pointLux(s, 1, a, bound, n));
+    expect(pointLux(s, 1, a, 2 * bound, n)).toBeCloseTo(pointLux(s, 1, a, bound, n) / 4, 20);
+    expect(pointLux(1, 1, a, 0, n)).toBe(D.capLux);
+  });
+
+  it('the shader carries the same law', () => {
+    expect(vertGlsl).toContain('max(dAU, uNearK * s)');
+    expect(vertGlsl).toContain('pow(max(a / uContrast.x, 1.0), uContrast.y)');
   });
 });
 

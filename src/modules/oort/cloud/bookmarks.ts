@@ -60,8 +60,9 @@ export function buildCloudBookmarks(): Bookmark[] {
       70,
       CLOUD_EV,
       'The whole simulated Oort Cloud from 170,000 AU above the north Galactic pole, looking back at the Sun: ' +
-        'a small white glow (the inner cloud, a few thousand AU across) around the Sun at the centre, inside a ' +
-        'much fainter, mottled round halo (the outer cloud, out to 100,000 AU) that fades into the star field.',
+        'a bright but not blown-out glow (the inner cloud, a few thousand AU across) around the Sun at the ' +
+        'centre, inside a much fainter, grainy round halo (the outer cloud, out to 100,000 AU) that fades into ' +
+        'the dark star field; scale shells ring the cloud.',
     ),
     sunView(
       SPIRAL_BOOKMARK_ID,
@@ -70,10 +71,10 @@ export function buildCloudBookmarks(): Bookmark[] {
       SPIRAL_VIEW_AU,
       60,
       0.5,
-      'The inner Oort Cloud from 22,000 AU above the north Galactic pole, ecliptic north up: a soft grey haze ' +
-        'of overlapping blobs with a bright, flattened core around the Sun; the haze is brighter to the upper ' +
-        'left and lower right than to the other two sides, the inner disc twisted by the Galactic tide, and ' +
-        'fades towards the corners.',
+      'The inner Oort Cloud from 22,000 AU above the north Galactic pole, ecliptic north up: a speckled haze ' +
+        'of small points around a bright, slightly flattened core at the Sun; the haze is brighter to the ' +
+        'upper left and lower right than to the other two sides (the inner disc twisted by the Galactic tide) ' +
+        'and thins towards the corners; scale shells and tracks cross it.',
     ),
     sunView(
       INSIDE_BOOKMARK_ID,
@@ -83,8 +84,8 @@ export function buildCloudBookmarks(): Bookmark[] {
       70,
       0,
       'Inside the outer Oort Cloud, 30,000 AU from the Sun on the south Galactic side, looking back at it: ' +
-        'the glowing inner cloud around the Sun at the centre, and scattered outer-cloud points all around ' +
-        'the frame, each standing for millions of comets.',
+        'a dark starry sky speckled with small outer-cloud points, each standing for millions of comets, and a ' +
+        'soft glow of the inner cloud around the Sun at the centre (dimmed: the camera is inside the cloud).',
     ),
   ];
 }

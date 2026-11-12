@@ -4,18 +4,20 @@
 // position by the orbit's quaternion, then by the Galactic-tide precession since the epoch about the
 // north Galactic pole (Rodrigues), and places the point with the RTE split (rte.glsl, camera relative to
 // the Sun in ecliptic axes).
-// Brightness is artificial: it shows how many comets a point stands for (its weight), not sunlight.
-// E = uE0 * weight * (uD0 / d)^2, capped at uCapLux, so a haze's surface brightness does not depend on the
-// viewing distance; near points spread E over a larger, softer sprite.
-// The CPU prepends DEPTH_GLSL and RTE_GLSL.
+// Brightness is artificial: it shows how many comets a point stands for (its weight), not sunlight
+// (display.ts has the CPU twin and the reasons): E = uE0 * weight * (a / uContrast.x)^uContrast.y *
+// (uD0 / max(d, uNearK * s))^2, capped at uCapLux, where s = uSpacingFrac * a is the local mean spacing
+// between points. The CPU prepends DEPTH_GLSL and RTE_GLSL.
 uniform float uDt;          // kyr since the GPU epoch
 uniform vec3 uGalPole;      // north Galactic pole, ecliptic axes
 uniform float uExposure;
 uniform float uPixelAngle;  // rad per device pixel
 uniform float uPointSize;   // smallest sprite, device px
 uniform float uMaxPointSize;
-uniform float uCellFrac;    // sprite diameter / a: the patch of cloud a point stands for
-uniform float uE0;          // lux at uD0 of a weight-1 point (count, preset and brightness folded in)
+uniform float uSpacingFrac; // mean spacing between points / a (count folded in)
+uniform float uNearK;       // the near-field distance bound, in mean spacings
+uniform vec2 uContrast;     // artificial outer-cloud boost: from a [AU], exponent
+uniform float uE0;          // lux at uD0 of a weight-1 point (count, brightness, inside dimming folded in)
 uniform float uD0;          // AU
 uniform float uCapLux;      // illuminance cap of one point
 uniform float uFade;        // whole-cloud fade (shared.cloudFade)
@@ -68,11 +70,12 @@ void main() {
   gl_Position = projectionMatrix * modelViewMatrix * vec4(rel, 1.0);
   LOG_DEPTH_VERTEX();
   float dAU = max(length(rel) / AU_M, 1e-6);
-  float q = uD0 / dAU;
-  float lux = min(uE0 * aEl1.y * q * q, uCapLux);
-  // Near points stand for a patch of cloud, not a star: their sprite grows with the patch's apparent size, so
-  // the haze stays smooth (its radiance does not depend on the distance) instead of breaking into confetti.
-  float size = clamp(uCellFrac * a / (dAU * uPixelAngle), uPointSize, uMaxPointSize);
+  float s = uSpacingFrac * a;
+  float q = uD0 / max(dAU, uNearK * s);
+  float boost = pow(max(a / uContrast.x, 1.0), uContrast.y);
+  float lux = min(uE0 * aEl1.y * boost * q * q, uCapLux);
+  // A near point stands for a patch of cloud: its sprite grows a little (to uMaxPointSize) with the patch.
+  float size = clamp(0.5 * s / (dAU * uPixelAngle), uPointSize, uMaxPointSize);
   float omega = (size * uPixelAngle) * (size * uPixelAngle);
   float L = lux / omega * uExposure * uFade * smoothstep(uNearFade.x, uNearFade.y, dAU);
   float la = log(a);

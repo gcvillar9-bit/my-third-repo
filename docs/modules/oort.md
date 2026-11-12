@@ -44,15 +44,25 @@ at boot.
   520,000 AU from the Sun. It runs in batches of 2,000 points within a 4 ms budget per frame (at most
   20,000), grows the draw range, and uploads only the new range. Under `?test=1` everything is generated
   in one update. Quality changes (`ctx.quality.subscribe`) regenerate the cloud at the new count.
-- **Brightness (not physical):** a point shows how many comets it stands for, not reflected sunlight. Its
-  illuminance is E = E₀ · w · (150k / count) · brightness · (D₀/d)², with E₀ = 0.004 lux at D₀ = 1,000 AU,
-  capped at 1e−5 lux (about Sirius). The 1/d² law keeps a haze's surface brightness independent of the
-  viewing distance.
-- **Sprites:** a near point stands for a patch of cloud. Its sprite grows to the patch's apparent size,
-  0.05·a·(150k / count)^⅓, from 2 px up to 20 px, with the same total E. The haze therefore stays smooth
-  instead of breaking into confetti. The output is L·uExposure·cloudFade (pre-exposed), with a near fade
-  over 0.05-2 AU and a tint mixed across ln a from the three `regions[].tint` values (each normalised to
-  luminance 1). Blending is additive with no depth write, on the `transparent` layer.
+- **Brightness (artificial throughout, `display.ts` is the CPU twin):** a point shows how many comets it
+  stands for, not reflected sunlight. Its illuminance is
+  E = E₀ · w · (150k / count) · brightness · inside(d☉) · contrast(a) · (D₀ / max(d, k·s))², capped at
+  1e−5 lux (about Sirius) as a safety net. E₀ = 1.6e−4 lux at D₀ = 1,000 AU.
+  - The 1/d² law keeps a haze's surface brightness independent of the viewing distance.
+  - **Near-field bound:** under 1/d² every distance shell contributes equally, so the few nearest points
+    would carry as much light as the whole haze behind them. d is therefore bounded below by k = 2.5 local
+    mean spacings s = 0.08·a·(150k / count)^⅓ (about 0.16·a on potato), and a point never outshines the
+    haze it belongs to.
+  - **Contrast:** points beyond 2,000 AU are multiplied by (a / 2,000)^1.4. The true column density falls as
+    r^−2.5, which no display can show: the core would saturate while the halo stays invisible.
+  - **Inside dimming:** seen from inside, a haze has the same surface brightness as from outside, which
+    would turn the sky grey. The whole cloud is dimmed by a factor of the camera's distance from the Sun:
+    0.004 at 2,500 AU and below, rising smoothly in ln d to 1 at 150,000 AU (0.55 at 22,000 AU, 0.75 at
+    40,000 AU).
+- **Sprites:** 2 px, growing to at most 3 px with half a spacing's apparent size. The output is
+  L·uExposure·cloudFade (pre-exposed), with a near fade over 0.05-2 AU and a tint mixed across ln a from the
+  three `regions[].tint` values (each normalised to luminance 1). Blending is additive with no depth write,
+  on the `transparent` layer.
 
 ## Settings, info, search, labels, validity
 
@@ -80,11 +90,13 @@ All three views look at the Sun along the Galactic pole, with ecliptic north up.
 behind the cloud. An untwisted ecliptic disc would look mirror-symmetric left to right in these views; the
 tide's twist makes the upper-left and lower-right quadrants brighter.
 
-- `oort-cloud`: 170,000 AU above the north Galactic pole, fovY 70°, EV −2. A white inner cloud sits inside
-  a faint, mottled round halo.
-- `oort-spiral`: 22,000 AU above the north Galactic pole, fovY 60°, EV 0.5. A soft haze surrounds a bright
-  flattened core, and the haze is brighter upper left and lower right.
-- `oort-inside`: 30,000 AU on the south Galactic side, looking back at the Sun, fovY 70°, EV 0.
+- `oort-cloud`: 170,000 AU above the north Galactic pole, fovY 70°, EV −2. A bright but not blown-out
+  inner cloud sits inside a grainy round halo that fades into the star field.
+- `oort-spiral`: 22,000 AU above the north Galactic pole, fovY 60°, EV 0.5. A speckled haze surrounds a
+  bright, slightly flattened core; the haze is brighter upper left and lower right. The scale shells and
+  the tracks of the bodies part cross it.
+- `oort-inside`: 30,000 AU on the south Galactic side, looking back at the Sun, fovY 70°, EV 0. A dark
+  starry sky speckled with cloud points, and a glow around the Sun.
 
 ## Tests
 
@@ -96,16 +108,22 @@ tide's twist makes the upper-left and lower-right quadrants brighter.
   error below 1e−5 a up to e = 0.9997), float32 phase within 1e−3 rad up to the rebase threshold, and rebase
   invariance against a float64 emulation of the shader. The rest cover the density slope (−3.2 to −3.8), the
   info card facts, bookmark distances and directions, the search entry and label visibility.
-- `tests/e2e/oort.spec.ts` (480×270, potato) has two tests. `oort-cloud` (`@smoke`) checks that the centre
-  is more than 30× the halo ring and the ring more than 10× the dark corners. `oort-spiral` checks that
-  (UL + LR)/(UR + LL) > 1.2 (about 1.45 measured). Both check `errors()` and `stats().points ≥ 20,000`.
+- The display-law tests cover the inside dimming (its minimum at 2,500 AU, 1 from 150,000 AU, monotonic in
+  between), the contrast boost, the near-field bound and the shader carrying the same law.
+- `tests/e2e/oort.spec.ts` (480×270, potato) has two tests. `oort-cloud` (`@smoke`): centre 11 px in
+  0.15-0.6 (0.52 measured), every box at 60 px ≥ 0.01 (min 0.018), the 110 px ring ≥ 0.003 on average
+  (0.020) and corners < 0.001. `oort-spiral`: (UL + LR)/(UR + LL) > 1.2 (about 1.4 measured). Both check
+  `errors()` and `stats().points ≥ 20,000`. `tests/e2e/oort-bodies.spec.ts` (bodies part) also passes with
+  the cloud on: the sky between the shells of `sednoid-orbits` stays dark.
 
 ## Known gaps
 
-- On potato every point stands for 7.5× more comets, so in the spiral view most inner-cloud points reach the
-  per-point cap. This flattens the core's contrast; medium and above stay below it.
-- The spiral is a statistical twist of a thick disc (σ 12°, a broad e-distribution). It reads as an
-  asymmetric, leaning core rather than crisp arms.
+- No spiral arms show, at potato or at medium (150,000 points, checked once): it is a model limit, not a
+  point-count one. Most orbits are very eccentric and spend their time between a and 2a, so the points at a
+  given distance come from a spread of semi-major axes, and hence of twist angles, too wide for arms, and
+  the disc is thick (σ 12°). The twist reads as a mirror-asymmetric, leaning core.
+- At `gliese-710-flyby` (40,000 AU) the inner cloud is a dense field of dots: not saturated, but it competes
+  with the 10,000 AU shell.
 - Passing stars, the eccentricity and inclination cycles of the tide, and the planets' scattering are not
   modelled. Individual points mean nothing; only the distribution does.
 - `oort-inside` has no e2e test (it is covered by the bookmark sweep).

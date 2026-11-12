@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * oort (cloud part) at 480x270 potato. Both views look along the north Galactic pole at the Sun with
  * ecliptic north up (src/modules/oort/cloud/bookmarks.ts): the dark polar sky lies behind the cloud.
- * - oort-cloud: the whole cloud from 170,000 AU; a white inner cloud at the centre inside a faint halo.
+ * - oort-cloud: the whole cloud from 170,000 AU; a bright (not blown-out) inner cloud inside a faint halo.
  * - oort-spiral: the inner cloud from 22,000 AU; an untwisted ecliptic disc would be mirror-symmetric left to
  *   right, the Galactic tide's twist makes the upper-left and lower-right quadrants brighter.
  */
@@ -45,33 +45,39 @@ async function checkHealth(page: Page, problems: string[]): Promise<void> {
   expect(stats.calls).toBeLessThanOrEqual(150);
 }
 
+/** Probes on a ring of `n` boxes, `r` px around the screen centre. */
+async function ring(page: Page, r: number, n: number, size: number): Promise<number[]> {
+  const out: number[] = [];
+  for (let k = 0; k < n; k++) {
+    const t = (2 * Math.PI * k) / n;
+    out.push(await probe(page, r * Math.cos(t), r * Math.sin(t), size));
+  }
+  return out;
+}
+const mean = (v: number[]) => v.reduce((a, b) => a + b) / v.length;
+
 test(
-  'oort-cloud: white inner cloud inside a faint halo, no errors, budgets',
+  'oort-cloud: inner cloud not blown out inside a visible halo, no errors, budgets',
   { tag: '@smoke' },
   async ({ page }) => {
     const problems = await open(page, 'oort-cloud');
     await checkHealth(page, problems);
-    const centre = await probe(page, 0, 0, 12);
-    // The halo ring 18 degrees out (55,000 AU from the Sun in projection), clear of the inner cloud's glow.
-    const ring = [
-      await probe(page, 70, 0, 24),
-      await probe(page, -70, 0, 24),
-      await probe(page, 0, 70, 24),
-      await probe(page, 0, -70, 24),
-    ];
-    const ringMean = ring.reduce((a, b) => a + b) / 4;
-    const corners = [
-      await probe(page, -220, -115, 32),
-      await probe(page, 220, -115, 32),
-      await probe(page, -220, 115, 32),
-      await probe(page, 220, 115, 32),
-    ];
-    const cornerMean = corners.reduce((a, b) => a + b) / 4;
-    expect(centre).toBeGreaterThan(0.3);
-    expect(centre).toBeGreaterThan(30 * ringMean);
-    // The halo is faint but there: each side of the ring, and well above the dark polar sky in the corners.
-    expect(Math.min(...ring)).toBeGreaterThan(0.001);
-    expect(ringMean).toBeGreaterThan(10 * cornerMean);
+    // The inner cloud is bright but not saturated (the artificial contrast flattens the true r^-2.5 fall).
+    const centre = await probe(page, 0, 0, 11);
+    expect(centre).toBeGreaterThan(0.15);
+    expect(centre).toBeLessThan(0.6);
+    // The halo: every box 60 px out (15 degrees, about 46,000 AU in projection), and 110 px out on average
+    // (about 90,000 AU; the ring crosses the scale shells there).
+    expect(Math.min(...(await ring(page, 60, 8, 16)))).toBeGreaterThan(0.01);
+    expect(mean(await ring(page, 110, 8, 16))).toBeGreaterThan(0.003);
+    // Beyond the cloud: the dark polar sky.
+    for (const [x, y] of [
+      [-224, -119],
+      [224, -119],
+      [-224, 119],
+      [224, 119],
+    ])
+      expect(await probe(page, x, y, 32)).toBeLessThan(0.001);
   },
 );
 
@@ -85,7 +91,7 @@ test('oort-spiral: the twisted inner cloud breaks mirror symmetry', async ({ pag
   const ll = await probe(page, -off, off, box);
   const lr = await probe(page, off, off, box);
   const corner = await probe(page, -220, -115, 32);
-  expect(Math.min(ul, ur, ll, lr)).toBeGreaterThan(20 * corner);
+  expect(Math.min(ul, ur, ll, lr)).toBeGreaterThan(8 * corner);
   // An untwisted disc would give (UL + LR) / (UR + LL) = 1 in this view.
   expect((ul + lr) / (ur + ll)).toBeGreaterThan(1.2);
 });
