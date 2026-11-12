@@ -53,11 +53,7 @@ Only registry.npmjs.org, raw.githubusercontent.com and media.githubusercontent.c
 ## Git
 
 - Work on your assigned branch. Never push `main`.
-- Every commit message ends with a blank line and then exactly:
-  ```
-  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-  Claude-Session: https://claude.ai/code/session_01NLFG56DKEzxbaRG3L553Vg
-  ```
+- Every commit message ends with a blank line and then the current session's own trailer: the `Co-Authored-By` and `Claude-Session` lines that session was given (never a link copied from an earlier session or from this file).
 - Never write model ID strings in code, docs or commits.
 - When you hit your turn cap, commit and write `docs/status/<pkg>.md` (done, gaps, requests; at most 30 lines).
 

@@ -98,6 +98,22 @@ export const EXPLORE_GROUPS: readonly ExploreGroup[] = [
     ],
   },
   {
+    id: 'oort',
+    title: 'Oort Cloud',
+    blurb: "The comet cloud at the edge of the Sun's reach, a thousand times farther out than Neptune.",
+    items: [
+      'oort-cloud',
+      'oort-spiral',
+      'oort-inside',
+      'sednoid-orbits',
+      'sedna',
+      'bernardinelli-bernstein-orbit',
+      'interstellar-visitors',
+      'gliese-710-flyby',
+      'scholz-star-flyby',
+    ],
+  },
+  {
     id: 'spacecraft',
     title: 'Spacecraft',
     blurb: 'Stations, telescopes and the probes leaving the Solar System.',

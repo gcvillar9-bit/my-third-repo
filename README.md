@@ -26,6 +26,13 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
 - Ten famous comets on their real orbits (Halley, Hale-Bopp, Hyakutake, NEOWISE, 67P and more): a dark nucleus
   you can fly to, a coma, a straight blue ion tail and a curved dust tail that grow as the comet nears the Sun
   (approximate away from each comet's recorded apparition).
+- The Oort Cloud (labelled "simulated", with artificial brightness: the real one has never been seen): up to
+  400,000 points on GPU Kepler orbits from 250 to 100,000 AU, with a detached inner disc, an inner cloud twisted
+  into a spiral by the Galactic tide and a spherical outer cloud, all of which keep moving under deep-time warp.
+  It appears once you fly out past 200 AU. On the same scale: Sedna and the other sednoids, the giant comet
+  Bernardinelli-Bernstein, the interstellar visitors 'Oumuamua, Borisov and 3I/ATLAS on their hyperbolic paths,
+  the tracks of Scholz's Star (80,000 years ago) and Gliese 710 (in 1.3 million years) through the cloud, and
+  labelled distance shells from the heliopause to 100,000 AU.
 - Eight spacecraft where they really are: the International Space Station and Hubble circling Earth, the James
   Webb telescope at L2, and Voyager 1 and 2, Pioneer 10 and 11 and New Horizons on their way out of the Solar
   System, each a recognisable model with its path and an info card (positions approximate, and labelled so).

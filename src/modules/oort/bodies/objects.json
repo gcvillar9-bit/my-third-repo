@@ -1,0 +1,256 @@
+{
+  "about": "Real objects whose orbits reach the Oort Cloud's scale. Elements are perihelion-based, ecliptic J2000, in the shape of the comets module's CometElements. All rows were hand-entered (the orbit databases are not reachable from the build environment) and are flagged approximate.",
+  "objects": [
+    {
+      "id": "sedna",
+      "name": "Sedna",
+      "short": "Sedna",
+      "designation": "(90377) Sedna",
+      "group": "sednoid",
+      "kind": "dwarf",
+      "aliases": ["90377 Sedna", "2003 VB12", "sednoid"],
+      "elements": {
+        "center": "sun",
+        "q": 76.19,
+        "e": 0.8494,
+        "i": 11.93,
+        "node": 144.25,
+        "argPeri": 311.35,
+        "tp": 2479502.5,
+        "epoch": 2460800.5,
+        "periodDays": 4.1573e6,
+        "source": "JPL Small-Body Database values as quoted by Wikipedia (90377 Sedna, Sednoid): a 506 AU, q 76.2 AU, perihelion July 2076",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 500,
+        "albedo": 0.32,
+        "tint": [1.25, 0.95, 0.7],
+        "source": "Pal et al. (2012, A&A 541, L6): diameter 995 +/- 80 km, albedo 0.32; a 2013 occultation (Rommel et al. 2020) suggests about 900 km",
+        "approximate": true
+      },
+      "discovered": "2003, Brown, Trujillo & Rabinowitz (Palomar)",
+      "description": "The first known body whose whole orbit lies beyond the planets' reach: it never comes closer than 76 AU and swings out to about 940 AU every 11,400 years. One of the reddest surfaces in the Solar System. Its orbit is hard to explain without something that lifted its perihelion long ago, such as stars passing the Sun's birth cluster, which is why it is often called the first member of the inner Oort Cloud."
+    },
+    {
+      "id": "2012-vp113",
+      "name": "2012 VP113",
+      "short": "2012 VP113",
+      "designation": "2012 VP113",
+      "group": "sednoid",
+      "kind": "minor",
+      "aliases": ["VP113", "Biden", "sednoid"],
+      "elements": {
+        "center": "sun",
+        "q": 80.5,
+        "e": 0.693,
+        "i": 24.05,
+        "node": 90.8,
+        "argPeri": 293.8,
+        "tp": 2444131.5,
+        "epoch": 2460800.5,
+        "periodDays": 1.549e6,
+        "source": "JPL Small-Body Database values as quoted by Wikipedia (2012 VP113, Sednoid): a 262 AU, q 80.5 AU, perihelion 1979",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 225,
+        "albedo": 0.15,
+        "tint": [1.12, 0.98, 0.84],
+        "source": "Trujillo & Sheppard (2014, Nature 507, 471): about 450 km across for an assumed albedo of 0.15",
+        "approximate": true
+      },
+      "discovered": "2012, Trujillo & Sheppard (Cerro Tololo)",
+      "description": "The second sednoid found, with the most distant perihelion known: 80 AU. It takes about 4,200 years to go around the Sun."
+    },
+    {
+      "id": "leleakuhonua",
+      "name": "Leleakuhonua",
+      "short": "Leleakuhonua",
+      "designation": "(541132) Leleakuhonua",
+      "group": "sednoid",
+      "kind": "minor",
+      "aliases": ["541132 Leleakuhonua", "2015 TG387", "The Goblin", "sednoid"],
+      "elements": {
+        "center": "sun",
+        "q": 65.0,
+        "e": 0.9404,
+        "i": 11.65,
+        "node": 300.78,
+        "argPeri": 117.8,
+        "tp": 2480199.5,
+        "epoch": 2460800.5,
+        "periodDays": 1.3144e7,
+        "source": "JPL Small-Body Database values as quoted by Wikipedia (541132 Leleakuhonua, Sednoid): a about 1,090 AU, q 65 AU, perihelion 2078",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 110,
+        "albedo": 0.21,
+        "tint": [1.1, 0.98, 0.86],
+        "source": "Sheppard et al. (2019, AJ 157, 139) and a 2018 stellar occultation: roughly 220 km across",
+        "approximate": true
+      },
+      "discovered": "2015, Sheppard, Trujillo & Tholen (Mauna Kea)",
+      "description": "A sednoid on a very long orbit: about 36,000 years to go from 65 AU out to some 2,100 AU and back, far enough for the Galactic tide to matter. It can be seen only near perihelion, as it is now."
+    },
+    {
+      "id": "ammonite",
+      "name": "Ammonite (2023 KQ14)",
+      "short": "Ammonite",
+      "designation": "2023 KQ14",
+      "group": "sednoid",
+      "kind": "minor",
+      "aliases": ["2023 KQ14", "Ammonite", "sednoid"],
+      "elements": {
+        "center": "sun",
+        "q": 66.0,
+        "e": 0.739,
+        "i": 11.0,
+        "node": 72.1,
+        "argPeri": 198.7,
+        "tp": 2474600.5,
+        "epoch": 2460800.5,
+        "periodDays": 1.4611e6,
+        "source": "Chen et al. (2025, Nature Astronomy; FOSSIL survey) as quoted by Wikipedia (2023 KQ14): a 252 AU, e 0.739, i 11 deg, perihelion February 2063. The node and argument of perihelion are from memory of that paper (longitude of perihelion near 271 deg) and were not verified",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 150,
+        "albedo": 0.15,
+        "tint": [1.1, 0.98, 0.86],
+        "source": "Chen et al. (2025): 220-380 km across, depending on the assumed albedo",
+        "approximate": true
+      },
+      "discovered": "2023, FOSSIL survey (Subaru Telescope); announced 2025",
+      "description": "The fourth sednoid. Its orbit points almost opposite to those of the other three, which weakens the case that an unseen planet lines such orbits up. Simulations show its orbit has been stable for 4.5 billion years: a fossil of the early Solar System."
+    },
+    {
+      "id": "bernardinelli-bernstein",
+      "name": "Comet Bernardinelli-Bernstein",
+      "short": "C/2014 UN271",
+      "designation": "C/2014 UN271 (Bernardinelli-Bernstein)",
+      "group": "oort-comet",
+      "kind": "comet",
+      "aliases": ["C/2014 UN271", "2014 UN271", "Bernardinelli-Bernstein", "BB", "mega comet"],
+      "elements": {
+        "center": "ssb",
+        "q": 10.95,
+        "e": 0.999458,
+        "i": 95.46,
+        "node": 190.0,
+        "argPeri": 326.28,
+        "tp": 2462887.935,
+        "epoch": 2462887.935,
+        "periodDays": 1.0486e9,
+        "source": "Inbound (original) barycentric orbit: Bernardinelli et al. (2021, ApJL 921, L37) and Dybczynski & Krolikowska (2022, A&A 660, A100): perihelion 10.95 AU on 2031 January 21.4, previous aphelion 40,400 +/- 260 AU; e follows from q and a = 20,200 AU",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 68.5,
+        "albedo": 0.049,
+        "tint": [1.06, 0.99, 0.9],
+        "source": "Lellouch et al. (2022, A&A 659, L1; ALMA): diameter 137 +/- 17 km, albedo 0.049; Hui et al. (2022, ApJL 929, L12; Hubble): 119 +/- 15 km",
+        "approximate": true
+      },
+      "discovered": "2014 (Dark Energy Survey images); announced 2021 by Bernardinelli & Bernstein",
+      "description": "The largest Oort Cloud comet ever seen: a nucleus about 120-140 km across, falling in from an aphelion of about 40,000 AU, deep in the cloud. It was already active beyond 20 AU and reaches perihelion just outside Saturn's orbit in January 2031, then climbs back out for millions of years. Drawn here as a bare nucleus (no coma)."
+    },
+    {
+      "id": "oumuamua",
+      "name": "1I/'Oumuamua",
+      "short": "1I/'Oumuamua",
+      "designation": "1I/2017 U1 ('Oumuamua)",
+      "group": "interstellar",
+      "kind": "minor",
+      "aliases": ["Oumuamua", "1I", "1I/2017 U1", "A/2017 U1", "interstellar object"],
+      "elements": {
+        "center": "sun",
+        "q": 0.25592,
+        "e": 1.20113,
+        "i": 122.742,
+        "node": 24.597,
+        "argPeri": 241.811,
+        "tp": 2458006.011,
+        "epoch": 2458006.011,
+        "periodDays": null,
+        "source": "JPL Small-Body Database (solution JPL 16): q 0.2559 AU, e 1.2011, perihelion 2017 September 9.51",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 0.1,
+        "albedo": 0.1,
+        "tint": [1.12, 0.98, 0.84],
+        "source": "Jewitt et al. (2017) and Meech et al. (2017): very elongated or flattened, about 100-200 m long (albedo assumed)",
+        "approximate": true
+      },
+      "vInfKms": 26.3,
+      "discovered": "2017 October 19, Pan-STARRS 1 (Haleakala), by Robert Weryk",
+      "description": "The first known visitor from another star. It came in at 26 km/s from the direction of Lyra, passed inside Mercury's orbit and left without ever showing a coma. Crossing the whole Oort Cloud takes it about 20,000 years each way."
+    },
+    {
+      "id": "borisov",
+      "name": "2I/Borisov",
+      "short": "2I/Borisov",
+      "designation": "2I/Borisov (C/2019 Q4)",
+      "group": "interstellar",
+      "kind": "comet",
+      "aliases": ["Borisov", "2I", "C/2019 Q4", "interstellar comet"],
+      "elements": {
+        "center": "sun",
+        "q": 2.00652,
+        "e": 3.3565,
+        "i": 44.0527,
+        "node": 308.149,
+        "argPeri": 209.124,
+        "tp": 2458826.051,
+        "epoch": 2458826.051,
+        "periodDays": null,
+        "source": "JPL Small-Body Database: q 2.0065 AU, e 3.3565, perihelion 2019 December 8.55",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 0.4,
+        "albedo": 0.04,
+        "tint": [1.04, 0.99, 0.93],
+        "source": "Jewitt et al. (2020, ApJL 888, L23; Hubble): nucleus radius 0.2-0.5 km (albedo assumed)",
+        "approximate": true
+      },
+      "vInfKms": 32.3,
+      "discovered": "2019 August 30, Gennadiy Borisov (Crimea), with a home-built 0.65 m telescope",
+      "description": "The first interstellar comet: it looked like an ordinary comet with a coma and tail, but moved at 32 km/s relative to the Sun, far too fast to be bound. Drawn here as a bare nucleus (no coma)."
+    },
+    {
+      "id": "3i-atlas",
+      "name": "3I/ATLAS",
+      "short": "3I/ATLAS",
+      "designation": "3I/ATLAS (C/2025 N1)",
+      "group": "interstellar",
+      "kind": "comet",
+      "aliases": ["3I", "C/2025 N1", "ATLAS interstellar comet", "interstellar comet"],
+      "elements": {
+        "center": "sun",
+        "q": 1.3572,
+        "e": 6.145,
+        "i": 175.1135,
+        "node": 322.166,
+        "argPeri": 128.004,
+        "tp": 2460977.981,
+        "epoch": 2460867.5,
+        "periodDays": null,
+        "source": "JPL Small-Body Database heliocentric solution at epoch 2025 July 11, as tabulated in arXiv:2511.16247: q 1.3572 AU, e 6.145, perihelion 2025 October 29.48",
+        "approximate": true
+      },
+      "physical": {
+        "radiusKm": 1,
+        "albedo": 0.04,
+        "tint": [1.04, 0.99, 0.93],
+        "source": "Jewitt et al. (2025, arXiv:2508.02934; Hubble): nucleus diameter below 5.6 km and probably above 0.4 km (albedo assumed)",
+        "approximate": true
+      },
+      "vInfKms": 58,
+      "discovered": "2025 July 1, ATLAS survey (Rio Hurtado, Chile)",
+      "description": "The third interstellar visitor and the fastest: 58 km/s, on an orbit almost in the plane of the planets but backwards. It passed perihelion at 1.36 AU on 29 October 2025. Drawn here as a bare nucleus (no coma)."
+    }
+  ]
+}

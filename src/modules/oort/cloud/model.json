@@ -1,0 +1,59 @@
+{
+  "about": "Statistical model of the Oort Cloud (not a catalogue: no Oort Cloud body has ever been observed in place). Every point stands for millions of comets.",
+  "approximate": true,
+  "epochJd": 2451545.0,
+  "ageYr": 4.5e9,
+  "counts": { "potato": 20000, "low": 60000, "medium": 150000, "high": 250000, "ultra": 400000 },
+  "semiMajorAxis": {
+    "source": "Duncan, Quinn & Tremaine (1987, AJ 94, 1330): number density n(r) ~ r^-3.5 between 3,000 and 50,000 AU (dN/da ~ a^-1.5), about five times more comets inside 20,000 AU than outside. The rise below 2,000 AU and the cut-off beyond 50,000 AU are assumptions.",
+    "breaksAu": [250, 2000, 50000, 100000],
+    "slopes": [1.5, -1.5, -3.5],
+    "samplingSlopes": [0.5, -1.0, -2.0],
+    "note": "dN/da is a continuous piecewise power law a^slope over the breaks. Points are drawn from the flatter 'samplingSlopes' law and carry the ratio of the two as a brightness weight, so the thin outer cloud still gets a third of the points."
+  },
+  "perihelion": {
+    "source": "Detached orbits keep their perihelia beyond Neptune's reach (sednoids: 65-80 AU). Far out, the Galactic tide and passing stars randomise angular momentum, giving the thermal distribution f(e) = 2e (Heisler & Tremaine 1986). The eccentricity blends smoothly from detached to thermal across the transition range (a weighted mean of the two draws), which is an assumption.",
+    "qMinAu": 38,
+    "qDetachedMaxAu": 90,
+    "thermalFromAu": 1500,
+    "thermalToAu": 12000
+  },
+  "orientation": {
+    "source": "Bodies start in the scattered disc near the ecliptic. The vertical Galactic tide precesses each orbit about the Galactic pole at a rate that grows steeply with semi-major axis, which twists the inner cloud into the spiral of Nesvorny et al. (2025, ApJ, arXiv:2502.11252: about 15,000 AU long, semi-major axes 1,000-10,000 AU); stellar encounters make the outer cloud isotropic. The isotropy range is an assumption.",
+    "diskInclinationSigmaDeg": 12,
+    "isotropicFromAu": 8000,
+    "isotropicToAu": 25000
+  },
+  "tide": {
+    "source": "Local mass density of the Galactic disc 0.10 Msun/pc^3 (Holmberg & Flynn 2000, MNRAS 313, 209). Orbit-averaged vertical tide (Heisler & Tremaine 1986, Icarus 65, 13): node rate about the Galactic pole = -(nu^2 / 2n) cos(i_G) (1 + 1.5 e^2) / sqrt(1 - e^2), nu^2 = 4 pi G rho0, averaged over the argument of perihelion; e and i_G are held at their initial values. The rate uses the typical eccentricity at each semi-major axis (detached perihelion at the middle of its range inside, the thermal mean 2/3 outside, blended as the eccentricity is) rather than the orbit's own, with 15% (log-normal) scatter, because under the tide an orbit's eccentricity and inclination oscillate together, so its long-term rate is closer to the population's than its present eccentricity suggests; this is an assumption.",
+    "rho0MsunPerPc3": 0.1,
+    "meanEccentricity": 0.667,
+    "rateScatter": 0.15
+  },
+  "population": {
+    "source": "Boe et al. (2019, Icarus 333, 252): (1.5 +/- 1) x 10^12 Oort Cloud comets larger than 1 km, 1.3 +/- 0.9 Earth masses. Applied here to the outer cloud (a > 20,000 AU); the model then puts about five times as many closer in, as Duncan, Quinn & Tremaine (1987) found.",
+    "outerCount": 1.5e12,
+    "outerFromAu": 20000,
+    "massEarth": 1.3
+  },
+  "regions": [
+    { "id": "detached", "name": "Detached disc (sednoid region)", "aMaxAu": 2000, "tint": [1.14, 0.96, 0.8] },
+    { "id": "inner", "name": "Inner Oort Cloud (Hills cloud)", "aMaxAu": 20000, "tint": [1.03, 0.99, 0.94] },
+    { "id": "outer", "name": "Outer Oort Cloud", "aMaxAu": 100000, "tint": [0.86, 0.97, 1.12] }
+  ],
+  "display": {
+    "source": "Visibility enhancement (not physical): the real cloud is far below any visible brightness. Point brightness shows how many comets a point stands for, not how much sunlight they reflect.",
+    "referenceCount": 150000,
+    "pointSizePx": 2,
+    "maxPointSizePx": 3,
+    "nearFadeAu": [0.05, 2],
+    "referenceLux": 0.00016,
+    "referenceDistanceAu": 1000,
+    "capLux": 1e-5,
+    "spacingFraction": 0.08,
+    "nearSpacings": 2.5,
+    "contrast": { "fromAu": 2000, "exponent": 1.4 },
+    "insideDim": { "fromAu": 2500, "toAu": 150000, "min": 0.004 },
+    "note": "All artificial. A point of weight 1 at referenceDistanceAu gives referenceLux (times referenceCount / count and the brightness setting), falling as 1/d^2 so a haze's surface brightness does not depend on the viewing distance; d is bounded below by nearSpacings mean spacings (spacingFraction * a at referenceCount points, scaled by count^-1/3), so the nearest points never outshine the haze they belong to; capLux (about Sirius) is a safety net. contrast multiplies points beyond fromAu by (a / fromAu)^exponent, flattening the true r^-2.5 fall of the column density that no display can show. insideDim dims the whole cloud from 1 beyond toAu to min at fromAu (smooth in ln d), so the sky inside the dense cloud stays dark. Sprites are pointSizePx, growing to maxPointSizePx with half a spacing."
+  }
+}
