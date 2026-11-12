@@ -1,8 +1,8 @@
 /**
- * Oort Cloud bookmarks (three-free), frame 'sun', ICRF coordinates. The views look along the Galactic pole:
- * the dark sky of the Galactic poles lies behind the cloud, and the ecliptic pole points up the screen, so
- * an untwisted disc would look mirror-symmetric left to right. The Galactic tide's twist breaks that
- * symmetry: the inner cloud leans from upper left to lower right.
+ * Oort Cloud bookmarks (three-free), frame 'sun', ICRF coordinates. The whole-cloud view looks along the
+ * Galactic pole, with the dark sky of the Galactic poles behind the cloud. The spiral view lies in the
+ * ecliptic plane, on the side of the Galactic pole: an untwisted disc would be a thin horizontal bar, and the
+ * Galactic tide's twist (about the pole, which leans towards the camera) curls its ends into an S.
  */
 import type { Bookmark, Vec3d } from '../../../core/contracts';
 import { qlookRotation, quat, v3scale, vec3 } from '../../../core/math64';
@@ -15,8 +15,10 @@ export const SPIRAL_BOOKMARK_ID = 'oort-spiral';
 export const INSIDE_BOOKMARK_ID = 'oort-inside';
 /** Distances of the three views from the Sun, AU. */
 export const CLOUD_VIEW_AU = 170_000;
-export const SPIRAL_VIEW_AU = 22_000;
+export const SPIRAL_VIEW_AU = 24_000;
 export const INSIDE_VIEW_AU = 30_000;
+/** Elevation of the spiral view above the ecliptic plane, rad: exactly in the plane. */
+const SPIRAL_ELEVATION = 0;
 /** Night-sky exposure of the whole-cloud view (as the asteroid belt's). */
 export const CLOUD_EV = -2;
 
@@ -51,6 +53,12 @@ function sunView(
 export function buildCloudBookmarks(): Bookmark[] {
   const g = GALACTIC_POLE_ECL;
   const south = vec3(-g.x, -g.y, -g.z);
+  // The Galactic pole projected onto the ecliptic plane. This exact view once rendered an all-black frame
+  // (a shell line fragment with an invalid alpha, see bodies/glsl/line.glsl), so the oort-spiral e2e test
+  // doubles as the regression test for that.
+  const gl = Math.hypot(g.x, g.y);
+  const ce = Math.cos(SPIRAL_ELEVATION);
+  const side = vec3((ce * g.x) / gl, (ce * g.y) / gl, Math.sin(SPIRAL_ELEVATION));
   return [
     sunView(
       CLOUD_BOOKMARK_ID,
@@ -66,15 +74,15 @@ export function buildCloudBookmarks(): Bookmark[] {
     ),
     sunView(
       SPIRAL_BOOKMARK_ID,
-      'The Oort spiral (22,000 AU)',
-      g,
+      'The Oort spiral (24,000 AU)',
+      side,
       SPIRAL_VIEW_AU,
       60,
       0.5,
-      'The inner Oort Cloud from 22,000 AU above the north Galactic pole, ecliptic north up: a speckled haze ' +
-        'of small points around a bright, slightly flattened core at the Sun; the haze is brighter to the ' +
-        'upper left and lower right than to the other two sides (the inner disc twisted by the Galactic tide) ' +
-        'and thins towards the corners; scale shells and tracks cross it.',
+      'The inner Oort Cloud from 24,000 AU in the ecliptic plane (towards the north Galactic pole), ecliptic ' +
+        'north up: a speckled S about 20,000 AU across, a bright bar through the Sun with one arm curling to ' +
+        'the upper left and one to the lower right (the inner disc twisted by the Galactic tide), fading ' +
+        'into a faint grainy haze and the star field; scale shells and tracks cross it.',
     ),
     sunView(
       INSIDE_BOOKMARK_ID,

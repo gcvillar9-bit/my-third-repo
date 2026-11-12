@@ -35,6 +35,7 @@ import {
   positionAt,
   rebase,
   tideRatePerYr,
+  typicalEccentricity,
   weightAt,
   type Cloud,
 } from '../../../src/modules/oort/cloud/generate';
@@ -146,7 +147,7 @@ describe('oort cloud generation', () => {
     };
     const inner = meanNormal(600, 1200);
     expect(Math.acos(inner.m[2]) / (Math.PI / 180)).toBeLessThan(15);
-    // Sanity value: a = 1000 AU, q = 60 AU gives about 0.2 rad over 4.5 Gyr; 3000 AU about 2 rad.
+    // Sanity value of the formula: a = 1000 AU, q = 60 AU gives about 0.2 rad over 4.5 Gyr; 3000 AU about 2 rad.
     expect(tideRatePerYr(1000, 0.94, 0.497) * AGE_YR).toBeCloseTo(-0.217, 2);
     expect(tideRatePerYr(3000, 0.98, 0.497) * AGE_YR).toBeCloseTo(-2.03, 1);
     const mid = meanNormal(2500, 3500);
@@ -158,9 +159,105 @@ describe('oort cloud generation', () => {
     const u = proj([0, 0, 1]);
     const v = proj(mid.m);
     const angle = Math.atan2(dot(G, cross(u, v)), dot(u, v));
-    expect(mid.twist).toBeLessThan(-1.5); // prograde orbits precess backwards about the pole
-    expect(angle).toBeLessThan(-1);
+    expect(mid.twist).toBeLessThan(-0.6); // prograde orbits precess backwards about the pole
+    expect(mid.twist).toBeGreaterThan(-1.1);
+    expect(angle).toBeLessThan(-0.4);
     expect(Math.abs(wrapPi(angle - mid.twist))).toBeLessThan(0.6);
+  });
+
+  it('the tide rate follows the typical eccentricity at a: 0.2 rad at 1,000 AU, 0.85 rad at 3,000 AU', () => {
+    expect(typicalEccentricity(1000)).toBeCloseTo(1 - 64 / 1000, 9);
+    expect(typicalEccentricity(50_000)).toBeCloseTo(model.tide.meanEccentricity, 9);
+    // A disc orbit (cos i_G = 0.5), no scatter.
+    const twist = (a: number) => Math.abs(tideRatePerYr(a, typicalEccentricity(a), 0.5)) * AGE_YR;
+    expect(twist(1000)).toBeGreaterThan(0.18);
+    expect(twist(1000)).toBeLessThan(0.23);
+    expect(twist(3000)).toBeGreaterThan(0.78);
+    expect(twist(3000)).toBeLessThan(0.9);
+    // The scatter: 15% log-normal about the typical rate, the same sign as the formula.
+    let s1 = 0;
+    let s2 = 0;
+    let cnt = 0;
+    const n: V3 = [0, 0, 0];
+    for (let k = 0; k < cloud.count; k++) {
+      const a = A(cloud, k);
+      if (a > 1500) continue;
+      // Initial normal (the twist about G leaves cos i_G unchanged).
+      orbitNormalAt(cloud, k, n);
+      const r = tideRatePerYr(a, typicalEccentricity(a), dot(n, G)) * 1000;
+      const x = Math.log(cloud.rate[k] / r);
+      s1 += x;
+      s2 += x * x;
+      cnt++;
+    }
+    expect(cnt).toBeGreaterThan(3000);
+    expect(Math.abs(s1 / cnt)).toBeLessThan(0.01);
+    expect(Math.sqrt(s2 / cnt)).toBeCloseTo(model.tide.rateScatter, 2);
+  });
+
+  it('eccentricities blend smoothly from detached to thermal', () => {
+    // Mean e in narrow bins of a: detached (1 - qMid / a) inside, thermal mean (2/3 of 1 - qMin / a) far out.
+    const meanE = (a0: number, a1: number) => {
+      let s = 0;
+      let cnt = 0;
+      for (let k = 0; k < cloud.count; k++) {
+        const a = A(cloud, k);
+        if (a < a0 || a > a1) continue;
+        s += cloud.el0[4 * k + 1];
+        cnt++;
+      }
+      return s / cnt;
+    };
+    expect(meanE(1000, 1100)).toBeGreaterThan(0.93);
+    expect(meanE(40_000, 50_000)).toBeCloseTo(2 / 3, 1);
+    let prev = 1;
+    for (const a of [1200, 2000, 3500, 6000, 10_000, 15_000]) {
+      const m = meanE(a, a * 1.1);
+      expect(m).toBeLessThan(prev + 0.01);
+      expect(prev - m).toBeLessThan(0.12); // no jump
+      prev = m;
+    }
+  });
+
+  it('the inner cloud is a coherent spiral about the Galactic pole', () => {
+    const c = generateCloud(200_000, 1);
+    // Axes of the plane perpendicular to the pole: e1 along the ecliptic pole's projection, e2 = G x e1.
+    const d = G[2];
+    const l = Math.hypot(-d * G[0], -d * G[1], 1 - d * G[2]);
+    const e1: V3 = [(-d * G[0]) / l, (-d * G[1]) / l, (1 - d * G[2]) / l];
+    const e2 = cross(G, e1);
+    const edges = [1500, 2500, 4000, 6000, 8000];
+    const sums = edges.slice(1).map(() => [0, 0, 0]);
+    const n: V3 = [0, 0, 0];
+    const p: V3 = [0, 0, 0];
+    for (let k = 0; k < c.count; k++) {
+      const a = A(c, k);
+      if (a < 1000 || a > 11_000) continue;
+      // Disc points: the untwisted orbit normal within 40 degrees of the ecliptic pole.
+      orbitNormalAt(c, k, n);
+      const ang = -(c.rate[k] * AGE_YR) / 1000;
+      const gn = cross(G, n);
+      const z = n[2] * Math.cos(ang) + gn[2] * Math.sin(ang) + G[2] * dot(G, n) * (1 - Math.cos(ang));
+      if (z < Math.cos(40 * (Math.PI / 180))) continue;
+      positionAt(c, k, EPOCH_JD, p);
+      const x = dot(p, e1);
+      const y = dot(p, e2);
+      const r = Math.hypot(x, y);
+      for (let j = 0; j < sums.length; j++) {
+        if (r < edges[j] || r >= edges[j + 1]) continue;
+        sums[j][0] += x * x - y * y;
+        sums[j][1] += 2 * x * y;
+        sums[j][2] += x * x + y * y;
+      }
+    }
+    const ell = sums.map(([c2, s2, r2]) => Math.hypot(c2, s2) / r2);
+    const pa = sums.map(([c2, s2]) => 0.5 * Math.atan2(s2, c2));
+    // Measured: 0.22, 0.29, 0.32, 0.33 (the old coin-flip eccentricities fell to 0.10 beyond 4,000 AU).
+    for (const x of ell) expect(x).toBeGreaterThan(0.2);
+    // Measured: 71, 57, 46, 33 degrees: the bar turns steadily with radius.
+    for (let j = 1; j < pa.length; j++) {
+      expect(pa[j]).toBeLessThan(pa[j - 1] - 0.1);
+    }
   });
 
   it('the outer cloud is isotropic', () => {
@@ -400,7 +497,7 @@ describe('oort bookmarks, search and labels', () => {
     const jd = parseInstant('2026-01-01T00:00:00Z')!;
     for (const [id, lo, hi] of [
       [CLOUD_BOOKMARK_ID, 165_000, 175_000],
-      [SPIRAL_BOOKMARK_ID, 20_000, 25_000],
+      [SPIRAL_BOOKMARK_ID, 22_000, 30_000],
       [INSIDE_BOOKMARK_ID, 29_000, 31_000],
     ] as const) {
       const b = byId(id);

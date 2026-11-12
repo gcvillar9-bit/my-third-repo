@@ -1,11 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * oort (cloud part) at 480x270 potato. Both views look along the north Galactic pole at the Sun with
- * ecliptic north up (src/modules/oort/cloud/bookmarks.ts): the dark polar sky lies behind the cloud.
- * - oort-cloud: the whole cloud from 170,000 AU; a bright (not blown-out) inner cloud inside a faint halo.
- * - oort-spiral: the inner cloud from 22,000 AU; an untwisted ecliptic disc would be mirror-symmetric left to
- *   right, the Galactic tide's twist makes the upper-left and lower-right quadrants brighter.
+ * oort (cloud part) at 480x270 potato. Both views look at the Sun with ecliptic north up
+ * (src/modules/oort/cloud/bookmarks.ts).
+ * - oort-cloud: the whole cloud from 170,000 AU above the north Galactic pole (dark polar sky behind it); a
+ *   bright (not blown-out) inner cloud inside a faint halo.
+ * - oort-spiral: the inner cloud from 24,000 AU in the ecliptic plane, on the Galactic pole's side; an
+ *   untwisted ecliptic disc would be a horizontal bar, the Galactic tide's twist turns it into an S: a bar
+ *   leaning from upper left to lower right whose arms turn steeper outwards.
  */
 type RGB = [number, number, number];
 const lum = ([r, g, b]: RGB) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -81,17 +83,55 @@ test(
   },
 );
 
-test('oort-spiral: the twisted inner cloud breaks mirror symmetry', async ({ page }) => {
+/** Position angle (deg, clockwise from screen right) and relative amplitude of the bar on a ring. */
+async function barAngle(page: Page, r: number): Promise<{ pa: number; amp: number }> {
+  const n = 36;
+  const v = await ring(page, r, n, 10);
+  let c2 = 0;
+  let s2 = 0;
+  v.forEach((l, k) => {
+    c2 += l * Math.cos((4 * Math.PI * k) / n);
+    s2 += l * Math.sin((4 * Math.PI * k) / n);
+  });
+  return {
+    pa: (0.5 * Math.atan2(s2, c2)) / (Math.PI / 180),
+    amp: Math.hypot(c2, s2) / v.reduce((a, b) => a + b),
+  };
+}
+
+test('oort-spiral: the twisted inner cloud is an S', async ({ page }) => {
   const problems = await open(page, 'oort-spiral');
   await checkHealth(page, problems);
-  const box = 40;
-  const off = 8 + box / 2;
-  const ul = await probe(page, -off, -off, box);
-  const ur = await probe(page, off, -off, box);
-  const ll = await probe(page, -off, off, box);
-  const lr = await probe(page, off, off, box);
-  const corner = await probe(page, -220, -115, 32);
-  expect(Math.min(ul, ur, ll, lr)).toBeGreaterThan(8 * corner);
-  // An untwisted disc would give (UL + LR) / (UR + LL) = 1 in this view.
-  expect((ul + lr) / (ur + ll)).toBeGreaterThan(1.2);
+  const quadrants = async (ox: number, oy: number, box: number) => {
+    const [ul, ur, ll, lr] = [
+      await probe(page, -ox, -oy, box),
+      await probe(page, ox, -oy, box),
+      await probe(page, -ox, oy, box),
+      await probe(page, ox, oy, box),
+    ];
+    return { min: Math.min(ul, ur, ll, lr), ratio: (ul + lr) / (ur + ll) };
+  };
+  const corners: number[] = [];
+  for (const [x, y] of [
+    [-220, -115],
+    [220, -115],
+    [-220, 115],
+    [220, 115],
+  ])
+    corners.push(await probe(page, x, y, 32));
+  // Measured: 3.7 near the Sun, 2.3 along the arms. Near the Sun (about 3,000 AU out) and along the arms (about 6,000-8,000 AU): an untwisted ecliptic disc
+  // would be a horizontal bar here, (UL + LR) / (UR + LL) = 1; the twist puts the bar and arms in UL and LR.
+  const near = await quadrants(28, 28, 40);
+  const arms = await quadrants(60, 45, 48);
+  expect(near.min).toBeGreaterThan(8 * Math.min(...corners));
+  expect(near.ratio).toBeGreaterThan(2.5);
+  expect(arms.ratio).toBeGreaterThan(1.7);
+  // The S: the bar turns clockwise on screen (steeper) from the core (about 2,000 AU) to the arms (6,000 AU);
+  // measured 33 and 51 degrees.
+  const inner = await barAngle(page, 20);
+  const outer = await barAngle(page, 60);
+  expect(inner.amp).toBeGreaterThan(0.2);
+  expect(outer.amp).toBeGreaterThan(0.2);
+  expect(inner.pa).toBeGreaterThan(15);
+  expect(outer.pa - inner.pa).toBeGreaterThan(7);
 });

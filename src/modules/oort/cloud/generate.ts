@@ -1,10 +1,13 @@
 /**
  * Deterministic (seeded) statistical model of the Oort Cloud, three-free and float64 (model.json):
  * - semi-major axis from the flat 'samplingSlopes' power law, each point weighted by true / sampling law;
- * - eccentricity: detached (perihelion 38-90 AU) inside, thermal f(e) = 2e outside (smooth in ln a);
+ * - eccentricity: a continuous blend from detached (perihelion 38-90 AU) inside to thermal f(e) = 2e outside
+ *   (weights smooth in ln a), so perihelia stay beyond qMin;
  * - orientation: a disc near the ecliptic inside, isotropic outside (smooth in ln a);
  * - the orbit-averaged vertical Galactic tide precesses every orbit about the north Galactic pole at a rate
- *   that grows steeply with a, which twists the inner cloud into a spiral (Nesvorny et al. 2025).
+ *   that grows steeply with a, which twists the inner cloud into a spiral (Nesvorny et al. 2025). The rate
+ *   uses the typical eccentricity at a (not the orbit's own) with a log-normal scatter, so the twist is a
+ *   smooth function of a and the spiral stays coherent.
  * Elements are heliocentric, ecliptic J2000. Times on the GPU are in kyr since a float64 base epoch.
  */
 import { GM_SUN, JULIAN_YEAR, PC } from '../../../core/units';
@@ -33,11 +36,11 @@ export const meanMotionPerYr = (aAu: number): number => TWO_PI / aAu ** 1.5;
 
 /**
  * Orbit-averaged node precession about the north Galactic pole from the vertical tide, rad/yr
- * (Heisler & Tremaine 1986), capped at half the mean motion.
+ * (Heisler & Tremaine 1986), times `scale` (the scatter), capped at half the mean motion.
  */
-export function tideRatePerYr(aAu: number, e: number, cosIG: number): number {
+export function tideRatePerYr(aAu: number, e: number, cosIG: number, scale = 1): number {
   const n = meanMotionPerYr(aAu);
-  const r = -(NU2_PER_YR2 / (2 * n)) * cosIG * ((1 + 1.5 * e * e) / Math.sqrt(1 - e * e));
+  const r = -(NU2_PER_YR2 / (2 * n)) * cosIG * ((1 + 1.5 * e * e) / Math.sqrt(1 - e * e)) * scale;
   return Math.max(-0.5 * n, Math.min(0.5 * n, r));
 }
 
@@ -100,9 +103,18 @@ export const weightAt = (aAu: number): number => lawValue(TRUE_LAW, aAu) / lawVa
 
 const P = model.perihelion;
 const O = model.orientation;
+const T = model.tide;
+/** Midpoint of the detached perihelion range, AU. */
+const Q_MID_AU = 0.5 * (P.qMinAu + P.qDetachedMaxAu);
+
+/** Typical eccentricity at a (detached perihelion qMid inside, the thermal mean outside): sets the tide rate. */
+export const typicalEccentricity = (aAu: number): number => {
+  const t = thermalFraction(aAu);
+  return (1 - t) * (1 - Q_MID_AU / aAu) + t * T.meanEccentricity;
+};
 const lnSmooth = (from: number, to: number, a: number) =>
   smoothstep(Math.log(from), Math.log(to), Math.log(a));
-/** Probability of a thermal (rather than detached) eccentricity at a. */
+/** Weight of the thermal (rather than detached) eccentricity at a. */
 export const thermalFraction = (aAu: number): number => lnSmooth(P.thermalFromAu, P.thermalToAu, aAu);
 /** Probability of an isotropic (rather than disc) orientation at a. */
 export const isotropicFraction = (aAu: number): number => lnSmooth(O.isotropicFromAu, O.isotropicToAu, aAu);
@@ -138,7 +150,7 @@ export interface Cloud {
   readonly rate: Float64Array;
   /** Orientation at J2000 (the twist over the age of the cloud included), x y z w. */
   readonly qJ: Float32Array;
-  /** Generator state (draws exactly 8 numbers per point, so any prefix is the same for any count). */
+  /** Generator state (draws exactly 10 numbers per point, so any prefix is the same for any count). */
   readonly rnd: () => number;
 }
 
@@ -192,9 +204,10 @@ export function generateMore(c: Cloud, max: number): number {
   for (let k = from; k < to; k++) {
     const a = lawSample(SAMPLING_LAW, rnd());
     const w = weightAt(a);
-    const thermal = rnd() < thermalFraction(a);
-    const ue = rnd();
-    const e = thermal ? (1 - qMin / a) * Math.sqrt(ue) : 1 - (qMin + ue * qSpan) / a;
+    const th = thermalFraction(a);
+    const eDet = 1 - (qMin + rnd() * qSpan) / a;
+    const eTh = (1 - qMin / a) * Math.sqrt(rnd());
+    const e = (1 - th) * eDet + th * eTh;
     const iso = rnd() < isotropicFraction(a);
     const ui = rnd();
     const inc = iso
@@ -203,6 +216,8 @@ export function generateMore(c: Cloud, max: number): number {
     const node = rnd() * TWO_PI;
     const argp = rnd() * TWO_PI;
     const M0 = wrapPi(rnd() * TWO_PI);
+    // Box-Muller normal deviate for the scatter of the tide rate.
+    const gauss = Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(TWO_PI * rnd());
     // Perifocal -> ecliptic: Rz(node) Rx(inc) Rz(argp).
     const si = Math.sin(0.5 * inc);
     const ci = Math.cos(0.5 * inc);
@@ -215,7 +230,8 @@ export function generateMore(c: Cloud, max: number): number {
     // Orbit normal W and its cosine to the Galactic pole.
     const sI = Math.sin(inc);
     const cosIG = G_POLE.x * Math.sin(node) * sI - G_POLE.y * Math.cos(node) * sI + G_POLE.z * Math.cos(inc);
-    const rateYr = tideRatePerYr(a, e, cosIG);
+    // The rate from the typical eccentricity at a (e and i_G oscillate together under the tide), with scatter.
+    const rateYr = tideRatePerYr(a, typicalEccentricity(a), cosIG, Math.exp(T.rateScatter * gauss));
     // Twist accumulated over the age of the cloud up to J2000.
     const h = 0.5 * wrapPi(rateYr * AGE_YR);
     const s = Math.sin(h);

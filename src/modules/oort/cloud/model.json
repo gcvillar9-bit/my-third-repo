@@ -12,7 +12,7 @@
     "note": "dN/da is a continuous piecewise power law a^slope over the breaks. Points are drawn from the flatter 'samplingSlopes' law and carry the ratio of the two as a brightness weight, so the thin outer cloud still gets a third of the points."
   },
   "perihelion": {
-    "source": "Detached orbits keep their perihelia beyond Neptune's reach (sednoids: 65-80 AU). Far out, the Galactic tide and passing stars randomise angular momentum, giving the thermal distribution f(e) = 2e (Heisler & Tremaine 1986). The transition range is an assumption.",
+    "source": "Detached orbits keep their perihelia beyond Neptune's reach (sednoids: 65-80 AU). Far out, the Galactic tide and passing stars randomise angular momentum, giving the thermal distribution f(e) = 2e (Heisler & Tremaine 1986). The eccentricity blends smoothly from detached to thermal across the transition range (a weighted mean of the two draws), which is an assumption.",
     "qMinAu": 38,
     "qDetachedMaxAu": 90,
     "thermalFromAu": 1500,
@@ -25,8 +25,10 @@
     "isotropicToAu": 25000
   },
   "tide": {
-    "source": "Local mass density of the Galactic disc 0.10 Msun/pc^3 (Holmberg & Flynn 2000, MNRAS 313, 209). Orbit-averaged vertical tide (Heisler & Tremaine 1986, Icarus 65, 13): node rate about the Galactic pole = -(nu^2 / 2n) cos(i_G) (1 + 1.5 e^2) / sqrt(1 - e^2), nu^2 = 4 pi G rho0, averaged over the argument of perihelion; e and i_G are held at their initial values.",
-    "rho0MsunPerPc3": 0.1
+    "source": "Local mass density of the Galactic disc 0.10 Msun/pc^3 (Holmberg & Flynn 2000, MNRAS 313, 209). Orbit-averaged vertical tide (Heisler & Tremaine 1986, Icarus 65, 13): node rate about the Galactic pole = -(nu^2 / 2n) cos(i_G) (1 + 1.5 e^2) / sqrt(1 - e^2), nu^2 = 4 pi G rho0, averaged over the argument of perihelion; e and i_G are held at their initial values. The rate uses the typical eccentricity at each semi-major axis (detached perihelion at the middle of its range inside, the thermal mean 2/3 outside, blended as the eccentricity is) rather than the orbit's own, with 15% (log-normal) scatter, because under the tide an orbit's eccentricity and inclination oscillate together, so its long-term rate is closer to the population's than its present eccentricity suggests; this is an assumption.",
+    "rho0MsunPerPc3": 0.1,
+    "meanEccentricity": 0.667,
+    "rateScatter": 0.15
   },
   "population": {
     "source": "Boe et al. (2019, Icarus 333, 252): (1.5 +/- 1) x 10^12 Oort Cloud comets larger than 1 km, 1.3 +/- 0.9 Earth masses. Applied here to the outer cloud (a > 20,000 AU); the model then puts about five times as many closer in, as Duncan, Quinn & Tremaine (1987) found.",
