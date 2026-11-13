@@ -454,8 +454,13 @@ describe('atlas guides, labels, search and info', () => {
     expect(guideAlpha(s, 3 * KPC, 8 * KPC)).toBe(1);
     expect(guideAlpha(s, 1300 * KPC, 1300 * KPC)).toBeLessThan(0.7);
     expect(guideAlpha(s, 2000 * KPC, 2000 * KPC)).toBe(0);
+    // Off in a close-up of an object (camera anchored to a black hole or a star), on in open space.
+    expect(guideAlpha(s, 8 * KPC, 1e12, 'bh:sgra')).toBe(0);
+    expect(guideAlpha(s, 8 * KPC, 1e12, 'mw')).toBe(1);
+    expect(guideAlpha(s, 500 * KPC, 500 * KPC, 'universe')).toBe(1);
     s.mode = 'on';
     expect(guideAlpha(s, 0, 8 * KPC)).toBe(1);
+    expect(guideAlpha(s, 8 * KPC, 1e12, 'bh:sgra')).toBe(1);
     s.mode = 'off';
     expect(guideAlpha(s, 100 * KPC, 100 * KPC)).toBe(0);
   });

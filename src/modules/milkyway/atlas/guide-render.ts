@@ -94,7 +94,7 @@ function guideRenderable(
     object,
     update(view: ViewState) {
       const t = view.toCamera(SSB_FRAME, zero, cam);
-      const alpha = guideAlpha(state, v3len(t), v3len(view.toCamera(MW_FRAME, zero, tmp)));
+      const alpha = guideAlpha(state, v3len(t), v3len(view.toCamera(MW_FRAME, zero, tmp)), view.frame);
       object.visible = alpha > 0.004;
       if (!object.visible) return;
       camPc.x = -t.x / PC;

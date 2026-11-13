@@ -4,9 +4,12 @@
  * are invisible to the eye or are concepts (arms, bubbles, pulsars, gas clouds, stream tracks).
  *
  * Mode 'auto' (default): guides fade in between 2.0 and 2.5 kpc from the Sun, where the outside
- * view of the galaxy takes over, so every view near the Sun stays as it was. 'on': everywhere.
- * In both modes guides fade out between 1.0 and 1.5 Mpc from the Galactic centre.
+ * view of the galaxy takes over, so every view near the Sun stays as it was; and they are off
+ * while the camera is anchored to an object (a black hole, a star system: a close-up of that
+ * object, not a view of the Galaxy). 'on': everywhere. In both modes guides fade out between
+ * 1.0 and 1.5 Mpc from the Galactic centre.
  */
+import { MW_FRAME, ROOT_FRAME, type FrameId } from '../../core/contracts';
 import { KPC } from '../../core/units';
 
 export type GuideMode = 'auto' | 'on' | 'off';
@@ -31,9 +34,20 @@ const smooth = (a: number, b: number, x: number): number => {
   return t * t * (3 - 2 * t);
 };
 
-/** Guide opacity 0..1 for a camera `dSun` metres from the Sun and `dCentre` from Sgr A*. */
-export function guideAlpha(state: AtlasState, dSun: number, dCentre: number): number {
+/**
+ * Guide opacity 0..1 for a camera `dSun` metres from the Sun and `dCentre` from Sgr A*, anchored
+ * in `frame` (ViewState.frame). In 'auto' the camera must be in open space (the `mw` or
+ * `universe` frame).
+ */
+export function guideAlpha(
+  state: AtlasState,
+  dSun: number,
+  dCentre: number,
+  frame: FrameId = MW_FRAME,
+): number {
   if (state.mode === 'off') return 0;
   const far = 1 - smooth(GUIDE_FAR_START, GUIDE_FAR_END, dCentre);
-  return state.mode === 'on' ? far : far * smooth(GUIDE_AUTO_START, GUIDE_AUTO_END, dSun);
+  if (state.mode === 'on') return far;
+  if (frame !== MW_FRAME && frame !== ROOT_FRAME) return 0;
+  return far * smooth(GUIDE_AUTO_START, GUIDE_AUTO_END, dSun);
 }

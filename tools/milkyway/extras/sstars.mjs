@@ -8,7 +8,8 @@
  * Orbital elements and the K magnitude are the table's. The two display values the module needs
  * are approximate and say so in `source`: absMagV is scaled from S2 (the module's row: M_V -3.0 at
  * K = 14.0 in this table) by the K magnitude, with +3.8 mag for late-type stars (redder V-K);
- * teffK is 22000 K for early-type (B) stars and 4000 K for late-type giants.
+ * teffK is 22000 K for early-type (B) stars and 4000 K for late-type giants. `orbitWeight` dims or
+ * hides the orbit line of the added stars.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -25,6 +26,12 @@ const SRC = {
   outputs: ['data/blackholes/blackholes.json'],
 };
 const TAG = 'Gillessen et al. 2017, ApJ 837, 30, Table 3';
+/**
+ * Orbit-line brightness of the added stars (display choice, so the 9 original orbits stay readable):
+ * a faint line for the short orbits inside the cluster core, no line for the long ones, whose
+ * ellipses would cross the whole view. The stars themselves are always drawn.
+ */
+const orbitWeight = (periodYr) => (periodYr <= 60 ? 0.25 : 0);
 
 const path = join(PUBLIC, 'data', 'blackholes', 'blackholes.json');
 // The file is hand-formatted with one row per line: keep its text and only add or replace lines.
@@ -59,6 +66,7 @@ for (const r of rows) {
     absMagV: round(-3.0 + (k - kS2) + (late ? 3.8 : 0), 1),
     teffK: late ? 4000 : 22000,
     approximate: true,
+    orbitWeight: orbitWeight(per),
     source: `${TAG} (elements; K = ${k}, ${late ? 'late' : r.SpT === 'e' ? 'early' : 'unclassified'} type); absMagV scaled from S2 by the K magnitude and teffK from the spectral class, both approximate`,
   };
   added.push(
@@ -76,4 +84,6 @@ lines.splice(close, 0, ...added.map((l, n) => l + (n < added.length - 1 ? ',' : 
 const out = lines.join('\n');
 JSON.parse(out);
 writeFileSync(path, out);
-console.log(`sstars: ${rows.length} orbits in the table, ${have.size} rows already present, ${added.length} added, ${rejected} rejected`);
+console.log(
+  `sstars: ${rows.length} orbits in the table, ${have.size} rows already present, ${added.length} added, ${rejected} rejected`,
+);

@@ -108,7 +108,7 @@ export function createAtlasLabels(
     },
     labels(view: ViewState, out: LabelItem[]) {
       const t = view.toCamera(SSB_FRAME, zero, cam);
-      const alpha = guideAlpha(state, v3len(t), v3len(view.toCamera(MW_FRAME, zero, tmp)));
+      const alpha = guideAlpha(state, v3len(t), v3len(view.toCamera(MW_FRAME, zero, tmp)), view.frame);
       if (alpha < 0.5) return;
       cam.x = -t.x / PC;
       cam.y = -t.y / PC;

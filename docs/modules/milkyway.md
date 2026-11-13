@@ -158,7 +158,9 @@ cluster's `rMem` / 32767 pc), `g` u8 × N (Gaia G = g × 0.08), `c` u8 × N (BP�
   the camera is closer than about 3 radii; arm lines fade out when the Galaxy is seen edge-on (they would
   fill the dust lane).
 - **When guides show** (`guides.ts`, setting `milkyway.guides`, **Shift+B** toggles): `auto` (default) fades
-  them in between 2.0 and 2.5 kpc from the Sun, so views near the Sun are as before; `on` shows them
+  them in between 2.0 and 2.5 kpc from the Sun, so views near the Sun are as before, and keeps them off while
+  the camera is anchored to an object (a black hole or a star system: `ViewState.frame` is not `mw` or
+  `universe`), so close-ups of other modules carry no guides; `on` shows them
   everywhere; both fade out between 1.0 and 1.5 Mpc from the centre. Six group switches
   (`milkyway.guides.<structure|halo|clusters|gas|compact|stars>`) and `milkyway.atlasLight`. All have URL
   overrides (`?milkyway.guides=on`, `?milkyway.guides.halo=0`, `?milkyway.atlasLight=0`).
@@ -177,7 +179,9 @@ cluster's `rMem` / 32767 pc), `g` u8 × N (Gaia G = g × 0.08), `c` u8 × N (BP�
   Sextans, Leo I, Leo II, Ursa Minor, Sagittarius) are drawn once, as star clouds. The Magellanic Clouds stay
   3D portraits there.
 - **blackholes:** `tools/milkyway/extras/sstars.mjs` added 32 orbits of Gillessen et al. 2017 to
-  `public/data/blackholes/blackholes.json` (41 stars now; S111 is unbound and left out).
+  `public/data/blackholes/blackholes.json` (41 stars now; S111 is unbound and left out). A new optional row
+  field `orbitWeight` dims an orbit line: the five added stars with periods up to 60 years get a faint line,
+  the 27 long orbits none (their ellipses crossed the whole `sgra-s2-periapsis` view); the stars are drawn.
 
 ### Bookmarks
 
