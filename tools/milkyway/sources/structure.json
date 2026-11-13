@@ -1,0 +1,358 @@
+{
+  "group": "structure",
+  "sources": [
+    {
+      "id": "bhg2016",
+      "cite": "Bland-Hawthorn & Gerhard 2016, ARA&A 54, 529 (arXiv:1602.07702)",
+      "url": "https://arxiv.org/abs/1602.07702",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1602.07702",
+      "license": "cited (no explicit licence)",
+      "attribution": "Bland-Hawthorn & Gerhard 2016, ARA&A 54, 529 (arXiv:1602.07702)",
+      "sha256": "4fad4a09bb3ec33e32db036b0c1b3e04530edadc6f7b174a9a6e31caffee590d",
+      "bytes": 1146631,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "gravity2019",
+      "cite": "GRAVITY Collaboration 2019, A&A 625, L10 (arXiv:1904.05721)",
+      "url": "https://arxiv.org/abs/1904.05721",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1904.05721",
+      "license": "cited (no explicit licence)",
+      "attribution": "GRAVITY Collaboration 2019, A&A 625, L10 (arXiv:1904.05721)",
+      "sha256": "94e80d2223ae18e632ff9e716b89b0cb13896b8b2c8ce96e11b7228347b989d9",
+      "bytes": 212006,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json",
+        "data/milkyway/atlas/features-centre.json",
+        "data/milkyway/atlas/features-bubbles.json"
+      ]
+    },
+    {
+      "id": "reid2019",
+      "cite": "Reid et al. 2019, ApJ 885, 131 (arXiv:1910.03357)",
+      "url": "https://arxiv.org/abs/1910.03357",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1910.03357",
+      "license": "cited (no explicit licence)",
+      "attribution": "Reid et al. 2019, ApJ 885, 131 (arXiv:1910.03357)",
+      "sha256": "a446edd01f2bebdb8a995b8caaf45ac0366b46a20297c9bed5579187d4a36a2a",
+      "bytes": 1043087,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "dame2008",
+      "cite": "Dame & Thaddeus 2008, ApJ 683, L143 (arXiv:0807.1752)",
+      "url": "https://arxiv.org/abs/0807.1752",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/0807.1752",
+      "license": "cited (no explicit licence)",
+      "attribution": "Dame & Thaddeus 2008, ApJ 683, L143 (arXiv:0807.1752)",
+      "sha256": "df1f4a3b59bf1df103ed8f576c2e8e897cc445af60005b1d450ee611d781e621",
+      "bytes": 71542,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "wegg2015",
+      "cite": "Wegg, Gerhard & Portail 2015, MNRAS 450, 4050 (arXiv:1504.01401)",
+      "url": "https://arxiv.org/abs/1504.01401",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1504.01401",
+      "license": "cited (no explicit licence)",
+      "attribution": "Wegg, Gerhard & Portail 2015, MNRAS 450, 4050 (arXiv:1504.01401)",
+      "sha256": "e8b37185f15d5c77928ff13a3a49c003863bda097cfa2b6a81e102b7ed153d31",
+      "bytes": 421617,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "portail2017",
+      "cite": "Portail et al. 2017, MNRAS (arXiv:1608.07954)",
+      "url": "https://arxiv.org/abs/1608.07954",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1608.07954",
+      "license": "cited (no explicit licence)",
+      "attribution": "Portail et al. 2017, MNRAS (arXiv:1608.07954)",
+      "sha256": "60f6d00b0c31fd2861d17d0b5656b71e6d0ecd9dccf6651c3bf7ae1787d24144",
+      "bytes": 560809,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "chen2019",
+      "cite": "Chen et al. 2019, Nature Astronomy 3, 320 (arXiv:1902.00998)",
+      "url": "https://arxiv.org/abs/1902.00998",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1902.00998",
+      "license": "cited (no explicit licence)",
+      "attribution": "Chen et al. 2019, Nature Astronomy 3, 320 (arXiv:1902.00998)",
+      "sha256": "d5180cca5fc6035a15227852a01046d530d8baea34d1a1e33caa71b8cc78e1f1",
+      "bytes": 162279,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "skowron2019",
+      "cite": "Skowron et al. 2019, Science 365, 478 (arXiv:1806.10653)",
+      "url": "https://arxiv.org/abs/1806.10653",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1806.10653",
+      "license": "cited (no explicit licence)",
+      "attribution": "Skowron et al. 2019, Science 365, 478 (arXiv:1806.10653)",
+      "sha256": "6912aefe9a972cac64ee16b0b408e17fb209359a77b9c6bb0903d0bf76b4caf9",
+      "bytes": 432459,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "lopez2014",
+      "cite": "López-Corredoira & Molgó 2014, A&A 567, A106 (arXiv:1405.7649)",
+      "url": "https://arxiv.org/abs/1405.7649",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1405.7649",
+      "license": "cited (no explicit licence)",
+      "attribution": "López-Corredoira & Molgó 2014, A&A 567, A106 (arXiv:1405.7649)",
+      "sha256": "7ff83b407fa67672ed9b164ac637c9633827588049f9f0a87cad271ed262b494",
+      "bytes": 169536,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "chrobakova2022",
+      "cite": "Chrobáková et al. 2022, A&A 664, A58 (arXiv:2206.08230)",
+      "url": "https://arxiv.org/abs/2206.08230",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2206.08230",
+      "license": "cited (no explicit licence)",
+      "attribution": "Chrobáková et al. 2022, A&A 664, A58 (arXiv:2206.08230)",
+      "sha256": "f35fab8b82d9707a5e644405b1b2c0c3636e24e676d0f609850309b9e54fb76e",
+      "bytes": 228725,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "deason2019",
+      "cite": "Deason, Belokurov & Sanders 2019, MNRAS (arXiv:1908.02763)",
+      "url": "https://arxiv.org/abs/1908.02763",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1908.02763",
+      "license": "cited (no explicit licence)",
+      "attribution": "Deason, Belokurov & Sanders 2019, MNRAS (arXiv:1908.02763)",
+      "sha256": "2234b3b613c0c8f8ea1eb866831a0ae7ff44853a95492424e131bcedcfdeb0b8",
+      "bytes": 230297,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "bennett2019",
+      "cite": "Bennett & Bovy 2019, MNRAS 482, 1417 (arXiv:1809.03507)",
+      "url": "https://arxiv.org/abs/1809.03507",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1809.03507",
+      "license": "cited (no explicit licence)",
+      "attribution": "Bennett & Bovy 2019, MNRAS 482, 1417 (arXiv:1809.03507)",
+      "sha256": "a7a6919f2e66657e35f30aa09ed96a20e23618fd0c45f8e65442d387402f5f15",
+      "bytes": 139880,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json"
+      ]
+    },
+    {
+      "id": "simbad_gc",
+      "cite": "SIMBAD astronomical database, CDS, Strasbourg (Wenger et al. 2000, A&AS 143, 9): ICRS positions",
+      "url": "https://simbad.cds.unistra.fr/simbad/",
+      "fetchUrl": "https://simbad.cfa.harvard.edu/simbad/sim-tap/sync?request=doQuery&lang=adql&format=csv&query=SELECT%20i.id%2C%20b.main_id%2C%20b.ra%2C%20b.dec%20FROM%20basic%20AS%20b%20JOIN%20ident%20AS%20i%20ON%20i.oidref%20%3D%20b.oid%20WHERE%20i.id%20IN%20%28%27NAME%20Arches%20Cluster%27%2C%27NAME%20Quintuplet%20Cluster%27%2C%27NAME%20Sgr%20B2%27%2C%27NAME%20the%20Brick%27%2C%27NAME%20Sgr%20C%27%2C%27NAME%20Sgr%20A%20East%27%2C%27NAME%20CND%27%2C%27NAME%20Galactic%20Center%20Radio%20Arc%27%29",
+      "license": "cited (no explicit licence)",
+      "attribution": "This research has made use of the SIMBAD database, operated at CDS, Strasbourg, France",
+      "sha256": "c00639c20e62d873c5cc53cf09b50b10c95a382c96ea4213754c7751d388d39e",
+      "bytes": 645,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "schodel2014",
+      "cite": "Schödel et al. 2014, A&A 566, A47 (arXiv:1403.6657)",
+      "url": "https://arxiv.org/abs/1403.6657",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1403.6657",
+      "license": "cited (no explicit licence)",
+      "attribution": "Schödel et al. 2014, A&A 566, A47 (arXiv:1403.6657)",
+      "sha256": "eb628370896c0b5040d6330affbf7ab25d8b6e66197526c12e91d4bc437e9537",
+      "bytes": 462013,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "launhardt2002",
+      "cite": "Launhardt, Zylka & Mezger 2002, A&A (arXiv:astro-ph/0201294)",
+      "url": "https://arxiv.org/abs/astro-ph/0201294",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/0201294",
+      "license": "cited (no explicit licence)",
+      "attribution": "Launhardt, Zylka & Mezger 2002, A&A (arXiv:astro-ph/0201294)",
+      "sha256": "6a5dee277c3d405f7775c983d9ae7af87202f6553d9acea6fdb77a29acf84174",
+      "bytes": 611294,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "sormani2022",
+      "cite": "Sormani et al. 2022, MNRAS (arXiv:2111.12713)",
+      "url": "https://arxiv.org/abs/2111.12713",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2111.12713",
+      "license": "cited (no explicit licence)",
+      "attribution": "Sormani et al. 2022, MNRAS (arXiv:2111.12713)",
+      "sha256": "a33a53c2a58407fa4f03b66108ae5a263776dda1d85b858a5b2e5b8e8730679c",
+      "bytes": 461680,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "henshaw2023",
+      "cite": "Henshaw et al. 2023, Protostars and Planets VII (review) (arXiv:2203.11223)",
+      "url": "https://arxiv.org/abs/2203.11223",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2203.11223",
+      "license": "cited (no explicit licence)",
+      "attribution": "Henshaw et al. 2023, Protostars and Planets VII (review) (arXiv:2203.11223)",
+      "sha256": "aa6a0be2006fa4c3b89412ef55284efbb48915f5552756aab6aae60344102886",
+      "bytes": 1080687,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "hosek2019",
+      "cite": "Hosek et al. 2019, ApJ (arXiv:1808.02577)",
+      "url": "https://arxiv.org/abs/1808.02577",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1808.02577",
+      "license": "cited (no explicit licence)",
+      "attribution": "Hosek et al. 2019, ApJ (arXiv:1808.02577)",
+      "sha256": "d4f33f39d4f4dd14d19f6512ee7591f112fb9408c9f68d1cc8318a5f8321e145",
+      "bytes": 483235,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "hosek2022",
+      "cite": "Hosek et al. 2022, ApJ (arXiv:2208.08508)",
+      "url": "https://arxiv.org/abs/2208.08508",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2208.08508",
+      "license": "cited (no explicit licence)",
+      "attribution": "Hosek et al. 2022, ApJ (arXiv:2208.08508)",
+      "sha256": "14f31a87057e6b070a2db5f147f7deedc0bd06cdb1a62b9446ebd113eda3b29e",
+      "bytes": 591907,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "clark2018",
+      "cite": "Clark et al. 2018, A&A 618, A2 (arXiv:1805.10139)",
+      "url": "https://arxiv.org/abs/1805.10139",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1805.10139",
+      "license": "cited (no explicit licence)",
+      "attribution": "Clark et al. 2018, A&A 618, A2 (arXiv:1805.10139)",
+      "sha256": "b9eac9e8c0993680167525b1ac0ea55458c6f6ae9e1c63eb1d520764950ebb42",
+      "bytes": 498410,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "kauffmann2017",
+      "cite": "Kauffmann et al. 2017, A&A 603, A89, Table 1 (arXiv:1610.03499)",
+      "url": "https://arxiv.org/abs/1610.03499",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1610.03499",
+      "license": "cited (no explicit licence)",
+      "attribution": "Kauffmann et al. 2017, A&A 603, A89, Table 1 (arXiv:1610.03499)",
+      "sha256": "bc2ca7bdcd3ed7222e282c4a77275dcc4a09329fd8b37dd75fb9efb4a75592a8",
+      "bytes": 517988,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "ginsburg2018",
+      "cite": "Ginsburg et al. 2018, ApJ (arXiv:1801.04941)",
+      "url": "https://arxiv.org/abs/1801.04941",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1801.04941",
+      "license": "cited (no explicit licence)",
+      "attribution": "Ginsburg et al. 2018, ApJ (arXiv:1801.04941)",
+      "sha256": "a499745e4b4b7d6cdb325aab42f73ef138ec6d05d2ebeb38d641c1dd70524275",
+      "bytes": 518801,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "longmore2012",
+      "cite": "Longmore et al. 2012, ApJ (arXiv:1111.3199)",
+      "url": "https://arxiv.org/abs/1111.3199",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1111.3199",
+      "license": "cited (no explicit licence)",
+      "attribution": "Longmore et al. 2012, ApJ (arXiv:1111.3199)",
+      "sha256": "21eeb11c11b95f4a7a22e9c7089a2e0cdcf8bda67cd253618454227d7d20e009",
+      "bytes": 210946,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "maeda2002",
+      "cite": "Maeda et al. 2002, ApJ (arXiv:astro-ph/0102183)",
+      "url": "https://arxiv.org/abs/astro-ph/0102183",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/0102183",
+      "license": "cited (no explicit licence)",
+      "attribution": "Maeda et al. 2002, ApJ (arXiv:astro-ph/0102183)",
+      "sha256": "c9bfd8c997b133c20162f88494df57ea7a1aa9109dacd89d70aab72115ee6889",
+      "bytes": 233611,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "pare2019",
+      "cite": "Pare et al. 2019, ApJ (arXiv:1909.08268)",
+      "url": "https://arxiv.org/abs/1909.08268",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1909.08268",
+      "license": "cited (no explicit licence)",
+      "attribution": "Pare et al. 2019, ApJ (arXiv:1909.08268)",
+      "sha256": "e57f77cd00bdc003d01780425b3181a78f633f975c6f251f18578c44a514d1cb",
+      "bytes": 206073,
+      "outputs": [
+        "data/milkyway/atlas/features-centre.json"
+      ]
+    },
+    {
+      "id": "su2010",
+      "cite": "Su, Slatyer & Finkbeiner 2010, ApJ 724, 1044 (arXiv:1005.5480)",
+      "url": "https://arxiv.org/abs/1005.5480",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1005.5480",
+      "license": "cited (no explicit licence)",
+      "attribution": "Su, Slatyer & Finkbeiner 2010, ApJ 724, 1044 (arXiv:1005.5480)",
+      "sha256": "33d7486d99541d2c7763899188fdd405e0ff15cb001a4433608229720de24606",
+      "bytes": 647651,
+      "outputs": [
+        "data/milkyway/atlas/features-bubbles.json"
+      ]
+    },
+    {
+      "id": "predehl2020",
+      "cite": "Predehl et al. 2020, Nature 588, 227 (arXiv:2012.05840)",
+      "url": "https://arxiv.org/abs/2012.05840",
+      "fetchUrl": "https://arxiv.org/pdf/2012.05840",
+      "license": "cited (no explicit licence)",
+      "attribution": "Predehl et al. 2020, Nature 588, 227 (arXiv:2012.05840)",
+      "sha256": "b6d6f433a23c529fe42b7b0104467a623a21f663a7f7245608437fd2210c785a",
+      "bytes": 11318964,
+      "outputs": [
+        "data/milkyway/atlas/features-bubbles.json"
+      ]
+    }
+  ]
+}

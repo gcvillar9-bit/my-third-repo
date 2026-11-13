@@ -5,11 +5,19 @@ uniform sampler2D uArmField;
 void mwSample(vec3 p, out vec3 j, out float kappa) {
   vec4 f = texture2D(uArmField, p.xy / (2.0 * MW_RMAX) + 0.5);
   float R = length(p.xy);
-  float az = abs(p.z);
+  // Disc components follow the warped mid-plane (Chen et al. 2019) and flare outwards
+  // (Lopez-Corredoira & Molgo 2014) at constant surface brightness; twin of model.ts.
+  float zw = smoothstep(MW_R0, MW_R0 + MW_WARP_BLEND, R) * MW_WARP_A * pow(max(R - MW_WARP_RW, 0.0), MW_WARP_B) *
+    (p.y * MW_WARP_C + p.x * MW_WARP_S) / max(R, 1e-4);
+  float az = abs(p.z - zw);
+  float xf = max(R - MW_FLARE_SUN_R, 0.0);
+  float ft = 1.0 + xf * (MW_FLARE_THIN_K1 + MW_FLARE_THIN_K2 * xf);
+  float xk = max(R, MW_FLARE_SUN_R) - MW_FLARE_THICK_R;
+  float fk = (1.0 + xk * (MW_FLARE_THICK_K1 + MW_FLARE_THICK_K2 * xk)) * MW_FLARE_THICK_NORM;
   float hr = R / MW_HOLE_R;
   float hole = 1.0 - MW_HOLE_DEPTH * exp(-hr * hr);
-  float thin = MW_THIN_J0 * exp(-(R - MW_R0) / MW_THIN_HR - az / MW_THIN_HZ) * hole * (1.0 + MW_OLD_CONTRAST * f.y);
-  float thick = MW_THIN_J0 * MW_THICK_NORM * exp(-(R - MW_R0) / MW_THICK_HR - az / MW_THICK_HZ);
+  float thin = MW_THIN_J0 * exp(-(R - MW_R0) / MW_THIN_HR - az / (MW_THIN_HZ * ft)) / ft * hole * (1.0 + MW_OLD_CONTRAST * f.y);
+  float thick = MW_THIN_J0 * MW_THICK_NORM * exp(-(R - MW_R0) / MW_THICK_HR - az / (MW_THICK_HZ * fk)) / fk;
   float xb = -p.x * MW_BAR_C + p.y * MW_BAR_S;
   float yb = p.x * MW_BAR_S + p.y * MW_BAR_C;
   float qx = xb / MW_BULGE_X0;
@@ -18,7 +26,7 @@ void mwSample(vec3 p, out vec3 j, out float kappa) {
   float zz = p.z / MW_BULGE_Z0;
   zz *= zz;
   float bulge = MW_BULGE_J0 * exp(-0.5 * sqrt(q * q + zz * zz));
-  float bar = MW_BAR_J0 * exp(-pow(abs(xb) / MW_BAR_L, MW_BAR_N) - abs(yb) / MW_BAR_YS - az / MW_BAR_ZS);
+  float bar = MW_BAR_J0 * exp(-pow(abs(xb) / MW_BAR_L, MW_BAR_N) - abs(yb) / MW_BAR_YS - abs(p.z) / MW_BAR_ZS);
   float radial = exp(-(R - MW_R0) / MW_YOUNG_HR);
   float young = MW_YOUNG_J0 * radial * exp(-az / MW_YOUNG_HZ) * f.x;
   float hii = MW_HII_J0 * radial * exp(-az / MW_HII_HZ) * f.w;

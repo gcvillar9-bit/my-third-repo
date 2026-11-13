@@ -3,7 +3,7 @@
  * trace the young disc out to 20 kpc and its warp. Reference pattern for a catalogue layer.
  */
 import { readFileSync } from 'node:fs';
-import { icrsFromLb, num, round, slug, source, writeLayer } from '../lib.mjs';
+import { checkQuote, icrsFromLb, num, round, slug, source, writeLayer } from '../lib.mjs';
 
 const SRC = {
   group: 'tracers',
@@ -15,10 +15,22 @@ const SRC = {
   fetch: { kind: 'file', url: 'https://ftp.astrouw.edu.pl/ogle/ogle4/MILKY_WAY_3D_MAP/Skowron2019_GalClassCephDist.dat' },
   outputs: ['data/milkyway/atlas/cepheids.json'],
 };
+const BENEDICT = {
+  group: 'tracers',
+  id: 'benedict_2007',
+  cite: 'Benedict et al. 2007, AJ 133, 1810, Table 12: M_V = -4.05 - 2.43 (log P - 1)',
+  url: 'https://arxiv.org/abs/astro-ph/0612465',
+  license: 'cited (no explicit licence)',
+  fetch: { kind: 'file', url: 'https://ar5iv.labs.arxiv.org/html/astro-ph/0612465', file: 'benedict_2007.html' },
+  outputs: ['data/milkyway/atlas/cepheids.json'],
+};
 /** Period-luminosity relation, fundamental mode: M_V = a + b (log10 P - 1), Benedict et al. 2007, Table 12 (B07). */
 const PL = { a: -4.05, b: -2.43 };
 
 export default function build() {
+  // Evidence for the two coefficients of the period-luminosity relation.
+  checkQuote(BENEDICT, 'a V -4.05 ± 0.02');
+  checkQuote(BENEDICT, 'b V -2.43 0.12');
   const text = readFileSync(source(SRC), 'utf8');
   const rows = [];
   let rejected = 0;
@@ -62,11 +74,7 @@ export default function build() {
     noun: 'Classical Cepheid (pulsating supergiant star)',
     sources: {
       skowron: { cite: SRC.cite, url: SRC.url, license: SRC.license },
-      benedict: {
-        cite: 'Benedict et al. 2007, AJ 133, 1810, Table 12: M_V = -4.05 - 2.43 (log P - 1)',
-        url: 'https://arxiv.org/abs/astro-ph/0612465',
-        license: 'cited (no explicit licence)',
-      },
+      benedict: { cite: BENEDICT.cite, url: BENEDICT.url, license: BENEDICT.license },
     },
     columns: [
       { key: 'id' },

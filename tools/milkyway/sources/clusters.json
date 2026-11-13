@@ -1,0 +1,72 @@
+{
+  "group": "clusters",
+  "sources": [
+    {
+      "id": "hr23_clusters",
+      "cite": "Hunt & Reffert 2023, A&A 673, A114 (Improving the open cluster census. II.), VizieR J/A+A/673/A114",
+      "url": "https://doi.org/10.1051/0004-6361/202346285",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FA%2BA%2F673%2FA114%2Fclusters&-out=Name%2CID%2CAllNames%2CType%2CCST%2CN%2CRA_ICRS%2CDE_ICRS%2Cr50pc%2Crcpc%2Crtpc%2Cdist16%2Cdist50%2Cdist84%2ClogAge50%2CAV50%2CCMDCl50&-out.max=unlimited&-oc.form=dec",
+      "license": "CC-BY-4.0",
+      "attribution": "Hunt, E. L. & Reffert, S. 2023, A&A 673, A114; data from CDS/VizieR",
+      "sha256": "1bf721946bccb28cbe0f96c08df8472edec0d8a61b5a271be9631188ffb09fcd",
+      "bytes": 3247255,
+      "outputs": [
+        "data/milkyway/atlas/open-clusters.json",
+        "data/milkyway/atlas/cluster-stars.bin"
+      ]
+    },
+    {
+      "id": "hr24_clusters",
+      "cite": "Hunt & Reffert 2024, A&A 686, A42 (Improving the open cluster census. III.), VizieR J/A+A/686/A42",
+      "url": "https://doi.org/10.1051/0004-6361/202348662",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FA%2BA%2F686%2FA42%2Fclusters&-out=Name%2CID%2CMassTot%2Ce_MassTot&-out.max=unlimited&-oc.form=dec",
+      "license": "CC-BY-4.0",
+      "attribution": "Hunt, E. L. & Reffert, S. 2024, A&A 686, A42; data from CDS/VizieR",
+      "sha256": "c13a9e9287db5569369ce854ee99e57cdf90eb2bb1f967d421e29121aa116c0a",
+      "bytes": 412619,
+      "outputs": [
+        "data/milkyway/atlas/open-clusters.json"
+      ]
+    },
+    {
+      "id": "openngc_ngc",
+      "cite": "OpenNGC (Mattia Verga), commit be3cd6c549, NGC.csv and addendum.csv",
+      "url": "https://github.com/mattiaverga/OpenNGC",
+      "fetchUrl": "https://raw.githubusercontent.com/mattiaverga/OpenNGC/be3cd6c5498806a2fbb2f7e0452ef802dbb02be0/database_files/NGC.csv",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "OpenNGC (Mattia Verga), commit be3cd6c549, NGC.csv and addendum.csv",
+      "sha256": "54abea0b57b0a103831bfc7a8e3a99a23acfbf4bb581fcf3d8af539cbb826c84",
+      "bytes": 3942946,
+      "outputs": [
+        "data/milkyway/atlas/open-clusters.json"
+      ]
+    },
+    {
+      "id": "openngc_addendum",
+      "cite": "OpenNGC (Mattia Verga), commit be3cd6c549, NGC.csv and addendum.csv",
+      "url": "https://github.com/mattiaverga/OpenNGC",
+      "fetchUrl": "https://raw.githubusercontent.com/mattiaverga/OpenNGC/be3cd6c5498806a2fbb2f7e0452ef802dbb02be0/database_files/addendum.csv",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "OpenNGC (Mattia Verga), commit be3cd6c549, NGC.csv and addendum.csv",
+      "sha256": "c93f983dda6780b76b7b2e9271a856a892627710148a982ee98101a54c642fdd",
+      "bytes": 17496,
+      "outputs": [
+        "data/milkyway/atlas/open-clusters.json"
+      ]
+    },
+    {
+      "id": "hr23_members",
+      "cite": "Hunt & Reffert 2023, A&A 673, A114 (Improving the open cluster census. II.), VizieR J/A+A/673/A114",
+      "url": "https://doi.org/10.1051/0004-6361/202346285",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FA%2BA%2F673%2FA114%2Fmembers&-out=Name%2CProb%2CRA_ICRS%2CDE_ICRS%2CpmRA%2CpmDE%2CGmag%2CBP-RP&-out.max=unlimited&-oc.form=dec",
+      "license": "CC-BY-4.0",
+      "attribution": "Hunt, E. L. & Reffert, S. 2023, A&A 673, A114; data from CDS/VizieR",
+      "sha256": "3ea18c95c0d8d0f37eca771c29bd24277735e6a23b8e06dfb089ca8b0494bca2",
+      "bytes": 219628181,
+      "outputs": [
+        "data/milkyway/atlas/open-clusters.json",
+        "data/milkyway/atlas/cluster-stars.bin"
+      ]
+    }
+  ]
+}

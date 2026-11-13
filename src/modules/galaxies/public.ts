@@ -11,3 +11,4 @@ export {
   namedBookmark,
   type NamedGalaxy,
 } from './named';
+export { hideGalaxies, type GalaxyPredicate } from './hidden';

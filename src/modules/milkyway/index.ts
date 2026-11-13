@@ -3,7 +3,8 @@
  * crossfaded with the stars panorama near the Sun), globular clusters as King-profile point clouds,
  * a "You are here" marker and bookmarks 'mw-outside-100kpc', 'mw-edge-on', 'mw-band-from-earth'.
  */
-import type { UniverseModule } from '../../core/contracts';
+import type { ModuleContext, UniverseModule } from '../../core/contracts';
+import { atlasBookmarks, GUIDE_BOOKMARKS } from './atlas-bookmarks';
 import { milkyWayBookmarks } from './bookmarks';
 import { createOutsideView, createSkyView, GalaxyGpu, type GalaxyState } from './galaxy';
 import {
@@ -14,9 +15,31 @@ import {
   type GlobularFile,
   type GlobularLayer,
 } from './globulars';
+import { createAtlasState, type GuideMode } from './guides';
 import { createMarkerLabels, createYouAreHere } from './marker';
 
 const GLOBULARS_JSON = 'data/milkyway/globulars.json';
+const GUIDES_SETTING = 'milkyway.guides';
+/** Settings groups of the atlas guides (ids match looks.json `groups`). */
+const GUIDE_GROUPS: readonly [string, string][] = [
+  ['structure', 'Arms, bar, bulge and bubbles'],
+  ['halo', 'Streams and satellite galaxies'],
+  ['clusters', 'Star clusters and associations'],
+  ['gas', 'Gas clouds, nebulae and remnants'],
+  ['compact', 'Pulsars'],
+  ['stars', 'Cepheid stars'],
+];
+
+const isEditable = (t: EventTarget | null): boolean =>
+  t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+
+/** Initial bookmark id from ?b= or #b=. */
+function initialBookmark(ctx: ModuleContext): string | null {
+  const q = ctx.env.params.get('b');
+  if (q) return q;
+  const hash = typeof location !== 'undefined' ? /[#&]b=([^&]+)/.exec(location.hash) : null;
+  return hash ? decodeURIComponent(hash[1]) : null;
+}
 
 const milkywayModule: UniverseModule = {
   id: 'milkyway',
@@ -29,6 +52,72 @@ const milkywayModule: UniverseModule = {
     registry.addRenderable(createYouAreHere(state));
     ui.addLabelSource(createMarkerLabels(state));
     registry.addBookmarks(milkyWayBookmarks());
+    registry.addBookmarks(atlasBookmarks());
+
+    // The atlas (real named structures) loads after startup; its switches exist from the start.
+    const atlasState = createAtlasState();
+    registry.addSetting({
+      id: GUIDES_SETTING,
+      label: 'Guides: names, outlines and markers (Shift+B)',
+      group: 'Milky Way atlas',
+      type: 'select',
+      default: 'auto',
+      options: [
+        { value: 'auto', label: 'Beyond 2 kpc from the Sun' },
+        { value: 'on', label: 'Always' },
+        { value: 'off', label: 'Never' },
+      ],
+      description:
+        'Guides mark structures that are invisible to the eye or are names: arms, bubbles, stellar streams, gas clouds, supernova remnants and pulsars.',
+      persist: true,
+      onChange: (v) => void (atlasState.mode = v === 'on' || v === 'off' ? v : 'auto'),
+    });
+    for (const [id, label] of GUIDE_GROUPS)
+      registry.addSetting({
+        id: `milkyway.guides.${id}`,
+        label,
+        group: 'Milky Way atlas',
+        type: 'boolean',
+        default: true,
+        persist: true,
+        onChange: (v) => void (atlasState.groups[id] = v === true),
+      });
+    registry.addSetting({
+      id: 'milkyway.atlasLight',
+      label: 'Stars of clusters, Cepheids and satellite galaxies',
+      group: 'Milky Way atlas',
+      type: 'boolean',
+      default: true,
+      persist: true,
+      onChange: (v) => void (atlasState.light = v === true),
+    });
+    const light = ctx.env.params.get('milkyway.atlasLight');
+    if (light !== null) ui.settings.set('milkyway.atlasLight', light !== '0' && light !== 'false');
+    const override = ctx.env.params.get(GUIDES_SETTING);
+    if (override === 'on' || override === 'off' || override === 'auto')
+      ui.settings.set(GUIDES_SETTING, override);
+    else if (GUIDE_BOOKMARKS.includes(initialBookmark(ctx) ?? '')) ui.settings.set(GUIDES_SETTING, 'on');
+    if (typeof window !== 'undefined')
+      window.addEventListener('keydown', (e) => {
+        if (
+          e.code !== 'KeyB' ||
+          !e.shiftKey ||
+          e.repeat ||
+          e.ctrlKey ||
+          e.metaKey ||
+          e.altKey ||
+          isEditable(e.target)
+        )
+          return;
+        const next: GuideMode = atlasState.mode === 'on' ? 'off' : 'on';
+        ui.settings.set(GUIDES_SETTING, next);
+      });
+    void ctx.assets
+      .track(
+        import('./atlas/index').then((m) => m.createAtlas(ctx, atlasState)),
+        'milkyway.atlas',
+      )
+      .catch((e: unknown) => console.error('[milkyway] the atlas failed to load', e));
 
     let globulars: GlobularLayer | null = null;
     let globularsOn = true;

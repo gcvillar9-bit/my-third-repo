@@ -161,6 +161,22 @@
     "rgb": [1.0, 0.3, 0.42],
     "source": "Procedural HII clumps along the arms (one hashed clump per 0.5 kpc cell, ~45% occupied); colour of Halpha + Hbeta + [NII] emission; approximate, artist-level"
   },
+  "warp": {
+    "onsetR": 7.72,
+    "a": 0.06,
+    "exponent": 1.33,
+    "nodeDeg": 17.5,
+    "blendKpc": 1.0,
+    "source": "Chen et al. 2019, Nature Astronomy 3, 320 (classical Cepheids), power-law fit: height of the mid-plane z_w = a (R - R_w)^b sin(phi - phi_w) in kpc for R > R_w, with R_w = 7.72 kpc, a = 0.060, b = 1.33, phi_w = 17.5 deg; phi is the Galactocentric azimuth, 0 towards the Sun, increasing with Galactic rotation. Values checked against the fetched paper by tools/milkyway/features/structure.mjs. Model choice (blendKpc): the law is applied outside the solar circle only, blended in over 1 kpc, because the Sun's height z0 is measured from the local mid-plane, which stays the model plane"
+  },
+  "flare": {
+    "thinK1": -0.037,
+    "thinK2": 0.052,
+    "thickOnsetR": 6.9,
+    "thickK1": 0.021,
+    "thickK2": 0.006,
+    "source": "Lopez-Corredoira & Molgo 2014, A&A 567, A106: scale height h_z(R) = h_z(Rsun) [1 + k1 (R - Rsun) + k2 (R - Rsun)^2] for the thin disc (k1 = -0.037 /kpc, k2 = 0.052 /kpc^2), and the same law in (R - R_ft) for the thick disc beyond R_ft = 6.9 kpc (k1 = 0.021, k2 = 0.006). Applied outwards of the Sun only and normalised so the scale heights at the Sun stay those of thinDisk and thickDisk (approximate). Values checked against the fetched paper by tools/milkyway/features/structure.mjs"
+  },
   "bounds": {
     "rMax": 20.0,
     "zMax": 4.0,

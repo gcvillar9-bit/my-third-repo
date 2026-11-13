@@ -77,20 +77,29 @@ for (const dir of ['layers', 'features']) {
 }
 
 // Sources fetched by the atlas build become reference entries of the manifest (credits, licences).
+// The per-file record with every URL and sha256 stays in tools/milkyway/sources/<group>.json; the
+// manifest gets one entry per citation (a stream library is 141 files with one credit line).
+const byCite = new Map();
+for (const s of allSources()) {
+  const key = `${s.cite}|${s.license}`;
+  const e = byCite.get(key) ?? {
+    id: s.id,
+    atlas: true,
+    license: s.license,
+    attribution: s.attribution,
+    note: `Source: ${s.url}`,
+    files: 0,
+    bytes: 0,
+    outputs: [],
+  };
+  e.files++;
+  e.bytes += s.bytes;
+  for (const o of s.outputs ?? []) if (!e.outputs.includes(o)) e.outputs.push(o);
+  byCite.set(key, e);
+}
 const manifest = readManifest('milkyway');
 const kept = manifest.assets.filter((a) => !a.atlas);
-const atlas = allSources().map((s) => ({
-  id: s.id,
-  atlas: true,
-  sourceUrl: s.url,
-  fetchUrl: s.fetchUrl,
-  license: s.license,
-  attribution: s.attribution,
-  cite: s.cite,
-  outputs: s.outputs,
-  sha256: s.sha256,
-  bytes: s.bytes,
-}));
+const atlas = [...byCite.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
 const next = { ...manifest, assets: [...kept, ...atlas] };
 if (JSON.stringify(next) !== JSON.stringify(manifest)) await writeManifest(next);
-console.log(`build-milkyway: ${atlas.length} atlas sources in assets/manifest/milkyway.json`);
+console.log(`build-milkyway: ${allSources().length} fetched files, ${atlas.length} atlas credits in assets/manifest/milkyway.json`);

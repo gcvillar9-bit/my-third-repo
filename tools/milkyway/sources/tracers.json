@@ -16,14 +16,16 @@
     },
     {
       "id": "benedict_2007",
-      "cite": "Benedict et al. 2007, AJ 133, 1810",
+      "cite": "Benedict et al. 2007, AJ 133, 1810, Table 12: M_V = -4.05 - 2.43 (log P - 1)",
       "url": "https://arxiv.org/abs/astro-ph/0612465",
       "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/0612465",
       "license": "cited (no explicit licence)",
-      "attribution": "Benedict et al. 2007, AJ 133, 1810",
+      "attribution": "Benedict et al. 2007, AJ 133, 1810, Table 12: M_V = -4.05 - 2.43 (log P - 1)",
       "sha256": "6b861788e114b3d91f1d42495eb977b1dffefd2c39eb52206f2be4f17a833d4f",
       "bytes": 422544,
-      "outputs": []
+      "outputs": [
+        "data/milkyway/atlas/cepheids.json"
+      ]
     }
   ]
 }
