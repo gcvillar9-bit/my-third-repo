@@ -26,6 +26,8 @@ export interface SStarRow {
   absMagV: number;
   teffK: number;
   approximate?: boolean;
+  /** Brightness of the orbit line, 0..1 (default 1). The catalogue's many long orbits are drawn faint. */
+  orbitWeight?: number;
   source: string;
 }
 

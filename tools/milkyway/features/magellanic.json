@@ -1,0 +1,188 @@
+{
+  "note": "Hand-entered values of the Magellanic gas system. Each has evidence { source, quote }: the quote is copied from the fetched page of that source and checked by features/magellanic.mjs (checkQuote). Source ids are defined in that file.",
+  "values": {
+    "pole_l": {
+      "value": 188.5,
+      "unit": "deg",
+      "what": "Galactic longitude of the pole of the Magellanic Stream great circle",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "The pole of this great circle is at ( l , b ) = ( 188.5 ∘ , − 7.5 ∘ )"
+      }
+    },
+    "pole_b": {
+      "value": -7.5,
+      "unit": "deg",
+      "what": "Galactic latitude of the pole of the Magellanic Stream great circle",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "The pole of this great circle is at ( l , b ) = ( 188.5 ∘ , − 7.5 ∘ )"
+      }
+    },
+    "zero_l": {
+      "value": 280.47,
+      "unit": "deg",
+      "what": "Galactic longitude of the LMC centre, which defines L_MS = 0",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "the center of the LMC ( l , b = 280.47 ∘ , − 32.75 ∘ : van der Marel et al. 2002) has L MS = 0 ∘"
+      }
+    },
+    "zero_b": {
+      "value": -32.75,
+      "unit": "deg",
+      "what": "Galactic latitude of the LMC centre, which defines L_MS = 0",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "the center of the LMC ( l , b = 280.47 ∘ , − 32.75 ∘ : van der Marel et al. 2002) has L MS = 0 ∘"
+      }
+    },
+    "sense": {
+      "value": "L_MS decreases towards the tail",
+      "what": "Direction of increasing longitude in the Magellanic Stream system",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "L MS decreases along the MS (towards its tail)"
+      }
+    },
+    "ms_tip_lmin": {
+      "value": -140,
+      "unit": "deg",
+      "what": "MS longitude of the far end of the Stream tip",
+      "evidence": {
+        "source": "nidever2010",
+        "quote": "approximate distance for the MS-tip ( − 140° ≲ L MS ≲ − 100°)"
+      }
+    },
+    "ms_tip_distance": {
+      "value": 120,
+      "unit": "kpc",
+      "what": "Approximate distance adopted for the Stream tip",
+      "evidence": {
+        "source": "nidever2010",
+        "quote": "we pick a value of 120 kpc as an approximate distance for the MS-tip"
+      }
+    },
+    "ms_distance": {
+      "value": 50,
+      "unit": "kpc",
+      "what": "Average distance assumed to the Stream when dating it",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "as well as an average distance of 50 kpc to the Stream"
+      }
+    },
+    "ms_length": {
+      "value": 140,
+      "unit": "deg",
+      "what": "Length of the Magellanic Stream (at least)",
+      "evidence": {
+        "source": "nidever2010",
+        "quote": "and that the MS is at least ∼ 140 ∘ long"
+      }
+    },
+    "system_length": {
+      "value": 200,
+      "unit": "deg",
+      "what": "Length of the whole Stream plus Leading Arm system (at least)",
+      "evidence": {
+        "source": "nidever2010",
+        "quote": "the entire MS and Leading Arm (LA) system is thus at least 200 ∘ long"
+      }
+    },
+    "ms_mass_bruns": {
+      "value": 5e8,
+      "unit": "solar masses",
+      "what": "H I mass of the classical Stream (Bruns et al. 2005, quoted by Nidever et al. 2010)",
+      "evidence": {
+        "source": "nidever2010",
+        "quote": "MS is ∼ 5 × 10 8 M ⊙ (Br05)"
+      }
+    },
+    "ms_mass_putman": {
+      "value": 2.1e8,
+      "unit": "solar masses",
+      "what": "H I mass of the Stream for an assumed distance of 55 kpc (Putman et al. 2003)",
+      "evidence": {
+        "source": "putman2003",
+        "quote": "raises our estimate for the mass of the Stream to 2.1 × 10 8 M ⊙"
+      }
+    },
+    "ms_discovery": {
+      "value": "Wannier & Wrixon 1972; Mathewson et al. 1974",
+      "what": "Discovery of the H I tail named the Magellanic Stream",
+      "evidence": {
+        "source": "nidever2010",
+        "quote": "named the Magellanic Stream ( Wannier & Wrixon 1972 ; Mathewson et al. 1974"
+      }
+    },
+    "bridge_distance": {
+      "value": 55,
+      "unit": "kpc",
+      "what": "Distance adopted for the Magellanic Bridge",
+      "evidence": {
+        "source": "putman2003",
+        "quote": "we use distances to the LMC, Bridge and SMC of 50, 55 and 60 kpc, respectively"
+      }
+    },
+    "bridge_mass": {
+      "value": 5.5e7,
+      "unit": "solar masses",
+      "what": "H I mass of the Magellanic Bridge for an assumed distance of 55 kpc",
+      "evidence": {
+        "source": "putman2003",
+        "quote": "Bridge and Stream assumed to be at 55 kpc. 5.5 × 10 7"
+      }
+    },
+    "bridge_discovery": {
+      "value": "Hindman et al. 1963",
+      "what": "First report of the Bridge in H I observations",
+      "evidence": {
+        "source": "harris2007",
+        "quote": "The Magellanic Bridge was first reported in H I observations by Hindman et al. 1963"
+      }
+    },
+    "la1_box": {
+      "value": { "lmin": 3, "lmax": 29, "bmin": -34, "bmax": -6 },
+      "what": "Extent of the Leading Arm complex LA I in MS coordinates",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "LA I: ( 3 ∘ < L MS < 29 ∘ , − 34 ∘ < B MS < − 6 ∘ )"
+      }
+    },
+    "la2_box": {
+      "value": { "lmin": 36, "lmax": 61, "bmin": -17, "bmax": -10 },
+      "what": "Extent of the Leading Arm complex LA II in MS coordinates",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "LA II: ( 36 ∘ < L MS < 61 ∘ , − 17 ∘ < B MS < − 10 ∘ )"
+      }
+    },
+    "la_mass": {
+      "value": 2e7,
+      "unit": "solar masses",
+      "what": "H I mass of the Leading Arm at b < 0 deg (Putman et al. 1998, quoted by Putman et al. 2003)",
+      "evidence": {
+        "source": "putman2003",
+        "quote": "has a mass of around 10% that of the Stream or ∼ 2 × 10 7 M ⊙"
+      }
+    },
+    "la_distance": {
+      "value": 50,
+      "unit": "kpc",
+      "what": "Distance assumed for the Leading Arm",
+      "evidence": {
+        "source": "venzmer2012",
+        "quote": "Assuming a 50 kpc distance of the LA"
+      }
+    },
+    "la_discovery": {
+      "value": "Putman et al. 1998",
+      "what": "Discovery of the gaseous Leading Arm with HIPASS",
+      "evidence": {
+        "source": "nidever2008",
+        "quote": "Putman et al. 1998 used the HIPASS data ( Barnes et al. 2001 ) to discover a gaseous leading arm of the MS"
+      }
+    }
+  }
+}

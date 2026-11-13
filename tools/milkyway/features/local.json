@@ -1,0 +1,288 @@
+{
+  "comment": "Hand-entered values of features-local.json. Every value carries evidence: a quote copied from the fetched page of the source (pageText), checked by local.mjs with checkQuote. Source keys are the keys of SRC in local.mjs.",
+  "features": {
+    "local-bubble": {
+      "facts": [
+        {
+          "label": "Radius (expansion model)",
+          "value": "165 ± 6",
+          "unit": "pc",
+          "evidence": { "source": "zucker22", "quote": "a radius of 165 ± 6 pc" }
+        },
+        {
+          "label": "Age (first supernovae)",
+          "value": "about 14",
+          "unit": "Myr",
+          "approximate": true,
+          "evidence": {
+            "source": "zucker22",
+            "quote": "taking place near the bubble’s center beginning ~14 Myr ago"
+          }
+        },
+        {
+          "label": "Supernovae that made it",
+          "value": "about 15",
+          "approximate": true,
+          "evidence": {
+            "source": "zucker22",
+            "quote": "we estimate that 15 −7 supernovae were required to form the Local Bubble"
+          }
+        },
+        {
+          "label": "Expansion speed today",
+          "value": "6.7 (+0.5 / −0.4)",
+          "unit": "km/s",
+          "evidence": { "source": "zucker22", "quote": "a present-day expansion speed of 6.7 +0.5 −0.4 km/s" }
+        },
+        {
+          "label": "The Sun entered the bubble",
+          "value": "about 5 Myr ago",
+          "approximate": true,
+          "evidence": { "source": "zucker22", "quote": "the Sun only entered the bubble around 5 Myr ago" }
+        },
+        {
+          "label": "Mean distance to the dust shell (peak extinction)",
+          "value": "170 (range 70 to more than 600)",
+          "unit": "pc",
+          "evidence": {
+            "source": "oneill",
+            "quote": "falling at an average distance of 170 pc from the Sun (spanning 70–600+ pc"
+          }
+        },
+        {
+          "label": "Typical shell thickness",
+          "value": "35",
+          "unit": "pc",
+          "evidence": { "source": "oneill", "quote": "with a typical thickness of 35 pc" }
+        }
+      ]
+    },
+    "radcliffe-wave": {
+      "facts": [
+        {
+          "label": "Length",
+          "value": "2.7 ± 0.2",
+          "unit": "kpc",
+          "evidence": { "source": "alves", "quote": "Length 2.7 ± 0.2 kpc" }
+        },
+        {
+          "label": "Amplitude (maximum height above or below the mid-plane)",
+          "value": "160 ± 30",
+          "unit": "pc",
+          "evidence": { "source": "alves", "quote": "Amplitude 160 ± 30 pc" }
+        },
+        {
+          "label": "Wavelength",
+          "value": "about 2",
+          "unit": "kpc",
+          "approximate": true,
+          "evidence": { "source": "alves", "quote": "a period of roughly 2 kpc" }
+        },
+        {
+          "label": "Gas mass",
+          "value": "about 3 million",
+          "unit": "solar masses",
+          "approximate": true,
+          "evidence": { "source": "alves", "quote": "contains about 3 million solar masses of gas" }
+        },
+        {
+          "label": "Largest vertical velocity of the oscillation",
+          "value": "about 14",
+          "unit": "km/s",
+          "approximate": true,
+          "evidence": {
+            "source": "konietzka",
+            "quote": "The corresponding maximum vertical velocity is ~14 km s-1"
+          }
+        },
+        {
+          "label": "Drift away from the Galactic Centre",
+          "value": "5",
+          "unit": "km/s",
+          "evidence": {
+            "source": "konietzka",
+            "quote": "drifting radially outward from the Galactic Center with a velocity of 5 km s-1"
+          }
+        }
+      ]
+    },
+    "sco-cen": {
+      "facts": [
+        {
+          "label": "Distance of Upper Scorpius (US)",
+          "value": "145 ± 2",
+          "unit": "pc",
+          "evidence": { "source": "dezeeuw", "quote": "The mean distance of US is 145 ± 2 pc" }
+        },
+        {
+          "label": "Distance of Upper Centaurus-Lupus (UCL)",
+          "value": "140 ± 2",
+          "unit": "pc",
+          "evidence": {
+            "source": "dezeeuw",
+            "quote": "Our member selection method identifies 221 members in this field, with a mean distance of 140 ± 2 pc"
+          }
+        },
+        {
+          "label": "Distance of Lower Centaurus-Crux (LCC)",
+          "value": "118 ± 2",
+          "unit": "pc",
+          "evidence": {
+            "source": "dezeeuw",
+            "quote": "LCC is significantly closer than US and UCL: the Hipparcos mean distance of 118 ± 2 pc"
+          }
+        },
+        {
+          "label": "Main burst of star formation",
+          "value": "about 15 Myr ago",
+          "approximate": true,
+          "evidence": {
+            "source": "ratzenbock",
+            "quote": "the second burst, which occurred about 15 million years ago, is by far the dominant"
+          }
+        },
+        {
+          "label": "Star clusters",
+          "value": "37",
+          "evidence": { "source": "ratzenbock", "quote": "Sco-Cen’s recently identified 37 stellar clusters" }
+        }
+      ]
+    },
+    "per-tau-shell": {
+      "centre": {
+        "X": -190,
+        "Y": 65,
+        "Z": -84,
+        "evidence": {
+          "source": "bialy",
+          "quote": "Per-Tau Shell x y z = ( − 190 , 65 , − 84 ) pc R s = 78 pc"
+        }
+      },
+      "radius": {
+        "value": 78,
+        "evidence": {
+          "source": "bialy",
+          "quote": "We model the Per-Tau Shell as a spherical shell with radius R s = 78 pc"
+        }
+      },
+      "facts": [
+        {
+          "label": "Radius",
+          "value": "78",
+          "unit": "pc",
+          "evidence": {
+            "source": "bialy",
+            "quote": "We model the Per-Tau Shell as a spherical shell with radius R s = 78 pc"
+          }
+        },
+        {
+          "label": "Distance of the centre",
+          "value": "218",
+          "unit": "pc",
+          "evidence": { "source": "bialy", "quote": "l b d = ( 161 ∘ .1 , − 22 ∘ .7,218 pc )" }
+        },
+        {
+          "label": "Age",
+          "value": "6 to 22",
+          "unit": "Myr",
+          "approximate": true,
+          "evidence": { "source": "bialy", "quote": "estimate Per-Tau Shell’s age to be ≈ 6 − 22 Myrs" }
+        }
+      ]
+    },
+    "gould-belt": {
+      "centre": {
+        "l": 180.4,
+        "d": 104,
+        "evidence": {
+          "source": "perrot",
+          "quote": "the Belt centre currently lies ( 104 ± 4 ) pc away from the Sun, towards the Galactic longitude l c e n t r e = 180.4 ° ± 2.0 °"
+        }
+      },
+      "radius": {
+        "value": 373,
+        "evidence": {
+          "source": "perrot",
+          "quote": "current Belt semi-axes of ( 373 ± 5 ) pc and ( 233 ± 5 ) pc"
+        }
+      },
+      "facts": [
+        {
+          "label": "Semi-axes of the ring",
+          "value": "373 ± 5 and 233 ± 5",
+          "unit": "pc",
+          "evidence": {
+            "source": "perrot",
+            "quote": "current Belt semi-axes of ( 373 ± 5 ) pc and ( 233 ± 5 ) pc"
+          }
+        },
+        {
+          "label": "Tilt to the Galactic plane",
+          "value": "17.2 ± 0.5",
+          "unit": "°",
+          "evidence": { "source": "perrot", "quote": "an inclination of 17.2 ° ± 0.5 °" }
+        },
+        {
+          "label": "Distance of the centre",
+          "value": "104 ± 4",
+          "unit": "pc",
+          "evidence": {
+            "source": "perrot",
+            "quote": "the Belt centre currently lies ( 104 ± 4 ) pc away from the Sun"
+          }
+        },
+        {
+          "label": "Expansion age (model)",
+          "value": "26.4 ± 0.4",
+          "unit": "Myr",
+          "evidence": { "source": "perrot", "quote": "an expansion age of ( 26.4 ± 0.4 ) Myr" }
+        }
+      ]
+    },
+    "local-interstellar-cloud": {
+      "centre": {
+        "l": 170,
+        "b": -10,
+        "d": 2.6,
+        "evidence": { "source": "redfield", "quote": "LIC 79 170 − 10 2.6 18270 7500 ± 1300" }
+      },
+      "facts": [
+        {
+          "label": "Temperature",
+          "value": "7500 ± 1300",
+          "unit": "K",
+          "evidence": { "source": "redfield", "quote": "LIC 79 170 − 10 2.6 18270 7500 ± 1300" }
+        },
+        {
+          "label": "Velocity relative to the Sun",
+          "value": "23.84 ± 0.90",
+          "unit": "km/s",
+          "evidence": {
+            "source": "redfield",
+            "quote": "For the LIC, we calculated a heliocentric velocity vector with a magnitude of 23.84 ± 0.90 km s -1"
+          }
+        },
+        {
+          "label": "Flow direction (Galactic l, b)",
+          "value": "187° ± 3.4°, −13.5° ± 3.3°",
+          "evidence": {
+            "source": "redfield",
+            "quote": "flowing toward Galactic coordinates l = 187 . ∘ 0 ± 3 . ∘ 4 and b = − 13 . ∘ 5 ± 3 . ∘ 3"
+          }
+        },
+        {
+          "label": "Area on the sky",
+          "value": "18270",
+          "unit": "square degrees",
+          "evidence": { "source": "redfield", "quote": "LIC 79 170 − 10 2.6 18270 7500 ± 1300" }
+        },
+        {
+          "label": "Upper limit to the distance (nearest star with LIC absorption)",
+          "value": "2.6",
+          "unit": "pc",
+          "evidence": { "source": "redfield", "quote": "LIC 79 170 − 10 2.6 18270 7500 ± 1300" }
+        }
+      ]
+    }
+  }
+}

@@ -9,6 +9,650 @@
       "outputs": ["data/milkyway/globulars.json"],
       "sha256": "0d9a49ace9c3e21c360b63ff8c79726cc7ab53860875c97fc49f0c6c9b09c244",
       "bytes": 51790
+    },
+    {
+      "id": "alves_2020",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Alves et al. 2020, Nature 578, 237",
+      "note": "Source: https://arxiv.org/abs/2001.08748",
+      "files": 1,
+      "bytes": 5562347,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "alves_2020_fit",
+      "atlas": true,
+      "license": "CC0-1.0",
+      "attribution": "Alves et al. 2020, Nature 578, 237: best-fit model of the Radcliffe Wave (Harvard Dataverse doi:10.7910/DVN/OE51SZ)",
+      "note": "Source: https://doi.org/10.7910/DVN/OE51SZ",
+      "files": 1,
+      "bytes": 90964,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "atnf_psrcat",
+      "atlas": true,
+      "license": "cited (ATNF/CSIRO database; the catalogue page asks to acknowledge Manchester et al. 2005 and the web address)",
+      "attribution": "Manchester, R. N., Hobbs, G. B., Teoh, A. & Hobbs, M. 2005, AJ 129, 1993; ATNF Pulsar Catalogue, CSIRO",
+      "note": "Source: https://www.atnf.csiro.au/research/pulsar/psrcat",
+      "files": 1,
+      "bytes": 1249005,
+      "outputs": ["data/milkyway/atlas/pulsars.json"]
+    },
+    {
+      "id": "atnf_psrcat_terms",
+      "atlas": true,
+      "license": "cited (ATNF/CSIRO database)",
+      "attribution": "ATNF Pulsar Catalogue, download page (copyright and referencing)",
+      "note": "Source: https://www.atnf.csiro.au/research/pulsar/psrcat/download.html",
+      "files": 1,
+      "bytes": 13753,
+      "outputs": ["data/milkyway/atlas/pulsars.json"]
+    },
+    {
+      "id": "benedict_2007",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Benedict et al. 2007, AJ 133, 1810, Table 12: M_V = -4.05 - 2.43 (log P - 1)",
+      "note": "Source: https://arxiv.org/abs/astro-ph/0612465",
+      "files": 1,
+      "bytes": 422544,
+      "outputs": ["data/milkyway/atlas/cepheids.json"]
+    },
+    {
+      "id": "bennett2019",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Bennett & Bovy 2019, MNRAS 482, 1417 (arXiv:1809.03507)",
+      "note": "Source: https://arxiv.org/abs/1809.03507",
+      "files": 1,
+      "bytes": 139880,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "bhg2016",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Bland-Hawthorn & Gerhard 2016, ARA&A 54, 529 (arXiv:1602.07702)",
+      "note": "Source: https://arxiv.org/abs/1602.07702",
+      "files": 1,
+      "bytes": 1146631,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "bialy_2021",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Bialy et al. 2021, ApJL 919, L5",
+      "note": "Source: https://arxiv.org/abs/2109.09763",
+      "files": 1,
+      "bytes": 188702,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "chen2019",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Chen et al. 2019, Nature Astronomy 3, 320 (arXiv:1902.00998)",
+      "note": "Source: https://arxiv.org/abs/1902.00998",
+      "files": 1,
+      "bytes": 162279,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "chrobakova2022",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Chrobáková et al. 2022, A&A 664, A58 (arXiv:2206.08230)",
+      "note": "Source: https://arxiv.org/abs/2206.08230",
+      "files": 1,
+      "bytes": 228725,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "clark2018",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Clark et al. 2018, A&A 618, A2 (arXiv:1805.10139)",
+      "note": "Source: https://arxiv.org/abs/1805.10139",
+      "files": 1,
+      "bytes": 498410,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "dame2008",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Dame & Thaddeus 2008, ApJ 683, L143 (arXiv:0807.1752)",
+      "note": "Source: https://arxiv.org/abs/0807.1752",
+      "files": 1,
+      "bytes": 71542,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "deason2019",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Deason, Belokurov & Sanders 2019, MNRAS (arXiv:1908.02763)",
+      "note": "Source: https://arxiv.org/abs/1908.02763",
+      "files": 1,
+      "bytes": 230297,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "dezeeuw_1999",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "de Zeeuw et al. 1999, AJ 117, 354",
+      "note": "Source: https://arxiv.org/abs/astro-ph/9809227",
+      "files": 1,
+      "bytes": 653222,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "gagne_2018",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Gagné et al. 2018, ApJ 856, 23 (BANYAN Σ)",
+      "note": "Source: https://arxiv.org/abs/1801.09051",
+      "files": 1,
+      "bytes": 1264194,
+      "outputs": ["data/milkyway/atlas/associations.json", "data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "galstreams_master_log",
+      "atlas": true,
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "note": "Source: https://github.com/cmateu/galstreams",
+      "files": 144,
+      "bytes": 44278330,
+      "outputs": ["data/milkyway/atlas/features-streams.json"]
+    },
+    {
+      "id": "gillessen_2017_orbits",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Gillessen et al. 2017, ApJ 837, 30, Table 3 (orbits of 40 stars around Sgr A*)",
+      "note": "Source: https://doi.org/10.3847/1538-4357/aa5c41",
+      "files": 1,
+      "bytes": 2817,
+      "outputs": ["data/blackholes/blackholes.json"]
+    },
+    {
+      "id": "ginsburg2018",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Ginsburg et al. 2018, ApJ (arXiv:1801.04941)",
+      "note": "Source: https://arxiv.org/abs/1801.04941",
+      "files": 1,
+      "bytes": 518801,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "gravity2019",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "GRAVITY Collaboration 2019, A&A 625, L10 (arXiv:1904.05721)",
+      "note": "Source: https://arxiv.org/abs/1904.05721",
+      "files": 1,
+      "bytes": 212006,
+      "outputs": [
+        "data/milkyway/atlas/features-structure.json",
+        "data/milkyway/atlas/features-centre.json",
+        "data/milkyway/atlas/features-bubbles.json"
+      ]
+    },
+    {
+      "id": "green_2024_snrs",
+      "atlas": true,
+      "license": "cited (copyright D. A. Green; the catalogue page asks users to cite Green 2025 and the catalogue)",
+      "attribution": "Green, D. A. 2025, JApA 46, 14; A Catalogue of Galactic Supernova Remnants (2024 October version), Cavendish Laboratory, Cambridge",
+      "note": "Source: https://www.mrao.cam.ac.uk/surveys/snrs/",
+      "files": 1,
+      "bytes": 33758,
+      "outputs": ["data/milkyway/atlas/remnants.json"]
+    },
+    {
+      "id": "green_catalogue_page",
+      "atlas": true,
+      "license": "cited (copyright D. A. Green)",
+      "attribution": "Green D. A., Catalogue of Galactic Supernova Remnants, home page (citation terms)",
+      "note": "Source: https://www.mrao.cam.ac.uk/surveys/snrs/",
+      "files": 1,
+      "bytes": 6247,
+      "outputs": ["data/milkyway/atlas/remnants.json"]
+    },
+    {
+      "id": "harris_2007",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Harris 2007, ApJ 658, 345 (The Magellanic Bridge: The Nearest Purely Tidal Stellar Population)",
+      "note": "Source: https://arxiv.org/abs/astro-ph/0612107",
+      "files": 1,
+      "bytes": 314082,
+      "outputs": ["data/milkyway/atlas/features-magellanic.json"]
+    },
+    {
+      "id": "henshaw2023",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Henshaw et al. 2023, Protostars and Planets VII (review) (arXiv:2203.11223)",
+      "note": "Source: https://arxiv.org/abs/2203.11223",
+      "files": 1,
+      "bytes": 1080687,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "hosek2019",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Hosek et al. 2019, ApJ (arXiv:1808.02577)",
+      "note": "Source: https://arxiv.org/abs/1808.02577",
+      "files": 1,
+      "bytes": 483235,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "hosek2022",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Hosek et al. 2022, ApJ (arXiv:2208.08508)",
+      "note": "Source: https://arxiv.org/abs/2208.08508",
+      "files": 1,
+      "bytes": 591907,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "hou_han_2014_hii",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Hou, L. G. & Han, J. L. 2014, A&A 569, A125, via CDS VizieR",
+      "note": "Source: https://doi.org/10.1051/0004-6361/201424067",
+      "files": 1,
+      "bytes": 1247537,
+      "outputs": ["data/milkyway/atlas/hii-regions.json"]
+    },
+    {
+      "id": "hou_han_2014_paper",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Hou & Han 2014, A&A 569, A125 (arXiv:1407.7331), method and notes to Table A.1",
+      "note": "Source: https://arxiv.org/abs/1407.7331",
+      "files": 1,
+      "bytes": 508910,
+      "outputs": ["data/milkyway/atlas/hii-regions.json"]
+    },
+    {
+      "id": "hr23_clusters",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Hunt, E. L. & Reffert, S. 2023, A&A 673, A114; data from CDS/VizieR",
+      "note": "Source: https://doi.org/10.1051/0004-6361/202346285",
+      "files": 2,
+      "bytes": 222875436,
+      "outputs": ["data/milkyway/atlas/open-clusters.json", "data/milkyway/atlas/cluster-stars.bin"]
+    },
+    {
+      "id": "hr24_clusters",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Hunt, E. L. & Reffert, S. 2024, A&A 686, A42; data from CDS/VizieR",
+      "note": "Source: https://doi.org/10.1051/0004-6361/202348662",
+      "files": 1,
+      "bytes": 412619,
+      "outputs": ["data/milkyway/atlas/open-clusters.json"]
+    },
+    {
+      "id": "kauffmann2017",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Kauffmann et al. 2017, A&A 603, A89, Table 1 (arXiv:1610.03499)",
+      "note": "Source: https://arxiv.org/abs/1610.03499",
+      "files": 1,
+      "bytes": 517988,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "konietzka_2024",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Konietzka et al. 2024, Nature 628, 62",
+      "note": "Source: https://arxiv.org/abs/2402.12596",
+      "files": 1,
+      "bytes": 6677512,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "launhardt2002",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Launhardt, Zylka & Mezger 2002, A&A (arXiv:astro-ph/0201294)",
+      "note": "Source: https://arxiv.org/abs/astro-ph/0201294",
+      "files": 1,
+      "bytes": 611294,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "longmore2012",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Longmore et al. 2012, ApJ (arXiv:1111.3199)",
+      "note": "Source: https://arxiv.org/abs/1111.3199",
+      "files": 1,
+      "bytes": 210946,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "lopez2014",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "López-Corredoira & Molgó 2014, A&A 567, A106 (arXiv:1405.7649)",
+      "note": "Source: https://arxiv.org/abs/1405.7649",
+      "files": 1,
+      "bytes": 169536,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "lvdb_dwarf_mw",
+      "atlas": true,
+      "license": "CC0-1.0",
+      "attribution": "Local Volume Database (Pace 2024), CC0",
+      "note": "Source: https://github.com/apace7/local_volume_database",
+      "files": 1,
+      "bytes": 46509,
+      "outputs": ["data/milkyway/atlas/satellites.json"]
+    },
+    {
+      "id": "maeda2002",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Maeda et al. 2002, ApJ (arXiv:astro-ph/0102183)",
+      "note": "Source: https://arxiv.org/abs/astro-ph/0102183",
+      "files": 1,
+      "bytes": 233611,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "nidever_2008",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Nidever, Majewski & Burton 2008, ApJ 679, 432 (The Origin of the Magellanic Stream and Its Leading Arm)",
+      "note": "Source: https://arxiv.org/abs/0706.1578",
+      "files": 1,
+      "bytes": 470091,
+      "outputs": ["data/milkyway/atlas/features-magellanic.json"]
+    },
+    {
+      "id": "nidever_2010",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Nidever et al. 2010, ApJ 723, 1618 (The 200 Degree-Long Magellanic Stream System)",
+      "note": "Source: https://arxiv.org/abs/1009.0001",
+      "files": 1,
+      "bytes": 260434,
+      "outputs": ["data/milkyway/atlas/features-magellanic.json"]
+    },
+    {
+      "id": "oneill_2024",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "O'Neill et al. 2024, ApJ 973, 136 (The Local Bubble is a Local Chimney)",
+      "note": "Source: https://arxiv.org/abs/2403.04961",
+      "files": 1,
+      "bytes": 364086,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "openngc_ngc",
+      "atlas": true,
+      "license": "CC-BY-SA-4.0",
+      "attribution": "OpenNGC (Mattia Verga), commit be3cd6c549, NGC.csv and addendum.csv",
+      "note": "Source: https://github.com/mattiaverga/OpenNGC",
+      "files": 2,
+      "bytes": 3960442,
+      "outputs": ["data/milkyway/atlas/open-clusters.json"]
+    },
+    {
+      "id": "pare2019",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Pare et al. 2019, ApJ (arXiv:1909.08268)",
+      "note": "Source: https://arxiv.org/abs/1909.08268",
+      "files": 1,
+      "bytes": 206073,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "pelgrims_2020_map",
+      "atlas": true,
+      "license": "CC0-1.0",
+      "attribution": "Pelgrims et al. 2020, A&A 636, A17: inner surface of the Local Bubble shell, from the Lallement et al. 2019 3D dust map (Harvard Dataverse doi:10.7910/DVN/RHPVNC, L19_map-inner_final.fits)",
+      "note": "Source: https://doi.org/10.7910/DVN/RHPVNC",
+      "files": 1,
+      "bytes": 14166720,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "perrot_2003",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Perrot & Grenier 2003, A&A 404, 519",
+      "note": "Source: https://arxiv.org/abs/astro-ph/0303516",
+      "files": 1,
+      "bytes": 253916,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "portail2017",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Portail et al. 2017, MNRAS (arXiv:1608.07954)",
+      "note": "Source: https://arxiv.org/abs/1608.07954",
+      "files": 1,
+      "bytes": 560809,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "predehl2020",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Predehl et al. 2020, Nature 588, 227 (arXiv:2012.05840)",
+      "note": "Source: https://arxiv.org/abs/2012.05840",
+      "files": 1,
+      "bytes": 11318964,
+      "outputs": ["data/milkyway/atlas/features-bubbles.json"]
+    },
+    {
+      "id": "putman_2003",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Putman et al. 2003, ApJ 586, 170 (The Magellanic Stream, High-Velocity Clouds and the Sculptor Group)",
+      "note": "Source: https://arxiv.org/abs/astro-ph/0209127",
+      "files": 1,
+      "bytes": 241796,
+      "outputs": ["data/milkyway/atlas/features-magellanic.json"]
+    },
+    {
+      "id": "ranasinghe_2022_paper",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Ranasinghe & Leahy 2022, ApJ 940, 63 (arXiv:2209.04570)",
+      "note": "Source: https://arxiv.org/abs/2209.04570",
+      "files": 1,
+      "bytes": 714726,
+      "outputs": ["data/milkyway/atlas/remnants.json"]
+    },
+    {
+      "id": "ranasinghe_2022_snr_distances",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Ranasinghe, S. & Leahy, D. 2022, ApJ 940, 63, via CDS VizieR",
+      "note": "Source: https://doi.org/10.3847/1538-4357/ac9b0f",
+      "files": 1,
+      "bytes": 43903,
+      "outputs": ["data/milkyway/atlas/remnants.json"]
+    },
+    {
+      "id": "ratzenbock_2023",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Ratzenböck et al. 2023, A&A 677, A59",
+      "note": "Source: https://arxiv.org/abs/2302.07853",
+      "files": 1,
+      "bytes": 365852,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "redfield_2008",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Redfield & Linsky 2008, ApJ 673, 283",
+      "note": "Source: https://arxiv.org/abs/0709.4480",
+      "files": 1,
+      "bytes": 741221,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "reid2019",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Reid et al. 2019, ApJ 885, 131 (arXiv:1910.03357)",
+      "note": "Source: https://arxiv.org/abs/1910.03357",
+      "files": 1,
+      "bytes": 1043087,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "reid_2019_masers",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Reid, M. J. et al. 2019, ApJ 885, 131 (BeSSeL Survey and VERA), via CDS VizieR",
+      "note": "Source: https://doi.org/10.3847/1538-4357/ab4a11",
+      "files": 1,
+      "bytes": 31170,
+      "outputs": ["data/milkyway/atlas/masers.json"]
+    },
+    {
+      "id": "reid_2019_paper",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Reid et al. 2019, ApJ 885, 131, notes to Table 1 (spiral arm codes)",
+      "note": "Source: https://arxiv.org/abs/1910.03357",
+      "files": 1,
+      "bytes": 1043087,
+      "outputs": ["data/milkyway/atlas/masers.json"]
+    },
+    {
+      "id": "schodel2014",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Schödel et al. 2014, A&A 566, A47 (arXiv:1403.6657)",
+      "note": "Source: https://arxiv.org/abs/1403.6657",
+      "files": 1,
+      "bytes": 462013,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "simbad_gc",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "This research has made use of the SIMBAD database, operated at CDS, Strasbourg, France",
+      "note": "Source: https://simbad.cds.unistra.fr/simbad/",
+      "files": 1,
+      "bytes": 645,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "skowron2019",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Skowron et al. 2019, Science 365, 478 (arXiv:1806.10653)",
+      "note": "Source: https://arxiv.org/abs/1806.10653",
+      "files": 1,
+      "bytes": 432459,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "skowron_2019_cepheids",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "OGLE project (Skowron, D. M. et al. 2019), Warsaw University Observatory",
+      "note": "Source: https://doi.org/10.1126/science.aau3181",
+      "files": 1,
+      "bytes": 609589,
+      "outputs": ["data/milkyway/atlas/cepheids.json"]
+    },
+    {
+      "id": "sormani2022",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Sormani et al. 2022, MNRAS (arXiv:2111.12713)",
+      "note": "Source: https://arxiv.org/abs/2111.12713",
+      "files": 1,
+      "bytes": 461680,
+      "outputs": ["data/milkyway/atlas/features-centre.json"]
+    },
+    {
+      "id": "su2010",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Su, Slatyer & Finkbeiner 2010, ApJ 724, 1044 (arXiv:1005.5480)",
+      "note": "Source: https://arxiv.org/abs/1005.5480",
+      "files": 1,
+      "bytes": 647651,
+      "outputs": ["data/milkyway/atlas/features-bubbles.json"]
+    },
+    {
+      "id": "venzmer_2012",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Venzmer, Kerp & Kalberla 2012, A&A (The four leading arms of the Magellanic Cloud system), doi:10.1051/0004-6361/201118677",
+      "note": "Source: https://arxiv.org/abs/1208.4953",
+      "files": 1,
+      "bytes": 147406,
+      "outputs": ["data/milkyway/atlas/features-magellanic.json"]
+    },
+    {
+      "id": "wegg2015",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Wegg, Gerhard & Portail 2015, MNRAS 450, 4050 (arXiv:1504.01401)",
+      "note": "Source: https://arxiv.org/abs/1504.01401",
+      "files": 1,
+      "bytes": 421617,
+      "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "zucker_2020_dataverse",
+      "atlas": true,
+      "license": "CC0-1.0",
+      "attribution": "Zucker et al. 2020, Harvard Dataverse, doi:10.7910/DVN/07L7YZ (Table A.1)",
+      "note": "Source: https://doi.org/10.7910/DVN/07L7YZ",
+      "files": 1,
+      "bytes": 4756,
+      "outputs": ["data/milkyway/atlas/clouds.json"]
+    },
+    {
+      "id": "zucker_2020_handbook",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Zucker, C. et al. 2020, A&A 633, A51, via CDS VizieR",
+      "note": "Source: https://doi.org/10.1051/0004-6361/201936145",
+      "files": 1,
+      "bytes": 14761,
+      "outputs": ["data/milkyway/atlas/clouds.json"]
+    },
+    {
+      "id": "zucker_2022",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Zucker et al. 2022, Nature 601, 334",
+      "note": "Source: https://arxiv.org/abs/2201.05124",
+      "files": 1,
+      "bytes": 1628894,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
     }
   ]
 }

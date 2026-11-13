@@ -238,17 +238,60 @@ export const barFrame = (x: number, y: number): [number, number] => [
   x * BAR_S + y * BAR_C,
 ];
 
+const WARP_C = Math.cos(MODEL.warp.nodeDeg * DEG);
+const WARP_S = Math.sin(MODEL.warp.nodeDeg * DEG);
+
+/**
+ * Height of the warped mid-plane (kpc) at a model point: Chen et al. 2019,
+ * z_w = a (R - R_w)^b sin(phi - phi_w) beyond the onset radius, phi = armAzimuth (0 towards the
+ * Sun, increasing with Galactic rotation). North (z > 0) on the l = 90 deg side.
+ */
+export function warpHeight(x: number, y: number): number {
+  const w = MODEL.warp;
+  const R = Math.hypot(x, y);
+  // Outside the solar circle only (blended in): the Sun's z0 refers to the local mid-plane.
+  const t = Math.min(1, Math.max(0, (R - MODEL.sun.R0) / w.blendKpc));
+  if (t <= 0) return 0;
+  // sin(phi - phi_w) with sin(phi) = y / R and cos(phi) = -x / R.
+  return (
+    (t * t * (3 - 2 * t) * w.a * Math.max(R - w.onsetR, 0) ** w.exponent * (y * WARP_C + x * WARP_S)) / R
+  );
+}
+
+const flareLaw = (x: number, k1: number, k2: number): number => 1 + x * (k1 + k2 * x);
+/** The Sun's cylindrical radius in the model (kpc): the flare laws apply outwards of it only. */
+const FLARE_SUN_R = Math.hypot(SUN_MODEL.x, SUN_MODEL.y);
+/** Thick-disc flare factor at the Sun (normalisation, so the local scale height is thickDisk.hz). */
+const THICK_FLARE_SUN = flareLaw(
+  FLARE_SUN_R - MODEL.flare.thickOnsetR,
+  MODEL.flare.thickK1,
+  MODEL.flare.thickK2,
+);
+
+/** Factor on the thin-disc scale height at radius R (kpc): 1 inside the solar circle. */
+export const thinFlare = (R: number): number =>
+  flareLaw(Math.max(R - FLARE_SUN_R, 0), MODEL.flare.thinK1, MODEL.flare.thinK2);
+/** Factor on the thick-disc scale height at radius R (kpc): 1 inside the solar circle. */
+export const thickFlare = (R: number): number =>
+  flareLaw(Math.max(R, FLARE_SUN_R) - MODEL.flare.thickOnsetR, MODEL.flare.thickK1, MODEL.flare.thickK2) /
+  THICK_FLARE_SUN;
+
 /** Emission components (Lsun pc^-3) at a model point (kpc), given its arm field. */
 export function components(x: number, y: number, z: number, f: ArmField, out: Components): Components {
   const R = Math.hypot(x, y);
-  const az = Math.abs(z);
+  // Disc components follow the warped mid-plane and flare outwards (same surface brightness).
+  const az = Math.abs(z - warpHeight(x, y));
   const R0 = MODEL.sun.R0;
   const td = MODEL.thinDisk;
   const hole = 1 - td.holeDepth * Math.exp(-((R / td.holeR) ** 2));
+  const ft = thinFlare(R);
   out.thin =
-    td.j0 * Math.exp(-(R - R0) / td.hR - az / td.hz) * hole * (1 + MODEL.armProfile.oldContrast * f.old);
+    ((td.j0 * Math.exp(-(R - R0) / td.hR - az / (td.hz * ft))) / ft) *
+    hole *
+    (1 + MODEL.armProfile.oldContrast * f.old);
   const tk = MODEL.thickDisk;
-  out.thick = td.j0 * tk.norm * Math.exp(-(R - R0) / tk.hR - az / tk.hz);
+  const fk = thickFlare(R);
+  out.thick = (td.j0 * tk.norm * Math.exp(-(R - R0) / tk.hR - az / (tk.hz * fk))) / fk;
   const [xb, yb] = barFrame(x, y);
   const bu = MODEL.bulge;
   const q = (xb / bu.x0) ** 2 + (yb / bu.y0) ** 2;
@@ -257,7 +300,9 @@ export function components(x: number, y: number, z: number, f: ArmField, out: Co
   out.bar =
     ba.j0 *
     Math.exp(
-      -((Math.abs(xb) / ba.halfLength) ** ba.endSharpness) - Math.abs(yb) / ba.yScale - az / ba.zScale,
+      -((Math.abs(xb) / ba.halfLength) ** ba.endSharpness) -
+        Math.abs(yb) / ba.yScale -
+        Math.abs(z) / ba.zScale,
     );
   const ap = MODEL.armProfile;
   const radial = Math.exp(-(R - R0) / ap.youngHR);
@@ -270,7 +315,11 @@ export function components(x: number, y: number, z: number, f: ArmField, out: Co
 export function dustKappa(x: number, y: number, z: number, f: ArmField): number {
   const R = Math.hypot(x, y);
   const d = MODEL.dust;
-  return d.kappaV0 * Math.exp(-(R - MODEL.sun.R0) / d.hR - Math.abs(z) / d.hz) * (1 + d.armKappa * f.dust);
+  return (
+    d.kappaV0 *
+    Math.exp(-(R - MODEL.sun.R0) / d.hR - Math.abs(z - warpHeight(x, y)) / d.hz) *
+    (1 + d.armKappa * f.dust)
+  );
 }
 
 /** Total emissivity (Lsun pc^-3, V-band-like luminance) at a model point. */
@@ -430,6 +479,19 @@ export function modelGlslDefines(): string {
     `#define MW_DUST_HZ ${f(m.dust.hz)}`,
     `#define MW_DUST_ARM ${f(m.dust.armKappa)}`,
     `#define MW_REDDEN ${v3(m.dust.reddening)}`,
+    `#define MW_WARP_RW ${f(m.warp.onsetR)}`,
+    `#define MW_WARP_A ${f(m.warp.a)}`,
+    `#define MW_WARP_B ${f(m.warp.exponent)}`,
+    `#define MW_WARP_BLEND ${f(m.warp.blendKpc)}`,
+    `#define MW_WARP_C ${f(WARP_C)}`,
+    `#define MW_WARP_S ${f(WARP_S)}`,
+    `#define MW_FLARE_SUN_R ${f(FLARE_SUN_R)}`,
+    `#define MW_FLARE_THIN_K1 ${f(m.flare.thinK1)}`,
+    `#define MW_FLARE_THIN_K2 ${f(m.flare.thinK2)}`,
+    `#define MW_FLARE_THICK_R ${f(m.flare.thickOnsetR)}`,
+    `#define MW_FLARE_THICK_K1 ${f(m.flare.thickK1)}`,
+    `#define MW_FLARE_THICK_K2 ${f(m.flare.thickK2)}`,
+    `#define MW_FLARE_THICK_NORM ${f(1 / THICK_FLARE_SUN)}`,
     `#define MW_RMAX ${f(m.bounds.rMax)}`,
     `#define MW_ZMAX ${f(m.bounds.zMax)}`,
     `#define MW_COL_THIN ${v3(COLORS.thin)}`,

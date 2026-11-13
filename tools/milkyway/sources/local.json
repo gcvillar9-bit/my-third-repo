@@ -1,0 +1,137 @@
+{
+  "group": "local",
+  "sources": [
+    {
+      "id": "pelgrims_2020_map",
+      "cite": "Pelgrims et al. 2020, A&A 636, A17: inner surface of the Local Bubble shell, from the Lallement et al. 2019 3D dust map (Harvard Dataverse doi:10.7910/DVN/RHPVNC, L19_map-inner_final.fits)",
+      "url": "https://doi.org/10.7910/DVN/RHPVNC",
+      "fetchUrl": "https://dataverse.harvard.edu/api/access/datafile/6477817",
+      "license": "CC0-1.0",
+      "attribution": "Pelgrims et al. 2020, A&A 636, A17: inner surface of the Local Bubble shell, from the Lallement et al. 2019 3D dust map (Harvard Dataverse doi:10.7910/DVN/RHPVNC, L19_map-inner_final.fits)",
+      "sha256": "6609ebbb13a3eb4a5b33e3022e2973dcb4e8f5ea8e7cfa2f97b351affffe1f87",
+      "bytes": 14166720,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "zucker_2022",
+      "cite": "Zucker et al. 2022, Nature 601, 334",
+      "url": "https://arxiv.org/abs/2201.05124",
+      "fetchUrl": "https://arxiv.org/pdf/2201.05124",
+      "license": "CC-BY-4.0",
+      "attribution": "Zucker et al. 2022, Nature 601, 334",
+      "sha256": "ed99e544a21d7fb2ab3ed0d7a48d8805ae54f4024bc04f4769d131a1abc6f460",
+      "bytes": 1628894,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "oneill_2024",
+      "cite": "O'Neill et al. 2024, ApJ 973, 136 (The Local Bubble is a Local Chimney)",
+      "url": "https://arxiv.org/abs/2403.04961",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2403.04961",
+      "license": "cited (no explicit licence)",
+      "attribution": "O'Neill et al. 2024, ApJ 973, 136 (The Local Bubble is a Local Chimney)",
+      "sha256": "39a9dab8718325d6b13bbe867470854212088741225930215179166f3a07e4c1",
+      "bytes": 364086,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "alves_2020",
+      "cite": "Alves et al. 2020, Nature 578, 237",
+      "url": "https://arxiv.org/abs/2001.08748",
+      "fetchUrl": "https://arxiv.org/pdf/2001.08748",
+      "license": "cited (no explicit licence)",
+      "attribution": "Alves et al. 2020, Nature 578, 237",
+      "sha256": "a3c3762389590bc02f99e8bdfe566bbc35945ea31e41bc410e7061c8c1489cc6",
+      "bytes": 5562347,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "alves_2020_fit",
+      "cite": "Alves et al. 2020, Nature 578, 237: best-fit model of the Radcliffe Wave (Harvard Dataverse doi:10.7910/DVN/OE51SZ)",
+      "url": "https://doi.org/10.7910/DVN/OE51SZ",
+      "fetchUrl": "https://dataverse.harvard.edu/api/access/datafile/5258284?format=original",
+      "license": "CC0-1.0",
+      "attribution": "Alves et al. 2020, Nature 578, 237: best-fit model of the Radcliffe Wave (Harvard Dataverse doi:10.7910/DVN/OE51SZ)",
+      "sha256": "aae8d4e5818b24fa84921ab68f099105e2063289f93187be7f6fa783389fda42",
+      "bytes": 90964,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "konietzka_2024",
+      "cite": "Konietzka et al. 2024, Nature 628, 62",
+      "url": "https://arxiv.org/abs/2402.12596",
+      "fetchUrl": "https://arxiv.org/pdf/2402.12596",
+      "license": "CC-BY-4.0",
+      "attribution": "Konietzka et al. 2024, Nature 628, 62",
+      "sha256": "fc140901bc66b9f995aafdb62da6f32972e40a6c1b062bc6d35cef8528bea314",
+      "bytes": 6677512,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "ratzenbock_2023",
+      "cite": "Ratzenböck et al. 2023, A&A 677, A59",
+      "url": "https://arxiv.org/abs/2302.07853",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2302.07853",
+      "license": "CC-BY-4.0",
+      "attribution": "Ratzenböck et al. 2023, A&A 677, A59",
+      "sha256": "7c54fc8c5cf79c448517865fae56f6c1950a6212e173b91879ac127817934f90",
+      "bytes": 365852,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "dezeeuw_1999",
+      "cite": "de Zeeuw et al. 1999, AJ 117, 354",
+      "url": "https://arxiv.org/abs/astro-ph/9809227",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/9809227",
+      "license": "cited (no explicit licence)",
+      "attribution": "de Zeeuw et al. 1999, AJ 117, 354",
+      "sha256": "5e64b1732fb130b7b8cb23b5d31ce54cae7a0f5ae0d6e445e5b469b5cdc0f3dc",
+      "bytes": 653222,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "bialy_2021",
+      "cite": "Bialy et al. 2021, ApJL 919, L5",
+      "url": "https://arxiv.org/abs/2109.09763",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2109.09763",
+      "license": "CC-BY-4.0",
+      "attribution": "Bialy et al. 2021, ApJL 919, L5",
+      "sha256": "78c15df6b5931ad793eb1e6a8df825e103026f7b2d417a3cda24e465e321a974",
+      "bytes": 188702,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "redfield_2008",
+      "cite": "Redfield & Linsky 2008, ApJ 673, 283",
+      "url": "https://arxiv.org/abs/0709.4480",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/0709.4480",
+      "license": "cited (no explicit licence)",
+      "attribution": "Redfield & Linsky 2008, ApJ 673, 283",
+      "sha256": "c423bd2505ae65f052b98da7b4f86316d7e3c980390db9404c4dfc3dfe63c397",
+      "bytes": 741221,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "perrot_2003",
+      "cite": "Perrot & Grenier 2003, A&A 404, 519",
+      "url": "https://arxiv.org/abs/astro-ph/0303516",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/0303516",
+      "license": "cited (no explicit licence)",
+      "attribution": "Perrot & Grenier 2003, A&A 404, 519",
+      "sha256": "bdb03b20ff3a57592e19d2c303038c66baa5d15fccabcfa0416f8a3655097482",
+      "bytes": 253916,
+      "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "gagne_2018",
+      "cite": "Gagné et al. 2018, ApJ 856, 23 (BANYAN Σ)",
+      "url": "https://arxiv.org/abs/1801.09051",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1801.09051",
+      "license": "cited (no explicit licence)",
+      "attribution": "Gagné et al. 2018, ApJ 856, 23 (BANYAN Σ)",
+      "sha256": "6c37c95f7b84bf06b3567e921d3b2fa3c7f9b909fda6b9c6ce7aa2f9852cb3ac",
+      "bytes": 1264194,
+      "outputs": ["data/milkyway/atlas/associations.json", "data/milkyway/atlas/features-local.json"]
+    }
+  ]
+}

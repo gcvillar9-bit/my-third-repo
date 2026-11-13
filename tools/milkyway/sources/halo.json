@@ -1,0 +1,1955 @@
+{
+  "group": "halo",
+  "sources": [
+    {
+      "id": "lvdb_dwarf_mw",
+      "cite": "Pace 2024, The Local Volume Database: a library of the observed properties of nearby dwarf galaxies and star clusters (data/dwarf_mw.csv)",
+      "url": "https://github.com/apace7/local_volume_database",
+      "fetchUrl": "https://raw.githubusercontent.com/apace7/local_volume_database/c40961a42d2beb302be1da90bca2016c284ef63c/data/dwarf_mw.csv",
+      "license": "CC0-1.0",
+      "attribution": "Local Volume Database (Pace 2024), CC0",
+      "sha256": "8e80a917658c150474f80c8541d36a119eb5b255531dae5def5a85866a4ff021",
+      "bytes": 46509,
+      "outputs": [
+        "data/milkyway/atlas/satellites.json"
+      ]
+    },
+    {
+      "id": "galstreams_master_log",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/lib/master_log.txt",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "42fec25b66b012014b7be18574c091a74c303a50dbd9b49702be101b8ae4204a",
+      "bytes": 64022,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_discovery_refs",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/lib/master_log.discovery_refs.txt",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "bb62512d5e0377897b5ac6da0f3e4bd508df39fab98b4e6fdaf22070cf655679",
+      "bytes": 7875,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_comments",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/lib/master_log.comments.txt",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "ce74c7fc45269ffb0248511144ee2c188dce87b9c8b2b5c4891ef6721c3249a3",
+      "bytes": 4235,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_300s-f18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.300S.fu2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "b97455a12d614c4508809bcc83305024d8bb4b9e37dc3b390dfdcb7c8d5e8468",
+      "bytes": 126557,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_aau-atlas-l21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.AAU-ATLAS.li2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "f7b50971bf52e6b49aa551513a0b6dfbd01dec9551a1a486ae6accdf81f430a2",
+      "bytes": 275291,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_aau-aliqauma-l21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.AAU-AliqaUma.li2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "ae4cb6c81126ba1dba210f5c40a895bb648fcc02eb53ca28a68ad82456ebb016",
+      "bytes": 110909,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_acs-r21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.ACS.ramos2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "a972a66fae10c6045db1b93a4eee6618f85866d692b49d72264d93492a7c25d8",
+      "bytes": 659665,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_acheron-g09",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Acheron.grillmair2009.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "3d7e15d04a1e4437e717fc8fbdea5e6f6ff57ef9a54592043310513ca59cbf82",
+      "bytes": 15153,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_alpheus-g13",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Alpheus.grillmair2013.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "b887beebcbbca8a74dd37946d8415be096935280d975290a7e101e9de0788fd4",
+      "bytes": 167471,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_aquarius-w11",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Aquarius.williams2011.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "61f7eda1ad33c8ba034cdc34dfc3589e490d3ee62c676f566711ee7e12d78f94",
+      "bytes": 137854,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-10-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-10.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "83e40b902e5abca2f9649ae7e59f27524e565700fd0185dff5f42605757fc1e9",
+      "bytes": 162793,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-11-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-11.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "d73dd3c66a154b46188053fac37d929a5532b8e6372b7d049134bddca02c28cb",
+      "bytes": 330664,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-12-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-12.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "5e3258719d21bd6708822c4d6bf55d2fa85f571f4e600a9a9ef91ace30fc1d30",
+      "bytes": 307266,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-13-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-13.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "f1911e7e7bb7600f5362b874d58e3d593a460f6f6072fd11239831baf9aba113",
+      "bytes": 228027,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-19-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-19.martin2022.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "6dd6f064e0ea9982e252aae0ca15b875874ba62fbf3e13ec565a2196da302c95",
+      "bytes": 311995,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-20-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-20.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "5bc97e378128a2ee542f14d59b1ef38d622a8946ed341cb7a7f845dfa2c1aaa9",
+      "bytes": 196287,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-22-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-22.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "ef8c347299e54e76f7701af55914c803dd138781fd13b38532a34b983f18ece1",
+      "bytes": 116151,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-23-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-23.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "91049762d36cf5790d88325a564d6f8abfe01d542fdde9ae632328faf560fc52",
+      "bytes": 230873,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-24-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-24.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "1b248180849d279fbb8cd2e1a59304c5ae43e43b95c14ccb2cd65d7c0037987c",
+      "bytes": 414171,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-25-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-25.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "619adad829b9966cdc205132159ba041e75d6dedee10fe3201d5cada7162413a",
+      "bytes": 284328,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-4-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-4.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "35c53f11ba4670827144b9b07103602bf6d95fbf850d31b4c9d10bacdae6b4b1",
+      "bytes": 149420,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-5-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-5.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "f1215a4a70684602ef4f2a0a23f03a58917d65638ac01edbbc3c198802e61f96",
+      "bytes": 70391,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-7-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-7.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "11e4da69eaf486dacac18b47b3738289ba7f0ff80801ff8c38a2c263ed284bb2",
+      "bytes": 285569,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-8-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-8.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "7755ced3f55dee41c96b62cb5763f64381a31d0e85bbbbf355876573226e4c06",
+      "bytes": 111411,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_c-9-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.C-9.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "46e0ae4cd113fe814f9050c4ee6d27c476ffd5c1e685731104c8aacc32d46049",
+      "bytes": 268099,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_cetus-new-y21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Cetus-New.yuan2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "0ad97104328c319dc400630550934b0cde76863d4adcaafeb8610abfcf6927c0",
+      "bytes": 764864,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_cetus-palca-t21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Cetus-Palca.thomas2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "e40c620d74f61724c2b9cd06c3ccdc076d485c83b1721212e6dbd31ee24f3b25",
+      "bytes": 1210976,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_cetus-y13",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Cetus.yam2013.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "70d4390364d74b1aa99183fa7864bdb8d843bdbc00638f98e5efccc4f0511575",
+      "bytes": 359312,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_cocytos-g09",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Cocytos.grillmair2009.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "da2cd9ff68d16da8ebb39b8c6bc84fc96f8d2ad980e1fe3fb02656c493b2a8b1",
+      "bytes": 14484,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_corvus-m18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.Corvus.mateu2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "3998415685a5474a91366fbff028105cc54223976a51c75d960c9dd1afc32e82",
+      "bytes": 500071,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_elqui-s19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Elqui.shipp2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "dbd6b6109d21ced95862412cb593d9fa84b0f7680be8876e3ce488bf5616f953",
+      "bytes": 125248,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_eridanus-m17",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Eridanus.myeong2017.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "0cd8c2685d27f53886d64ef53afb08e7557a7670ca5921228a387a016d70797e",
+      "bytes": 5670,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gd-1-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.GD-1.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "2995505ee3ecce9a69192d12312764dd15f3b2931816e1950ecf5ad82d47f388",
+      "bytes": 1153543,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-1-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-1.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "31195eed73bf38426c0261dd17d0287daa8208b04ef332756769e8dc5535a1a8",
+      "bytes": 395015,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-10-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-10.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "8d98bbfec36c8de7940f3184d8802aefbb10446d4a8b3308841b92dbc30feb4d",
+      "bytes": 202636,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-11-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-11.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "8a9d5e76e528e1fd26e37fbb9143c91dfed48eb3bcc7bf4209910a6c156f5418",
+      "bytes": 243249,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-12-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-12.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "cb2d36d25ca60f90ef258badad4607d5be21b23c4f33a523c688f6daca1800da",
+      "bytes": 156578,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-2-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-2.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "eeb70fdd15a23e951d892dc186a2d2b24606cda563d2d8763aed5188afd1b4aa",
+      "bytes": 166943,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-3-m18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Gaia-3.malhan2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "2a47d66b5d35f9bddf4c3545aff8eb171d667caa99ec02b1612bdc666804f86d",
+      "bytes": 15358,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-4-m18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Gaia-4.malhan2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "f4521d1e88984acecb792954000e36ee839cbdd74421b5a737e956a226563174",
+      "bytes": 15304,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-5-m18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Gaia-5.malhan2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "bb96fedf9145888784fd600a5797c40a69c085a64ea312110feb9992ed32a211",
+      "bytes": 15124,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-6-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-6.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "30fae5cc926eec36fb7ea6499ef87eb3eaa7d450a1442d3bc408b43ad4dfd494",
+      "bytes": 241691,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-7-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-7.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "56e3ca5a46c37b6e082c67aff6c18e1f6d0433cdf917c2c5e0d6fb9ec8620bf6",
+      "bytes": 174436,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-8-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-8.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "68235698757a5da55f5efe22d8189f5eab5503a873b55d53bd11fc96bf182df1",
+      "bytes": 239429,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gaia-9-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gaia-9.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "ab847f99ea09c0386fff6eda22039d1e6f48228248c16eb87c73701a21559353",
+      "bytes": 244137,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_gunnthra-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Gunnthra.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "7daa4a1bfb40129c890802e7f2ee14daf37edccf44fd4619fc3b4109cc1be29a",
+      "bytes": 224503,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_hermus-g14",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Hermus.grillmair2014.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "94cfd739496d40b7b8e6b9fa0ce6ef553eefaea40b801b84057496bed6100f8e",
+      "bytes": 309453,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_hrid-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Hrid.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "472408e9d6515f09a2a0023e21e5fde23e46abab1f46e34473e9981c42e07643",
+      "bytes": 694231,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_hydrus-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Hydrus.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "0a88a99130671329c8fe209eeaaaf579956b8730fd51784a3b6f4fc6f88df4e7",
+      "bytes": 68579,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_hyllus-g14",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Hyllus.grillmair2014.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "1431e9310a4dd0ab0b5a6a84f86522b1c9aa0b89bb41c93a7cf8a07937727207",
+      "bytes": 158381,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_indus-s19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Indus.shipp2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "d145b19031d8fcebaa8448a9bf6c9bb3a916da1edcbc0804cdf7bf9c12742196",
+      "bytes": 201757,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_jet-f22",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Jet.ferguson2022.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "055ff88ab15b44b9b70c24fea8a4a602f9a79e239d89893b4f2460a18f6f205b",
+      "bytes": 353246,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_jhelum-a-b19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Jhelum-a.bonaca2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "1f6231c1f8594ce4abc4ec99fd8ab8cb46a7cf922b5b2ca24c8144dd9c122c64",
+      "bytes": 345229,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_jhelum-b-b19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Jhelum-b.bonaca2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "86a0c1025c5fb0ec2d2126f4794b8ab39697ff216795b143c16a53d2483cc052",
+      "bytes": 350987,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_kshir-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Kshir.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "e0745b93121c48ccbb73d689dcfe21b6de218cfa424f47af870b59c60336b8db",
+      "bytes": 198224,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_kwando-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Kwando.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "6ed37eaebfeb27b2106858ab4ed3155e8502d8c4889e5e18fc076497b05b9508",
+      "bytes": 225873,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_lms1-y20",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.LMS-1.yuan2020.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "3c523394a81f1ddb695062e6f78d041d6ae66ffe5dd2f5d441a51ea8d0d7e3a5",
+      "bytes": 1974412,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_leiptr-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Leiptr.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "9434e38ab2a4101beebc935d726958b6154964dd846595d9744b9fa51c9042d9",
+      "bytes": 786435,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_lethe-g09",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Lethe.grillmair2009.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "abbafb1c7d5dc2bbc8a9e3d6596941184f7364f021fa8c6f4156617418b05069",
+      "bytes": 14669,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_m2-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.M2.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "1ed4519a2e04b6c4b38418ad298ff511e0fe3a668622cbe967fd6e6d093e0888",
+      "bytes": 265743,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_m3-y23",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.M3-Svol.yang2023.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "c33438a621d7115d3a25347b25bfc1fa9a064f0284a66dee0bfbf5e7042eb156",
+      "bytes": 490408,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_m30-s20",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.M30.sollima2020.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "a7acf5651b21fe1d48aafc1f0ad04bf023b83a16b5dffe9b2302567202c93a5a",
+      "bytes": 54238,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_m5-g19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.M5.grillmair2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "8d189a163e1e73eb4a64485e09732dc8ab233f0664d2d0e01a05013e0cbd7cf6",
+      "bytes": 479168,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_m68-p19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.M68-Fjorm.palau2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "deeb690e6a07669b8c919ad48b6654e364e53837df023579b403c6a69ccda509",
+      "bytes": 1496079,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_m92-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.M92.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "5e6ec4d68fad1ca2d7301ef63823cdc57bb1d4d469080fea11f52765ce388262",
+      "bytes": 223789,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_molonglo-g17",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Molonglo.grillmair2017b.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "74349d5153456e87eaaf1e0792515dc1e4acf57a244574de3f984d1e6cc29bcd",
+      "bytes": 133168,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_monoceros-r21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Monoceros.ramos2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "848ca48e9c85192133bfe95fad531ddce3ca8b1748b75957bade10312e43d535",
+      "bytes": 524814,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_murrumbidgee-g17",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Murrumbidgee.grillmair2017b.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "11b7049e2dbf329ed25319d63904577d53e26aba2a9a654b413b8da6523623aa",
+      "bytes": 805706,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc1261-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC1261.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "8de9cf69fe8dac5190b3334ed85c29e1194a6ba97c13658584be0a01ecfe1f43",
+      "bytes": 198132,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc1261a-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC1261a.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "08462a16a990471a9a23403154a42781192066a75d07e2de7deba1de6110459e",
+      "bytes": 185578,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc1261b-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC1261b.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "03a116fa782fc7c9a59ec31daff0c0bcc8758e5a65461755a89c27ffdf7f3a31",
+      "bytes": 119780,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc1851-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC1851.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "dc7a90986363620e1da925a7e801efac6eca622c71cc73055747eb1a0ba1c41a",
+      "bytes": 174439,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc2298-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC2298.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "4e4d74cee6f0a7567a748125620ba328c6267840f79b398348973a63dceeb75a",
+      "bytes": 134331,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc288-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC288.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "da356812473bd5eea366b28af6f16d0cc05c144d74246e78499d765771cc4459",
+      "bytes": 136645,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc3201-p21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC3201-Gjoll.palau2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "de6e7c873ef3b8d832458aaa1e9fe3f4f2eb280eb2d031c2b204656b2377d508",
+      "bytes": 1566401,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc5053-l06",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.NGC5053.lauchner2006.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "8c9f0b19f511d0a29f286d390e2dec6ec76c811aef838567ecc6a1bbed569de2",
+      "bytes": 13360,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc5466-j21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC5466.jensen2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "ce428e92311e909c941b555feff5b1b71fcde1a48a362957160db5b9a4b2f412",
+      "bytes": 363594,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc6362-s20",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC6362.sollima2020.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "19c9542fb4144a3313d91a2dbcc79ef986a7f9576ef20466086fe4a437b9b814",
+      "bytes": 28436,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc6397-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC6397.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "2be70daf94b8ab907eeeeae9e8567b7e14d354991337260d6e1c6045a644358d",
+      "bytes": 203392,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ngc7492-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.NGC7492.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "75fd633d80bf5b56f04705cabd0c1695caa047d5086f929068be447b7a7d11bb",
+      "bytes": 88895,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-1-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-1.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "b61db559fdefa8663330f8a394c9a07fbbcd4ad567c3714c0b72e994d4c2b1ae",
+      "bytes": 321950,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-10-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-10.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "d53ff7cd782a3995c1339b52601bcbd4edae8fdb0edc50e2fd687e8bfeb5b480",
+      "bytes": 266116,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-11-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-11.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "d8bc342febf0f461f9e78c3efb72dcc61f9279b7edba2a384bee5b716c92c75e",
+      "bytes": 79312,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-12-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-12.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "31ff61ad2d70ab65787e56780fae7c67f4a9d5de3e30295a6d7b38e6ae52df0e",
+      "bytes": 162991,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-13-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-13.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "5e7e1fac256ccabd6adf7c75477bbda8cb476905736a815f0d22a2400dbf9d74",
+      "bytes": 332772,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-14-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-14.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "58cf1de94d6628947ca03a38c585a22b588fe52e52ca05f3f8871694786d3e2f",
+      "bytes": 105839,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-15-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-15.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "d040d17683e79448bd5b32ff8e3becf230e0403de2d3cb42e18423b21106bf08",
+      "bytes": 205481,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-16-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-16.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "8e82f80fb32a26afd17f7a8c04c3faed878a9d9ba340086d37a6dd5849a97d4f",
+      "bytes": 247224,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-17-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-17.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "a7bb30678f8c14262ada6ce3b70052930fe6bdfb01944e6ad8132bef82e6e33b",
+      "bytes": 96729,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-18-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-18.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "975caa0e6a762c1d80d47f562e0cde03423c8f3d075f8d775b16e355b1c0b58c",
+      "bytes": 109075,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-19-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-19.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "58b16b1563f164533673c44bf57ac8c2b73714233124c043421ad38e2d7281b2",
+      "bytes": 65707,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-2-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-2.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "5af6ffd7e77bf49c0f280025f5083f4f95ff1ec8c988ef33daa9b570426c1fba",
+      "bytes": 699779,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-20-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-20.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "a2e5cff03a13602603bb8ddd02739a925f1f22df58366647ee4dc583d4d4a6cd",
+      "bytes": 101210,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-21-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-21.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "922f00d90f373a8ca9c833af627a243c09faa367da2a983ec06c6dacb63a27ce",
+      "bytes": 110027,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-22-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-22.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "56de6b5164ca205e83a5c168edd6a757c811a5e5f71252f757132575ebaf2579",
+      "bytes": 129093,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-23-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-23.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "0d67e8d909e2833840e943b53ee78b85922878a3022792c3f2d207d17f99ce00",
+      "bytes": 325359,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-24-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-24.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "87a0ba74f1f2c625517ebe73fa03290af0a0f866071b72bc0650d5cae58251e0",
+      "bytes": 35458,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-25-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-25.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "e2b2d4c7364a84379a661c4bfff054a69fb06b9fbec4ca097889e641d7061608",
+      "bytes": 256348,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-26-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-26.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "645c6cbdb51e2fcebcfd965b4c24db5e97beb397c82be10e4dec8fc2803bd6ef",
+      "bytes": 95264,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-27-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-27.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "9cfc5bd1ed16965314fbd6bd1162bc040addfd715f84e3501a1690898770a4b0",
+      "bytes": 74753,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-3-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-3.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "08265b483e9564b6e2f2848e5189fc389e682929d82884e6e0fb628fa88f68fe",
+      "bytes": 805133,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-4-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-4.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "a0d28034498a6bf7170ce4af6b1222bb6bf214894ba299fa1b98cb04fbecf3c1",
+      "bytes": 182180,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-5-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-5.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "0715840d9f0702c434535e9175a83547d25322c4d310ec38d15322b1e621513b",
+      "bytes": 1092211,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-6-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-6.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "87595ec625f9d246ac8477f44c051a79e9f1ac3d6fdf05c0299ed23a72a07533",
+      "bytes": 900521,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-7-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-7.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "4122fc8d4860d68977570cc351f8c8d86c13e33cb36e3cdcc2828261143d9ec2",
+      "bytes": 290726,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-8-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-8.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "6f4b27e2c75a5c69fbd96c7d5b80c5dab01830d00fc631f7be0b28e1c318959f",
+      "bytes": 38243,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_new-9-i24",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.New-9.ibata2024.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "cc26485e107e2f41e1b5ca00a6a2c3b136a04fa47c0ea391af16e2e597a94873",
+      "bytes": 83061,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_omegacen-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.OmegaCen-Fimbulthul.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "954879e8b6af99dad5dec22eabcca835140bf265051a6e65d1416f84ec917f64",
+      "bytes": 411419,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ophiuchus-c20",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Ophiuchus.caldwell2020.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "412593e0ccb33fbf298b03af354275fbfe12a25be5c6912f5547420627580258",
+      "bytes": 78173,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_orinoco-g17",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Orinoco.grillmair2017.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "df396bf67fe7d9e0285f68657ebca0a787e1b51d88487fd033f4da7a01b4c8a3",
+      "bytes": 140763,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_orphan-k23",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Orphan-Chenab.koposov2023.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "fbc8b1315ee960c0564c13b85f670c8db8e33b11c92ca70dcb61cabd6a3f9bc4",
+      "bytes": 2063350,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ps1-a-b16",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.PS1-A.bernard2016.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "8d74a5a1ad8dfa1cf4cef31d9f3a08623700cae01d17b36dec4f707189c8882c",
+      "bytes": 34865,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ps1-b-b16",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.PS1-B.bernard2016.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "5c8a1f24ffa5b94f8068f45de830f26d2c47181af9c1eef7971abbebcf8bc520",
+      "bytes": 69783,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ps1-c-b16",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.PS1-C.bernard2016.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "c8688fd4f55cddb7f7c0faff5a03bc59eea64c7b49f489cf135ce3a9dc126992",
+      "bytes": 55006,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ps1-d-b16",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.PS1-D.bernard2016.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "34db78784bf71f7e5e95dfaf4e63f637737a30c9c75818ce110bde71b394d9a2",
+      "bytes": 307621,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ps1-e-b16",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.PS1-E.bernard2016.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "e7b72757834f5374eee2afef3a50652c338f4254772d4fd31dd0ebc2f7f25536",
+      "bytes": 169381,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_pal13-s20",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Pal13.shipp2020.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "36f316e792625019cdb4de10d003b8e2e5c280ad45fb123d5c24c43c78ff7e6e",
+      "bytes": 13544,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_pal15-m17",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Pal15.myeong2017.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "fbc107385547f2789acd1268767db0b54c934cc819b5196b76c7f79287fbff78",
+      "bytes": 11589,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_pal5-pw19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Pal5.pricewhelan2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "292cb014fedf20ba50024859306aad32748c0f62ca89035e5000d7d3b3727ee7",
+      "bytes": 238403,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_palca-s18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Palca.shipp2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "3bd42980bd4996572538bb9a052d9be2a2ecc7db721e559ac7af836cb1021af7",
+      "bytes": 13684,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_parallel-w18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Parallel.weiss2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "581bf000f08ffb5fddd754f0f00d4afa5146b3e9e34e7c354dc6abf02b197453",
+      "bytes": 255655,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_pegasus-p19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Pegasus.perottoni2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "05e969c6ec101fa24531aa910e9ff13304198c38b76c7c28b691403769dd28cd",
+      "bytes": 59613,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_perpendicular-w18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Perpendicular.weiss2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "fb42619f3729f3318865662974cd14988c9d6bcf787eb97228194e0321de69fe",
+      "bytes": 138374,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_phlegethon-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Phlegethon.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "d195ea7ad573353c2ec467940966208a454f6e0deb18a5b614fb992d8ceee88a",
+      "bytes": 715356,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_phoenix-s19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Phoenix.shipp2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "cf5ab3412e3378760e5e69a26d815a8e8aa7b6163f2effbbc7411ccc938094d2",
+      "bytes": 134797,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ravi-s18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Ravi.shipp2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "4e0f1ce29ee275e9e99132222b84c2fdbfebed087a59183084c6e8984673a87c",
+      "bytes": 13530,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_sgp-s-y22",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.SGP-S.yang2022.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "84961412f046e8c2067b521fe9a6dbef74404e6cd5d1c15f3ff7c4d94527e13b",
+      "bytes": 633259,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_sagittarius-a20",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Sagittarius.antoja2020.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "4ea181c1456f3a9df28f12a41dfbbd1ea34401e6a0d5838a7bd01a52defd10a9",
+      "bytes": 3263840,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_sangarius-g17",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.Sangarius.grillmair2017.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "1bc8f318eb20cc2bfd553856085af070f1503a2fd90935eb95df2237fd20ff84",
+      "bytes": 342688,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_scamander-g17",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.Scamander.grillmair2017.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "bc6be28d615229169b9c20aa5118c3d13ea9703e32c7627fbab6e62b955ed22f",
+      "bytes": 444483,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_slidr-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Slidr.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "0d0e197f395cfd2b119afdde31ea7a02c6ecf8113ff2c4e3be6f78fafb546234",
+      "bytes": 370021,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_spectre-c22",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Spectre.chandra2022.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "db742608977f1ca3b818c0538fac33c95c037497434e494d558b37b64be31c54",
+      "bytes": 85360,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_styx-g09",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Styx.grillmair2009.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "44e6215a9f620cb1cb32a376d262a65165155bcbfc61e84472b19e350e94f447",
+      "bytes": 13282,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_svol-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Svol.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "aaa57d168ce5347c9f65737c92c700ae441f0060f448282c33829d4394988c70",
+      "bytes": 388511,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_sylgr-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Sylgr.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "de87f70ed4496355d093ad65ab87788d86ff10d0ba92d78a6022ef5bcc760d37",
+      "bytes": 293108,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_tri-pis-b12",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Tri-Pis.bonaca2012.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "857117b40e4ea4ad3ed185a6f6aa978fe4db4a02efda9d2208ba26002c84335a",
+      "bytes": 107431,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_tucanaiii-s19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.TucanaIII.shipp2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "545c2e490b31e9f05adde5fe483c8bbe15813b209d57a603462655e5b305f3c5",
+      "bytes": 50494,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_turbio-s18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Turbio.shipp2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "7e8ab231010c543e4039e8bba1b42f188e42adce50ff2fd068508af202c3a760",
+      "bytes": 13380,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_turranburra-s19",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Turranburra.shipp2019.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "e1a558899fb8365c7d8094a4f3cbc5bd759a201f9424fec47c7ef2d4b8682b20",
+      "bytes": 155490,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_wambelong-s18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Wambelong.shipp2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "0bf7253b235747ffa4a35c94fa82a8568f8d642956b4c36830d58da68b1944f2",
+      "bytes": 13697,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_willka-yaku-s18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.ep.Willka_Yaku.shipp2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "024d3ca7472cc713a59bd50064e86320419576f60967520f774a2a3411d3cc4f",
+      "bytes": 13109,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_yangtze-y23",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Yangtze.yang2023.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "08f014a17e7f9ce04467538f86914b60fc94f957fdfe66f91b28e36d249e86bc",
+      "bytes": 314169,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_ylgr-i21",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.st.Ylgr.ibata2021.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "faaa193549b649c26bd480bf237cee77d0f5be80a3b4220fcaba9c05c857db86",
+      "bytes": 513763,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "galstreams_track_20.0-1-m18",
+      "cite": "Mateu 2023, MNRAS 520, 5225 (galstreams: a library of Milky Way stream footprints and tracks)",
+      "url": "https://github.com/cmateu/galstreams",
+      "fetchUrl": "https://raw.githubusercontent.com/cmateu/galstreams/6a304c05bea7f774390a11082ea127719e99b70a/galstreams/tracks/track.po.20.0-1.mateu2018.ecsv",
+      "license": "BSD-3-Clause",
+      "attribution": "galstreams (Mateu 2023), BSD-3-Clause",
+      "sha256": "0ed6bb86747a31a685ea78170ffdb7c02974687040df0c182e54de261b1ca595",
+      "bytes": 252157,
+      "outputs": [
+        "data/milkyway/atlas/features-streams.json"
+      ]
+    },
+    {
+      "id": "nidever_2008",
+      "cite": "Nidever, Majewski & Burton 2008, ApJ 679, 432 (The Origin of the Magellanic Stream and Its Leading Arm)",
+      "url": "https://arxiv.org/abs/0706.1578",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/0706.1578",
+      "license": "cited (no explicit licence)",
+      "attribution": "Nidever, Majewski & Burton 2008, ApJ 679, 432 (The Origin of the Magellanic Stream and Its Leading Arm)",
+      "sha256": "ea2c834e0abd3cf21bca3712de78a2d29f315846c4159a66bb5afd766f5f8cba",
+      "bytes": 470091,
+      "outputs": [
+        "data/milkyway/atlas/features-magellanic.json"
+      ]
+    },
+    {
+      "id": "nidever_2010",
+      "cite": "Nidever et al. 2010, ApJ 723, 1618 (The 200 Degree-Long Magellanic Stream System)",
+      "url": "https://arxiv.org/abs/1009.0001",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1009.0001",
+      "license": "cited (no explicit licence)",
+      "attribution": "Nidever et al. 2010, ApJ 723, 1618 (The 200 Degree-Long Magellanic Stream System)",
+      "sha256": "78c65f7dfc5bb513096146ccb20e2af71784ecfaabdfbe1c46aaac5a382d5c0c",
+      "bytes": 260434,
+      "outputs": [
+        "data/milkyway/atlas/features-magellanic.json"
+      ]
+    },
+    {
+      "id": "venzmer_2012",
+      "cite": "Venzmer, Kerp & Kalberla 2012, A&A (The four leading arms of the Magellanic Cloud system), doi:10.1051/0004-6361/201118677",
+      "url": "https://arxiv.org/abs/1208.4953",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1208.4953",
+      "license": "cited (no explicit licence)",
+      "attribution": "Venzmer, Kerp & Kalberla 2012, A&A (The four leading arms of the Magellanic Cloud system), doi:10.1051/0004-6361/201118677",
+      "sha256": "705cf6c759e635ee306d7bf4387d5dfbbb2fd4313d05c10ea989eb7cd5814646",
+      "bytes": 147406,
+      "outputs": [
+        "data/milkyway/atlas/features-magellanic.json"
+      ]
+    },
+    {
+      "id": "putman_2003",
+      "cite": "Putman et al. 2003, ApJ 586, 170 (The Magellanic Stream, High-Velocity Clouds and the Sculptor Group)",
+      "url": "https://arxiv.org/abs/astro-ph/0209127",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/0209127",
+      "license": "cited (no explicit licence)",
+      "attribution": "Putman et al. 2003, ApJ 586, 170 (The Magellanic Stream, High-Velocity Clouds and the Sculptor Group)",
+      "sha256": "d76f8a328b44c95b0d6dbf2750c08d4b587650a36a1867b86af15b8624cece77",
+      "bytes": 241796,
+      "outputs": [
+        "data/milkyway/atlas/features-magellanic.json"
+      ]
+    },
+    {
+      "id": "harris_2007",
+      "cite": "Harris 2007, ApJ 658, 345 (The Magellanic Bridge: The Nearest Purely Tidal Stellar Population)",
+      "url": "https://arxiv.org/abs/astro-ph/0612107",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/0612107",
+      "license": "cited (no explicit licence)",
+      "attribution": "Harris 2007, ApJ 658, 345 (The Magellanic Bridge: The Nearest Purely Tidal Stellar Population)",
+      "sha256": "5173997cac9b32460ab76b7e992e0ec6c35e669fac0c25533d57be90b410d470",
+      "bytes": 314082,
+      "outputs": [
+        "data/milkyway/atlas/features-magellanic.json"
+      ]
+    }
+  ]
+}

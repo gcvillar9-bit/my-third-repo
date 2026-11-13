@@ -1,0 +1,18 @@
+{
+  "group": "centre-stars",
+  "sources": [
+    {
+      "id": "gillessen_2017_orbits",
+      "cite": "Gillessen et al. 2017, ApJ 837, 30, Table 3 (orbits of 40 stars around Sgr A*)",
+      "url": "https://doi.org/10.3847/1538-4357/aa5c41",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FApJ%2F837%2F30%2Ftable3&-out=Star%2Ca%2Ce%2Ci%2COmega%2Cw%2CTp%2CPer%2CSpT%2CKmag&-out.max=unlimited&-oc.form=dec",
+      "license": "cited (no explicit licence)",
+      "attribution": "Gillessen et al. 2017, ApJ 837, 30, Table 3 (orbits of 40 stars around Sgr A*)",
+      "sha256": "1b753955fe8d49bd53392b95d28eea7c64d6341e2b090d8d5caecb08e42146a4",
+      "bytes": 2817,
+      "outputs": [
+        "data/blackholes/blackholes.json"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "group": "disc",
+  "sources": [
+    {
+      "id": "reid_2019_paper",
+      "cite": "Reid et al. 2019, ApJ 885, 131, notes to Table 1 (spiral arm codes)",
+      "url": "https://arxiv.org/abs/1910.03357",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1910.03357",
+      "license": "cited (no explicit licence)",
+      "attribution": "Reid et al. 2019, ApJ 885, 131, notes to Table 1 (spiral arm codes)",
+      "sha256": "a446edd01f2bebdb8a995b8caaf45ac0366b46a20297c9bed5579187d4a36a2a",
+      "bytes": 1043087,
+      "outputs": [
+        "data/milkyway/atlas/masers.json"
+      ]
+    },
+    {
+      "id": "reid_2019_masers",
+      "cite": "Reid et al. 2019, ApJ 885, 131, Table 1 (VizieR J/ApJ/885/131)",
+      "url": "https://doi.org/10.3847/1538-4357/ab4a11",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FApJ%2F885%2F131%2Ftable1&-out.all&-out.max=unlimited&-oc.form=dec",
+      "license": "cited (no explicit licence)",
+      "attribution": "Reid, M. J. et al. 2019, ApJ 885, 131 (BeSSeL Survey and VERA), via CDS VizieR",
+      "sha256": "950bee774d15846b9d07c046e543355f7276d9350e906bc20d3cacbbd9e5f6ab",
+      "bytes": 31170,
+      "outputs": [
+        "data/milkyway/atlas/masers.json"
+      ]
+    },
+    {
+      "id": "zucker_2020_handbook",
+      "cite": "Zucker et al. 2020, A&A 633, A51 (VizieR J/A+A/633/A51)",
+      "url": "https://doi.org/10.1051/0004-6361/201936145",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FA%2BA%2F633%2FA51%2Fhandbook&-out=Name%2CGLON%2CGLAT%2Cd16%2Cd50%2Cd84&-out.max=unlimited&-oc.form=dec",
+      "license": "cited (no explicit licence)",
+      "attribution": "Zucker, C. et al. 2020, A&A 633, A51, via CDS VizieR",
+      "sha256": "3dc9236e2184c6703d948b1bd2b556bbcceeadd471c52092d163dde4c956302a",
+      "bytes": 14761,
+      "outputs": [
+        "data/milkyway/atlas/clouds.json"
+      ]
+    },
+    {
+      "id": "zucker_2020_dataverse",
+      "cite": "Zucker et al. 2020, Harvard Dataverse, doi:10.7910/DVN/07L7YZ (Table A.1)",
+      "url": "https://doi.org/10.7910/DVN/07L7YZ",
+      "fetchUrl": "https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId=doi:10.7910/DVN/07L7YZ",
+      "license": "CC0-1.0",
+      "attribution": "Zucker et al. 2020, Harvard Dataverse, doi:10.7910/DVN/07L7YZ (Table A.1)",
+      "sha256": "1b962743373524dd0b49792dedc7ba18a9eb669f89d00a60120950369f101f46",
+      "bytes": 4756,
+      "outputs": [
+        "data/milkyway/atlas/clouds.json"
+      ]
+    },
+    {
+      "id": "green_catalogue_page",
+      "cite": "Green D. A., Catalogue of Galactic Supernova Remnants, home page (citation terms)",
+      "url": "https://www.mrao.cam.ac.uk/surveys/snrs/",
+      "fetchUrl": "https://www.mrao.cam.ac.uk/surveys/snrs/",
+      "license": "cited (copyright D. A. Green)",
+      "attribution": "Green D. A., Catalogue of Galactic Supernova Remnants, home page (citation terms)",
+      "sha256": "dee89775092dec15e5d55ce8113a9d4e9a28a911bed0350a4d3d98d1f754d5be",
+      "bytes": 6247,
+      "outputs": [
+        "data/milkyway/atlas/remnants.json"
+      ]
+    },
+    {
+      "id": "ranasinghe_2022_paper",
+      "cite": "Ranasinghe & Leahy 2022, ApJ 940, 63 (arXiv:2209.04570)",
+      "url": "https://arxiv.org/abs/2209.04570",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2209.04570",
+      "license": "cited (no explicit licence)",
+      "attribution": "Ranasinghe & Leahy 2022, ApJ 940, 63 (arXiv:2209.04570)",
+      "sha256": "b64857c015c405c828fe6a6cabe2ab6412e22cb56d30be08b0b89a1be78d7455",
+      "bytes": 714726,
+      "outputs": [
+        "data/milkyway/atlas/remnants.json"
+      ]
+    },
+    {
+      "id": "ranasinghe_2022_snr_distances",
+      "cite": "Ranasinghe & Leahy 2022, ApJ 940, 63, Table 1 (VizieR J/ApJ/940/63)",
+      "url": "https://doi.org/10.3847/1538-4357/ac9b0f",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FApJ%2F940%2F63%2Ftable1&-out.all&-out.max=unlimited&-oc.form=dec",
+      "license": "cited (no explicit licence)",
+      "attribution": "Ranasinghe, S. & Leahy, D. 2022, ApJ 940, 63, via CDS VizieR",
+      "sha256": "fd495f4d21d3430151e615933d5cb0acfe91e7d217ce3934239d00fe4a65a6a7",
+      "bytes": 43903,
+      "outputs": [
+        "data/milkyway/atlas/remnants.json"
+      ]
+    },
+    {
+      "id": "green_2024_snrs",
+      "cite": "Green D. A. 2025, J. Astrophys. Astron. 46, 14 (A Catalogue of Galactic Supernova Remnants, 2024 October version; VizieR VII/297)",
+      "url": "https://www.mrao.cam.ac.uk/surveys/snrs/",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=VII%2F297%2Fsnrs&-out.all&-out.max=unlimited&-oc.form=dec",
+      "license": "cited (copyright D. A. Green; the catalogue page asks users to cite Green 2025 and the catalogue)",
+      "attribution": "Green, D. A. 2025, JApA 46, 14; A Catalogue of Galactic Supernova Remnants (2024 October version), Cavendish Laboratory, Cambridge",
+      "sha256": "3448a58260ccdeb50bf0f3e3b44887c6a4969108e04ca3a7976a108e43ca4b0b",
+      "bytes": 33758,
+      "outputs": [
+        "data/milkyway/atlas/remnants.json"
+      ]
+    },
+    {
+      "id": "atnf_psrcat",
+      "cite": "Manchester, Hobbs, Teoh & Hobbs 2005, AJ 129, 1993 (ATNF Pulsar Catalogue, psrcat database)",
+      "url": "https://www.atnf.csiro.au/research/pulsar/psrcat",
+      "fetchUrl": "https://www.atnf.csiro.au/research/pulsar/psrcat/downloads/psrcat_pkg.tar.gz",
+      "license": "cited (ATNF/CSIRO database; the catalogue page asks to acknowledge Manchester et al. 2005 and the web address)",
+      "attribution": "Manchester, R. N., Hobbs, G. B., Teoh, A. & Hobbs, M. 2005, AJ 129, 1993; ATNF Pulsar Catalogue, CSIRO",
+      "sha256": "55daa29f71f344c8de4064969b5812d6cb3a9b851efae0bef004ac9d5f6740c0",
+      "bytes": 1249005,
+      "outputs": [
+        "data/milkyway/atlas/pulsars.json"
+      ]
+    },
+    {
+      "id": "atnf_psrcat_terms",
+      "cite": "ATNF Pulsar Catalogue, download page (copyright and referencing)",
+      "url": "https://www.atnf.csiro.au/research/pulsar/psrcat/download.html",
+      "fetchUrl": "https://www.atnf.csiro.au/research/pulsar/psrcat/download.html",
+      "license": "cited (ATNF/CSIRO database)",
+      "attribution": "ATNF Pulsar Catalogue, download page (copyright and referencing)",
+      "sha256": "3b82ba38d7abfec7271ee52bfa34a3f23105cc82693dd9617d4514f7ec3d912d",
+      "bytes": 13753,
+      "outputs": [
+        "data/milkyway/atlas/pulsars.json"
+      ]
+    },
+    {
+      "id": "hou_han_2014_paper",
+      "cite": "Hou & Han 2014, A&A 569, A125 (arXiv:1407.7331), method and notes to Table A.1",
+      "url": "https://arxiv.org/abs/1407.7331",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/1407.7331",
+      "license": "cited (no explicit licence)",
+      "attribution": "Hou & Han 2014, A&A 569, A125 (arXiv:1407.7331), method and notes to Table A.1",
+      "sha256": "16aa7555f60a2d7effb9e68176403ed5e3c3a7467afe20e5c49e09b2b28ff397",
+      "bytes": 508910,
+      "outputs": [
+        "data/milkyway/atlas/hii-regions.json"
+      ]
+    },
+    {
+      "id": "hou_han_2014_hii",
+      "cite": "Hou & Han 2014, A&A 569, A125, Table A.1 (VizieR J/A+A/569/A125)",
+      "url": "https://doi.org/10.1051/0004-6361/201424067",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FA%2BA%2F569%2FA125%2Ftablea1&-out.all&-out.max=unlimited&-oc.form=dec",
+      "license": "cited (no explicit licence)",
+      "attribution": "Hou, L. G. & Han, J. L. 2014, A&A 569, A125, via CDS VizieR",
+      "sha256": "4085df00aa867bcfeebfcfdfc5d5a455c535d797305fdf4b63425bb054059683",
+      "bytes": 1247537,
+      "outputs": [
+        "data/milkyway/atlas/hii-regions.json"
+      ]
+    }
+  ]
+}

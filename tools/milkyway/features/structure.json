@@ -1,0 +1,823 @@
+{
+  "comment": "Hand-entered inputs of features-structure.json. Every value carries evidence { source, quote }; the quote is checked against the fetched paper by structure.mjs. Arm rows copy Reid et al. 2019 Table 2 exactly.",
+  "galacticCentre": {
+    "direction": {
+      "l": 359.944,
+      "lQuoted": -0.056,
+      "b": -0.046,
+      "evidence": {
+        "source": "bhg2016",
+        "quote": "( l c , b c ) ( − 0.056 ∘ , − 0.046 ∘ ) , Galactic coordinates of Sgr A ∗"
+      }
+    },
+    "distance": {
+      "pc": 8178,
+      "evidence": { "source": "gravity2019", "quote": "R 0 = 8178 ± 13 stat" }
+    }
+  },
+  "warpLaw": {
+    "rOnsetKpc": 7.72,
+    "a": 0.06,
+    "b": 1.33,
+    "lonDeg": 17.5,
+    "evidence": {
+      "source": "chen2019",
+      "quote": "R w (kpc) ϕ w ( ∘ ) a b RMSE All 7.72 ± 0.27 17.5 ± 1.0 0.060 ± 0.012 1.33 ± 0.08 0.210"
+    }
+  },
+  "features": [
+    {
+      "id": "near-3-kpc-arm",
+      "name": "Near 3-kpc Arm",
+      "aliases": ["3-kpc arm", "Expanding 3-kpc Arm"],
+      "type": "arm",
+      "noun": "Spiral arm segment (inner Galaxy)",
+      "rank": 2,
+      "table": {
+        "n": 3,
+        "tangencyDeg": 337.0,
+        "betaMeasuredDeg": [15, 18],
+        "betaKinkDeg": 15,
+        "rKinkKpc": 3.52,
+        "psiLtDeg": -4.2,
+        "psiGtDeg": -4.2,
+        "widthKpc": 0.18,
+        "evidence": {
+          "source": "reid2019",
+          "quote": "3-kpc(N) 3 337.0 15 → 18 15 3.52 ± 0.26 − 4.2 ± 3.8 − 4.2 ± 3.8 0.18 ± 0.05"
+        }
+      },
+      "description": "The near side of the 3-kpc arms that hug the ends of the Galactic bar, seen in front of the Galactic centre and approaching us at about 53 km/s (Dame & Thaddeus 2008). Only three maser parallaxes are assigned to it, so its fitted geometry is poorly constrained; Reid et al. regard the 3-kpc arms as a phenomenon of the bar rather than one of the four major arms. Label anchored at the kink position of Reid et al. 2019 Table 2 (R0 = 8.178 kpc used for the Sun)."
+    },
+    {
+      "id": "norma-arm",
+      "name": "Norma Arm",
+      "aliases": ["4-kpc arm", "Norma-Outer Arm (inner part)"],
+      "type": "arm",
+      "noun": "Spiral arm segment",
+      "rank": 2,
+      "table": {
+        "n": 11,
+        "tangencyDeg": 327.5,
+        "betaMeasuredDeg": [5, 54],
+        "betaKinkDeg": 18,
+        "rKinkKpc": 4.46,
+        "psiLtDeg": -1.0,
+        "psiGtDeg": 19.5,
+        "widthKpc": 0.14,
+        "evidence": {
+          "source": "reid2019",
+          "quote": "Norma 11 327.5 5 → 54 18 ± 4 4.46 ± 0.19 − 1.0 ± 3.3 19.5 ± 5.1 0.14 ± 0.10"
+        }
+      },
+      "description": "Inner part of the Norma-Outer arm, one of the four major arms; it runs through the fourth quadrant (tangent at longitude 327.5 deg) and on the far side of the Galaxy continues as the Outer Arm. Label anchored at the kink position of Reid et al. 2019 Table 2."
+    },
+    {
+      "id": "scutum-centaurus-arm",
+      "name": "Scutum-Centaurus Arm",
+      "aliases": ["Scutum-Crux-Centaurus Arm", "Scutum-Centaurus-OSC Arm"],
+      "type": "arm",
+      "noun": "Spiral arm segment",
+      "rank": 3,
+      "table": {
+        "n": 36,
+        "tangencyDeg": 306.1,
+        "betaMeasuredDeg": [0, 104],
+        "betaKinkDeg": 23,
+        "rKinkKpc": 4.91,
+        "psiLtDeg": 14.1,
+        "psiGtDeg": 12.1,
+        "widthKpc": 0.23,
+        "evidence": {
+          "source": "reid2019",
+          "quote": "Sct-Cen 36 306.1 0 → 104 23 4.91 ± 0.09 14.1 ± 1.7 12.1 ± 2.4 0.23 ± 0.05"
+        }
+      },
+      "description": "One of the four major arms, seen tangentially towards Scutum and Centaurus (tangent at longitude 306.1 deg); Reid et al. 2019 link it to the Outer-Scutum-Centaurus (OSC) segment beyond the Galactic centre. Label anchored at the kink position of Reid et al. 2019 Table 2 (the kink azimuth was assigned, not fitted)."
+    },
+    {
+      "id": "sagittarius-carina-arm",
+      "name": "Sagittarius-Carina Arm",
+      "aliases": ["Sagittarius Arm", "Carina-Sagittarius Arm"],
+      "type": "arm",
+      "noun": "Spiral arm segment",
+      "rank": 3,
+      "table": {
+        "n": 35,
+        "tangencyDeg": 285.6,
+        "betaMeasuredDeg": [2, 97],
+        "betaKinkDeg": 24,
+        "rKinkKpc": 6.04,
+        "psiLtDeg": 17.1,
+        "psiGtDeg": 1.0,
+        "widthKpc": 0.27,
+        "evidence": {
+          "source": "reid2019",
+          "quote": "Sgr-Car 35 285.6 2 → 97 24 ± 2 6.04 ± 0.09 17.1 ± 1.6 1.0 ± 2.1 0.27 ± 0.04"
+        }
+      },
+      "description": "The major arm just inside the Sun's orbit, between the Sun and the Galactic centre; its tangent towards Carina is at longitude 285.6 deg. Beyond the kink it is almost circular (pitch angle 1 deg). Label anchored at the kink position of Reid et al. 2019 Table 2."
+    },
+    {
+      "id": "local-arm",
+      "name": "Local Arm",
+      "aliases": ["Orion Arm", "Orion Spur", "Orion-Cygnus Arm"],
+      "type": "arm",
+      "noun": "Spiral arm segment (the Sun's arm)",
+      "rank": 3,
+      "table": {
+        "n": 28,
+        "betaMeasuredDeg": [-8, 34],
+        "betaKinkDeg": 9,
+        "rKinkKpc": 8.26,
+        "psiLtDeg": 11.4,
+        "psiGtDeg": 11.4,
+        "widthKpc": 0.31,
+        "evidence": {
+          "source": "reid2019",
+          "quote": "Local 28 … − 8 → 34 9 8.26 ± 0.05 11.4 ± 1.9 11.4 ± 1.9 0.31 ± 0.05"
+        }
+      },
+      "description": "The arm segment the Sun lives in, between the Sagittarius-Carina and Perseus arms; it contains the Orion Nebula and the Cygnus star-forming regions. Reid et al. 2019 consider it an isolated segment rather than one of the four major arms. Single pitch angle (no kink fitted). Label anchored at the kink position of Reid et al. 2019 Table 2."
+    },
+    {
+      "id": "perseus-arm",
+      "name": "Perseus Arm",
+      "aliases": [],
+      "type": "arm",
+      "noun": "Spiral arm segment",
+      "rank": 3,
+      "table": {
+        "n": 41,
+        "betaMeasuredDeg": [-23, 115],
+        "betaKinkDeg": 40,
+        "rKinkKpc": 8.87,
+        "psiLtDeg": 10.3,
+        "psiGtDeg": 8.7,
+        "widthKpc": 0.35,
+        "evidence": {
+          "source": "reid2019",
+          "quote": "Perseus 41 … − 23 → 115 40 8.87 ± 0.13 10.3 ± 1.4 8.7 ± 2.7 0.35 ± 0.06"
+        }
+      },
+      "description": "The major arm just outside the Sun's orbit, towards the Galactic anticentre; it contains the W3 star-forming region. Measured over the widest azimuth range of all arms. Label anchored at the kink position of Reid et al. 2019 Table 2 (kink azimuth assigned, not fitted)."
+    },
+    {
+      "id": "outer-arm",
+      "name": "Outer Arm",
+      "aliases": ["Norma-Outer Arm (outer part)", "Cygnus Arm"],
+      "type": "arm",
+      "noun": "Spiral arm segment",
+      "rank": 2,
+      "table": {
+        "n": 11,
+        "betaMeasuredDeg": [-16, 71],
+        "betaKinkDeg": 18,
+        "rKinkKpc": 12.24,
+        "psiLtDeg": 3.0,
+        "psiGtDeg": 9.4,
+        "widthKpc": 0.65,
+        "evidence": {
+          "source": "reid2019",
+          "quote": "Outer 11 … − 16 → 71 18 12.24 ± 0.36 3.0 ± 4.4 9.4 ± 4.0 0.65 ± 0.16"
+        }
+      },
+      "description": "Outer part of the Norma-Outer arm, beyond the Perseus Arm at about 12 kpc from the centre; it is the widest arm segment measured. Label anchored at the kink position of Reid et al. 2019 Table 2."
+    },
+    {
+      "id": "far-3-kpc-arm",
+      "name": "Far 3-kpc Arm",
+      "aliases": [],
+      "type": "arm",
+      "noun": "Spiral arm segment (inner Galaxy, far side)",
+      "rank": 1,
+      "position": {
+        "kind": "lbd",
+        "l": 0,
+        "b": 0,
+        "dKpc": 11.8,
+        "evidence": { "source": "dame2008", "quote": "the Far at 11.8 kpc ( R ⊙ + R arm )" }
+      },
+      "facts": [
+        {
+          "label": "Distance from the Sun (assumed constant along the arm)",
+          "value": 11.8,
+          "unit": "kpc",
+          "approximate": true,
+          "evidence": { "source": "dame2008", "quote": "the Far at 11.8 kpc ( R ⊙ + R arm )" }
+        },
+        {
+          "label": "Galactocentric radius (assumed equal to the near arm's, for R0 = 8.5 kpc)",
+          "value": 3.3,
+          "unit": "kpc",
+          "approximate": true,
+          "evidence": {
+            "source": "dame2008",
+            "quote": "these tangents imply a radius of 3.3 kpc for the Near Arm"
+          }
+        },
+        {
+          "label": "Length followed in CO",
+          "value": 3.24,
+          "unit": "kpc",
+          "evidence": { "source": "dame2008", "quote": "a 3.24-kpc length of the Far" }
+        },
+        {
+          "label": "Molecular (H2) mass per unit length",
+          "value": 3800000,
+          "unit": "M☉/kpc",
+          "evidence": { "source": "dame2008", "quote": "Far 11.8 +56.0 4.08 22.2 3.8 0.9 105 109" }
+        },
+        {
+          "label": "Thickness of the molecular layer (FWHM)",
+          "value": 105,
+          "unit": "pc",
+          "evidence": { "source": "dame2008", "quote": "Far 11.8 +56.0 4.08 22.2 3.8 0.9 105 109" }
+        },
+        {
+          "label": "Line-of-sight velocity at l = 0°",
+          "value": 56,
+          "unit": "km/s",
+          "evidence": { "source": "dame2008", "quote": "Far 11.8 +56.0 4.08 22.2 3.8 0.9 105 109" }
+        }
+      ],
+      "shape": {
+        "kind": "polyline-arc",
+        "lFromDeg": -12,
+        "lToDeg": 8,
+        "stepDeg": 2,
+        "dKpc": 11.8,
+        "evidence": { "source": "dame2008", "quote": "Averaged l = − 12 ∘ to 8 ∘" }
+      },
+      "description": "Far-side counterpart of the expanding 3-kpc arm, discovered in CO by Dame & Thaddeus 2008 as a faint lane at positive velocities parallel to the near arm. It is not in Reid et al. 2019 Table 2 (no maser parallaxes). Dame & Thaddeus assume both 3-kpc arms have the same Galactocentric radius (3.3 kpc for R0 = 8.5 kpc) and that the far arm stays at 11.8 kpc from the Sun along its length; the drawn line follows that assumption over the longitudes they averaged (-12 to +8 deg), so its geometry is approximate. Label at l = 0, 11.8 kpc."
+    },
+    {
+      "id": "long-bar",
+      "name": "Galactic bar",
+      "aliases": ["Long bar"],
+      "type": "bar",
+      "noun": "Stellar bar",
+      "rank": 3,
+      "position": { "kind": "centre" },
+      "r": {
+        "value": 5000,
+        "evidence": {
+          "source": "wegg2015",
+          "quote": "we find a bar half length of 5.0 ± 0.2 kpc for the 2-component bar"
+        }
+      },
+      "facts": [
+        {
+          "label": "Half-length",
+          "value": 5.0,
+          "unit": "kpc",
+          "evidence": {
+            "source": "wegg2015",
+            "quote": "we find a bar half length of 5.0 ± 0.2 kpc for the 2-component bar"
+          }
+        },
+        {
+          "label": "Angle of the long bar to the Sun-centre line",
+          "value": "28–33",
+          "unit": "°",
+          "evidence": {
+            "source": "wegg2015",
+            "quote": "The long bar of the Milky Way lies at an angle of α = ( 28 − 33 ) ∘"
+          }
+        },
+        {
+          "label": "Scale height of the thin bar component",
+          "value": 180,
+          "unit": "pc",
+          "approximate": true,
+          "evidence": {
+            "source": "wegg2015",
+            "quote": "We find a ∼ 180 pc thin bar component reminiscent of the old thin disk near the sun, and a ∼ 45 pc super-thin bar component"
+          }
+        },
+        {
+          "label": "Scale height of the super-thin bar component",
+          "value": 45,
+          "unit": "pc",
+          "approximate": true,
+          "evidence": {
+            "source": "wegg2015",
+            "quote": "We find a ∼ 180 pc thin bar component reminiscent of the old thin disk near the sun, and a ∼ 45 pc super-thin bar component"
+          }
+        },
+        {
+          "label": "Stellar mass of the thin long bar",
+          "value": 7000000000,
+          "unit": "M☉",
+          "approximate": true,
+          "evidence": { "source": "bhg2016", "quote": "M tlb ∼ 7 ± 1 × 10 9 M ⊙ , stellar mass of thin bar" }
+        },
+        {
+          "label": "Stellar mass of the super-thin long bar",
+          "value": 3000000000,
+          "unit": "M☉",
+          "approximate": true,
+          "evidence": { "source": "bhg2016", "quote": "M slb ∼ 3 × 10 9 M ⊙ , stellar mass of superthin bar" }
+        },
+        {
+          "label": "Pattern speed",
+          "value": 39.0,
+          "unit": "km/s/kpc",
+          "evidence": {
+            "source": "portail2017",
+            "quote": "We find a bar pattern speed of 39.0 ± 3.5 km s − 1 kpc − 1 , placing the bar corotation radius at 6.1 ± 0.5 kpc"
+          }
+        },
+        {
+          "label": "Corotation radius",
+          "value": 6.1,
+          "unit": "kpc",
+          "evidence": {
+            "source": "portail2017",
+            "quote": "We find a bar pattern speed of 39.0 ± 3.5 km s − 1 kpc − 1 , placing the bar corotation radius at 6.1 ± 0.5 kpc"
+          }
+        }
+      ],
+      "description": "The Milky Way is a barred spiral. The long bar is a flat extension of the boxy/peanut bulge, traced by red clump giants out to about 5 kpc from the centre; its near end points towards positive Galactic longitude. Wegg, Gerhard & Portail 2015 find the long bar at 28-33 deg to the Sun-centre line, slightly more than the 27 +- 2 deg of the bulge region (Bland-Hawthorn & Gerhard 2016). Label at Sgr A*."
+    },
+    {
+      "id": "bulge",
+      "name": "Galactic bulge",
+      "aliases": ["Boxy/peanut bulge", "Barred bulge"],
+      "type": "bulge",
+      "noun": "Boxy/peanut bulge",
+      "rank": 3,
+      "position": { "kind": "centre" },
+      "r": {
+        "value": 2200,
+        "evidence": {
+          "source": "portail2017",
+          "quote": "( ± 2.2 × ± 1.4 × ± 1.2 ) kpc around the principal axes of the bulge"
+        }
+      },
+      "facts": [
+        {
+          "label": "Region modelled (half-sizes along the bar axes)",
+          "value": "2.2 × 1.4 × 1.2",
+          "unit": "kpc",
+          "evidence": {
+            "source": "portail2017",
+            "quote": "( ± 2.2 × ± 1.4 × ± 1.2 ) kpc around the principal axes of the bulge"
+          }
+        },
+        {
+          "label": "Stellar mass of bulge and long bar together",
+          "value": 18800000000,
+          "unit": "M☉",
+          "evidence": { "source": "portail2017", "quote": "M bar / bulge = 1.88 ± 0.12 × 10 10 M ⊙" }
+        },
+        {
+          "label": "Stellar mass in the bulge region",
+          "value": "1.4–1.7 × 10^10",
+          "unit": "M☉",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "M b ∗ ( 1.4 − 1.7 ) × 10 10 M ⊙ , stellar mass in vvv bulge region"
+          }
+        },
+        {
+          "label": "Bar angle of the bulge (to the Sun-centre line)",
+          "value": 27,
+          "unit": "°",
+          "evidence": { "source": "bhg2016", "quote": "ϕ bp 27 ± 2 ∘ , b/p bulge bar angle" }
+        },
+        {
+          "label": "Axis ratio seen from above (b/a)",
+          "value": 0.5,
+          "evidence": { "source": "bhg2016", "quote": "( b / a ) bp 0.5 ± 0.05 , axis ratio from top" }
+        },
+        {
+          "label": "Axis ratio seen edge-on (c/a)",
+          "value": 0.26,
+          "evidence": { "source": "bhg2016", "quote": "( c / a ) bp 0.26 , edge-on axis ratio" }
+        },
+        {
+          "label": "Vertical scale height at the centre",
+          "value": 180,
+          "unit": "pc",
+          "evidence": { "source": "bhg2016", "quote": "h bp 180 pc , vertical scale-height" }
+        },
+        {
+          "label": "Radius of the maximum of the X shape",
+          "value": 1.5,
+          "unit": "kpc",
+          "evidence": { "source": "bhg2016", "quote": "x X 1.5 ± 0.2 kpc , radius of max" }
+        }
+      ],
+      "description": "The bulge of the Milky Way is the thick inner part of the bar, buckled into a box or peanut shape with an X-shaped structure seen in red clump stars. It holds old, mostly metal-rich stars. Masses are dynamical-model values (Portail et al. 2017 include the long bar; Bland-Hawthorn & Gerhard 2016 quote the region mapped by the VVV survey). Label at Sgr A*."
+    },
+    {
+      "id": "thin-disc",
+      "name": "Thin disc",
+      "aliases": ["Thin disk"],
+      "type": "disc",
+      "noun": "Stellar disc",
+      "rank": 2,
+      "position": { "kind": "centre" },
+      "facts": [
+        {
+          "label": "Scale height at the Sun's radius",
+          "value": 300,
+          "unit": "pc",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "z t 300 ± 50 pc, thin disk vertical scalelength at R 0"
+          }
+        },
+        {
+          "label": "Radial scale length",
+          "value": 2.6,
+          "unit": "kpc",
+          "evidence": { "source": "bhg2016", "quote": "R t 2.6 ± 0.5 kpc, thin disk radial scalelength" }
+        },
+        {
+          "label": "Stellar mass",
+          "value": 35000000000,
+          "unit": "M☉",
+          "evidence": { "source": "bhg2016", "quote": "M t 3.5 ± 1 × 10 10 M ⊙ , thin disk stellar mass" }
+        }
+      ],
+      "description": "The thin disc holds most of the Galaxy's stars, gas, dust and all of its young stars and spiral arms. Its density falls exponentially with radius and with height; the scale height grows outwards (see Flare). Values from the review of Bland-Hawthorn & Gerhard 2016. Label at Sgr A*."
+    },
+    {
+      "id": "thick-disc",
+      "name": "Thick disc",
+      "aliases": ["Thick disk"],
+      "type": "disc",
+      "noun": "Stellar disc",
+      "rank": 2,
+      "position": { "kind": "centre" },
+      "facts": [
+        {
+          "label": "Scale height at the Sun's radius",
+          "value": 900,
+          "unit": "pc",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "z T 900 ± 180 pc, thick disk vertical scalelength at R 0"
+          }
+        },
+        {
+          "label": "Radial scale length",
+          "value": 2.0,
+          "unit": "kpc",
+          "evidence": { "source": "bhg2016", "quote": "R T 2.0 ± 0.2 kpc, thick disk radial scalelength" }
+        },
+        {
+          "label": "Stellar mass",
+          "value": 6000000000,
+          "unit": "M☉",
+          "evidence": { "source": "bhg2016", "quote": "M T 6 ± 3 × 10 9 M ⊙ , thick disk stellar mass" }
+        },
+        {
+          "label": "Thick/thin surface density ratio at the Sun's radius",
+          "value": 12,
+          "unit": "%",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "f Σ 12 % ± 4 % , thick / thin disk surface density ratio at R 0"
+          }
+        },
+        {
+          "label": "Thick/thin local density ratio at the Sun's radius",
+          "value": 4,
+          "unit": "%",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "f ρ 4 % ± 2 % , thick / thin disk local density ratio at R 0"
+          }
+        }
+      ],
+      "description": "An older, thicker and more compact stellar disc, with about a fifth of the thin disc's mass. Values from the review of Bland-Hawthorn & Gerhard 2016. Label at Sgr A*."
+    },
+    {
+      "id": "warp",
+      "name": "Galactic warp",
+      "aliases": ["Warp of the disc"],
+      "type": "disc",
+      "noun": "Warp of the outer disc",
+      "rank": 2,
+      "position": {
+        "kind": "galactocentric",
+        "rKpc": 15,
+        "betaDeg": -72.5,
+        "zPc": -841,
+        "evidence": {
+          "source": "chen2019",
+          "quote": "R w (kpc) ϕ w ( ∘ ) a b RMSE All 7.72 ± 0.27 17.5 ± 1.0 0.060 ± 0.012 1.33 ± 0.08 0.210"
+        }
+      },
+      "facts": [
+        {
+          "label": "Warp law (height of the mid-plane)",
+          "value": "z_w = a (R − R_w)^b sin(φ − φ_w)",
+          "evidence": { "source": "chen2019", "quote": "z w = a ( R − R w ) b sin ( ϕ − ϕ w )" }
+        },
+        {
+          "label": "Onset radius R_w (power-law fit, all Cepheids)",
+          "value": 7.72,
+          "unit": "kpc",
+          "evidence": {
+            "source": "chen2019",
+            "quote": "R w (kpc) ϕ w ( ∘ ) a b RMSE All 7.72 ± 0.27 17.5 ± 1.0 0.060 ± 0.012 1.33 ± 0.08 0.210"
+          }
+        },
+        {
+          "label": "Amplitude a (z_w and R in kpc)",
+          "value": 0.06,
+          "evidence": {
+            "source": "chen2019",
+            "quote": "R w (kpc) ϕ w ( ∘ ) a b RMSE All 7.72 ± 0.27 17.5 ± 1.0 0.060 ± 0.012 1.33 ± 0.08 0.210"
+          }
+        },
+        {
+          "label": "Exponent b",
+          "value": 1.33,
+          "evidence": {
+            "source": "chen2019",
+            "quote": "R w (kpc) ϕ w ( ∘ ) a b RMSE All 7.72 ± 0.27 17.5 ± 1.0 0.060 ± 0.012 1.33 ± 0.08 0.210"
+          }
+        },
+        {
+          "label": "Line of nodes φ_w (±1.0° formal, ±3.0° systematic)",
+          "value": 17.5,
+          "unit": "°",
+          "evidence": {
+            "source": "chen2019",
+            "quote": "ϕ = 17.5 ∘ ± 1.0 ∘ (formal, including propagation errors) ± 3.0 ∘"
+          }
+        },
+        {
+          "label": "Azimuth φ",
+          "value": "Galactocentric, 0° towards the Sun, increasing in the direction of Galactic rotation",
+          "evidence": {
+            "source": "chen2019",
+            "quote": "Here, ϕ is the Galactocentric angle in the anticlockwise direction (aligned with the disk’s rotation axis) with respect to the solar position ( ϕ ⊙ = 0 ∘ )"
+          }
+        },
+        {
+          "label": "Sun's Galactocentric distance adopted in the fit",
+          "value": 8.0,
+          "unit": "kpc",
+          "evidence": { "source": "chen2019", "quote": "solar Galactocentric distance R 0 = 8.0 kpc" }
+        },
+        {
+          "label": "Height of the Cepheid warp at R = 15 kpc (Skowron et al.)",
+          "value": 0.74,
+          "unit": "kpc",
+          "evidence": {
+            "source": "skowron2019",
+            "quote": "is much higher than for Cepheids ( 0.74 kpc at R = 15 kpc)"
+          }
+        },
+        {
+          "label": "Warp onset seen in the Cepheid map (Skowron et al.)",
+          "value": 8,
+          "unit": "kpc",
+          "approximate": true,
+          "evidence": {
+            "source": "skowron2019",
+            "quote": "The warping of the disk begins at a distance of ∼ 8 kpc and becomes steeper at ∼ 10 kpc, reaching out to the edge of the Galaxy at ∼ 20 kpc"
+          }
+        }
+      ],
+      "description": "Beyond about 8 kpc from the centre the Galaxy's disc bends like the brim of a hat: up (north) on the side of the first and second quadrants, down (south) in the third and fourth quadrants, as mapped in 3D with classical Cepheids. Model of Chen et al. 2019 (power law, all Cepheids): z_w = 0.060 (R - 7.72)^1.33 sin(phi - 17.5 deg), z_w and R in kpc, phi measured from the Sun's direction in the sense of Galactic rotation (the same sense as the spiral-arm azimuth beta). With this sense z_w is negative in the fourth quadrant, which matches the southern warp at 240 < l < 330 deg seen by Skowron et al. 2019. For R > 9 kpc Chen et al. also fit a linear law (R_w = 9.26 kpc, phi_w = 17.4 deg, a = 0.148). Skowron et al. 2019 fit a quadratic surface instead (z1 = 0.0152 per kpc, R_d = 8 kpc, line of nodes -28 deg) that reaches 0.74 kpc at R = 15 kpc. Label anchored at R = 15 kpc, phi = -72.5 deg (deepest point of the southern warp, about 15 kpc from the Sun towards l of about 284 deg), 0.84 kpc below the plane by the Chen et al. law."
+    },
+    {
+      "id": "flare",
+      "name": "Flare of the disc",
+      "aliases": ["Disc flaring"],
+      "type": "disc",
+      "noun": "Thickening of the outer disc",
+      "rank": 1,
+      "position": {
+        "kind": "galactocentric",
+        "rKpc": 15,
+        "betaDeg": 0,
+        "zPc": 0,
+        "evidence": { "source": "lopez2014", "quote": "h z , thin ( 15 kpc ) / h z , thin ( R ⊙ ) 3.3" }
+      },
+      "facts": [
+        {
+          "label": "Scale-height law (thin disc)",
+          "value": "h_z(R) = h_z(R⊙) [1 + k1 (R − R⊙) + k2 (R − R⊙)²]",
+          "evidence": {
+            "source": "lopez2014",
+            "quote": "h z , thin ( R ) = h z , thin ( R ⊙ ) ( 1 + ∑ i = 1 2 k i , thin ( R − R ⊙ ) i )"
+          }
+        },
+        {
+          "label": "R⊙ in the law",
+          "value": 8,
+          "unit": "kpc",
+          "evidence": {
+            "source": "lopez2014",
+            "quote": "The circle stands for R = 8 kpc and z = 0 (like the Sun position)"
+          }
+        },
+        {
+          "label": "Thin-disc scale height at R⊙, h_z(R⊙)",
+          "value": 0.24,
+          "unit": "kpc",
+          "evidence": { "source": "lopez2014", "quote": "h z , thin ( R ⊙ ) (kpc) 0.24 − 0.01 + 0.12" }
+        },
+        {
+          "label": "k1 (thin disc)",
+          "value": -0.037,
+          "unit": "kpc⁻¹",
+          "evidence": { "source": "lopez2014", "quote": "k 1 , thin (kpc -1 ) -0.037" }
+        },
+        {
+          "label": "k2 (thin disc)",
+          "value": 0.052,
+          "unit": "kpc⁻²",
+          "evidence": { "source": "lopez2014", "quote": "k 2 , thin (kpc -2 ) 0.052" }
+        },
+        {
+          "label": "Thin-disc scale height at 15 kpc / at R⊙",
+          "value": 3.3,
+          "evidence": { "source": "lopez2014", "quote": "h z , thin ( 15 kpc ) / h z , thin ( R ⊙ ) 3.3" }
+        },
+        {
+          "label": "Thin-disc scale height at 20 kpc / at R⊙",
+          "value": 8.1,
+          "evidence": { "source": "lopez2014", "quote": "h z , thin ( 20 kpc ) / h z , thin ( R ⊙ ) 8.1" }
+        },
+        {
+          "label": "Thick-disc scale height at R⊙",
+          "value": 0.71,
+          "unit": "kpc",
+          "evidence": { "source": "lopez2014", "quote": "h z , thick ( R ⊙ ) (kpc) 0.71" }
+        },
+        {
+          "label": "Radius where the thick disc starts to flare, R_ft",
+          "value": 6.9,
+          "unit": "kpc",
+          "evidence": { "source": "lopez2014", "quote": "R ft (kpc) 6.9" }
+        },
+        {
+          "label": "k1 (thick disc, R − R_ft)",
+          "value": 0.021,
+          "unit": "kpc⁻¹",
+          "evidence": { "source": "lopez2014", "quote": "k 1 , thick (kpc -1 ) 0.021" }
+        },
+        {
+          "label": "k2 (thick disc, R − R_ft)",
+          "value": 0.006,
+          "unit": "kpc⁻²",
+          "evidence": { "source": "lopez2014", "quote": "k 2 , thick (kpc -2 ) 0.006" }
+        },
+        {
+          "label": "Thin-disc scale height, R = 8 → 20 kpc (Gaia EDR3)",
+          "value": "0.26 → 0.77",
+          "unit": "kpc",
+          "evidence": {
+            "source": "chrobakova2022",
+            "quote": "The scale height of the thin disc rises from 0.26 ± 0.01 kpc in the solar neighbourhood ( R = 8 kpc) to 0.77 ± 0.08 kpc in the remote regions of the Galactic disc ( R = 20 kpc)"
+          }
+        },
+        {
+          "label": "Thick-disc scale height, R = 8 → 19 kpc (Gaia EDR3)",
+          "value": "0.75 → 3.35",
+          "unit": "kpc",
+          "evidence": {
+            "source": "chrobakova2022",
+            "quote": "the scale height increases from 0.75 ± 0.01 kpc in R = 8 kpc to reach 3.35 ± 0.50 kpc in R = 19 kpc"
+          }
+        }
+      ],
+      "description": "The stellar disc gets thicker with distance from the centre: from about 0.25 kpc at the Sun's radius the thin disc's scale height grows threefold by 15 kpc and about eightfold by 20 kpc. Law of López-Corredoira & Molgó 2014 (SDSS-SEGUE F8V-G5V stars, best fit 'all data, no metallicity gradient'): h_z(R) = 0.24 kpc [1 - 0.037 (R - 8) + 0.052 (R - 8)^2], R in kpc; the thick disc flares as 0.71 kpc [1 + 0.021 (R - 6.9) + 0.006 (R - 6.9)^2] beyond 6.9 kpc. Uncertainties of the flare terms are large but exclude no flare. Gaia EDR3 star counts (Chrobáková et al. 2022) give a similar thin-disc flare and a stronger thick-disc flare. Label anchored in the plane at R = 15 kpc towards the Galactic anticentre."
+    },
+    {
+      "id": "stellar-halo",
+      "name": "Stellar halo",
+      "aliases": ["Galactic halo"],
+      "type": "halo",
+      "noun": "Stellar halo",
+      "rank": 2,
+      "position": { "kind": "centre" },
+      "r": {
+        "value": 25000,
+        "evidence": { "source": "bhg2016", "quote": "r s 25 ± 10 kpc Break radius" }
+      },
+      "facts": [
+        {
+          "label": "Total stellar mass",
+          "value": 1400000000,
+          "unit": "M☉",
+          "evidence": {
+            "source": "deason2019",
+            "quote": "we estimate a stellar halo mass of M halo ⋆ = 1.4 ± 0.4 × 10 9 M ⊙"
+          }
+        },
+        {
+          "label": "Luminosity out to 100 kpc (without the Sagittarius stream)",
+          "value": 790000000,
+          "unit": "L☉",
+          "evidence": { "source": "deason2019", "quote": "L halo = 7.9 ± 2.0 × 10 8 L ⊙ excluding Sgr" }
+        },
+        {
+          "label": "Density profile adopted (Einasto)",
+          "value": "n = 1.7, Rₑ = 20 kpc, q = 0.6",
+          "evidence": {
+            "source": "deason2019",
+            "quote": "we adopt an Einasto profile when applying to the Gaia data, with n = 1.7 , R e = 20 kpc and minor-to-major axis ration q = 0.6"
+          }
+        },
+        {
+          "label": "Break radius of the density profile",
+          "value": 25,
+          "unit": "kpc",
+          "evidence": { "source": "bhg2016", "quote": "r s 25 ± 10 kpc Break radius" }
+        },
+        {
+          "label": "Density slope inside the break",
+          "value": -2.5,
+          "evidence": { "source": "bhg2016", "quote": "α in − 2.5 ± 0.3 Inner density slope" }
+        },
+        {
+          "label": "Density slope outside the break",
+          "value": "−3.7 to −5.0",
+          "evidence": { "source": "bhg2016", "quote": "α out − ( 3.7 − 5.0 ) Outer density slope" }
+        },
+        {
+          "label": "Flattening of the inner halo (c/a)",
+          "value": 0.65,
+          "evidence": { "source": "bhg2016", "quote": "q in 0.65 ± 0.05 Inner halo flattening" }
+        }
+      ],
+      "description": "A faint, roughly spheroidal cloud of old, metal-poor stars and globular clusters surrounding the disc, built largely from accreted dwarf galaxies; Deason et al. 2019 argue that its inner part is dominated by the debris of one massive dwarf galaxy accreted about 10 Gyr ago. Its density falls as about r^-2.5 inside the break radius and more steeply outside. Deason et al. 2019 (Gaia DR2 red giants, Kroupa mass-to-light ratio 1.5) find 1.4e9 Msun, larger than the 4-7e8 Msun quoted by Bland-Hawthorn & Gerhard 2016. Label at Sgr A*; r is the break radius."
+    },
+    {
+      "id": "milky-way",
+      "name": "Milky Way",
+      "aliases": ["The Galaxy"],
+      "type": "region",
+      "noun": "Our galaxy",
+      "rank": 3,
+      "position": { "kind": "centre" },
+      "facts": [
+        {
+          "label": "Total stellar mass",
+          "value": 50000000000,
+          "unit": "M☉",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "M ⋆ 5 ± 1 × 10 10 M ⊙ , total stellar mass of the Galaxy"
+          }
+        },
+        {
+          "label": "Total baryonic mass",
+          "value": 85000000000,
+          "unit": "M☉",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "M bary 8.5 ± 1.3 × 10 10 M ⊙ ; Galactic total baryonic mass"
+          }
+        },
+        {
+          "label": "Virial mass (with dark matter)",
+          "value": 1300000000000,
+          "unit": "M☉",
+          "evidence": { "source": "bhg2016", "quote": "M vir 1.3 ± 0.3 × 10 12 M ⊙ , Galactic virial mass" }
+        },
+        {
+          "label": "Sun's distance from the centre (Sgr A*)",
+          "value": 8178,
+          "unit": "pc",
+          "evidence": { "source": "gravity2019", "quote": "R 0 = 8178 ± 13 stat" }
+        },
+        {
+          "label": "Sun's height above the mid-plane",
+          "value": 20.8,
+          "unit": "pc",
+          "evidence": { "source": "bennett2019", "quote": "z ⊙ = 20.8 ± 0.3 pc" }
+        },
+        {
+          "label": "Circular rotation speed at the Sun",
+          "value": 238,
+          "unit": "km/s",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "Θ 0 238 ± 15 km s − 1 , circular rotation velocity at the Sun"
+          }
+        },
+        {
+          "label": "Star formation rate",
+          "value": 1.65,
+          "unit": "M☉/yr",
+          "evidence": {
+            "source": "bhg2016",
+            "quote": "m ˙ ⋆ 1.65 ± 0.19 M ⊙ yr -1 ; Galaxy total star formation rate"
+          }
+        }
+      ],
+      "description": "Our galaxy, a barred spiral with a central boxy/peanut bulge, a thin and a thick stellar disc, four major spiral arms plus the Local Arm, and a faint stellar halo, all embedded in a much more massive dark-matter halo. The Sun's distance comes from the orbit of the star S2 around Sgr A* (GRAVITY Collaboration 2019, statistical error 13 pc, systematic 22 pc); its height above the mid-plane from Gaia DR2 star counts (Bennett & Bovy 2019). Label at Sgr A*."
+    }
+  ]
+}

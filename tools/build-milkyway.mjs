@@ -1,15 +1,24 @@
 #!/usr/bin/env node
 /**
- * build-milkyway (P4-A): Celestia globulars.dsc (Baumgardt et al. 2023 parameters) ->
- * public/data/milkyway/globulars.json. Deterministic and re-runnable.
+ * build-milkyway: (1) Celestia globulars.dsc (Baumgardt et al. 2023 parameters) ->
+ * public/data/milkyway/globulars.json; (2) the Milky Way atlas: every tools/milkyway/layers/*.mjs
+ * and tools/milkyway/features/*.mjs writes its file under public/data/milkyway/atlas/ (schema and
+ * evidence rule in tools/milkyway/lib.mjs), then the fetched sources are merged into
+ * assets/manifest/milkyway.json. Deterministic and re-runnable.
+ *
+ *   node tools/build-milkyway.mjs                 # everything
+ *   node tools/build-milkyway.mjs cepheids        # only the named layers or feature groups
+ *   node tools/build-milkyway.mjs --update-sources  # accept changed upstream files
  *
  * Row: [name, aliases[], raDeg, decDeg, distPc, rcPc, rtPc, absMagV]. Celestia keys: RA in hours,
  * Dec in degrees, Distance and Radius (tidal radius) in light years, CoreRadius in arcminutes.
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PUBLIC } from './lib/fetch.mjs';
-import { ensureModuleAssets } from './lib/manifest.mjs';
+import { pathToFileURL } from 'node:url';
+import { PUBLIC, ROOT } from './lib/fetch.mjs';
+import { ensureModuleAssets, readManifest, writeManifest } from './lib/manifest.mjs';
+import { allSources } from './milkyway/lib.mjs';
 
 const LY_PER_PC = 3.261563777167433;
 const ARCMIN = Math.PI / (180 * 60);
@@ -37,6 +46,7 @@ export function parseGlobulars(text) {
   return rows;
 }
 
+const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const paths = await ensureModuleAssets('milkyway');
 const rows = parseGlobulars(readFileSync(paths.get('celestia_globulars'), 'utf8'));
 const out = join(PUBLIC, 'data', 'milkyway');
@@ -51,3 +61,45 @@ writeFileSync(
   }) + '\n',
 );
 console.log(`build-milkyway: ${rows.length} globular clusters -> public/data/milkyway/globulars.json`);
+
+// ---------------------------------------------------------------------------------------
+// Atlas layers and features
+// ---------------------------------------------------------------------------------------
+for (const dir of ['layers', 'features']) {
+  const abs = join(ROOT, 'tools', 'milkyway', dir);
+  if (!existsSync(abs)) continue;
+  for (const f of readdirSync(abs).filter((n) => n.endsWith('.mjs')).sort()) {
+    if (only.length && !only.includes(f.replace(/\.mjs$/, ''))) continue;
+    console.log(`build-milkyway: ${dir}/${f}`);
+    const mod = await import(pathToFileURL(join(abs, f)).href);
+    await mod.default();
+  }
+}
+
+// Sources fetched by the atlas build become reference entries of the manifest (credits, licences).
+// The per-file record with every URL and sha256 stays in tools/milkyway/sources/<group>.json; the
+// manifest gets one entry per citation (a stream library is 141 files with one credit line).
+const byCite = new Map();
+for (const s of allSources()) {
+  const key = `${s.cite}|${s.license}`;
+  const e = byCite.get(key) ?? {
+    id: s.id,
+    atlas: true,
+    license: s.license,
+    attribution: s.attribution,
+    note: `Source: ${s.url}`,
+    files: 0,
+    bytes: 0,
+    outputs: [],
+  };
+  e.files++;
+  e.bytes += s.bytes;
+  for (const o of s.outputs ?? []) if (!e.outputs.includes(o)) e.outputs.push(o);
+  byCite.set(key, e);
+}
+const manifest = readManifest('milkyway');
+const kept = manifest.assets.filter((a) => !a.atlas);
+const atlas = [...byCite.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
+const next = { ...manifest, assets: [...kept, ...atlas] };
+if (JSON.stringify(next) !== JSON.stringify(manifest)) await writeManifest(next);
+console.log(`build-milkyway: ${allSources().length} fetched files, ${atlas.length} atlas credits in assets/manifest/milkyway.json`);

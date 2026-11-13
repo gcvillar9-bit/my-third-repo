@@ -57,6 +57,8 @@ export interface GalaxyLayer extends Renderable {
    * impostor instances; their points still crossfade as usual. Null: none.
    */
   skip: ((view: ViewState) => Uint8Array) | null;
+  /** Permanently hides the rows for which `pred` is true (drawn by another module). Returns the count. */
+  hide(pred: (x: number, y: number, z: number, row: number) => boolean): number;
 }
 
 const v3 = (c: [number, number, number]) => new Vector3(c[0], c[1], c[2]);
@@ -96,6 +98,7 @@ export function createGalaxyLayer(data: GalaxyData, atlas: MorphAtlas): GalaxyLa
   });
   const points = new Points(pg, pointMat);
   points.frustumCulled = false;
+  const hidden = new Uint8Array(n);
 
   // Impostors: one instanced quad per galaxy, culled in the vertex shader.
   const ig = new InstancedBufferGeometry();
@@ -165,6 +168,18 @@ export function createGalaxyLayer(data: GalaxyData, atlas: MorphAtlas): GalaxyLa
     object: group,
     visible: true,
     skip: null,
+    hide(pred) {
+      const mag = pg.getAttribute('absMag');
+      let count = 0;
+      for (let i = 0; i < n; i++) {
+        if (hidden[i] || !pred(data.pos[3 * i], data.pos[3 * i + 1], data.pos[3 * i + 2], i)) continue;
+        hidden[i] = 1;
+        mag.setX(i, 99); // far below the point shader's cull threshold
+        count++;
+      }
+      if (count) mag.needsUpdate = true;
+      return count;
+    },
     update(view) {
       group.visible = self.visible;
       if (!self.visible) return;
@@ -202,7 +217,7 @@ export function createGalaxyLayer(data: GalaxyData, atlas: MorphAtlas): GalaxyLa
         const dz = P[3 * i + 2] - cam.z;
         const d2 = dx * dx + dy * dy + dz * dz;
         if (R * R < pa2 * d2 || d2 < 0.36 * R * R) continue;
-        if (skipMask && skipMask[i]) continue;
+        if (hidden[i] || (skipMask && skipMask[i])) continue;
         if (panoOff) {
           const sx = P[3 * i] - sunPos.x;
           const sy = P[3 * i + 1] - sunPos.y;

@@ -152,11 +152,12 @@ export function createSStars(d: SStarDeps): Renderable[] {
   const maxApo = Math.max(...d.orbits.map(apoapsis));
   for (let i = 0; i < n; i++) {
     const s2 = d.orbits[i].row.id === 's2';
+    const w = d.orbits[i].row.orbitWeight ?? 1;
     for (let k = 0; k < ORBIT_SEGMENTS * 2; k++) {
       const o = (i * ORBIT_SEGMENTS * 2 + k) * 3;
-      lcol[o] = s2 ? 1.0 : ORBIT_TINT[0];
-      lcol[o + 1] = s2 ? 0.75 : ORBIT_TINT[1];
-      lcol[o + 2] = s2 ? 0.35 : ORBIT_TINT[2];
+      lcol[o] = (s2 ? 1.0 : ORBIT_TINT[0]) * w;
+      lcol[o + 1] = (s2 ? 0.75 : ORBIT_TINT[1]) * w;
+      lcol[o + 2] = (s2 ? 0.35 : ORBIT_TINT[2]) * w;
     }
   }
   const orbitLines: Renderable = {

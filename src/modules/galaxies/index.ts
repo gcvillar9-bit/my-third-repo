@@ -10,6 +10,7 @@ import { bakeMorphAtlas } from './morph';
 import { createNamedInfo, createNamedLabels, createNamedSearch, galaxyBookmarks } from './named';
 import type { PortraitLayer } from './portrait';
 import { portraitBookmarks } from './portrait-bookmarks';
+import { attachGalaxyHider } from './hidden';
 import { createGalaxyLayer, type GalaxyLayer } from './renderables';
 
 export const GALAXIES_BIN = 'data/galaxies/galaxies.bin';
@@ -36,6 +37,7 @@ const galaxiesModule: UniverseModule = {
           layer = galaxyLayer;
           galaxyLayer.visible = on;
           registry.addRenderable(galaxyLayer);
+          attachGalaxyHider((pred) => void galaxyLayer.hide(pred));
           // Portrait engine, looks.json and gallery-facts.json: off the startup path.
           const { createPortraitLayer, galleryPortraitEntries } = await import('./portrait');
           const p = createPortraitLayer(data, galleryPortraitEntries(), quality);

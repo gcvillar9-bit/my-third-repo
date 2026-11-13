@@ -22,6 +22,12 @@ Cross-module API: `public.ts` (ids, `B_CRIT`, `PHOTON_SPHERE`, `R_ISCO`, `deflec
   Sgr A\*, published period, `a` from Kepler with the catalogue mass, `ω(t) = ω0 + Δω (t - tp)/P` with
   `Δω = 3π r_s / (a(1 - e²))` (S2: 12.2′ per orbit, period 16.05 yr, pericentre 2018.379 at 120 AU).
 
+The catalogue holds 41 S-stars: the 9 hand-entered rows and 32 orbits of Gillessen et al. 2017 (ApJ 837, 30,
+Table 3) added by `tools/milkyway/extras/sstars.mjs` (elements and K magnitude from the table; `absMagV` and
+`teffK` are scaled from S2 and marked approximate; the unbound S111 is left out). The optional row field
+`orbitWeight` (0 to 1, default 1) scales the brightness of a star's orbit line: the added stars have 0.25
+(periods up to 60 years) or 0 (longer orbits, no line), so the original nine orbits stay readable.
+
 ## Lensing pass (`lensing.ts`, stage `lensing`)
 
 - Each frame `active()` picks the hole with the largest footprint (shadow, Einstein angle `sqrt(2/D)`, or the
