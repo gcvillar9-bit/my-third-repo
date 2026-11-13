@@ -19,6 +19,7 @@ export interface ClassStyle {
   markerFar: number;
   labelFar: [number, number, number, number];
   labelNear: number;
+  lineGain: number;
 }
 
 const DEFAULT = raw.default as ClassStyle;

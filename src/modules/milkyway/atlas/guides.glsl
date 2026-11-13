@@ -45,13 +45,13 @@ void main() {
 }
 #endif
 #ifdef GUIDE_LINE
-attribute float flat;          // 1 for lines that lie in the Galactic plane (arms)
+attribute float inPlane;         // 1 for lines that lie in the Galactic plane (arms)
 uniform float uPlaneFade;      // 0 when the camera looks along the Galactic plane, 1 from above
 void main() {
   vec3 rel = rteRelative(position);
   float d = max(length(rel), 1e-6);
   // Lines in the plane pile up into one bright streak when seen edge-on: fade them out there.
-  float a = uGuide * uGroup[int(group)] * mix(1.0, uPlaneFade, flat);
+  float a = uGuide * uGroup[int(group)] * mix(1.0, uPlaneFade, inPlane);
   gl_Position = projectionMatrix * vec4((modelViewMatrix * vec4(rel / d, 0.0)).xyz, 1.0);
   vColor = vec4(color, a);
 }

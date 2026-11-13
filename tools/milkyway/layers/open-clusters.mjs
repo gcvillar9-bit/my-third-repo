@@ -328,6 +328,16 @@ export default async function build() {
       0, // nStars
     ]);
   }
+  // An alias that is the display name of another cluster points at the wrong object (the catalogue
+  // lists 'Hyades' among the names of CWNU 1242, a different group at 290 pc): drop such aliases.
+  const displayNames = new Set(rows.map((r) => r[1]));
+  let crossAliases = 0;
+  for (const r of rows) {
+    const keep = r[2].filter((a) => !displayNames.has(a) || a === r[1]);
+    crossAliases += r[2].length - keep.length;
+    r[2] = keep;
+  }
+  console.log(`  aliases removed because they name another cluster: ${crossAliases}`);
   const COL = { gMag: 19, rMem: 20, nStars: 21 };
 
   // 2. Members ------------------------------------------------------------------------------

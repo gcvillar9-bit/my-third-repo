@@ -28,7 +28,7 @@ export function atlasBookmarks(): Bookmark[] {
   const origin = vec3(0, 0, 0);
   const north = vec3(0, 0, 1);
   const bubbles = vec3(0, 75 * KPC, 2 * KPC);
-  const halo = vec3(-150 * KPC, -170 * KPC, 140 * KPC);
+  const halo = vec3(-75 * KPC, -85 * KPC, 70 * KPC);
   const centre = vec3(-0.55 * KPC, 0.12 * KPC, 0.16 * KPC);
   const sunMw = vec3(SSB_IN_MW.x, SSB_IN_MW.y, SSB_IN_MW.z);
   // Radcliffe Wave: seen side-on from outside the solar circle, 3.5 kpc towards the anticentre.
@@ -63,10 +63,10 @@ export function atlasBookmarks(): Bookmark[] {
       frame: MW_FRAME,
       pos: halo,
       quat: qlookRotation(quat(), towards(halo, origin), north),
-      fovY: 50 * DEG,
+      fovY: 55 * DEG,
       ev: -10.5,
       lookTarget:
-        'The Milky Way from 270 kpc: the small bright disc at the centre, thin coloured lines of stellar streams looping around it, labelled satellite galaxies as faint star clouds, and the pink line of the Magellanic Stream trailing from the two Magellanic Clouds.',
+        'The Milky Way from 130 kpc: the bright disc at the centre, thin coloured lines of stellar streams looping around it, labelled satellite galaxies as faint star clouds, and the pink line of the Magellanic Stream trailing from the two Magellanic Clouds.',
     },
     {
       id: 'mw-radcliffe-wave',
@@ -86,7 +86,7 @@ export function atlasBookmarks(): Bookmark[] {
       pos: centre,
       quat: qlookRotation(quat(), towards(centre, origin), north),
       fovY: 40 * DEG,
-      ev: -3.5,
+      ev: -2.5,
       lookTarget:
         'The central 600 pc of the Galaxy with the guides on: the nuclear star cluster as a compact glow at the centre around Sagittarius A*, the Arches and Quintuplet clusters beside it, and labelled markers of the molecular clouds of the Central Molecular Zone.',
     },
@@ -108,7 +108,7 @@ export function atlasBookmarks(): Bookmark[] {
       pos: scaled(pleiades, (PLEIADES.distPc - 14) * PC),
       quat: qlookRotation(quat(), pleiades, vec3(0, 0, 1)),
       fovY: 40 * DEG,
-      ev: -4.5,
+      ev: -5.5,
       lookTarget:
         'The Pleiades open cluster from 14 pc: a few very bright blue-white stars with halos among dozens of fainter real member stars from Gaia, with the cluster label.',
     },

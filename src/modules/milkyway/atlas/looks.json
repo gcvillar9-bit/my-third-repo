@@ -1,5 +1,5 @@
 {
-  "description": "Simulated styling of the Milky Way atlas, chosen by eye. Nothing here is measured. Per style class (a catalogue layer id or a feature type): `group` = the settings switch that hides it; `color` = display colour of its guide marker, line and label; `marker` = guide symbol (none, dot, ring, cross, diamond, square); `markerPx` = smallest symbol radius in pixels; `markerFar` = camera distance (pc) beyond which the symbol is hidden; `labelFar` = camera distance (pc) beyond which the label is hidden, for rank 0, 1, 2, 3; Colours are linear light, so they are more saturated than they look on screen. `labelNear` = the label is hidden when the camera is closer than this many radii. `populations` = how a star population of the Galactic centre becomes light, per feature type: `lightPerMass` (V-band solar luminosities per solar mass: an old population for the nuclear star cluster, a young one a few million years old for the Arches and Quintuplet), `teff` (colour temperature) and `ellipticity` (flattening on the sky). A class key of the form `<file>/<type>` (for example `features-centre/disc`) styles that feature type only in that file. `standInRadiusPc` in `populations` is a simulated half-light radius used when no measured radius exists (the Arches and Quintuplet clusters). `labelAnchors` = where the label of a large structure sits, in model coordinates (kpc from Sgr A*: x away from the Sun, y towards l = 90 deg, z towards the north Galactic pole), so that labels of structures centred on Sgr A* do not pile up there. `armLabelBeta` = Galactocentric azimuth (degrees) at which each arm is labelled.",
+  "description": "Simulated styling of the Milky Way atlas, chosen by eye. Nothing here is measured. Per style class (a catalogue layer id or a feature type): `group` = the settings switch that hides it; `color` = display colour of its guide marker, line and label; `marker` = guide symbol (none, dot, ring, cross, diamond, square); `markerPx` = smallest symbol radius in pixels; `markerFar` = camera distance (pc) beyond which the symbol is hidden; `labelFar` = camera distance (pc) beyond which the label is hidden, for rank 0, 1, 2, 3; Colours are linear light, so they are more saturated than they look on screen. `labelNear` = the label is hidden when the camera is closer than this many radii. `populations` = how a star population of the Galactic centre becomes light, per feature type: `lightPerMass` (V-band solar luminosities per solar mass: an old population for the nuclear star cluster, a young one a few million years old for the Arches and Quintuplet), `teff` (colour temperature) and `ellipticity` (flattening on the sky). A class key of the form `<file>/<type>` (for example `features-centre/disc`) styles that feature type only in that file. `standInRadiusPc` in `populations` is a simulated half-light radius used when no measured radius exists (the Arches and Quintuplet clusters). `labelAnchors` = where the label of a large structure sits, in model coordinates (kpc from Sgr A*: x away from the Sun, y towards l = 90 deg, z towards the north Galactic pole), so that labels of structures centred on Sgr A* do not pile up there. `armLabelBeta` = Galactocentric azimuth (degrees) at which each arm is labelled. `lineGain` = brightness multiplier of a class's guide lines.",
   "default": {
     "group": "structure",
     "color": [0.75, 0.8, 0.9],
@@ -7,7 +7,8 @@
     "markerPx": 3,
     "markerFar": 0,
     "labelFar": [1000, 3000, 10000, 30000],
-    "labelNear": 0
+    "labelNear": 0,
+    "lineGain": 1
   },
   "classes": {
     "arm": {
@@ -161,7 +162,8 @@
     "gas-stream": {
       "group": "halo",
       "color": [1.0, 0.2, 0.6],
-      "labelFar": [100000, 200000, 400000, 600000]
+      "labelFar": [100000, 200000, 400000, 600000],
+      "lineGain": 1.4
     },
     "shell": {
       "group": "gas",
@@ -172,12 +174,14 @@
     "wave": {
       "group": "gas",
       "color": [1.0, 0.4, 0.1],
-      "labelFar": [2000, 5000, 10000, 15000]
+      "labelFar": [2000, 5000, 10000, 15000],
+      "lineGain": 2.2
     },
     "spur": {
       "group": "gas",
       "color": [1.0, 0.55, 0.2],
-      "labelFar": [2000, 5000, 10000, 15000]
+      "labelFar": [2000, 5000, 10000, 15000],
+      "lineGain": 1.6
     },
     "features-centre/disc": {
       "group": "structure",

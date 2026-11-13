@@ -82,6 +82,11 @@ const milkywayModule: UniverseModule = {
         persist: true,
         onChange: (v) => void (atlasState.groups[id] = v === true),
       });
+    // URL overrides for deep links and tests: ?milkyway.guides.<group>=0|1.
+    for (const [id] of GUIDE_GROUPS) {
+      const v = ctx.env.params.get(`milkyway.guides.${id}`);
+      if (v !== null) ui.settings.set(`milkyway.guides.${id}`, v !== '0' && v !== 'false');
+    }
     registry.addSetting({
       id: 'milkyway.atlasLight',
       label: 'Stars of clusters, Cepheids and satellite galaxies',

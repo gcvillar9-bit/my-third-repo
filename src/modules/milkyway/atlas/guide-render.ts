@@ -177,7 +177,8 @@ export function createLines(atlas: Atlas, state: AtlasState): Renderable | null 
     const s = styleOf(o.cls, o.file);
     pos.push(a[0], a[1], a[2], b[0], b[1], b[2]);
     for (let k = 0; k < 2; k++) {
-      col.push(s.color[0] * dim, s.color[1] * dim, s.color[2] * dim);
+      const g = dim * s.lineGain;
+      col.push(s.color[0] * g, s.color[1] * g, s.color[2] * g);
       grp.push(groupIndex(s.group));
       flat.push(inPlane);
     }
@@ -208,7 +209,7 @@ export function createLines(atlas: Atlas, state: AtlasState): Renderable | null 
   geometry.setAttribute('position', new Float32BufferAttribute(pos, 3));
   geometry.setAttribute('color', new Float32BufferAttribute(col, 3));
   geometry.setAttribute('group', new Float32BufferAttribute(grp, 1));
-  geometry.setAttribute('flat', new Float32BufferAttribute(flat, 1));
+  geometry.setAttribute('inPlane', new Float32BufferAttribute(flat, 1));
   const { material, uniforms } = guideMaterial('GUIDE_LINE');
   return guideRenderable(
     'milkyway.atlas.lines',

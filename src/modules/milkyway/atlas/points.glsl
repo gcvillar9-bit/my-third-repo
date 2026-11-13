@@ -22,6 +22,7 @@ uniform vec3 uSunModel;     // Sun, model kpc
 uniform mat3 uWorldToModel;
 #define CORE_SIGMA 0.65
 #define MIN_PEAK 2.0e-4
+#define MIN_BLOB_PEAK 2.0e-5  // clumps overlap, so their summed glow shows below the star threshold
 #define HALO_K 0.012
 #define HALO_FLOOR 0.002
 #define MAX_RADIUS 48.0
@@ -63,7 +64,7 @@ void main() {
   float sigma = CORE_SIGMA;
   if (blob > 0.0) sigma = length(vec2(CORE_SIGMA, blob / (d * uPixelAngle)));
   float peak = i1 / (6.2831853 * sigma * sigma);
-  if (peak < MIN_PEAK) {
+  if (peak < (blob > 0.0 ? MIN_BLOB_PEAK : MIN_PEAK)) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     gl_PointSize = 0.0;
     vColor = vec3(0.0);
