@@ -9,6 +9,30 @@
       "outputs": ["data/milkyway/globulars.json"],
       "sha256": "0d9a49ace9c3e21c360b63ff8c79726cc7ab53860875c97fc49f0c6c9b09c244",
       "bytes": 51790
+    },
+    {
+      "id": "skowron_2019_cepheids",
+      "atlas": true,
+      "sourceUrl": "https://doi.org/10.1126/science.aau3181",
+      "fetchUrl": "https://ftp.astrouw.edu.pl/ogle/ogle4/MILKY_WAY_3D_MAP/Skowron2019_GalClassCephDist.dat",
+      "license": "cited (no explicit licence)",
+      "attribution": "OGLE project (Skowron, D. M. et al. 2019), Warsaw University Observatory",
+      "cite": "Skowron et al. 2019, Science 365, 478 (OGLE Collection of Galactic Cepheids)",
+      "outputs": ["data/milkyway/atlas/cepheids.json"],
+      "sha256": "d5a9890d5d7f922cd7c6f58fb3d9bf95254a81535ccbb49c5817041830ad39dc",
+      "bytes": 609589
+    },
+    {
+      "id": "benedict_2007",
+      "atlas": true,
+      "sourceUrl": "https://arxiv.org/abs/astro-ph/0612465",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/0612465",
+      "license": "cited (no explicit licence)",
+      "attribution": "Benedict et al. 2007, AJ 133, 1810",
+      "cite": "Benedict et al. 2007, AJ 133, 1810",
+      "outputs": [],
+      "sha256": "6b861788e114b3d91f1d42495eb977b1dffefd2c39eb52206f2be4f17a833d4f",
+      "bytes": 422544
     }
   ]
 }

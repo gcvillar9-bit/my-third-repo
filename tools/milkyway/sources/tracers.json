@@ -1,0 +1,29 @@
+{
+  "group": "tracers",
+  "sources": [
+    {
+      "id": "skowron_2019_cepheids",
+      "cite": "Skowron et al. 2019, Science 365, 478 (OGLE Collection of Galactic Cepheids)",
+      "url": "https://doi.org/10.1126/science.aau3181",
+      "fetchUrl": "https://ftp.astrouw.edu.pl/ogle/ogle4/MILKY_WAY_3D_MAP/Skowron2019_GalClassCephDist.dat",
+      "license": "cited (no explicit licence)",
+      "attribution": "OGLE project (Skowron, D. M. et al. 2019), Warsaw University Observatory",
+      "sha256": "d5a9890d5d7f922cd7c6f58fb3d9bf95254a81535ccbb49c5817041830ad39dc",
+      "bytes": 609589,
+      "outputs": [
+        "data/milkyway/atlas/cepheids.json"
+      ]
+    },
+    {
+      "id": "benedict_2007",
+      "cite": "Benedict et al. 2007, AJ 133, 1810",
+      "url": "https://arxiv.org/abs/astro-ph/0612465",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/astro-ph/0612465",
+      "license": "cited (no explicit licence)",
+      "attribution": "Benedict et al. 2007, AJ 133, 1810",
+      "sha256": "6b861788e114b3d91f1d42495eb977b1dffefd2c39eb52206f2be4f17a833d4f",
+      "bytes": 422544,
+      "outputs": []
+    }
+  ]
+}
