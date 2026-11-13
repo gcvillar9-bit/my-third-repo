@@ -66,7 +66,12 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
 - 3D constellation lines that break apart as you travel; nearby stars become real suns up close; double stars
   (Alpha Centauri, Sirius) and more than 5,000 known exoplanets with habitable zones.
 - The Milky Way: the night-sky band from Earth, and from outside a barred spiral built on the measured arms, bar,
-  discs and dust, with 194 globular clusters.
+  discs, warp and dust, with 194 globular clusters.
+- An atlas of the Galaxy: about 16,500 real, named structures at their measured places, each with a sourced info
+  card. Open clusters with 374,000 real member stars from Gaia, Cepheids, star-forming regions, gas clouds,
+  supernova remnants, pulsars, the Galactic centre, the Fermi and eROSITA bubbles, 141 stellar streams, satellite
+  galaxies, the Magellanic Stream, the Local Bubble and the Radcliffe Wave. Names and outlines appear when you
+  leave the Sun's neighbourhood (Shift+B switches them on or off anywhere).
 - The Orion Nebula in 3D: a calibrated photograph turned into a glowing bowl you can fly into, with M43, the
   Trapezium at its true distance and an Astrophoto style.
 
