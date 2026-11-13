@@ -5,8 +5,8 @@ Every third-party file the build uses, with its licence. The per-file record, wi
 from those manifests (`pnpm credits`). Downloads: `pnpm assets:fetch`, which runs curl into `.cache/raw/` and checks
 sha256. Builds: `pnpm assets:build`. Formats: `docs/modules/data-formats.md`.
 
-Only `raw.githubusercontent.com`, `media.githubusercontent.com` (needed for Git LFS files) and `registry.npmjs.org`
-are reachable from the build container.
+The first build containers reached only `raw.githubusercontent.com`, `media.githubusercontent.com` (needed for Git
+LFS files) and `registry.npmjs.org`; later sessions had open network access (see the hosts named per section).
 
 ## Phase 1 (P1-B)
 
@@ -99,3 +99,37 @@ caches the raw responses (host: paleobiodb.org).
 - Pluto's texture is non-commercial (CC BY-NC-SA 3.0). For commercial use, replace it with a procedural Pluto
   (DESIGN 4.4).
 - Credits must be shown in-app. P1-D's UI reads `public/credits.json`.
+
+## Milky Way atlas (milkyway)
+
+Fetched and verified by `tools/build-milkyway.mjs` itself (not by `pnpm assets:fetch`): every file is recorded with
+its URL, licence and sha256 in `tools/milkyway/sources/<group>.json`, and credited once per citation in
+`assets/manifest/milkyway.json`. Hosts: vizier.cfa.harvard.edu (the CDS mirror that answers), simbad.cfa.harvard.edu,
+raw.githubusercontent.com, dataverse.harvard.edu, ftp.astrouw.edu.pl, www.atnf.csiro.au, ar5iv.labs.arxiv.org and
+arxiv.org. "Cited" below means: free to use with citation, no explicit open licence stated (the project owner
+accepted these sources with credit); the values are measured facts and each info card names its source.
+
+| Source                                                                                                                                                           | Licence                                                  | Used for (`public/data/milkyway/atlas/`)              |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------- |
+| Hunt & Reffert 2023 (A&A 673, A114) and 2024 (A&A 686, A42), VizieR tables `clusters` and `members`                                                              | CC BY 4.0                                                | `open-clusters.json`, `cluster-stars.bin`             |
+| OpenNGC (M. Verga), `NGC.csv`, `addendum.csv`, pinned commit                                                                                                     | CC BY-SA 4.0                                             | cluster names and Messier numbers                     |
+| Skowron et al. 2019 (Science 365, 478), OGLE `Skowron2019_GalClassCephDist.dat`                                                                                  | Cited                                                    | `cepheids.json`                                       |
+| Reid et al. 2019 (ApJ 885, 131), VizieR Table 1 and the paper's Table 2                                                                                          | Cited                                                    | `masers.json`, arm shapes                             |
+| Hou & Han 2014 (A&A 569, A125), VizieR Table A.1                                                                                                                 | Cited                                                    | `hii-regions.json`                                    |
+| Zucker et al. 2020 (A&A 633, A51)                                                                                                                                | CC0 1.0 (Harvard Dataverse)                              | `clouds.json`                                         |
+| Green 2025, Catalogue of Galactic Supernova Remnants (2024 October version, VizieR VII/297)                                                                      | Cited (copyright D. A. Green; asks for citation)         | `remnants.json`                                       |
+| Ranasinghe & Leahy 2022 (ApJ 940, 63), VizieR Table 1                                                                                                            | Cited                                                    | remnant distances                                     |
+| ATNF Pulsar Catalogue 2.9.0 (Manchester et al. 2005, AJ 129, 1993)                                                                                               | Cited (database of ATNF/CSIRO; asks for acknowledgement) | `pulsars.json`                                        |
+| Local Volume Database (Pace 2024), `dwarf_mw.csv`, pinned commit                                                                                                 | CC0 1.0                                                  | `satellites.json`                                     |
+| galstreams (Mateu 2023, MNRAS 520, 5225), 141 track files, pinned commit                                                                                         | BSD-3-Clause                                             | `features-streams.json`                               |
+| Gagné et al. 2018 (ApJ 856, 23), tables parsed from the paper                                                                                                    | Cited                                                    | `associations.json`                                   |
+| Pelgrims et al. 2020 Local Bubble shell map; Alves et al. 2020 Radcliffe Wave model (Harvard Dataverse)                                                          | CC0 1.0                                                  | `features-local.json`                                 |
+| Gillessen et al. 2017 (ApJ 837, 30), VizieR Table 3                                                                                                              | Cited                                                    | 32 S-star rows in `data/blackholes/blackholes.json`   |
+| About 45 papers read as fetched text (arXiv, ar5iv) and SIMBAD positions; each hand-entered value carries a quote that the build checks against the fetched page | Cited (four are CC BY 4.0)                               | `features-*.json`, warp and flare of the galaxy model |
+
+Left out for lack of fetched evidence or as implausible (build log): 124 remnants without a distance and 5 with an
+uncertainty above half the distance, 97 pulsars without and 8 with an implausible distance, 9 masers with a poor
+parallax, 68 clusters outside 20 pc to 20 kpc, 121 globular clusters of the open-cluster catalogue (drawn from the
+Baumgardt list), the Split and the Cepheus spur (no end points), the Orion-Eridanus superbubble (size depends on the
+model). The Edenhofer et al. 2024 and Vergely et al. 2022 3D dust maps and a larger Gaia star catalogue are planned
+for later phases.

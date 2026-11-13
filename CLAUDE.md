@@ -42,13 +42,16 @@ Static browser app (three.js WebGL2, Vite, TypeScript) for flying through a real
 - Flow: `await __universe.ready()`, then `renderFrames(4)`, then screenshot to `artifacts/<module>/<bookmark>.png`. rAF is off in test mode.
 - Assert semantic pixel probes (`probe`), `errors()` empty and `stats()` budgets. Never golden images.
 - At most 4 bookmarks per spec, 120 s per test. Read at most 6 screenshots per package.
-- Run only through `pnpm e2e` (flock on `/tmp/universe-pw.lock`) with your `E2E_PORT`. Never run `playwright install` locally: browsers are in `/opt/pw-browsers` (SwiftShader). If the installed build is not the one this Playwright expects (chromium-1194), point `E2E_CHROMIUM` at the installed `chrome-headless-shell` binary.
+- Run only through `pnpm e2e` (flock on `/tmp/universe-pw.lock`) with your `E2E_PORT`. The smoke set is `pnpm e2e --grep @smoke` (no extra `--` before the filter, or Playwright finds no tests). Never run `playwright install` locally: browsers are in `/opt/pw-browsers` (SwiftShader). If the installed build is not the one this Playwright expects (chromium-1194), point `E2E_CHROMIUM` at the installed `chrome-headless-shell` binary.
 - `tests/e2e/sweep.spec.ts` renders every bookmark and checks for errors (about ninety views, not in the smoke run): run it before a release.
 - Default server is `vite build` + `vite preview`; set `E2E_SERVER=dev` locally for the dev server. CI runs every `@smoke`-tagged test.
 
 ## Network
 
-Only registry.npmjs.org, raw.githubusercontent.com and media.githubusercontent.com are reachable. Download with `curl`, because Node `fetch` ignores the proxy.
+Network access depends on the environment's policy. Recent cloud sessions had open access; the first build containers
+reached only registry.npmjs.org, raw.githubusercontent.com and media.githubusercontent.com. Download with `curl`,
+because Node `fetch` ignores the proxy. VizieR and SIMBAD answer only through the CfA mirrors
+(vizier.cfa.harvard.edu, simbad.cfa.harvard.edu).
 
 ## Git
 

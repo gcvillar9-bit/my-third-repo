@@ -121,6 +121,13 @@ Total 16 + 27N bytes. float32 Mpc is good to ~0.06 pc at 1 Mpc and ~40 pc at 660
   `virgo-cluster` (M87 from 5 Mpc on our side, fovY 50°, EV −15).
 - Setting `galaxies.enabled` (group Sky).
 
+## Rows drawn by another module
+
+`public.ts` exports `hideGalaxies(pred)`: a catalogue row for which the predicate is true gets neither a point nor
+an impostor (requests made before the catalogue loads are applied on load). The milkyway module uses it for the
+dwarf satellites of the Milky Way that its atlas draws as star clouds (Fornax, Sculptor, Draco, Carina, Sextans,
+Leo I, Leo II, Ursa Minor, Sagittarius); the Magellanic Clouds stay portraits here.
+
 ## Gaps
 
 - Search covers only the 54 gallery galaxies; `names.json` is shipped for a catalogue-wide query (NGC/IC numbers).
