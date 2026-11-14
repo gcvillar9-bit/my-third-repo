@@ -17,7 +17,9 @@ void mwSample(vec3 p, out vec3 j, out float kappa) {
   float hr = R / MW_HOLE_R;
   float hole = 1.0 - MW_HOLE_DEPTH * exp(-hr * hr);
   float thin = MW_THIN_J0 * exp(-(R - MW_R0) / MW_THIN_HR - az / (MW_THIN_HZ * ft)) / ft * hole * (1.0 + MW_OLD_CONTRAST * f.y);
+  // MW_THICK_NORM: thick/thin ratio of the mid-plane density at the Sun (not of the surface density).
   float thick = MW_THIN_J0 * MW_THICK_NORM * exp(-(R - MW_R0) / MW_THICK_HR - az / (MW_THICK_HZ * fk)) / fk;
+  // One bar frame (bar.angleDeg) for the bulge and the long bar; bulge axes MW_BULGE_X0 : Y0 : Z0.
   float xb = -p.x * MW_BAR_C + p.y * MW_BAR_S;
   float yb = p.x * MW_BAR_S + p.y * MW_BAR_C;
   float qx = xb / MW_BULGE_X0;
