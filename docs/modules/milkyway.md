@@ -16,8 +16,9 @@ positions, each with a search entry and a sourced info card (second half of this
   (-R0 cos θ, 0, z0) with R0 = 8.178 kpc, z0 = 20.8 pc. `MW_TO_MODEL`, `WORLD_TO_MODEL` (from ICRS world axes).
 - Components (emissivity in Lsun(V) pc^-3, colour from `blackbodyRgb(teff)`):
   thin disc (hR 2.6, hz 0.3 kpc, j0 = 0.03 so 2 j0 hz = 18 Lsun/pc^2 locally; depleted inside 3 kpc), thick disc
-  (hR 2.0, hz 0.9, 12% of the thin disc at the Sun), boxy bulge (Gaussian in a super-ellipse radius), long bar
-  (half-length 5 kpc at 27 deg, near end at l > 0), Reid 2019 log-spiral arms (Norma, Outer, Scutum-Centaurus,
+  (hR 2.0, hz 0.9, 12% of the thin disc's mid-plane density at the Sun), boxy bulge (Gaussian in a super-ellipse
+  radius, axes 1 : 0.5 : 0.26 at 27 deg), long bar (half-length 5 kpc along the same axis, near end at l > 0; see
+  "Model values against the cited papers" below), Reid 2019 log-spiral arms (Norma, Outer, Scutum-Centaurus,
   Sagittarius-Carina, Local, Perseus; kinked pitch angles of Table 2, render ranges extrapolated), a young blue arm
   population, hashed HII clumps on the arms (one per 0.5 kpc cell) and dust (hR 5 kpc, hz 0.1 kpc, extra dust on the
   inner arm edges, R:V:B reddening 0.75:1:1.32).
@@ -38,6 +39,59 @@ positions, each with a search entry and a sourced info card (second half of this
   apply outside the solar circle only: the warp is blended in over 1 kpc and the flare is normalised at the
   Sun, because z0 and the local scale heights are measured there (applied from its fitted onset inside the
   solar circle, the warp moved the band 0.3 deg further south at l = 75 and failed the band test).
+
+### Model values against the cited papers
+
+Four rows of `milkyway-model.json` disagreed with the papers their `source` named. Each number below was
+read from the fetched paper (ar5iv pages; the first three are the atlas sources `bhg2016`, `wegg2015` and
+`reid2019`, same sha256 as in `tools/milkyway/sources/structure.json`). Unit test
+`tests/unit/milkyway/model-sources.test.ts` compares the model with the atlas facts, whose quotes the
+atlas build checks.
+
+| Row                              | Was                                           | Now                                                 | Paper                                                                                                                                                               |
+| -------------------------------- | --------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bulge.y0`, `z0` (with `x0` = 1) | 0.42, 0.30, described as "10:6.3:2.6 rounded" | **0.5, 0.26** (value changed)                       | Bland-Hawthorn & Gerhard 2016: "(b/a)bp 0.5 ± 0.05, axis ratio from top", "(c/a)bp 0.26, edge-on axis ratio (x ∼ 0)"                                                |
+| Local arm `betaMeasured`         | [-8, 27]                                      | **[-8, 34]** (value changed)                        | Reid et al. 2019, Table 2: "Local 28 … −8 → 34 9 8.26 ± 0.05 11.4 ± 1.9 11.4 ± 1.9 0.31 ± 0.05"                                                                     |
+| `bar.angleDeg`                   | 27, described as the long bar's angle         | 27 (kept), described as the bulge's angle           | Bulge: "ϕbp 27 ± 2°, b/p bulge bar angle" (Bland-Hawthorn & Gerhard 2016, from Wegg & Gerhard 2013). Long bar: "α = (28 − 33)°" (Wegg, Gerhard & Portail 2015)      |
+| `thickDisk.norm`                 | 0.12, described as the review's density ratio | 0.12 (kept), described as Jurić et al. 2008's ratio | Review: "fρ = 4% ± 2%", "fΣ = 12% ± 4%" with "fΣ = fρ zT / zt". Jurić et al. 2008 (arXiv:astro-ph/0510520): "ρthick(R⊙)/ρthin(R⊙) = 12%" with H1 = 300, H2 = 900 pc |
+
+- **Bulge axes.** The iso-density surfaces of the model bulge cut the bar axes at x0 : y0 : z0, so y0/x0 is
+  the axis ratio seen face-on and z0/x0 the edge-on ratio at the centre: the two numbers of the review (and of
+  the bulge's info card). The 10:6.3:2.6 of Wegg & Gerhard 2013 are ratios of exponential scale lengths
+  fitted inside 1 kpc; their minor axis agrees (0.26). The old 1 : 0.42 : 0.30 was close to what the review
+  calls typical of older parametric models, "(1:0.4:0.3)". Effect: seen from above the bulge is 19% wider
+  across the bar; edge-on it is 13% thinner; its light grows by 3% (bulge + bar 8.1e9 Lsun, j0 unchanged);
+  the face-on centre is 9% fainter and the Sagittarius sky 11% fainter (7.5e-4 cd/m², inside the tested
+  range). One vertical ratio cannot give the X shape (h_z/h_x rises to about 0.5 at 1.5 kpc in the review):
+  not modelled.
+- **Local arm range.** `betaMeasured` is not read by either twin (the arms are drawn over `betaRender`,
+  [-45, 65] for the Local arm); the atlas guide line already used -8 to 34 from its own input. No visual
+  effect.
+- **One bar angle, kept at 27 deg (not corrected).** The bulge and the long bar share `barFrame`. Wegg,
+  Gerhard & Portail 2015 measure the long bar at 28 to 33 deg and conclude that this "is consistent with
+  being aligned to the Milky Way's Bulge" and that "the bar and bulge are part of a single innately
+  connected structure", so the model does not give them separate angles: a twist of a few degrees between
+  them is not a measured feature. The shared value is the bulge's 27 deg, so the long bar is drawn 1 to 6
+  deg below its own measured range. A shared 28 or 29 deg would lie inside both ranges (27 ± 2 and 28 to 33),
+  but `tests/unit/milkyway/model.test.ts` ("orients the bar at 27 deg ...") requires the brightest direction
+  at 3.5 kpc within 0.5 deg of 27 and `barFrame` at exactly 27 deg, and DESIGN.md specifies 27 deg, so the
+  value stays until the owner changes the test. Only the `source` text changed. No visual effect.
+- **Thick-disc normalisation, kept at 0.12 (not corrected).** `components()` multiplies the thin disc's
+  mid-plane emissivity by `norm`, so 0.12 is a local density ratio. That is the value of Jurić et al. 2008
+  (fitted with the same 300 and 900 pc scale heights), the highest of the estimates the review lists ("from
+  1% to 12%"). The review's own result is 4% ± 2% for the local density and 12% ± 4% for the surface
+  density; with 0.12 in the mid-plane the model's surface density ratio is 0.12 × 0.9 / 0.3 = 0.36, three
+  times the review's. Using the review's 4% fails `tests/unit/milkyway/model.test.ts` ("... the 12%
+  thick-disc normalisation": mid-plane thick/thin = 0.12 ± 0.005), and DESIGN.md specifies "12%
+  normalisation", so the value stays until the owner changes the test. Only the `source` text changed. No
+  visual effect. For reference, 0.04 would dim the Galactic poles by 13% (4.5e-5 to 3.9e-5 cd/m²), the sky
+  10 deg off the centre by 31%, and the edge-on glow 1 kpc above the bulge by 46% (65% at 2.5 kpc); the
+  sky-brightness tests would still pass.
+
+Views to check on a real GPU after the bulge change (cloud rendering is software-only, 480x270 potato):
+`mw-outside-100kpc` (the yellow centre should look slightly rounder, still clearly elongated along the bar)
+and `mw-edge-on` (the central bulge slightly flatter, dust lane unchanged); also `mw-above-sun-1kpc`,
+`mw-band-from-earth` and `mw-galactic-centre`, which look towards the bulge from inside.
 
 ## Rendering (cheap by default)
 
@@ -91,7 +145,8 @@ Search entries (`gc:<name>`, kind `cluster`) fly to 6 tidal radii; info cards li
 - Unit (`tests/unit/milkyway`): JSON sources and Reid 2019 Table 2 values, Sun position, Sgr A* at RA 17h45m40s,
   Dec -29 00 28 via frames, bar at 27 deg with the near end at l > 0, pitch angles on both sides of each kink, scale
   heights and lengths, the 12% normalisation, dust, sky brightness, band centre against `mw.json`, twin constants,
-  crossfade and steps; globular catalogue, King sampling, flux conservation, search and info.
+  crossfade and steps; globular catalogue, King sampling, flux conservation, search and info. `model-sources.test.ts`:
+  bulge axes and angle, long-bar length, arm azimuth ranges and widths, disc scales equal to the atlas facts.
 - E2E (`tests/e2e/milkyway.spec.ts`): bright centre vs outskirts, bar elongation along vs across 27 deg, the cyan
   marker, dust lane edge-on, disc below a dark sky from 1 kpc up (sky cube), band vs off-band, zero errors,
   <= 400 draws.
