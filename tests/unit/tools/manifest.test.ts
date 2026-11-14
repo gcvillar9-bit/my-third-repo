@@ -65,4 +65,28 @@ describe('asset manifests', () => {
     expect(credits.entries.find((e) => e.id === 'celestia_pluto')!.flags).toContain('non-commercial');
     expect(readFileSync(root('CREDITS.md'), 'utf8')).toMatch(/CC-BY-NC-SA-3\.0.*non-commercial/);
   });
+
+  it('names CC0 with its link and gives the cited sources one readable name that keeps their own wording', () => {
+    const credits = JSON.parse(readFileSync(root('public/credits.json'), 'utf8')) as {
+      entries: { id: string; license: string; licenseName: string; licenseUrl: string | null }[];
+    };
+    const cc0 = credits.entries.filter((e) => e.license === 'CC0-1.0');
+    expect(cc0.map((e) => e.id)).toEqual(expect.arrayContaining(['lvdb_dwarf_mw', 'zucker_2020_dataverse']));
+    for (const e of cc0) {
+      expect(e.licenseName, e.id).toBe('Creative Commons Zero 1.0 (public domain dedication)');
+      expect(e.licenseUrl, e.id).toBe('https://creativecommons.org/publicdomain/zero/1.0/');
+    }
+    const cited = credits.entries.filter((e) => e.license.startsWith('cited ('));
+    expect(cited.length).toBeGreaterThan(0);
+    for (const e of cited) {
+      // `cited (<detail>)` stays as the licence string; the name swaps only the word `cited`.
+      expect(e.licenseName, e.id).toBe(e.license.replace(/^cited/, 'Free to use with citation'));
+      expect(e.licenseUrl, e.id).toBeNull();
+    }
+    const md = readFileSync(root('CREDITS.md'), 'utf8');
+    expect(md).toMatch(
+      /lvdb_dwarf_mw\s*\| \[CC0-1\.0\]\(https:\/\/creativecommons\.org\/publicdomain\/zero\/1\.0\/\)/,
+    );
+    expect(md).toMatch(/atnf_psrcat_terms\s*\| cited \(ATNF\/CSIRO database\)/);
+  });
 });
