@@ -8,7 +8,6 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
-  Float32BufferAttribute,
   Matrix3,
   Points,
   ShaderMaterial,
@@ -293,16 +292,50 @@ export interface PointLayer extends Renderable {
   count: number;
 }
 
-export function createStarPoints(b: PointBuilder, state: AtlasState): PointLayer {
+/** Point data as typed arrays: positions (pc, ICRS, from the Sun), absolute magnitudes, 8-bit colours. */
+export interface PointArrays {
+  pos: Float32Array;
+  mag: Float32Array;
+  col: Uint8Array;
+  /** Physical clump radius per point, pc (absent: all plain stars). */
+  blob?: Float32Array;
+  /** 1 where the model dust dims the point (absent: none). */
+  ext?: Uint8Array;
+}
+
+export function builderArrays(b: PointBuilder): PointArrays {
   const n = b.count;
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new Float32BufferAttribute(new Float32Array(b.pos), 3));
-  geometry.setAttribute('absMag', new Float32BufferAttribute(new Float32Array(b.mag), 1));
   const col = new Uint8Array(n * 3);
   for (let i = 0; i < n * 3; i++) col[i] = Math.round(b.col[i] * 255);
-  geometry.setAttribute('color', new BufferAttribute(col, 3, true));
-  geometry.setAttribute('blob', new Float32BufferAttribute(new Float32Array(b.blob), 1));
-  geometry.setAttribute('ext', new BufferAttribute(new Uint8Array(b.ext), 1, false));
+  return {
+    pos: new Float32Array(b.pos),
+    mag: new Float32Array(b.mag),
+    col,
+    blob: new Float32Array(b.blob),
+    ext: new Uint8Array(b.ext),
+  };
+}
+
+export const createStarPoints = (b: PointBuilder, state: AtlasState): PointLayer =>
+  createPointLayer('milkyway.atlas.stars', builderArrays(b), () => state.light, -7.5);
+
+/** One additive Points draw of photometric stars; `visible` is read every frame. */
+export function createPointLayer(
+  id: string,
+  data: PointArrays,
+  visible: () => boolean,
+  renderOrder: number,
+): PointLayer {
+  const n = data.mag.length;
+  const simple = !data.blob || !data.ext;
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(data.pos, 3));
+  geometry.setAttribute('absMag', new BufferAttribute(data.mag, 1));
+  geometry.setAttribute('color', new BufferAttribute(data.col, 3, true));
+  if (data.blob && data.ext) {
+    geometry.setAttribute('blob', new BufferAttribute(data.blob, 1));
+    geometry.setAttribute('ext', new BufferAttribute(data.ext, 1, false));
+  }
   const rte = createRteUniforms();
   const uniforms: Record<string, IUniform> = {
     ...rte,
@@ -320,6 +353,7 @@ export function createStarPoints(b: PointBuilder, state: AtlasState): PointLayer
   };
   const d = MODEL.dust;
   const defines =
+    (simple ? '#define POINTS_SIMPLE\n' : '') +
     `#define MW_R0 ${MODEL.sun.R0.toFixed(4)}\n#define MW_DUST_K0 ${d.kappaV0.toFixed(4)}\n` +
     `#define MW_DUST_HR ${d.hR.toFixed(4)}\n#define MW_DUST_HZ ${d.hz.toFixed(4)}\n` +
     `#define MW_REDDEN vec3(${d.reddening.map((v) => v.toFixed(4)).join(', ')})\n`;
@@ -335,21 +369,21 @@ export function createStarPoints(b: PointBuilder, state: AtlasState): PointLayer
   });
   const points = new Points(geometry, material);
   points.frustumCulled = false;
-  points.renderOrder = -7.5;
+  points.renderOrder = renderOrder;
   const cam = vec3();
   const camPc = vec3();
   const camModel = vec3();
   const zero = vec3();
   const q: Quatd = quat();
-  const bytes = n * (12 + 4 + 3 + 4 + 1);
+  const bytes = data.pos.byteLength + data.mag.byteLength + data.col.byteLength + (simple ? 0 : n * 5);
   return {
-    id: 'milkyway.atlas.stars',
+    id,
     layer: 'background',
     object: points,
     count: n,
     update(view) {
-      points.visible = state.light;
-      if (!state.light) return;
+      points.visible = visible();
+      if (!points.visible) return;
       const t = view.toCamera(SSB_FRAME, zero, cam);
       camPc.x = -t.x / PC;
       camPc.y = -t.y / PC;

@@ -13,12 +13,14 @@ import type { GalaxyGpu } from '../galaxy';
 import type { AtlasState } from '../guides';
 import { Atlas, loadAtlas } from './catalog';
 import { createLines, createMarkers, createShells } from './guide-render';
+import { DEEP_BUDGET, decodeDeepStars, deepPointArrays } from './deep';
 import { createAtlasLabels } from './labels';
 import { loadMeasured } from './measured';
 import {
   addCepheids,
   addClusterStars,
   addPopulation,
+  createPointLayer,
   createStarPoints,
   decodeClusterStars,
   PointBuilder,
@@ -66,6 +68,34 @@ export async function createAtlas(
   const lines = createLines(atlas, state);
   if (lines) renderables.push(lines);
   renderables.push(...createShells(atlas, state));
+
+  // Deep stars: tier A always, tier B on the presets that draw it.
+  const [limitA, limitB] = DEEP_BUDGET[quality.preset];
+  const deepFiles = await Promise.all(
+    (
+      [
+        ['a', limitA],
+        ['b', limitB],
+      ] as const
+    )
+      .filter(([, limit]) => limit > 0)
+      .map(([tier, limit]) =>
+        assets
+          .binary(`data/milkyway/atlas/deep-stars-${tier}.bin`)
+          .then((buf) => ({ stars: decodeDeepStars(buf), limit }))
+          .catch(() => null),
+      ),
+  );
+  const deep = deepFiles.filter((f) => f !== null);
+  if (deep.length)
+    renderables.push(
+      createPointLayer(
+        'milkyway.atlas.deep-stars',
+        deepPointArrays(deep),
+        () => state.light && state.deep,
+        -7.6,
+      ),
+    );
 
   // Measured dust and star-forming regions for the galaxy volume model.
   const measured = await loadMeasured(atlas, assets, gpu, state.measured);

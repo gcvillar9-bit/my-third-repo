@@ -71,6 +71,8 @@ const encodeCoord = (v) =>
   Math.sign(v) * Math.round((32767 * Math.log(1 + Math.min(Math.abs(v), R) / S)) / LOG);
 export const decodeCoord = (q) => Math.sign(q) * S * (Math.exp((Math.abs(q) / 32767) * LOG) - 1);
 const MATCH_ARCSEC = 1.5;
+/** Stars brighter than this (apparent magnitude) are all in HYG. */
+const BRIGHT_LIMIT = 7;
 
 /** Sky grid of positions (degrees) for a cross-match within MATCH_ARCSEC. */
 function skyGrid(points) {
@@ -155,7 +157,7 @@ export default async function build() {
     hyg: 0,
     noDistance: 0,
     cluster: 0,
-    brightLeft: 0,
+    bright: 0,
     zariRows: 0,
     zariInAthyg: 0,
     zariInHyg: 0,
@@ -222,7 +224,12 @@ export default async function build() {
       continue;
     }
     if (gaia) athygGaia.add(gaia);
-    if (mag < 6) stat.brightLeft++;
+    // HYG holds every star to about magnitude 7.3, so a brighter star without a HYG id is a
+    // component of a multiple star that HYG lists as one: leave it out, or it would be drawn twice.
+    if (mag < BRIGHT_LIMIT) {
+      stat.bright++;
+      continue;
+    }
     stars.push({ x, y, z, m, bv: num(c[ix.ci]), app: mag });
   }
   const nAthyg = stars.length;
@@ -262,6 +269,10 @@ export default async function build() {
       !(hi / lo < 1.5)
     ) {
       stat.zariBad++;
+      continue;
+    }
+    if (g < BRIGHT_LIMIT) {
+      stat.bright++;
       continue;
     }
     if (inCluster(num(c[zi.RA_ICRS]), num(c[zi.DE_ICRS]))) {

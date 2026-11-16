@@ -97,6 +97,19 @@ const milkywayModule: UniverseModule = {
       onChange: (v) => void (atlasState.light = v === true),
     });
     registry.addSetting({
+      id: 'milkyway.deepStars',
+      label: 'Deep stars: a million fainter and more distant real stars',
+      group: 'Milky Way atlas',
+      type: 'boolean',
+      default: true,
+      persist: true,
+      description:
+        'Real stars beyond the bright-star catalogue: all stars to magnitude 11 and the hot luminous stars of the young disc.',
+      onChange: (v) => void (atlasState.deep = v === true),
+    });
+    const deepStars = ctx.env.params.get('milkyway.deepStars');
+    if (deepStars !== null) ui.settings.set('milkyway.deepStars', deepStars !== '0' && deepStars !== 'false');
+    registry.addSetting({
       id: 'milkyway.measured',
       label: 'Measured dust and star-forming regions near the Sun',
       group: 'Milky Way atlas',

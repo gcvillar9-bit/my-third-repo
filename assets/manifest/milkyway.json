@@ -31,6 +31,20 @@
       "outputs": ["data/milkyway/atlas/features-local.json"]
     },
     {
+      "id": "athyg_v40_m11",
+      "atlas": true,
+      "license": "CC-BY-SA-4.0",
+      "attribution": "AT-HYG v4.0, David Nash (astronexus): Tycho-2, Gaia DR3, Hipparcos, Yale BSC, Gliese",
+      "note": "Source: https://codeberg.org/astronexus/athyg",
+      "files": 1,
+      "bytes": 70059104,
+      "outputs": [
+        "data/milkyway/atlas/deep-stars-a.bin",
+        "data/milkyway/atlas/deep-stars-b.bin",
+        "data/milkyway/atlas/deep-stars.json"
+      ]
+    },
+    {
       "id": "atnf_psrcat",
       "atlas": true,
       "license": "cited (ATNF/CSIRO database; the catalogue page asks to acknowledge Manchester et al. 2005 and the web address)",
@@ -647,6 +661,20 @@
       "files": 1,
       "bytes": 421617,
       "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "zari_2021_filtered",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Zari, E., Rix, H.-W., Frankel, N. et al. 2021, A&A 650, A112, via CDS VizieR (Gaia EDR3, 2MASS)",
+      "note": "Source: https://doi.org/10.1051/0004-6361/202039726",
+      "files": 1,
+      "bytes": 71816316,
+      "outputs": [
+        "data/milkyway/atlas/deep-stars-a.bin",
+        "data/milkyway/atlas/deep-stars-b.bin",
+        "data/milkyway/atlas/deep-stars.json"
+      ]
     },
     {
       "id": "zucker_2020_dataverse",

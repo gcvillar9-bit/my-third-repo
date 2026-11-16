@@ -261,6 +261,37 @@ Loaded with the atlas, after startup; until then, and with the setting `milkyway
 - Limits: the map ends at 1.25 kpc, and the edge of the measured circle is visible from above; inside 69 pc
   it has no structure; on potato (16 steps) the clouds are coarser.
 
+### Deep stars (`atlas/deep.ts`)
+
+1,091,752 real stars beyond the bright-star catalogue of the stars module (HYG, 119,625 stars), drawn by a
+second Points draw with the atlas star shader (plain stars, no model extinction):
+
+- **AT-HYG v4.0 to magnitude 11** (D. Nash; Tycho-2 with Gaia DR3 distances; CC BY-SA 4.0): 740,495 stars
+  after leaving out the rows with a HYG id (116,835), rows without a distance (7,888), stars the atlas
+  already draws as open-cluster members (9,877, matched on the sky within 1.5 arcsec) and stars brighter
+  than magnitude 7 (components of multiple stars that HYG lists as one).
+- **Hot luminous stars of Zari et al. 2021** (A&A 650, A112, filtered sample, astro-kinematic distances):
+  351,257 stars that trace the young disc to several kpc, after leaving out stars already in AT-HYG
+  (33,817), in HYG (8,535), in open clusters (20,185) and distances uncertain by more than a factor 1.5
+  (3,728).
+- Built on request by `tools/milkyway/volumes/deep-stars.mjs` (`node tools/build-milkyway.mjs deep-stars`,
+  110 MB of downloads; run the `open-clusters` layer first, it leaves the list of kept cluster members in
+  `.cache/derived/milkyway/`). Format MWDS v1 (8 bytes per star: three 16-bit logarithmic coordinates,
+  absolute magnitude in 0.1 mag steps, B−V in 0.01 steps; header in the builder). Two files, each sorted
+  from the most to the least luminous star: `deep-stars-a.bin` (217,089 stars of apparent magnitude 10
+  or brighter from the Sun, or more luminous than M = −3; 1.7 MB) and `deep-stars-b.bin` (874,663 stars;
+  7.0 MB), plus `deep-stars.json`.
+- Brightness is the observed one, so the dust towards each star is included as seen from the Sun. No
+  proper motions: the stars stay at their catalogue positions when the clock runs (they are too faint to
+  notice in the time-lapse views).
+- Per preset: potato draws the 60,000 most luminous stars of tier A; low all of tier A; medium tier A and
+  400,000 of tier B; high and ultra everything. Tier B is fetched only on medium and above. Setting
+  `milkyway.deepStars` (`?milkyway.deepStars=0`).
+- No info cards: these stars are light, not named objects. Their sources are in `deep-stars.json`,
+  `CREDITS.md` and here.
+- Tests: unit `deep.test.ts` (tiers, sources, no bright duplicates, sorting, reach, encoding, budgets); e2e
+  in `milkyway-atlas.spec.ts` (more starlight around the Sun with the layer on than off).
+
 ### Other modules
 
 - **galaxies:** `hideGalaxies` (galaxies `public.ts`) hides the catalogue rows that match an atlas

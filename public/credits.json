@@ -230,6 +230,24 @@
     },
     {
       "module": "milkyway",
+      "id": "athyg_v40_m11",
+      "url": null,
+      "license": "CC-BY-SA-4.0",
+      "licenseName": "Creative Commons Attribution-ShareAlike 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "AT-HYG v4.0, David Nash (astronexus): Tycho-2, Gaia DR3, Hipparcos, Yale BSC, Gliese",
+      "copyright": [],
+      "flags": [],
+      "note": "Source: https://codeberg.org/astronexus/athyg",
+      "outputs": [
+        "data/milkyway/atlas/deep-stars-a.bin",
+        "data/milkyway/atlas/deep-stars-b.bin",
+        "data/milkyway/atlas/deep-stars.json"
+      ],
+      "licenseText": null
+    },
+    {
+      "module": "milkyway",
       "id": "atnf_psrcat",
       "url": null,
       "license": "cited (ATNF/CSIRO database; the catalogue page asks to acknowledge Manchester et al. 2005 and the web address)",
@@ -1088,6 +1106,24 @@
       "flags": [],
       "note": "Source: https://arxiv.org/abs/1504.01401",
       "outputs": ["data/milkyway/atlas/features-structure.json"],
+      "licenseText": null
+    },
+    {
+      "module": "milkyway",
+      "id": "zari_2021_filtered",
+      "url": null,
+      "license": "cited (no explicit licence)",
+      "licenseName": "Free to use with citation (no explicit licence)",
+      "licenseUrl": null,
+      "attribution": "Zari, E., Rix, H.-W., Frankel, N. et al. 2021, A&A 650, A112, via CDS VizieR (Gaia EDR3, 2MASS)",
+      "copyright": [],
+      "flags": [],
+      "note": "Source: https://doi.org/10.1051/0004-6361/202039726",
+      "outputs": [
+        "data/milkyway/atlas/deep-stars-a.bin",
+        "data/milkyway/atlas/deep-stars-b.bin",
+        "data/milkyway/atlas/deep-stars.json"
+      ],
       "licenseText": null
     },
     {

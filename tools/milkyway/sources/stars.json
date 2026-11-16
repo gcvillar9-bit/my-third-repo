@@ -1,0 +1,35 @@
+{
+  "group": "stars",
+  "sources": [
+    {
+      "id": "athyg_v40_m11",
+      "cite": "AT-HYG v4.0 (Augmented Tycho - HYG), David Nash (astronexus), subset to magnitude 11",
+      "url": "https://codeberg.org/astronexus/athyg",
+      "fetchUrl": "https://codeberg.org/astronexus/athyg/media/commit/eebe42b3552ae04e67d27ae085a8aad997b42bc0/data/subsets/athyg_40_reduced_m11.csv.gz",
+      "license": "CC-BY-SA-4.0",
+      "attribution": "AT-HYG v4.0, David Nash (astronexus): Tycho-2, Gaia DR3, Hipparcos, Yale BSC, Gliese",
+      "sha256": "bd87b69fd5c22d62886e1d9be53c30c736ae45108b3532740c1c357ed2a7f2fe",
+      "bytes": 70059104,
+      "outputs": [
+        "data/milkyway/atlas/deep-stars-a.bin",
+        "data/milkyway/atlas/deep-stars-b.bin",
+        "data/milkyway/atlas/deep-stars.json"
+      ]
+    },
+    {
+      "id": "zari_2021_filtered",
+      "cite": "Zari et al. 2021, A&A 650, A112 (Mapping luminous hot stars in the Galaxy), filtered sample",
+      "url": "https://doi.org/10.1051/0004-6361/202039726",
+      "fetchUrl": "https://vizier.cfa.harvard.edu/viz-bin/asu-tsv?-source=J%2FA%2BA%2F650%2FA112%2Ffiltered&-out=GaiaEDR3%2CRA_ICRS%2CDE_ICRS%2CGmag%2CBPmag%2CRPmag%2Cd50kin%2Cd16kin%2Cd84kin%2Cxkin%2Cykin%2Czkin&-out.max=unlimited&-oc.form=dec",
+      "license": "cited (no explicit licence)",
+      "attribution": "Zari, E., Rix, H.-W., Frankel, N. et al. 2021, A&A 650, A112, via CDS VizieR (Gaia EDR3, 2MASS)",
+      "sha256": "2cb6e2274ecb079c22c0067c40120fa0414f80cd0b7b8cd4fbcc365bea9a3b6a",
+      "bytes": 71816316,
+      "outputs": [
+        "data/milkyway/atlas/deep-stars-a.bin",
+        "data/milkyway/atlas/deep-stars-b.bin",
+        "data/milkyway/atlas/deep-stars.json"
+      ]
+    }
+  ]
+}
