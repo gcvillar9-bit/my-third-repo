@@ -80,6 +80,8 @@ import { CACHE_RAW, PUBLIC, ROOT, curlDownload } from '../lib/fetch.mjs';
 
 export const CACHE = join(CACHE_RAW, 'milkyway');
 export const OUT_DIR = join(PUBLIC, 'data', 'milkyway', 'atlas');
+/** Intermediate results that one builder leaves for another (not shipped, not a source). */
+export const DERIVED = join(ROOT, '.cache', 'derived', 'milkyway');
 export const SOURCES_DIR = join(ROOT, 'tools', 'milkyway', 'sources');
 export const VIZIER = 'https://vizier.cfa.harvard.edu/viz-bin/asu-tsv';
 
