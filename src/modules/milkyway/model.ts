@@ -232,7 +232,11 @@ export interface Components {
 const BAR_C = Math.cos(MODEL.bar.angleDeg * DEG);
 const BAR_S = Math.sin(MODEL.bar.angleDeg * DEG);
 
-/** Bar-frame coordinates: xb along the major axis (near end at +xb, l > 0), yb across it. */
+/**
+ * Bar-frame coordinates: xb along the major axis (near end at +xb, l > 0), yb across it. One frame
+ * for the bulge and the long bar: `bar.angleDeg` is the measured angle of the bulge (27 +- 2 deg); the
+ * long bar is measured at 28 to 33 deg and found aligned with the bulge (see the `source` of the row).
+ */
 export const barFrame = (x: number, y: number): [number, number] => [
   -x * BAR_C + y * BAR_S,
   x * BAR_S + y * BAR_C,
@@ -291,9 +295,12 @@ export function components(x: number, y: number, z: number, f: ArmField, out: Co
     (1 + MODEL.armProfile.oldContrast * f.old);
   const tk = MODEL.thickDisk;
   const fk = thickFlare(R);
+  // `norm` is the thick/thin ratio of the mid-plane density at the Sun, not of the surface density
+  // (that ratio is norm * tk.hz / td.hz).
   out.thick = (td.j0 * tk.norm * Math.exp(-(R - R0) / tk.hR - az / (tk.hz * fk))) / fk;
   const [xb, yb] = barFrame(x, y);
   const bu = MODEL.bulge;
+  // Iso-density surfaces cut the axes at x0 : y0 : z0, so y0 / x0 is also the axis ratio seen face-on.
   const q = (xb / bu.x0) ** 2 + (yb / bu.y0) ** 2;
   out.bulge = bu.j0 * Math.exp(-0.5 * Math.sqrt(q * q + (z / bu.z0) ** 4));
   const ba = MODEL.bar;
