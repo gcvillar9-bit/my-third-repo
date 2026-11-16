@@ -64,7 +64,16 @@
  * calls `checkQuote` for each one, so a value that is not on the fetched page fails the build.
  */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  readSync,
+  readdirSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { CACHE_RAW, PUBLIC, ROOT, curlDownload } from '../lib/fetch.mjs';
@@ -78,7 +87,8 @@ export const DEG = Math.PI / 180;
 export const PC_PER_KPC = 1000;
 export const round = (v, d = 3) => (Number.isFinite(v) ? Number(v.toFixed(d)) : null);
 /** Rounds to `n` significant digits. */
-export const sig = (v, n = 4) => (Number.isFinite(v) && v !== 0 ? Number(v.toPrecision(n)) : v === 0 ? 0 : null);
+export const sig = (v, n = 4) =>
+  Number.isFinite(v) && v !== 0 ? Number(v.toPrecision(n)) : v === 0 ? 0 : null;
 /** Number or null from a catalogue cell ('' and non-numeric text give null). */
 export const num = (s) => {
   if (s === null || s === undefined) return null;
@@ -100,7 +110,7 @@ export const slug = (name) =>
 // test cross-checks it against src/core/frames.ts.
 // ---------------------------------------------------------------------------------------
 export const ICRS_TO_GALACTIC = [
-  -0.0548755604162154, -0.8734370902348850, -0.4838350155487132, 0.4941094278755837, -0.4448296299600112,
+  -0.0548755604162154, -0.873437090234885, -0.4838350155487132, 0.4941094278755837, -0.4448296299600112,
   0.7469822444972189, -0.8676661490190047, -0.1980763734312015, 0.4559837761750669,
 ];
 const G = ICRS_TO_GALACTIC;
@@ -135,22 +145,28 @@ export const icrsFromLb = (lDeg, bDeg, distPc) => {
 export const lbFromIcrs = (x, y, z) => {
   const [X, Y, Z] = galacticXyzFromIcrs(x, y, z);
   const dist = Math.hypot(X, Y, Z);
-  return { l: ((Math.atan2(Y, X) / DEG) % 360 + 360) % 360, b: Math.asin(Z / dist) / DEG, dist };
+  return { l: (((Math.atan2(Y, X) / DEG) % 360) + 360) % 360, b: Math.asin(Z / dist) / DEG, dist };
 };
 /** { ra, dec } in degrees and dist (pc) of a heliocentric ICRS position. */
 export const raDecFromIcrs = (x, y, z) => {
   const dist = Math.hypot(x, y, z);
-  return { ra: ((Math.atan2(y, x) / DEG) % 360 + 360) % 360, dec: Math.asin(z / dist) / DEG, dist };
+  return { ra: (((Math.atan2(y, x) / DEG) % 360) + 360) % 360, dec: Math.asin(z / dist) / DEG, dist };
 };
 /** 'hh mm ss.s' or 'hh:mm:ss.s' -> degrees. */
 export const hmsToDeg = (s) => {
-  const p = String(s).trim().split(/[\s:]+/).map(Number);
+  const p = String(s)
+    .trim()
+    .split(/[\s:]+/)
+    .map(Number);
   return 15 * ((p[0] || 0) + (p[1] || 0) / 60 + (p[2] || 0) / 3600);
 };
 /** '+dd mm ss' or '-dd:mm:ss' -> degrees. */
 export const dmsToDeg = (s) => {
   const t = String(s).trim();
-  const p = t.replace(/^[+-]/, '').split(/[\s:]+/).map(Number);
+  const p = t
+    .replace(/^[+-]/, '')
+    .split(/[\s:]+/)
+    .map(Number);
   return (t.startsWith('-') ? -1 : 1) * ((p[0] || 0) + (p[1] || 0) / 60 + (p[2] || 0) / 3600);
 };
 
@@ -158,6 +174,21 @@ export const dmsToDeg = (s) => {
 // Sources
 // ---------------------------------------------------------------------------------------
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
+/** sha256 and size of a file, read in chunks (sources can be larger than a Buffer may hold). */
+function hashFile(path) {
+  const h = createHash('sha256');
+  const fd = openSync(path, 'r');
+  const chunk = Buffer.alloc(1 << 24);
+  let bytes = 0;
+  for (;;) {
+    const n = readSync(fd, chunk, 0, chunk.length, null);
+    if (n <= 0) break;
+    h.update(n === chunk.length ? chunk : chunk.subarray(0, n));
+    bytes += n;
+  }
+  closeSync(fd);
+  return { sha: h.digest('hex'), bytes };
+}
 const groups = new Map();
 const UPDATE = process.argv.includes('--update-sources');
 
@@ -189,7 +220,8 @@ function vizierUrl({ table, columns = '**', constraints = '' }) {
 /**
  * Makes a source available locally and returns its path.
  *   def = { group, id, cite, url (landing page or DOI), license, attribution?,
- *           fetch: { kind: 'file', url, file? } | { kind: 'vizier', table, columns?, constraints? },
+ *           fetch: { kind: 'file', url, file?, range? } | { kind: 'vizier', table, columns?, constraints? },
+ *           (`range` = 'first-last' byte range of a large file; give `file` a name of its own),
  *           outputs?: string[] }
  * `license` is an SPDX id, or 'cited (no explicit licence)' for data that is free to use with
  * citation. The first fetch records sha256 and bytes in tools/milkyway/sources/<group>.json; later
@@ -201,7 +233,11 @@ export function source(def) {
   const g = loadGroup(def.group);
   let rec = g.sources.find((s) => s.id === def.id);
   const fetchUrl = def.fetch.kind === 'vizier' ? vizierUrl(def.fetch) : def.fetch.url;
-  const file = def.fetch.file ?? (def.fetch.kind === 'vizier' ? `${def.id}.tsv` : decodeURIComponent(new URL(fetchUrl).pathname.split('/').pop()));
+  const file =
+    def.fetch.file ??
+    (def.fetch.kind === 'vizier'
+      ? `${def.id}.tsv`
+      : decodeURIComponent(new URL(fetchUrl).pathname.split('/').pop()));
   const dest = join(CACHE, file);
   if (!existsSync(dest)) {
     console.log(`  fetch ${def.id}: ${fetchUrl}`);
@@ -226,21 +262,31 @@ export function source(def) {
         }
       }
       if (!ok) throw new Error(`source ${def.id}: VizieR did not return a table for ${fetchUrl}`);
+    } else if (def.fetch.range) {
+      // Part of a large file (HTTP range request), e.g. one image extension of a multi-GB FITS file.
+      mkdirSync(CACHE, { recursive: true });
+      execFileSync(
+        'curl',
+        ['-fsSL', '--retry', '5', '--retry-delay', '3', '-r', def.fetch.range, '-o', dest, fetchUrl],
+        { stdio: ['ignore', 'ignore', 'inherit'] },
+      );
     } else curlDownload(fetchUrl, dest);
   }
-  const buf = readFileSync(dest);
-  const sha = sha256(buf);
+  const { sha, bytes } = hashFile(dest);
   if (rec?.sha256 && rec.sha256 !== sha && !UPDATE)
-    throw new Error(`source ${def.id}: sha256 changed upstream (${rec.sha256.slice(0, 12)} -> ${sha.slice(0, 12)}); check the data, then pass --update-sources`);
+    throw new Error(
+      `source ${def.id}: sha256 changed upstream (${rec.sha256.slice(0, 12)} -> ${sha.slice(0, 12)}); check the data, then pass --update-sources`,
+    );
   const next = {
     id: def.id,
     cite: def.cite,
     url: def.url,
     fetchUrl,
+    ...(def.fetch.range ? { range: def.fetch.range } : {}),
     license: def.license,
     attribution: def.attribution ?? def.cite,
     sha256: sha,
-    bytes: buf.length,
+    bytes,
     outputs: def.outputs ?? rec?.outputs ?? [],
   };
   if (JSON.stringify(rec) !== JSON.stringify(next)) {
@@ -275,7 +321,8 @@ export const vizier = (def) => parseTsv(readFileSync(source(def), 'utf8')).rows;
  */
 export function pageText(def) {
   const path = source(def);
-  if (path.toLowerCase().endsWith('.pdf')) return run('pdftotext', ['-layout', path, '-']).replace(/\s+/g, ' ');
+  if (path.toLowerCase().endsWith('.pdf'))
+    return run('pdftotext', ['-layout', path, '-']).replace(/\s+/g, ' ');
   return readFileSync(path, 'utf8')
     .replace(/<annotation[^>]*>[\s\S]*?<\/annotation>/g, ' ')
     .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/g, ' ')
@@ -318,7 +365,8 @@ export function validateLayer(file) {
   const fail = (m) => {
     throw new Error(`layer ${file.layer}: ${m}`);
   };
-  for (const k of ['layer', 'title', 'noun', 'sources', 'columns', 'rows']) if (!file[k]) fail(`missing ${k}`);
+  for (const k of ['layer', 'title', 'noun', 'sources', 'columns', 'rows'])
+    if (!file[k]) fail(`missing ${k}`);
   const keys = file.columns.map((c) => c.key);
   for (const k of ['id', 'name', 'x', 'y', 'z']) if (!keys.includes(k)) fail(`missing column ${k}`);
   if (new Set(keys).size !== keys.length) fail('duplicate column keys');
@@ -333,13 +381,15 @@ export function validateLayer(file) {
   const ids = new Set();
   const ix = Object.fromEntries(keys.map((k, i) => [k, i]));
   for (const row of file.rows) {
-    if (row.length !== keys.length) fail(`row ${row[ix.id]} has ${row.length} cells, expected ${keys.length}`);
+    if (row.length !== keys.length)
+      fail(`row ${row[ix.id]} has ${row.length} cells, expected ${keys.length}`);
     const id = row[ix.id];
     if (typeof id !== 'string' || !ID_RE.test(id)) fail(`bad id ${JSON.stringify(id)}`);
     if (ids.has(id)) fail(`duplicate id ${id}`);
     ids.add(id);
     if (typeof row[ix.name] !== 'string' || !row[ix.name]) fail(`row ${id} has no name`);
-    for (const k of ['x', 'y', 'z']) if (!Number.isFinite(row[ix[k]])) fail(`row ${id} has a non-finite ${k}`);
+    for (const k of ['x', 'y', 'z'])
+      if (!Number.isFinite(row[ix[k]])) fail(`row ${id} has a non-finite ${k}`);
     for (let c = 0; c < row.length; c++) {
       const v = row[c];
       if (typeof v === 'number' && !Number.isFinite(v)) fail(`row ${id} column ${keys[c]} is not finite`);
@@ -377,7 +427,8 @@ export function validateFeatures(file) {
     for (const k of ['x', 'y', 'z']) if (!Number.isFinite(f[k])) fail(`${f.id}: non-finite ${k}`);
     if (!file.sources[f.positionSource]) fail(`${f.id}: positionSource is not in sources`);
     for (const fact of f.facts ?? []) {
-      if (!fact.label || fact.value === undefined || fact.value === null) fail(`${f.id}: fact without label or value`);
+      if (!fact.label || fact.value === undefined || fact.value === null)
+        fail(`${f.id}: fact without label or value`);
       if (!file.sources[fact.source]) fail(`${f.id}: fact "${fact.label}" has no listed source`);
     }
     if (f.shape && !file.sources[f.shape.source]) fail(`${f.id}: shape has no listed source`);

@@ -10,9 +10,7 @@
       "attribution": "Gillessen et al. 2017, ApJ 837, 30, Table 3 (orbits of 40 stars around Sgr A*)",
       "sha256": "1b753955fe8d49bd53392b95d28eea7c64d6341e2b090d8d5caecb08e42146a4",
       "bytes": 2817,
-      "outputs": [
-        "data/blackholes/blackholes.json"
-      ]
+      "outputs": ["data/blackholes/blackholes.json"]
     }
   ]
 }

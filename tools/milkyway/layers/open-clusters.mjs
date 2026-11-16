@@ -256,7 +256,8 @@ export default async function build() {
     // that are a cluster with nebulosity, and names in other languages; those stay aliases),
     // else the Messier number, else the catalogue name.
     const usable = e ? e.common.filter((n) => !/Nebula|Cloud|^the |^Amas /i.test(n)) : [];
-    const common = usable.find((n) => /Cluster|Box/i.test(n)) ?? usable[0] ?? (e?.messier ? `M ${e.messier}` : null);
+    const common =
+      usable.find((n) => /Cluster|Box/i.test(n)) ?? usable[0] ?? (e?.messier ? `M ${e.messier}` : null);
     const aliases = [];
     const add = (a) => {
       const t = String(a).replace(/_+/g, ' ').trim();

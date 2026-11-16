@@ -10,9 +10,7 @@
       "attribution": "OGLE project (Skowron, D. M. et al. 2019), Warsaw University Observatory",
       "sha256": "d5a9890d5d7f922cd7c6f58fb3d9bf95254a81535ccbb49c5817041830ad39dc",
       "bytes": 609589,
-      "outputs": [
-        "data/milkyway/atlas/cepheids.json"
-      ]
+      "outputs": ["data/milkyway/atlas/cepheids.json"]
     },
     {
       "id": "benedict_2007",
@@ -23,9 +21,7 @@
       "attribution": "Benedict et al. 2007, AJ 133, 1810, Table 12: M_V = -4.05 - 2.43 (log P - 1)",
       "sha256": "6b861788e114b3d91f1d42495eb977b1dffefd2c39eb52206f2be4f17a833d4f",
       "bytes": 422544,
-      "outputs": [
-        "data/milkyway/atlas/cepheids.json"
-      ]
+      "outputs": ["data/milkyway/atlas/cepheids.json"]
     }
   ]
 }

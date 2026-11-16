@@ -9,10 +9,12 @@
  */
 import type { ModuleContext, Renderable } from '../../../core/contracts';
 import { hideGalaxies } from '../../galaxies/public';
+import type { GalaxyGpu } from '../galaxy';
 import type { AtlasState } from '../guides';
 import { Atlas, loadAtlas } from './catalog';
 import { createLines, createMarkers, createShells } from './guide-render';
 import { createAtlasLabels } from './labels';
+import { loadMeasured } from './measured';
 import {
   addCepheids,
   addClusterStars,
@@ -33,7 +35,11 @@ export interface AtlasHandle {
   renderables: Renderable[];
 }
 
-export async function createAtlas(ctx: ModuleContext, state: AtlasState): Promise<AtlasHandle> {
+export async function createAtlas(
+  ctx: ModuleContext,
+  state: AtlasState,
+  gpu: GalaxyGpu,
+): Promise<AtlasHandle> {
   const { assets, registry, ui, quality } = ctx;
   const [atlas, starsBuf] = await Promise.all([
     loadAtlas((p) => assets.json(p)),
@@ -60,6 +66,10 @@ export async function createAtlas(ctx: ModuleContext, state: AtlasState): Promis
   const lines = createLines(atlas, state);
   if (lines) renderables.push(lines);
   renderables.push(...createShells(atlas, state));
+
+  // Measured dust and star-forming regions for the galaxy volume model.
+  const measured = await loadMeasured(atlas, assets, gpu, state.measured);
+  state.onMeasured = (on) => measured.setEnabled(on);
 
   for (const r of renderables) registry.addRenderable(r);
   ui.addLabelSource(createAtlasLabels(atlas, state));

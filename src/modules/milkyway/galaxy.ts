@@ -13,6 +13,8 @@ import {
   BackSide,
   BufferGeometry,
   CustomBlending,
+  Data3DTexture,
+  DataTexture,
   Float32BufferAttribute,
   FrontSide,
   HalfFloatType,
@@ -25,7 +27,10 @@ import {
   Scene,
   ShaderMaterial,
   SphereGeometry,
+  RedFormat,
   SrcAlphaFactor,
+  type Texture,
+  Vector2,
   Vector3,
   WebGLCubeRenderTarget,
   WebGLRenderTarget,
@@ -83,6 +88,9 @@ export const FIELD_SIZE: Record<QualityPreset, number> = {
   ultra: 1024,
 };
 
+/** Hashed HII clumps fade in between these distances from the Sun (kpc) once measured regions are in. */
+export const REGIONS_FADE = [5, 9] as const;
+
 /** Steps for a preset: the table above, capped by knobs.volumeSteps. */
 export const marchSteps = (k: Readonly<QualityKnobs>): number =>
   Math.max(8, Math.min(STEPS[k.preset], k.volumeSteps));
@@ -139,22 +147,50 @@ export class GalaxyGpu {
   readonly screenMat: ShaderMaterial;
   readonly cubeMat: ShaderMaterial;
   private readonly fieldUniform: IUniform = { value: null };
+  /** Measured dust (set by the atlas after it has loaded): shared by the two march materials. */
+  private readonly dust: Record<string, IUniform>;
+  private readonly owned: Texture[] = [];
+  /** Counts changes of the measured inputs; the views re-march when it changes. */
+  version = 0;
+  private regionsLoaded = false;
 
   constructor(
     private readonly gl: WebGLRenderer,
     uniforms: SharedUniforms,
   ) {
     const defines = modelGlslDefines();
+    // 1-texel stand-ins until the measured dust and regions arrive.
+    const empty3 = new Data3DTexture(new Uint8Array(1), 1, 1, 1);
+    empty3.format = RedFormat;
+    empty3.needsUpdate = true;
+    const empty2 = new DataTexture(new Uint8Array(1), 1, 1, RedFormat);
+    empty2.needsUpdate = true;
+    this.owned.push(empty3, empty2);
+    this.dust = {
+      uDust3D: { value: empty3 },
+      uDustCoarse: { value: empty3 },
+      uDustCol: { value: empty2 },
+      uDustOn: { value: 0 },
+      uDustHalf: { value: new Vector3(1, 1, 1) },
+      uDustMax: { value: new Vector2(0, 0) },
+      uDustFade: { value: new Vector2(1, 1.2) },
+    };
     // cosmos:no-depth (offscreen full-screen passes: no geometry, no depth)
     this.fieldMat = new ShaderMaterial({
       vertexShader: QUAD_VERTEX,
       fragmentShader: defines + armfieldGlsl,
+      uniforms: {
+        uRegions: { value: empty2 },
+        uRegionsOn: { value: 0 },
+        uRegionsFade: { value: new Vector2(REGIONS_FADE[0], REGIONS_FADE[1]) },
+      },
       depthTest: false,
       depthWrite: false,
       blending: NoBlending,
     });
     const marchUniforms = () => ({
       uArmField: this.fieldUniform,
+      ...this.dust,
       uBlueNoise: uniforms.uBlueNoise,
       uOrigin: { value: new Vector3() },
       uRayBasis: { value: new Matrix3() },
@@ -213,6 +249,64 @@ export class GalaxyGpu {
     this.fieldUniform.value = this.field.texture;
   }
 
+  /**
+   * Measured dust near the Sun: `cube` holds sqrt(kappa / kappaMax) on a grid in model axes centred
+   * on the Sun (half extents in kpc), `coarse` the same averaged over larger voxels, `column` the vertical optical depth as sqrt(tau / tauMax).
+   * It replaces the model dust inside `fade[0]` kpc of the Sun and fades out by `fade[1]`.
+   */
+  setMeasuredDust(
+    cube: Texture,
+    coarse: Texture,
+    column: Texture,
+    halfKpc: readonly [number, number, number],
+    kappaMax: number,
+    tauMax: number,
+    fade: readonly [number, number],
+  ): void {
+    this.owned.push(cube, coarse, column);
+    this.dust.uDust3D.value = cube;
+    this.dust.uDustCoarse.value = coarse;
+    this.dust.uDustCol.value = column;
+    (this.dust.uDustHalf.value as Vector3).set(halfKpc[0], halfKpc[1], halfKpc[2]);
+    (this.dust.uDustMax.value as Vector2).set(kappaMax, tauMax);
+    (this.dust.uDustFade.value as Vector2).set(fade[0], fade[1]);
+    this.dust.uDustOn.value = 1;
+    this.version++;
+  }
+
+  /** Switches the measured dust on or off (setting). */
+  setDustEnabled(on: boolean): void {
+    const v = on && (this.dust.uDustMax.value as Vector2).x > 0 ? 1 : 0;
+    if (this.dust.uDustOn.value === v) return;
+    this.dust.uDustOn.value = v;
+    this.version++;
+  }
+
+  /**
+   * Measured star-forming regions as a texture over the arm-field square (HII amplitude, 0..1).
+   * The arm field is baked again with them.
+   */
+  setMeasuredRegions(regions: Texture): void {
+    this.owned.push(regions);
+    this.fieldMat.uniforms.uRegions.value = regions;
+    this.fieldMat.uniforms.uRegionsOn.value = 1;
+    this.regionsLoaded = true;
+    this.field?.dispose();
+    this.field = null;
+    this.version++;
+  }
+
+  /** Switches the measured star-forming regions on or off (setting); bakes the arm field again. */
+  setRegionsEnabled(on: boolean): void {
+    const u = this.fieldMat.uniforms;
+    const v = on && this.regionsLoaded ? 1 : 0;
+    if (u.uRegionsOn.value === v) return;
+    u.uRegionsOn.value = v;
+    this.field?.dispose();
+    this.field = null;
+    this.version++;
+  }
+
   /** One screen march into `target`; alpha < 1 blends it into the running average. */
   marchScreen(
     target: WebGLRenderTarget,
@@ -247,6 +341,7 @@ export class GalaxyGpu {
   dispose(): void {
     this.field?.dispose();
     this.field = null;
+    for (const t of this.owned) t.dispose();
     this.geometry.dispose();
     this.fieldMat.dispose();
     this.screenMat.dispose();
@@ -294,7 +389,20 @@ export function createOutsideView(gpu: GalaxyGpu, uniforms: SharedUniforms, stat
   const tmp = vec3();
   const axis = vec3();
   const basis = new Matrix3();
-  const last = { x: NaN, y: NaN, z: NaN, qx: 0, qy: 0, qz: 0, qw: 0, fov: 0, w: 0, h: 0, steps: 0 };
+  const last = {
+    x: NaN,
+    y: NaN,
+    z: NaN,
+    qx: 0,
+    qy: 0,
+    qz: 0,
+    qw: 0,
+    fov: 0,
+    w: 0,
+    h: 0,
+    steps: 0,
+    version: -1,
+  };
   let accumulated = 0;
 
   const dirModel = (q: ViewState['worldQuat'], x: number, y: number, z: number): Vec3d =>
@@ -341,10 +449,11 @@ export function createOutsideView(gpu: GalaxyGpu, uniforms: SharedUniforms, stat
         view.fovY !== last.fov ||
         w !== last.w ||
         h !== last.h ||
-        steps !== last.steps;
+        steps !== last.steps ||
+        gpu.version !== last.version;
       if (changed) {
         Object.assign(last, { x: cam.x, y: cam.y, z: cam.z, qx: q.x, qy: q.y, qz: q.z, qw: q.w });
-        Object.assign(last, { fov: view.fovY, w, h, steps });
+        Object.assign(last, { fov: view.fovY, w, h, steps, version: gpu.version });
         accumulated = 0;
       }
       const accumulate = !view.test && view.knobs.temporal && accumulated < ACCUM_FRAMES;
@@ -388,6 +497,7 @@ export function createSkyView(gpu: GalaxyGpu, uniforms: SharedUniforms, state: G
   let face = -1;
   let baked = false;
   let bakedSteps = 0;
+  let bakedVersion = -1;
   const cam = vec3();
   const tmp = vec3();
   const bakeOrigin = vec3();
@@ -425,12 +535,16 @@ export function createSkyView(gpu: GalaxyGpu, uniforms: SharedUniforms, state: G
       const steps = marchSteps(view.knobs);
       const rGc = Math.hypot(cam.x, cam.y, cam.z);
       const moved = Math.hypot(cam.x - lastOrigin.x, cam.y - lastOrigin.y, cam.z - lastOrigin.z);
-      if (face < 0 && (!baked || steps !== bakedSteps || moved > REBAKE_FRACTION * rGc)) {
+      if (
+        face < 0 &&
+        (!baked || steps !== bakedSteps || gpu.version !== bakedVersion || moved > REBAKE_FRACTION * rGc)
+      ) {
         face = 0;
         bakeOrigin.x = cam.x;
         bakeOrigin.y = cam.y;
         bakeOrigin.z = cam.z;
         bakedSteps = steps;
+        bakedVersion = gpu.version;
       }
       if (face >= 0) {
         // One face per frame; the first bake (nothing to show yet) and tests do all six at once.

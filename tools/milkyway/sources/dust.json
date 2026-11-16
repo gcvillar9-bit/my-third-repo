@@ -1,0 +1,48 @@
+{
+  "group": "dust",
+  "sources": [
+    {
+      "id": "edenhofer_2024_paper",
+      "cite": "Edenhofer et al. 2024, A&A 685, A82 (arXiv:2308.01295), text",
+      "url": "https://arxiv.org/abs/2308.01295",
+      "fetchUrl": "https://ar5iv.labs.arxiv.org/html/2308.01295",
+      "license": "CC-BY-4.0",
+      "attribution": "Edenhofer et al. 2024, A&A 685, A82 (arXiv:2308.01295), text",
+      "sha256": "c478872bfecd2ca4c91d3ffde8cbe497ed157bfa3f63d02e38be26061cbee0d8",
+      "bytes": 360768,
+      "outputs": ["data/milkyway/atlas/dust.json"]
+    },
+    {
+      "id": "edenhofer_2024_tables",
+      "cite": "Edenhofer et al. 2024, A&A 685, A82 (arXiv:2308.01295): 3D dust map out to 1.25 kpc, posterior mean",
+      "url": "https://doi.org/10.5281/zenodo.8187943",
+      "fetchUrl": "https://zenodo.org/api/records/8187943/files/mean_and_std_healpix.fits/content",
+      "range": "3246000000-3252715199",
+      "license": "CC-BY-4.0",
+      "attribution": "Edenhofer, Zucker, Frank, Saydjari, Speagle, Finkbeiner & Ensslin 2024 (Zenodo 10.5281/zenodo.8187943)",
+      "sha256": "7e0d841174f88634a965a96d8d4015c52f72686bfe383dda930d9ee12166b911",
+      "bytes": 6715200,
+      "outputs": [
+        "data/milkyway/atlas/dust-cube.png",
+        "data/milkyway/atlas/dust-column.png",
+        "data/milkyway/atlas/dust.json"
+      ]
+    },
+    {
+      "id": "edenhofer_2024_mean",
+      "cite": "Edenhofer et al. 2024, A&A 685, A82 (arXiv:2308.01295): 3D dust map out to 1.25 kpc, posterior mean",
+      "url": "https://doi.org/10.5281/zenodo.8187943",
+      "fetchUrl": "https://zenodo.org/api/records/8187943/files/mean_and_std_healpix.fits/content",
+      "range": "0-1623300000",
+      "license": "CC-BY-4.0",
+      "attribution": "Edenhofer, Zucker, Frank, Saydjari, Speagle, Finkbeiner & Ensslin 2024 (Zenodo 10.5281/zenodo.8187943)",
+      "sha256": "d7b702a496deb8af3bb400f8e91800a82403750841ab88292e008ae1ef8cf66a",
+      "bytes": 1623300001,
+      "outputs": [
+        "data/milkyway/atlas/dust-cube.png",
+        "data/milkyway/atlas/dust-column.png",
+        "data/milkyway/atlas/dust.json"
+      ]
+    }
+  ]
+}

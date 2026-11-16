@@ -72,6 +72,9 @@ browse places by theme, or `/` and type any name. Click any world to select it, 
   supernova remnants, pulsars, the Galactic centre, the Fermi and eROSITA bubbles, 141 stellar streams, satellite
   galaxies, the Magellanic Stream, the Local Bubble and the Radcliffe Wave. Names and outlines appear when you
   leave the Sun's neighbourhood (Shift+B switches them on or off anywhere).
+- Real dust: within 1.2 kpc of the Sun the dark clouds of the Milky Way are the measured 3D dust map
+  (Taurus, Ophiuchus, Orion and their neighbours, with the clear Local Bubble around the Sun), and the
+  star-forming knots on the mapped side of the Galaxy are the measured regions.
 - The Orion Nebula in 3D: a calibrated photograph turned into a glowing bowl you can fly into, with M43, the
   Trapezium at its true distance and an Astrophoto style.
 

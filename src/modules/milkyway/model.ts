@@ -448,6 +448,7 @@ export function modelGlslDefines(): string {
     `const vec4 MW_ARM_B[MW_NARMS] = vec4[MW_NARMS](${arm((a) => `vec4(${f(a.wk)}, ${f(a.rk)}, ${f(a.bMin)}, ${f(a.bMax)})`)});`,
     `const vec3 MW_ARM_C[MW_NARMS] = vec3[MW_NARMS](${arm((a) => `vec3(${f(a.young)}, ${f(a.old)}, ${f(a.dust)})`)});`,
     `#define MW_R0 ${f(m.sun.R0)}`,
+    `#define MW_SUN ${v3([SUN_MODEL.x, SUN_MODEL.y, SUN_MODEL.z])}`,
     `#define MW_WIDTH_GROWTH ${f(m.armProfile.widthGrowth)}`,
     `#define MW_WIDTH_SCALE ${f(m.armProfile.widthScale)}`,
     `#define MW_TAPER ${f(m.armProfile.taperDeg * DEG)}`,

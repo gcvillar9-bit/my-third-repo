@@ -10,10 +10,7 @@
       "attribution": "Hunt, E. L. & Reffert, S. 2023, A&A 673, A114; data from CDS/VizieR",
       "sha256": "1bf721946bccb28cbe0f96c08df8472edec0d8a61b5a271be9631188ffb09fcd",
       "bytes": 3247255,
-      "outputs": [
-        "data/milkyway/atlas/open-clusters.json",
-        "data/milkyway/atlas/cluster-stars.bin"
-      ]
+      "outputs": ["data/milkyway/atlas/open-clusters.json", "data/milkyway/atlas/cluster-stars.bin"]
     },
     {
       "id": "hr24_clusters",
@@ -24,9 +21,7 @@
       "attribution": "Hunt, E. L. & Reffert, S. 2024, A&A 686, A42; data from CDS/VizieR",
       "sha256": "c13a9e9287db5569369ce854ee99e57cdf90eb2bb1f967d421e29121aa116c0a",
       "bytes": 412619,
-      "outputs": [
-        "data/milkyway/atlas/open-clusters.json"
-      ]
+      "outputs": ["data/milkyway/atlas/open-clusters.json"]
     },
     {
       "id": "openngc_ngc",
@@ -37,9 +32,7 @@
       "attribution": "OpenNGC (Mattia Verga), commit be3cd6c549, NGC.csv and addendum.csv",
       "sha256": "54abea0b57b0a103831bfc7a8e3a99a23acfbf4bb581fcf3d8af539cbb826c84",
       "bytes": 3942946,
-      "outputs": [
-        "data/milkyway/atlas/open-clusters.json"
-      ]
+      "outputs": ["data/milkyway/atlas/open-clusters.json"]
     },
     {
       "id": "openngc_addendum",
@@ -50,9 +43,7 @@
       "attribution": "OpenNGC (Mattia Verga), commit be3cd6c549, NGC.csv and addendum.csv",
       "sha256": "c93f983dda6780b76b7b2e9271a856a892627710148a982ee98101a54c642fdd",
       "bytes": 17496,
-      "outputs": [
-        "data/milkyway/atlas/open-clusters.json"
-      ]
+      "outputs": ["data/milkyway/atlas/open-clusters.json"]
     },
     {
       "id": "hr23_members",
@@ -63,10 +54,7 @@
       "attribution": "Hunt, E. L. & Reffert, S. 2023, A&A 673, A114; data from CDS/VizieR",
       "sha256": "3ea18c95c0d8d0f37eca771c29bd24277735e6a23b8e06dfb089ca8b0494bca2",
       "bytes": 219628181,
-      "outputs": [
-        "data/milkyway/atlas/open-clusters.json",
-        "data/milkyway/atlas/cluster-stars.bin"
-      ]
+      "outputs": ["data/milkyway/atlas/open-clusters.json", "data/milkyway/atlas/cluster-stars.bin"]
     }
   ]
 }

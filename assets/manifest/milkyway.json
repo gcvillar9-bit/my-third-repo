@@ -151,6 +151,30 @@
       "outputs": ["data/milkyway/atlas/features-local.json"]
     },
     {
+      "id": "edenhofer_2024_paper",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Edenhofer et al. 2024, A&A 685, A82 (arXiv:2308.01295), text",
+      "note": "Source: https://arxiv.org/abs/2308.01295",
+      "files": 1,
+      "bytes": 360768,
+      "outputs": ["data/milkyway/atlas/dust.json"]
+    },
+    {
+      "id": "edenhofer_2024_tables",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Edenhofer, Zucker, Frank, Saydjari, Speagle, Finkbeiner & Ensslin 2024 (Zenodo 10.5281/zenodo.8187943)",
+      "note": "Source: https://doi.org/10.5281/zenodo.8187943",
+      "files": 2,
+      "bytes": 1630015201,
+      "outputs": [
+        "data/milkyway/atlas/dust-cube.png",
+        "data/milkyway/atlas/dust-column.png",
+        "data/milkyway/atlas/dust.json"
+      ]
+    },
+    {
       "id": "gagne_2018",
       "atlas": true,
       "license": "cited (no explicit licence)",

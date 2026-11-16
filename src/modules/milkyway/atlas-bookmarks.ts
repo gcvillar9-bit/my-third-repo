@@ -42,6 +42,10 @@ export function atlasBookmarks(): Bookmark[] {
     (ngp.y * 560 + gc.y * -240) * PC,
     (ngp.z * 560 + gc.z * -240) * PC,
   );
+  // Measured dust: straight down on the Sun's neighbourhood from 2.6 kpc above it, and from inside
+  // the disc, 450 pc from the Sun on the anticentre side, looking past the Sun at the Galactic centre.
+  const overhead = vec3(sunMw.x, sunMw.y, sunMw.z + 2.6 * KPC);
+  const inside = vec3(sunMw.x - 0.45 * KPC, sunMw.y, sunMw.z + 0.04 * KPC);
   const a = PLEIADES.ra * DEG;
   const d = PLEIADES.dec * DEG;
   const pleiades = vec3(Math.cos(d) * Math.cos(a), Math.cos(d) * Math.sin(a), Math.sin(d));
@@ -78,6 +82,28 @@ export function atlasBookmarks(): Bookmark[] {
       ev: -9,
       lookTarget:
         "The Sun's neighbourhood from 3.5 kpc outside the solar circle: the orange line of the Radcliffe Wave undulating above and below the plane, markers of molecular clouds, star-forming regions and supernova remnants around the Sun, and the bright inner Galaxy behind.",
+    },
+    {
+      id: 'mw-local-dust',
+      title: 'Measured dust around the Sun, from above',
+      frame: MW_FRAME,
+      pos: overhead,
+      quat: qlookRotation(quat(), towards(overhead, sunMw), vec3(1, 0, 0)),
+      fovY: 50 * DEG,
+      ev: -9,
+      lookTarget:
+        "Straight down on the Sun's neighbourhood from 2.6 kpc above the plane, Galactic centre up: the glowing disc is mottled by real dark dust clouds inside a circle of 1.2 kpc radius around the Sun (the measured map), with a clear patch at the Sun (the Local Bubble); outside the circle the dust is the smooth model.",
+    },
+    {
+      id: 'mw-dark-clouds',
+      title: 'Dark clouds against the Galactic centre',
+      frame: MW_FRAME,
+      pos: inside,
+      quat: qlookRotation(quat(), towards(inside, origin), north),
+      fovY: 70 * DEG,
+      ev: -8,
+      lookTarget:
+        'From inside the disc, 450 pc behind the Sun, looking at the Galactic centre: the bright band and bulge across the middle, cut by irregular dark clouds of real measured dust (the Ophiuchus and Aquila clouds and their neighbours) instead of a smooth lane.',
     },
     {
       id: 'mw-galactic-centre',

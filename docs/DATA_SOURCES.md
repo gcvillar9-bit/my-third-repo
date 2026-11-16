@@ -125,11 +125,12 @@ accepted these sources with credit); the values are measured facts and each info
 | Gagné et al. 2018 (ApJ 856, 23), tables parsed from the paper                                                                                                    | Cited                                                    | `associations.json`                                   |
 | Pelgrims et al. 2020 Local Bubble shell map; Alves et al. 2020 Radcliffe Wave model (Harvard Dataverse)                                                          | CC0 1.0                                                  | `features-local.json`                                 |
 | Gillessen et al. 2017 (ApJ 837, 30), VizieR Table 3                                                                                                              | Cited                                                    | 32 S-star rows in `data/blackholes/blackholes.json`   |
+| Edenhofer et al. 2024 (A&A 685, A82), 3D dust map to 1.25 kpc, posterior mean (Zenodo 10.5281/zenodo.8187943; 1.6 GB of the file by range requests)              | CC BY 4.0                                                | `dust-cube.png`, `dust-column.png`, `dust.json`       |
 | About 45 papers read as fetched text (arXiv, ar5iv) and SIMBAD positions; each hand-entered value carries a quote that the build checks against the fetched page | Cited (four are CC BY 4.0)                               | `features-*.json`, warp and flare of the galaxy model |
 
 Left out for lack of fetched evidence or as implausible (build log): 124 remnants without a distance and 5 with an
 uncertainty above half the distance, 97 pulsars without and 8 with an implausible distance, 9 masers with a poor
 parallax, 68 clusters outside 20 pc to 20 kpc, 121 globular clusters of the open-cluster catalogue (drawn from the
 Baumgardt list), the Split and the Cepheus spur (no end points), the Orion-Eridanus superbubble (size depends on the
-model). The Edenhofer et al. 2024 and Vergely et al. 2022 3D dust maps and a larger Gaia star catalogue are planned
-for later phases.
+model). The Vergely et al. 2022 dust map (to 3 kpc) was evaluated and not used: beyond about 1 kpc it smears clouds into
+radial streaks that point at the Sun. A larger star catalogue is planned for the next phase.
