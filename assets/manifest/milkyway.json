@@ -31,6 +31,20 @@
       "outputs": ["data/milkyway/atlas/features-local.json"]
     },
     {
+      "id": "athyg_v40_m11",
+      "atlas": true,
+      "license": "CC-BY-SA-4.0",
+      "attribution": "AT-HYG v4.0, David Nash (astronexus): Tycho-2, Gaia DR3, Hipparcos, Yale BSC, Gliese",
+      "note": "Source: https://codeberg.org/astronexus/athyg",
+      "files": 1,
+      "bytes": 70059104,
+      "outputs": [
+        "data/milkyway/atlas/deep-stars-a.bin",
+        "data/milkyway/atlas/deep-stars-b.bin",
+        "data/milkyway/atlas/deep-stars.json"
+      ]
+    },
+    {
       "id": "atnf_psrcat",
       "atlas": true,
       "license": "cited (ATNF/CSIRO database; the catalogue page asks to acknowledge Manchester et al. 2005 and the web address)",
@@ -149,6 +163,30 @@
       "files": 1,
       "bytes": 653222,
       "outputs": ["data/milkyway/atlas/features-local.json"]
+    },
+    {
+      "id": "edenhofer_2024_paper",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Edenhofer et al. 2024, A&A 685, A82 (arXiv:2308.01295), text",
+      "note": "Source: https://arxiv.org/abs/2308.01295",
+      "files": 1,
+      "bytes": 360768,
+      "outputs": ["data/milkyway/atlas/dust.json"]
+    },
+    {
+      "id": "edenhofer_2024_tables",
+      "atlas": true,
+      "license": "CC-BY-4.0",
+      "attribution": "Edenhofer, Zucker, Frank, Saydjari, Speagle, Finkbeiner & Ensslin 2024 (Zenodo 10.5281/zenodo.8187943)",
+      "note": "Source: https://doi.org/10.5281/zenodo.8187943",
+      "files": 2,
+      "bytes": 1630015201,
+      "outputs": [
+        "data/milkyway/atlas/dust-cube.png",
+        "data/milkyway/atlas/dust-column.png",
+        "data/milkyway/atlas/dust.json"
+      ]
     },
     {
       "id": "gagne_2018",
@@ -623,6 +661,20 @@
       "files": 1,
       "bytes": 421617,
       "outputs": ["data/milkyway/atlas/features-structure.json"]
+    },
+    {
+      "id": "zari_2021_filtered",
+      "atlas": true,
+      "license": "cited (no explicit licence)",
+      "attribution": "Zari, E., Rix, H.-W., Frankel, N. et al. 2021, A&A 650, A112, via CDS VizieR (Gaia EDR3, 2MASS)",
+      "note": "Source: https://doi.org/10.1051/0004-6361/202039726",
+      "files": 1,
+      "bytes": 71816316,
+      "outputs": [
+        "data/milkyway/atlas/deep-stars-a.bin",
+        "data/milkyway/atlas/deep-stars-b.bin",
+        "data/milkyway/atlas/deep-stars.json"
+      ]
     },
     {
       "id": "zucker_2020_dataverse",

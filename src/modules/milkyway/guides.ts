@@ -20,9 +20,21 @@ export interface AtlasState {
   groups: Record<string, boolean>;
   /** Real light of the atlas (cluster stars, Cepheids, satellites, centre populations). */
   light: boolean;
+  /** Deep stars: the 1.09 million real stars beyond the bright-star catalogue. */
+  deep: boolean;
+  /** Measured dust and star-forming regions in the galaxy volume model. */
+  measured: boolean;
+  /** Set by the atlas once the measured inputs are loaded; called when `measured` changes. */
+  onMeasured?: (on: boolean) => void;
 }
 
-export const createAtlasState = (): AtlasState => ({ mode: 'auto', groups: {}, light: true });
+export const createAtlasState = (): AtlasState => ({
+  mode: 'auto',
+  groups: {},
+  light: true,
+  deep: true,
+  measured: true,
+});
 
 export const GUIDE_AUTO_START = 2.0 * KPC;
 export const GUIDE_AUTO_END = 2.5 * KPC;

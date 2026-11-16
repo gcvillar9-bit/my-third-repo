@@ -2,6 +2,12 @@
 // covers |x|, |y| < MW_RMAX (model kpc): r = young arm proximity, g = old-disk arm term,
 // b = dust on the inner arm edges, a = HII clump amplitude. Prefixed with modelGlslDefines().
 varying vec2 vUv;
+// Measured star-forming regions (atlas layers hii-regions and masers) splatted on the CPU over the
+// same square; absent until the atlas has loaded them (uRegionsOn = 0). Where the Galaxy is mapped
+// they replace the hashed clumps, which remain on the far side.
+uniform sampler2D uRegions;
+uniform float uRegionsOn;
+uniform vec2 uRegionsFade;  // hashed clumps fade in between these distances from the Sun, kpc
 
 uint hashCell(uint cx, uint cy) {
   uint h = (cx * 0x8da6b343u) ^ (cy * 0xd8163841u);
@@ -60,5 +66,9 @@ vec4 armField(vec2 p) {
 }
 
 void main() {
-  gl_FragColor = armField((vUv * 2.0 - 1.0) * MW_RMAX);
+  vec2 p = (vUv * 2.0 - 1.0) * MW_RMAX;
+  vec4 o = armField(p);
+  float hashed = mix(1.0, smoothstep(uRegionsFade.x, uRegionsFade.y, distance(p, MW_SUN.xy)), uRegionsOn);
+  o.w = o.w * hashed + uRegionsOn * texture2D(uRegions, vUv).r;
+  gl_FragColor = o;
 }

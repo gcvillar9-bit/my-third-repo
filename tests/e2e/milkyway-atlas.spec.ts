@@ -137,3 +137,22 @@ test('atlas: mw-pleiades-cluster adds real member stars to the cluster', async (
   expect(centre(on)).toBeGreaterThanOrEqual(centre(off));
   expect(problems).toEqual([]);
 });
+
+test('atlas: deep stars add real stars around the Sun', async ({ page }) => {
+  const problems: string[] = [];
+  // Same view as the Local Bubble test, without guides: only starlight differs.
+  const on = await cells(page, 'mw-local-bubble', 'milkyway.guides=off', problems);
+  const off = await cells(page, 'mw-local-bubble', 'milkyway.guides=off&milkyway.deepStars=0', problems);
+  // On potato the layer draws its 60,000 most luminous stars: a faint, even sprinkle of light.
+  const stars = added(on, off, 0.0001);
+  const total = (g: Rgb[]) => g.reduce((s, c) => s + lum(c), 0);
+  console.log(
+    'deep stars',
+    JSON.stringify({ lit: stars.lit.length, rgb: stars.rgb, on: total(on), off: total(off) }),
+  );
+  // More starlight over most of the view (the stars surround the Sun), nothing removed.
+  expect(stars.lit.length).toBeGreaterThan(100);
+  expect(new Set(stars.lit.map(colOf)).size).toBeGreaterThan(20);
+  expect(total(on)).toBeGreaterThan(1.01 * total(off));
+  expect(problems).toEqual([]);
+});

@@ -227,6 +227,72 @@ cluster's `rMem` / 32767 pc), `g` u8 × N (Gaia G = g × 0.08), `c` u8 × N (BP�
   (`PSR J0534`, `OGLE-BLG-CEP`). An info card lists the distance and every fact with its citation, and says
   how the object is drawn.
 
+### Measured dust and star-forming regions in the volume (`atlas/measured.ts`)
+
+Loaded with the atlas, after startup; until then, and with the setting `milkyway.measured` off
+(`?milkyway.measured=0`), the galaxy renders from the model alone.
+
+- **Dust near the Sun.** The posterior mean of Edenhofer et al. 2024 (CC BY 4.0; 516 distance shells of a
+  HEALPix map, 69 pc to 1.25 kpc) is resampled by `tools/milkyway/volumes/dust.mjs` to a cube of 313 x 313 x 95
+  voxels of 8 pc in the model's axes, centred on the Sun (`dust-cube.png`, 2.6 MB: z slices as tiles, grey
+  value = 255 sqrt(kappa / kappaMax)), plus the vertical optical depth through the whole map
+  (`dust-column.png`) and `dust.json` (grid, constants, the axes used, statistics). Inside 69 pc the map's
+  integrated inner extinction is spread evenly. A_V = 2.8 map units (the paper; quote checked by the build).
+  The build is not part of the default run (1.6 GB of the 3.3 GB source file by HTTP range requests):
+  `node tools/build-milkyway.mjs dust`. It fails unless Taurus, Ophiuchus, Orion A and Perseus are dense
+  where they should be and the Galactic pole is empty. Local mean: 1.17 mag/kpc (the model: about 1.3).
+- **In the march** (`galaxy.glsl`, `mwMeasuredDust`): inside 0.87 kpc of the Sun the measured opacity replaces
+  the model's dust, and it fades into the model by 1.23 kpc. The opacity of a step is the average of up to 6
+  samples along it. A sample reads the 8 pc cube when it stands for less than about 15 pc of path, a 32 pc
+  cube (averaged at load) up to about 50 pc, and beyond about 100 pc the measured vertical optical depth
+  spread over the model's dust layer, so long steps do not miss the thin clouds. The TypeScript twin has no
+  measured dust: its calibration tests describe the model alone.
+- **Star-forming regions.** The 2,045 rows of the layers `hii-regions` and `masers` are splatted on the CPU
+  into a 512 x 512 texture over the arm-field square and added to the HII channel when the arm field is
+  baked. A region's amplitude is proportional to its radio luminosity (flux density x distance squared;
+  1,343 regions have a flux): 0.7 for 3000 Jy kpc^2 (W51), 0.02 for the Orion Nebula and for regions without
+  a flux. The model's hashed clumps fade in only between 5 and 9 kpc from the Sun, so they remain on the
+  unmapped far side. The amplitude scale is simulated; positions and ranking are measured.
+- Bookmarks: `mw-local-dust` (straight down from 2.6 kpc above the Sun) and `mw-dark-clouds` (from inside
+  the disc, 450 pc behind the Sun, towards the Galactic centre).
+- Tests: unit `measured.test.ts` (grid and source of the cube, known clouds, same axes as the model, tile
+  and coarse-cube helpers, region amplitudes); e2e `milkyway-dust.spec.ts` (clouds and the clear Local
+  Bubble from above, `@smoke`; dark clouds across the band from inside), both against the model render.
+- Limits: the map ends at 1.25 kpc, and the edge of the measured circle is visible from above; inside 69 pc
+  it has no structure; on potato (16 steps) the clouds are coarser.
+
+### Deep stars (`atlas/deep.ts`)
+
+1,091,751 real stars beyond the bright-star catalogue of the stars module (HYG, 119,625 stars), drawn by a
+second Points draw with the atlas star shader (plain stars, no model extinction):
+
+- **AT-HYG v4.0 to magnitude 11** (D. Nash; Tycho-2 with Gaia DR3 distances; CC BY-SA 4.0): 740,494 stars
+  after leaving out the rows with a HYG id (116,835), rows without a distance (7,888), stars the atlas
+  already draws as open-cluster members (9,877, matched on the sky within 1.5 arcsec) and stars brighter
+  than magnitude 7 (components of multiple stars that HYG lists as one). One more star is left out because the
+  nebulae module draws it itself (a Trapezium star; the builder reads that module's star list).
+- **Hot luminous stars of Zari et al. 2021** (A&A 650, A112, filtered sample, astro-kinematic distances):
+  351,257 stars that trace the young disc to several kpc, after leaving out stars already in AT-HYG
+  (33,817), in HYG (8,535), in open clusters (20,185) and distances uncertain by more than a factor 1.5
+  (3,728).
+- Built on request by `tools/milkyway/volumes/deep-stars.mjs` (`node tools/build-milkyway.mjs deep-stars`,
+  110 MB of downloads; run the `open-clusters` layer first, it leaves the list of kept cluster members in
+  `.cache/derived/milkyway/`). Format MWDS v1 (8 bytes per star: three 16-bit logarithmic coordinates,
+  absolute magnitude in 0.1 mag steps, B−V in 0.01 steps; header in the builder). Two files, each sorted
+  from the most to the least luminous star: `deep-stars-a.bin` (217,088 stars of apparent magnitude 10
+  or brighter from the Sun, or more luminous than M = −3; 1.7 MB) and `deep-stars-b.bin` (874,663 stars;
+  7.0 MB), plus `deep-stars.json`.
+- Brightness is the observed one, so the dust towards each star is included as seen from the Sun. No
+  proper motions: the stars stay at their catalogue positions when the clock runs (they are too faint to
+  notice in the time-lapse views).
+- Per preset: potato draws the 60,000 most luminous stars of tier A; low all of tier A; medium tier A and
+  400,000 of tier B; high and ultra everything. Tier B is fetched only on medium and above. Setting
+  `milkyway.deepStars` (`?milkyway.deepStars=0`).
+- No info cards: these stars are light, not named objects. Their sources are in `deep-stars.json`,
+  `CREDITS.md` and here.
+- Tests: unit `deep.test.ts` (tiers, sources, no bright duplicates, sorting, reach, encoding, budgets); e2e
+  in `milkyway-atlas.spec.ts` (more starlight around the Sun with the layer on than off).
+
 ### Other modules
 
 - **galaxies:** `hideGalaxies` (galaxies `public.ts`) hides the catalogue rows that match an atlas
@@ -263,5 +329,6 @@ view (`?b=` or `#b=`).
 - Distances along the Magellanic Stream are not measured (drawn at 50 kpc rising to 120 kpc at the tip, as
   Nidever et al. 2010 adopt); Galactic-centre objects sit at the distance of Sgr A* (their depth is unknown).
 - Guides are drawn behind every body and are not occluded by the galaxy's dust.
+- The far side of the Galaxy keeps simulated star-forming clumps and smooth dust: nothing is measured there.
 - Dwarf satellites are fainter than the exposure of the far views shows: they appear as labels there and
   as star clouds from nearby.

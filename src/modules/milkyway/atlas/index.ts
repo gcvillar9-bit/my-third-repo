@@ -9,14 +9,18 @@
  */
 import type { ModuleContext, Renderable } from '../../../core/contracts';
 import { hideGalaxies } from '../../galaxies/public';
+import type { GalaxyGpu } from '../galaxy';
 import type { AtlasState } from '../guides';
 import { Atlas, loadAtlas } from './catalog';
 import { createLines, createMarkers, createShells } from './guide-render';
+import { DEEP_BUDGET, decodeDeepStars, deepPointArrays } from './deep';
 import { createAtlasLabels } from './labels';
+import { loadMeasured } from './measured';
 import {
   addCepheids,
   addClusterStars,
   addPopulation,
+  createPointLayer,
   createStarPoints,
   decodeClusterStars,
   PointBuilder,
@@ -33,7 +37,11 @@ export interface AtlasHandle {
   renderables: Renderable[];
 }
 
-export async function createAtlas(ctx: ModuleContext, state: AtlasState): Promise<AtlasHandle> {
+export async function createAtlas(
+  ctx: ModuleContext,
+  state: AtlasState,
+  gpu: GalaxyGpu,
+): Promise<AtlasHandle> {
   const { assets, registry, ui, quality } = ctx;
   const [atlas, starsBuf] = await Promise.all([
     loadAtlas((p) => assets.json(p)),
@@ -60,6 +68,38 @@ export async function createAtlas(ctx: ModuleContext, state: AtlasState): Promis
   const lines = createLines(atlas, state);
   if (lines) renderables.push(lines);
   renderables.push(...createShells(atlas, state));
+
+  // Deep stars: tier A always, tier B on the presets that draw it.
+  const [limitA, limitB] = DEEP_BUDGET[quality.preset];
+  const deepFiles = await Promise.all(
+    (
+      [
+        ['a', limitA],
+        ['b', limitB],
+      ] as const
+    )
+      .filter(([, limit]) => limit > 0)
+      .map(([tier, limit]) =>
+        assets
+          .binary(`data/milkyway/atlas/deep-stars-${tier}.bin`)
+          .then((buf) => ({ stars: decodeDeepStars(buf), limit }))
+          .catch(() => null),
+      ),
+  );
+  const deep = deepFiles.filter((f) => f !== null);
+  if (deep.length)
+    renderables.push(
+      createPointLayer(
+        'milkyway.atlas.deep-stars',
+        deepPointArrays(deep),
+        () => state.light && state.deep,
+        -7.6,
+      ),
+    );
+
+  // Measured dust and star-forming regions for the galaxy volume model.
+  const measured = await loadMeasured(atlas, assets, gpu, state.measured);
+  state.onMeasured = (on) => measured.setEnabled(on);
 
   for (const r of renderables) registry.addRenderable(r);
   ui.addLabelSource(createAtlasLabels(atlas, state));

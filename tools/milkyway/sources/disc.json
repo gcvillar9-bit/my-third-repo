@@ -10,9 +10,7 @@
       "attribution": "Reid et al. 2019, ApJ 885, 131, notes to Table 1 (spiral arm codes)",
       "sha256": "a446edd01f2bebdb8a995b8caaf45ac0366b46a20297c9bed5579187d4a36a2a",
       "bytes": 1043087,
-      "outputs": [
-        "data/milkyway/atlas/masers.json"
-      ]
+      "outputs": ["data/milkyway/atlas/masers.json"]
     },
     {
       "id": "reid_2019_masers",
@@ -23,9 +21,7 @@
       "attribution": "Reid, M. J. et al. 2019, ApJ 885, 131 (BeSSeL Survey and VERA), via CDS VizieR",
       "sha256": "950bee774d15846b9d07c046e543355f7276d9350e906bc20d3cacbbd9e5f6ab",
       "bytes": 31170,
-      "outputs": [
-        "data/milkyway/atlas/masers.json"
-      ]
+      "outputs": ["data/milkyway/atlas/masers.json"]
     },
     {
       "id": "zucker_2020_handbook",
@@ -36,9 +32,7 @@
       "attribution": "Zucker, C. et al. 2020, A&A 633, A51, via CDS VizieR",
       "sha256": "3dc9236e2184c6703d948b1bd2b556bbcceeadd471c52092d163dde4c956302a",
       "bytes": 14761,
-      "outputs": [
-        "data/milkyway/atlas/clouds.json"
-      ]
+      "outputs": ["data/milkyway/atlas/clouds.json"]
     },
     {
       "id": "zucker_2020_dataverse",
@@ -49,9 +43,7 @@
       "attribution": "Zucker et al. 2020, Harvard Dataverse, doi:10.7910/DVN/07L7YZ (Table A.1)",
       "sha256": "1b962743373524dd0b49792dedc7ba18a9eb669f89d00a60120950369f101f46",
       "bytes": 4756,
-      "outputs": [
-        "data/milkyway/atlas/clouds.json"
-      ]
+      "outputs": ["data/milkyway/atlas/clouds.json"]
     },
     {
       "id": "green_catalogue_page",
@@ -62,9 +54,7 @@
       "attribution": "Green D. A., Catalogue of Galactic Supernova Remnants, home page (citation terms)",
       "sha256": "dee89775092dec15e5d55ce8113a9d4e9a28a911bed0350a4d3d98d1f754d5be",
       "bytes": 6247,
-      "outputs": [
-        "data/milkyway/atlas/remnants.json"
-      ]
+      "outputs": ["data/milkyway/atlas/remnants.json"]
     },
     {
       "id": "ranasinghe_2022_paper",
@@ -75,9 +65,7 @@
       "attribution": "Ranasinghe & Leahy 2022, ApJ 940, 63 (arXiv:2209.04570)",
       "sha256": "b64857c015c405c828fe6a6cabe2ab6412e22cb56d30be08b0b89a1be78d7455",
       "bytes": 714726,
-      "outputs": [
-        "data/milkyway/atlas/remnants.json"
-      ]
+      "outputs": ["data/milkyway/atlas/remnants.json"]
     },
     {
       "id": "ranasinghe_2022_snr_distances",
@@ -88,9 +76,7 @@
       "attribution": "Ranasinghe, S. & Leahy, D. 2022, ApJ 940, 63, via CDS VizieR",
       "sha256": "fd495f4d21d3430151e615933d5cb0acfe91e7d217ce3934239d00fe4a65a6a7",
       "bytes": 43903,
-      "outputs": [
-        "data/milkyway/atlas/remnants.json"
-      ]
+      "outputs": ["data/milkyway/atlas/remnants.json"]
     },
     {
       "id": "green_2024_snrs",
@@ -101,9 +87,7 @@
       "attribution": "Green, D. A. 2025, JApA 46, 14; A Catalogue of Galactic Supernova Remnants (2024 October version), Cavendish Laboratory, Cambridge",
       "sha256": "3448a58260ccdeb50bf0f3e3b44887c6a4969108e04ca3a7976a108e43ca4b0b",
       "bytes": 33758,
-      "outputs": [
-        "data/milkyway/atlas/remnants.json"
-      ]
+      "outputs": ["data/milkyway/atlas/remnants.json"]
     },
     {
       "id": "atnf_psrcat",
@@ -114,9 +98,7 @@
       "attribution": "Manchester, R. N., Hobbs, G. B., Teoh, A. & Hobbs, M. 2005, AJ 129, 1993; ATNF Pulsar Catalogue, CSIRO",
       "sha256": "55daa29f71f344c8de4064969b5812d6cb3a9b851efae0bef004ac9d5f6740c0",
       "bytes": 1249005,
-      "outputs": [
-        "data/milkyway/atlas/pulsars.json"
-      ]
+      "outputs": ["data/milkyway/atlas/pulsars.json"]
     },
     {
       "id": "atnf_psrcat_terms",
@@ -127,9 +109,7 @@
       "attribution": "ATNF Pulsar Catalogue, download page (copyright and referencing)",
       "sha256": "3b82ba38d7abfec7271ee52bfa34a3f23105cc82693dd9617d4514f7ec3d912d",
       "bytes": 13753,
-      "outputs": [
-        "data/milkyway/atlas/pulsars.json"
-      ]
+      "outputs": ["data/milkyway/atlas/pulsars.json"]
     },
     {
       "id": "hou_han_2014_paper",
@@ -140,9 +120,7 @@
       "attribution": "Hou & Han 2014, A&A 569, A125 (arXiv:1407.7331), method and notes to Table A.1",
       "sha256": "16aa7555f60a2d7effb9e68176403ed5e3c3a7467afe20e5c49e09b2b28ff397",
       "bytes": 508910,
-      "outputs": [
-        "data/milkyway/atlas/hii-regions.json"
-      ]
+      "outputs": ["data/milkyway/atlas/hii-regions.json"]
     },
     {
       "id": "hou_han_2014_hii",
@@ -153,9 +131,7 @@
       "attribution": "Hou, L. G. & Han, J. L. 2014, A&A 569, A125, via CDS VizieR",
       "sha256": "4085df00aa867bcfeebfcfdfc5d5a455c535d797305fdf4b63425bb054059683",
       "bytes": 1247537,
-      "outputs": [
-        "data/milkyway/atlas/hii-regions.json"
-      ]
+      "outputs": ["data/milkyway/atlas/hii-regions.json"]
     }
   ]
 }

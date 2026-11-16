@@ -12,7 +12,10 @@ const SRC = {
   url: 'https://doi.org/10.1126/science.aau3181',
   license: 'cited (no explicit licence)',
   attribution: 'OGLE project (Skowron, D. M. et al. 2019), Warsaw University Observatory',
-  fetch: { kind: 'file', url: 'https://ftp.astrouw.edu.pl/ogle/ogle4/MILKY_WAY_3D_MAP/Skowron2019_GalClassCephDist.dat' },
+  fetch: {
+    kind: 'file',
+    url: 'https://ftp.astrouw.edu.pl/ogle/ogle4/MILKY_WAY_3D_MAP/Skowron2019_GalClassCephDist.dat',
+  },
   outputs: ['data/milkyway/atlas/cepheids.json'],
 };
 const BENEDICT = {
@@ -21,7 +24,11 @@ const BENEDICT = {
   cite: 'Benedict et al. 2007, AJ 133, 1810, Table 12: M_V = -4.05 - 2.43 (log P - 1)',
   url: 'https://arxiv.org/abs/astro-ph/0612465',
   license: 'cited (no explicit licence)',
-  fetch: { kind: 'file', url: 'https://ar5iv.labs.arxiv.org/html/astro-ph/0612465', file: 'benedict_2007.html' },
+  fetch: {
+    kind: 'file',
+    url: 'https://ar5iv.labs.arxiv.org/html/astro-ph/0612465',
+    file: 'benedict_2007.html',
+  },
   outputs: ['data/milkyway/atlas/cepheids.json'],
 };
 /** Period-luminosity relation, fundamental mode: M_V = a + b (log10 P - 1), Benedict et al. 2007, Table 12 (B07). */
@@ -87,7 +94,12 @@ export default function build() {
       { key: 'period', label: 'Pulsation period', unit: 'd', source: 'skowron' },
       { key: 'mode', label: 'Pulsation mode', source: 'skowron' },
       { key: 'age', label: 'Age', unit: 'Myr', source: 'skowron', approximate: true },
-      { key: 'absMag', label: 'Absolute magnitude (V) from the period', source: 'benedict', approximate: true },
+      {
+        key: 'absMag',
+        label: 'Absolute magnitude (V) from the period',
+        source: 'benedict',
+        approximate: true,
+      },
       { key: 'survey', label: 'Discovery survey', source: 'skowron' },
     ],
     rows,

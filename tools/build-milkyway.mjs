@@ -8,6 +8,7 @@
  *
  *   node tools/build-milkyway.mjs                 # everything
  *   node tools/build-milkyway.mjs cepheids        # only the named layers or feature groups
+ *   node tools/build-milkyway.mjs dust            # the measured dust cube (1.6 GB download, not in the default run)
  *   node tools/build-milkyway.mjs --update-sources  # accept changed upstream files
  *
  * Row: [name, aliases[], raDeg, decDeg, distPc, rcPc, rtPc, absMagV]. Celestia keys: RA in hours,
@@ -65,11 +66,15 @@ console.log(`build-milkyway: ${rows.length} globular clusters -> public/data/mil
 // ---------------------------------------------------------------------------------------
 // Atlas layers and features
 // ---------------------------------------------------------------------------------------
-for (const dir of ['layers', 'features']) {
+// `volumes` (the measured dust cube) needs a 1.6 GB download, so it runs only when named.
+for (const dir of ['layers', 'features', 'volumes']) {
   const abs = join(ROOT, 'tools', 'milkyway', dir);
   if (!existsSync(abs)) continue;
-  for (const f of readdirSync(abs).filter((n) => n.endsWith('.mjs')).sort()) {
-    if (only.length && !only.includes(f.replace(/\.mjs$/, ''))) continue;
+  for (const f of readdirSync(abs)
+    .filter((n) => n.endsWith('.mjs'))
+    .sort()) {
+    const name = f.replace(/\.mjs$/, '');
+    if (only.length ? !only.includes(name) : dir === 'volumes') continue;
     console.log(`build-milkyway: ${dir}/${f}`);
     const mod = await import(pathToFileURL(join(abs, f)).href);
     await mod.default();
@@ -102,4 +107,6 @@ const kept = manifest.assets.filter((a) => !a.atlas);
 const atlas = [...byCite.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
 const next = { ...manifest, assets: [...kept, ...atlas] };
 if (JSON.stringify(next) !== JSON.stringify(manifest)) await writeManifest(next);
-console.log(`build-milkyway: ${allSources().length} fetched files, ${atlas.length} atlas credits in assets/manifest/milkyway.json`);
+console.log(
+  `build-milkyway: ${allSources().length} fetched files, ${atlas.length} atlas credits in assets/manifest/milkyway.json`,
+);

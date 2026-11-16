@@ -125,7 +125,16 @@ export default function build() {
   const dists = new Map();
   for (const r of vizier(RL)) dists.set(key(r.SNR), r);
   const rows = [];
-  const stat = { green: 0, noDistance: 0, badDistance: 0, uncertain: 0, fromPulsar: 0, noSize: 0, limitFlux: 0, rlUnmatched: 0 };
+  const stat = {
+    green: 0,
+    noDistance: 0,
+    badDistance: 0,
+    uncertain: 0,
+    fromPulsar: 0,
+    noSize: 0,
+    limitFlux: 0,
+    rlUnmatched: 0,
+  };
   const pulsarInside = pulsarFinder();
   const matched = new Set();
   for (const g of vizier(GREEN)) {
@@ -161,7 +170,11 @@ export default function build() {
     let pulsarNote = null;
     const worst = Math.max(err ?? 0, num(d.E_Distl1) ?? 0);
     if (!revised && worst > 0.5 * dist) {
-      const psr = pulsarInside(hmsToDeg(g.RAJ2000), dmsToDeg(g.DEJ2000), Math.max(num(g.MajDiam) ?? 0, 4) / 2);
+      const psr = pulsarInside(
+        hmsToDeg(g.RAJ2000),
+        dmsToDeg(g.DEJ2000),
+        Math.max(num(g.MajDiam) ?? 0, 4) / 2,
+      );
       if (!psr) {
         stat.uncertain++;
         continue;

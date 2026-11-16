@@ -1,8 +1,47 @@
 // GalaxyModel, GLSL twin of components()/dustKappa()/skyLuminance() in model.ts. Prefixed with
 // modelGlslDefines(). The planar arm field comes from the baked uArmField texture (armfield.glsl).
 uniform sampler2D uArmField;
+// Measured dust near the Sun (Edenhofer et al. 2024, tools/milkyway/volumes/dust.mjs): a cube in
+// model axes centred on the Sun and the vertical optical depth through the map. Both store
+// sqrt(value / max). Absent until the atlas has loaded them (uDustOn = 0).
+precision lowp sampler3D;
+uniform sampler3D uDust3D;      // 8 pc voxels
+uniform sampler3D uDustCoarse;  // the same cube averaged to 32 pc voxels
+uniform sampler2D uDustCol;
+uniform float uDustOn;
+uniform vec3 uDustHalf;   // half extents of the cube, kpc
+uniform vec2 uDustMax;    // kappaMax (1/kpc), tauMax
+uniform vec2 uDustFade;   // the measured dust fades into the model's between these radii, kpc
+#define DUST_SUBSTEPS 6
 
-void mwSample(vec3 p, out vec3 j, out float kappa) {
+// Measured opacity (1/kpc) at offset d from the Sun (model axes, kpc), model height z, for a
+// sample that stands for a path of length ds: the fine cube for short paths, the coarse cube for
+// medium ones, and for long ones (which would miss the thin clouds) the measured vertical optical
+// depth spread over the model's dust layer.
+float mwMeasuredDust(vec3 d, float z, float ds) {
+  float toCoarse = smoothstep(0.010, 0.020, ds);
+  float toSheet = smoothstep(0.048, 0.110, ds);
+  vec3 uvw = d / (2.0 * uDustHalf) + 0.5;
+  float k = 0.0;
+  if (toSheet < 1.0 && abs(d.z) < uDustHalf.z) {
+    if (toCoarse < 1.0) {
+      float v = texture(uDust3D, uvw).r;
+      k += (1.0 - toCoarse) * v * v;
+    }
+    if (toCoarse > 0.0) {
+      float v = texture(uDustCoarse, uvw).r;
+      k += toCoarse * v * v;
+    }
+    k *= uDustMax.x;
+  }
+  if (toSheet > 0.0) {
+    float c = texture2D(uDustCol, uvw.xy).r;
+    k = mix(k, uDustMax.y * c * c * exp(-abs(z) / MW_DUST_HZ) / (2.0 * MW_DUST_HZ), toSheet);
+  }
+  return k;
+}
+
+void mwSample(vec3 p, vec3 rd, float dt, out vec3 j, out float kappa) {
   vec4 f = texture2D(uArmField, p.xy / (2.0 * MW_RMAX) + 0.5);
   float R = length(p.xy);
   // Disc components follow the warped mid-plane (Chen et al. 2019) and flare outwards
@@ -35,6 +74,21 @@ void mwSample(vec3 p, out vec3 j, out float kappa) {
   j = thin * MW_COL_THIN + thick * MW_COL_THICK + bulge * MW_COL_BULGE + bar * MW_COL_BAR + young * MW_COL_YOUNG +
     hii * MW_COL_HII;
   kappa = MW_DUST_K0 * exp(-(R - MW_R0) / MW_DUST_HR - az / MW_DUST_HZ) * (1.0 + MW_DUST_ARM * f.z);
+  if (uDustOn > 0.0) {
+    vec3 d = p - MW_SUN;
+    float w = uDustOn * (1.0 - smoothstep(uDustFade.x, uDustFade.y, length(d)));
+    if (w > 0.0) {
+      // Average the measured dust over the step (up to DUST_SUBSTEPS samples about 32 pc apart).
+      float n = clamp(ceil(dt / 0.032), 1.0, float(DUST_SUBSTEPS));
+      float km = 0.0;
+      for (int i = 0; i < DUST_SUBSTEPS; i++) {
+        if (float(i) >= n) break;
+        vec3 o = rd * (((float(i) + 0.5) / n - 0.5) * dt);
+        km += mwMeasuredDust(d + o, p.z + o.z, dt / n);
+      }
+      kappa = mix(kappa, km / n, w);
+    }
+  }
 }
 
 // Ray segment inside the bounding cylinder (x = t0, y = t1; empty when y <= x).
@@ -84,7 +138,7 @@ vec3 mwMarch(vec3 ro, vec3 rd, int steps, float jitter) {
     float dt = (seg.y - seg.x) * (u1 - u0);
     vec3 j;
     float k;
-    mwSample(ro + rd * (ta + dt * jitter), j, k);
+    mwSample(ro + rd * (ta + dt * jitter), rd, dt, j, k);
     vec3 tau = k * MW_REDDEN * dt;
     vec3 att = exp(-tau);
     vec3 fct = mix(vec3(1.0), (1.0 - att) / max(tau, vec3(1e-6)), step(vec3(1e-4), tau));

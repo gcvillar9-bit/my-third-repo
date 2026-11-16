@@ -96,6 +96,35 @@ const milkywayModule: UniverseModule = {
       persist: true,
       onChange: (v) => void (atlasState.light = v === true),
     });
+    registry.addSetting({
+      id: 'milkyway.deepStars',
+      label: 'Deep stars: a million fainter and more distant real stars',
+      group: 'Milky Way atlas',
+      type: 'boolean',
+      default: true,
+      persist: true,
+      description:
+        'Real stars beyond the bright-star catalogue: all stars to magnitude 11 and the hot luminous stars of the young disc.',
+      onChange: (v) => void (atlasState.deep = v === true),
+    });
+    const deepStars = ctx.env.params.get('milkyway.deepStars');
+    if (deepStars !== null) ui.settings.set('milkyway.deepStars', deepStars !== '0' && deepStars !== 'false');
+    registry.addSetting({
+      id: 'milkyway.measured',
+      label: 'Measured dust and star-forming regions near the Sun',
+      group: 'Milky Way atlas',
+      type: 'boolean',
+      default: true,
+      persist: true,
+      description:
+        'Real dust clouds within 1.2 kpc of the Sun and real star-forming regions on the arms, in place of the smooth model.',
+      onChange: (v) => {
+        atlasState.measured = v === true;
+        atlasState.onMeasured?.(atlasState.measured);
+      },
+    });
+    const measured = ctx.env.params.get('milkyway.measured');
+    if (measured !== null) ui.settings.set('milkyway.measured', measured !== '0' && measured !== 'false');
     const light = ctx.env.params.get('milkyway.atlasLight');
     if (light !== null) ui.settings.set('milkyway.atlasLight', light !== '0' && light !== 'false');
     const override = ctx.env.params.get(GUIDES_SETTING);
@@ -119,7 +148,7 @@ const milkywayModule: UniverseModule = {
       });
     void ctx.assets
       .track(
-        import('./atlas/index').then((m) => m.createAtlas(ctx, atlasState)),
+        import('./atlas/index').then((m) => m.createAtlas(ctx, atlasState, gpu)),
         'milkyway.atlas',
       )
       .catch((e: unknown) => console.error('[milkyway] the atlas failed to load', e));

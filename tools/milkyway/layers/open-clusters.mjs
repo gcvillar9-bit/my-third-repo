@@ -7,9 +7,21 @@
  * Offsets in cluster-stars.bin: dx = dist50 cos(Dec0) dRA, dy = dist50 dDec (pc, Dec0 = Dec of the cluster
  * centre, dRA wrapped to +-pi), stored as round(offset / rMem x 32767).
  */
-import { readFileSync, writeFileSync, statSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { DEG, OUT_DIR, icrsFromRaDec, num, parseTsv, round, sig, slug, source, writeLayer } from '../lib.mjs';
+import {
+  DEG,
+  DERIVED,
+  OUT_DIR,
+  icrsFromRaDec,
+  num,
+  parseTsv,
+  round,
+  sig,
+  slug,
+  source,
+  writeLayer,
+} from '../lib.mjs';
 import { ensureModuleAssets } from '../../lib/manifest.mjs';
 
 const OPENNGC_COMMIT = 'be3cd6c5498806a2fbb2f7e0452ef802dbb02be0';
@@ -256,7 +268,8 @@ export default async function build() {
     // that are a cluster with nebulosity, and names in other languages; those stay aliases),
     // else the Messier number, else the catalogue name.
     const usable = e ? e.common.filter((n) => !/Nebula|Cloud|^the |^Amas /i.test(n)) : [];
-    const common = usable.find((n) => /Cluster|Box/i.test(n)) ?? usable[0] ?? (e?.messier ? `M ${e.messier}` : null);
+    const common =
+      usable.find((n) => /Cluster|Box/i.test(n)) ?? usable[0] ?? (e?.messier ? `M ${e.messier}` : null);
     const aliases = [];
     const add = (a) => {
       const t = String(a).replace(/_+/g, ' ').trim();
@@ -390,6 +403,8 @@ export default async function build() {
     stars.push({
       c: ci,
       g,
+      ra,
+      dec,
       bp: num(c[ix['BP-RP']]),
       dRa: dRaWrap(ra - m.ra) * Math.cos(m.dec * DEG),
       dDec: (dec - m.dec) * DEG,
@@ -409,6 +424,13 @@ export default async function build() {
   const kept = [];
   const seen = new Int32Array(rows.length);
   for (const s of stars) if (seen[s.c]++ < K) kept.push(s);
+  // Sky positions (Gaia epoch 2016.0) of the kept members, for builders that must not draw the same
+  // stars again (tools/milkyway/volumes/deep-stars.mjs). Not shipped.
+  mkdirSync(DERIVED, { recursive: true });
+  writeFileSync(
+    join(DERIVED, 'cluster-stars-kept.tsv'),
+    kept.map((s) => `${s.ra.toFixed(6)}\t${s.dec.toFixed(6)}\t${s.g.toFixed(2)}`).join('\n') + '\n',
+  );
   // rMem in pc: largest |component| of the kept members, with the cluster distance
   const rMemPc = new Float64Array(rows.length);
   for (const s of kept) {

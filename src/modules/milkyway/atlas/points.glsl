@@ -12,8 +12,14 @@ varying float vHalo;
 #ifdef COSMOS_VERTEX
 attribute float absMag;
 attribute vec3 color;
+#ifdef POINTS_SIMPLE
+// Plain stars only (the deep-star layer): no clump size, no model extinction.
+const float blob = 0.0;
+const float ext = 0.0;
+#else
 attribute float blob;
 attribute float ext;
+#endif
 uniform float uScale;       // LUX_MAG0 · exposure / pixelSolidAngle (E → pre-exposed L per px)
 uniform float uPixelAngle;
 uniform float uGain;        // 0 hides the layer
