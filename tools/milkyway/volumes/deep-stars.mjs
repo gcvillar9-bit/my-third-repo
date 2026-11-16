@@ -26,6 +26,7 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } 
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { createGunzip } from 'node:zlib';
+import { ROOT } from '../../lib/fetch.mjs';
 import { DEG, DERIVED, icrsFromGalacticXyz, num, OUT_DIR, source } from '../lib.mjs';
 
 const ATHYG_COMMIT = 'eebe42b3552ae04e67d27ae085a8aad997b42bc0';
@@ -73,6 +74,8 @@ export const decodeCoord = (q) => Math.sign(q) * S * (Math.exp((Math.abs(q) / 32
 const MATCH_ARCSEC = 1.5;
 /** Stars brighter than this (apparent magnitude) are all in HYG. */
 const BRIGHT_LIMIT = 7;
+/** Match radius for the stars that another module draws itself. */
+const ELSEWHERE_ARCSEC = 4;
 
 /** Sky grid of positions (degrees) for a cross-match within MATCH_ARCSEC. */
 function skyGrid(points) {
@@ -151,6 +154,16 @@ export default async function build() {
       .map((l) => l.split('\t').map(Number)),
   );
 
+  // Stars that another module draws itself (the nebulae module: the Trapezium, theta2 Ori A, NU Ori).
+  const orion = JSON.parse(readFileSync(join(ROOT, 'src', 'modules', 'nebulae', 'orion.json'), 'utf8'));
+  const elsewhere = orion.stars.map((st) => [st.raDeg, st.decDeg]);
+  const drawnElsewhere = (ra, dec) =>
+    elsewhere.some(
+      (p) =>
+        Math.hypot((((ra - p[0] + 540) % 360) - 180) * Math.cos(dec * DEG), dec - p[1]) <
+        ELSEWHERE_ARCSEC / 3600,
+    );
+
   // --- AT-HYG ---------------------------------------------------------------------------------
   const stat = {
     athygRows: 0,
@@ -158,6 +171,7 @@ export default async function build() {
     noDistance: 0,
     cluster: 0,
     bright: 0,
+    elsewhere: 0,
     zariRows: 0,
     zariInAthyg: 0,
     zariInHyg: 0,
@@ -219,6 +233,10 @@ export default async function build() {
     const pmdec = num(c[ix.pmdec]) ?? 0;
     const dec16 = dec + (pmdec * 16) / 3.6e6;
     const ra16 = ra + (pmra * 16) / 3.6e6 / Math.max(Math.cos(dec * DEG), 1e-6);
+    if (drawnElsewhere(ra, dec)) {
+      stat.elsewhere++;
+      continue;
+    }
     if (inCluster(((ra16 % 360) + 360) % 360, dec16)) {
       stat.cluster++;
       continue;
@@ -273,6 +291,10 @@ export default async function build() {
     }
     if (g < BRIGHT_LIMIT) {
       stat.bright++;
+      continue;
+    }
+    if (drawnElsewhere(num(c[zi.RA_ICRS]), num(c[zi.DE_ICRS]))) {
+      stat.elsewhere++;
       continue;
     }
     if (inCluster(num(c[zi.RA_ICRS]), num(c[zi.DE_ICRS]))) {

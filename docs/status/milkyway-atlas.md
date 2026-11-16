@@ -8,7 +8,7 @@
   measured warp and flare; 32 more S-star orbits (blackholes data); `hideGalaxies` hook (galaxies).
 - Phase 2: measured 3D dust within 1.2 kpc of the Sun in the volume model (Edenhofer et al. 2024, CC BY 4.0)
   and measured star-forming regions in the arm field, weighted by radio luminosity.
-- Phase 3: 1,091,752 deep stars (AT-HYG to magnitude 11, CC BY-SA 4.0; hot luminous stars of Zari et al.
+- Phase 3: 1,091,751 deep stars (AT-HYG to magnitude 11, CC BY-SA 4.0; hot luminous stars of Zari et al.
   2021), in two files so that low presets fetch 1.7 MB and the others 8.7 MB.
 - Build with an enforced evidence rule (`tools/milkyway/lib.mjs`): every fetched file has a sha256, every
   hand-entered value a quote checked against the fetched page. Details: `docs/modules/milkyway.md`.
