@@ -32,8 +32,24 @@ const LICENSES = {
     url: 'https://spdx.org/licenses/GPL-2.0-or-later.html',
   },
   'BSD-3-Clause': { name: 'BSD 3-Clause License', url: 'https://spdx.org/licenses/BSD-3-Clause.html' },
+  'CC0-1.0': {
+    name: 'Creative Commons Zero 1.0 (public domain dedication)',
+    url: 'https://creativecommons.org/publicdomain/zero/1.0/',
+  },
   reference: { name: 'Published reference data (facts, cited)', url: null },
+  // Not an SPDX id: manifests write `cited (<what the source states>)` for sources that are free to use with
+  // citation but state no open licence.
+  cited: { name: 'Free to use with citation', url: null },
 };
+
+/** Display name and link of a manifest licence string. `cited (...)` keeps its own detail in the name. */
+function licenseInfo(license) {
+  const known = LICENSES[license];
+  if (known) return known;
+  const cited = /^cited \((.+)\)$/.exec(license ?? '');
+  if (cited) return { name: `${LICENSES.cited.name} (${cited[1]})`, url: LICENSES.cited.url };
+  return { name: license, url: null };
+}
 
 function flagsFor(asset) {
   const flags = new Set(asset.flags ?? []);
@@ -44,13 +60,14 @@ function flagsFor(asset) {
 const entries = [];
 for (const m of listManifests()) {
   for (const a of m.assets) {
+    const info = licenseInfo(a.license);
     entries.push({
       module: m.module,
       id: a.id,
       url: a.url ?? null,
       license: a.license,
-      licenseName: LICENSES[a.license]?.name ?? a.license,
-      licenseUrl: LICENSES[a.license]?.url ?? null,
+      licenseName: info.name,
+      licenseUrl: info.url,
       attribution: a.attribution,
       copyright: a.copyright ?? [],
       flags: flagsFor(a),
