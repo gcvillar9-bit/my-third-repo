@@ -30,6 +30,7 @@ import type { AtlasState } from '../guides';
 import { MODEL, SUN_MODEL, WORLD_TO_MODEL } from '../model';
 import type { Atlas } from './catalog';
 import shader from './points.glsl?raw';
+import { orderByVisibility } from './visibility';
 
 /** Largest number of member stars drawn per open cluster (the file holds up to 82, brightest first). */
 export const STARS_PER_CLUSTER: Record<QualityPreset, number> = {
@@ -322,10 +323,13 @@ export const createStarPoints = (b: PointBuilder, state: AtlasState): PointLayer
 /** One additive Points draw of photometric stars; `visible` is read every frame. */
 export function createPointLayer(
   id: string,
-  data: PointArrays,
+  input: PointArrays,
   visible: () => boolean,
   renderOrder: number,
 ): PointLayer {
+  // Brightest from the Sun first, so that near the Sun only the stars that can show are drawn.
+  const order = orderByVisibility(input);
+  const data = order.data;
   const n = data.mag.length;
   const simple = !data.blob || !data.ext;
   const geometry = new BufferGeometry();
@@ -394,7 +398,12 @@ export function createPointLayer(
       cameraModel(view, camModel);
       (uniforms.uCamModel.value as Vector3).set(camModel.x, camModel.y, camModel.z);
       uniforms.uPixelAngle.value = view.pixelAngle;
-      uniforms.uScale.value = (LUX_MAG0 * view.exposure) / (view.pixelAngle * view.pixelAngle);
+      const scale = (LUX_MAG0 * view.exposure) / (view.pixelAngle * view.pixelAngle);
+      uniforms.uScale.value = scale;
+      const near = Math.hypot(camPc.x, camPc.y, camPc.z) < order.nearPc;
+      const count = near ? order.countFor(scale * (uniforms.uGain.value as number)) : n;
+      geometry.setDrawRange(0, count);
+      if (count === 0) points.visible = false;
     },
     memoryBytes: () => bytes,
     dispose() {

@@ -205,6 +205,13 @@ cluster's `rMem` / 32767 pc), `g` u8 × N (Gaia G = g × 0.08), `c` u8 × N (BP�
   the centre populations are dimmed and reddened by the model dust along the line of sight (closed-form
   integral in the vertex shader), so the nuclear star cluster is hidden from the Sun (A_V ≈ 30) and visible
   from close by. Per cluster 12/24/48/82/82 stars by preset.
+- **Draw range near the Sun** (`visibility.ts`, both point layers): the shader removes a point below a fixed
+  peak brightness, but it still runs for every point. While the camera is within 1% of the nearest point's
+  distance from the Sun, the points (ordered once in 0.25 mag bins of their brightness from the Sun) are
+  drawn only as far as the last one that can pass that cut at the current exposure; in a daylit planet
+  view that is none, and the draw is skipped. The limit is an upper bound (no extinction, smallest point
+  size, 0.1 mag margin), so the picture is the same. It keeps the software-rendered flight tests of other
+  modules as fast as without the atlas. Unit test `visibility.test.ts`.
 - **Guides** (`guide-render.ts`, `labels.ts`): what is invisible to the eye or is a concept is a guide: symbol
   markers (pulsars, remnants as rings of their real size, clouds, star-forming regions), lines (stream
   tracks, arms: solid over the measured azimuth range, dashed 40° beyond it, Radcliffe Wave, Magellanic gas),
