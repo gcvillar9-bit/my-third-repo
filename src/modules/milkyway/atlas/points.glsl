@@ -60,17 +60,19 @@ void main() {
   vec3 rel = rteRelative(position);
   float d = max(length(rel), 1e-6);
   float m = absMag + 5.0 * log2(d * 0.1) * 0.30102999566;
-  vec3 tint = color;
-  if (ext > 0.5) {
-    float tau = min(dustTau(uCamModel, uSunModel + uWorldToModel * (position * 1e-3)), 40.0);
-    m += 1.0857 * tau;
-    tint *= exp(-tau * (MW_REDDEN - 1.0));
-  }
-  float i1 = uGain * uScale * exp2(-1.3287712380 * m);
   float sigma = CORE_SIGMA;
   if (blob > 0.0) sigma = length(vec2(CORE_SIGMA, blob / (d * uPixelAngle)));
-  float peak = i1 / (6.2831853 * sigma * sigma);
-  if (peak < (blob > 0.0 ? MIN_BLOB_PEAK : MIN_PEAK)) {
+  float norm = 6.2831853 * sigma * sigma;
+  float cut = blob > 0.0 ? MIN_BLOB_PEAK : MIN_PEAK;
+  float i1 = uGain * uScale * exp2(-1.3287712380 * m);
+  vec3 tint = color;
+  // Extinction only dims: a point already below the cut does not need the dust integral.
+  if (ext > 0.5 && i1 >= cut * norm) {
+    float tau = min(dustTau(uCamModel, uSunModel + uWorldToModel * (position * 1e-3)), 40.0);
+    i1 = uGain * uScale * exp2(-1.3287712380 * (m + 1.0857 * tau));
+    tint *= exp(-tau * (MW_REDDEN - 1.0));
+  }
+  if (i1 < cut * norm) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     gl_PointSize = 0.0;
     vColor = vec3(0.0);
